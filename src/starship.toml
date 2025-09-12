@@ -1,0 +1,60 @@
+[cmd_duration]
+min_time = 500
+format = 'underwent [$duration](bold yellow)'
+
+[shell]
+fish_indicator = '󰈺 '
+powershell_indicator = '_'
+unknown_indicator = 'mystery shell'
+style = 'cyan bold'
+disabled = false
+
+[time]
+disabled = false
+format = '󱎫 [\[ $time \]]($style) '
+time_format = '%T'
+utc_time_offset = '-5'
+time_range = '10:00:00-14:00:00'
+
+[git_commit]
+commit_hash_length = 4
+tag_symbol = '󰓹 '
+
+[git_state]
+format = '[\($state( $progress_current of $progress_total)\)]($style) '
+cherry_pick = '[ PICKING](bold red)'
+
+[git_status]
+ahead = '⇡${count}'
+diverged = '⇕⇡${ahead_count}⇣${behind_count}'
+behind = '⇣${count}'
+
+[dart]
+format = 'via [ $version](bold blue) '
+
+[golang]
+format = 'via [ $version](bold cyan) '
+
+[java]
+symbol = '󰬷 '
+
+[lua]
+format = 'via [ $version](bold blue) '
+
+[nodejs]
+format = 'via [󰎙 $version](bold green) '
+
+[package]
+format = 'via [ $version](208 bold) '
+
+[python]
+symbol = '󰌠 '
+pyenv_version_name = true
+
+[status]
+style = ''
+symbol = '🔴 '
+success_symbol = '🟢SUCCESS'
+format = '[\[$symbol$common_meaning$signal_name$maybe_int\]]($style) '
+map_symbol = true
+disabled = false
