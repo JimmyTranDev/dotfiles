@@ -35,8 +35,8 @@ emojis=("👷" "📦" "📚" "✨" "🚀" "🔨" "💎" "🧪" "🐛" "⏪")
 PS3="Select change type: "
 select type_sel in "${types[@]}"; do
   if [[ $REPLY -ge 1 && $REPLY -le ${#types[@]} ]]; then
-    prefix="${types[$((REPLY-1))]}"
-    emoji="${emojis[$((REPLY-1))]}"
+    prefix="${types[$((REPLY - 1))]}"
+    emoji="${emojis[$((REPLY - 1))]}"
     break
   fi
   echo "Invalid selection, try again."
@@ -46,22 +46,22 @@ done
 read -p "Do you have a Jira ticket? (y/n): " has_jira
 jira_key=""
 summary_slug=""
+commit_title=""
 
 if [[ "$has_jira" =~ ^[Yy]$ ]]; then
   read -p "Enter Jira ticket number (e.g. SB-1234): " jira_key
   if [[ -z "$jira_key" ]]; then
     echo "No Jira key entered."
     exit 1
-    fi
-    summary=$(jira issue view "$jira_key" --raw | jq -r '.fields.summary')
-    # Format branch: fix/bw-9711_prefill-loan-value-in-altinn-data
-    jira_key_low=$(echo "$jira_key" | tr '[:upper:]' '[:lower:]')
-    slug=$(echo "$summary" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9 ]//g' | tr ' ' '-')
-    branch_name="${prefix}/${jira_key_low}_${slug}"
-    # Format commit: fix: 🐛 BW-9711 prefill loan value with altinn data
-    summary_commit=$(echo "$summary" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9 ]//g' | sed 's/  */ /g')
-    jira_key_up=$(echo "$jira_key" | tr '[:lower:]' '[:upper:]')
-    commit_title="${prefix}: ${emoji} ${jira_key_up} ${summary_commit}"
+  fi
+  summary=$(jira issue view "$jira_key" --raw | jq -r '.fields.summary')
+  # Format branch: fix/bw-9711_prefill-loan-value-in-altinn-data
+  jira_key_low=$(echo "$jira_key" | tr '[:upper:]' '[:lower:]')
+  slug=$(echo "$summary" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9 ]//g' | tr ' ' '-')
+  branch_name="${prefix}/${jira_key_low}_${slug}"
+  summary_commit=$(echo "$summary" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9 ]//g' | sed 's/  */ /g')
+  jira_key_up=$(echo "$jira_key" | tr '[:lower:]' '[:upper:]')
+  commit_title="${prefix}: ${emoji} ${jira_key_up} ${summary_commit}"
 else
   # No Jira, ask for slug
   read -p "Enter branch slug (lowercase, hyphens, e.g., my-feature): " slug
@@ -71,13 +71,14 @@ else
   fi
   branch_name="${prefix}/${slug}"
   summary_slug=$(echo "$slug" | tr '-' ' ')
+  commit_title="${prefix}: ${emoji} ${summary_slug}"
 fi
 
 # Create worktree
 worktree_path="$WORKTREES_DIR/$(echo "$branch_name" | tr '/' '_')"
-echo git worktree add -b "$branch_name" "$worktree_path"
 if git worktree add -b "$branch_name" "$worktree_path"; then
   cd "$worktree_path" || exit 1
+  echo "Changed directory to $worktree_path"
 else
   echo "Failed to create worktree. It may already exist."
   exit 1

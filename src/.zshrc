@@ -60,6 +60,21 @@ select_project() {
 zle -N select_project
 bindkey '^f' select_project
 
+select_worktree() {
+  local folder
+    local folder_name folder_path
+    folder_name=$(find "$HOME/Worktrees" -mindepth 1 -maxdepth 1 -type d | xargs -n1 basename | fzf --prompt="Select a worktree folder: ")
+    if [[ -n "$folder_name" ]]; then
+      folder_path="$HOME/Worktrees/$folder_name"
+      cd "$folder_path"
+    else
+      echo "No folder selected."
+      return 1
+  fi
+}
+zle -N select_worktree
+bindkey '^g' select_worktree
+
 eval "$(starship init zsh)"
 eval "$(fnm env --use-on-cd --shell zsh)"
 
