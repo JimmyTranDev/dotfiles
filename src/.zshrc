@@ -36,7 +36,8 @@ done
 [[ -f "$HOME/Programming/secrets/env.sh" ]] && source "$HOME/Programming/secrets/env.sh"
 
 alias a='eval "$(poetry env activate)"'
-alias b='$HOME/Programming/dotfiles/etc/scripts/create_worktree.sh'
+alias wc='$HOME/Programming/dotfiles/etc/scripts/create_worktree.sh'
+alias wD='$HOME/Programming/dotfiles/etc/scripts/delete_worktree.sh'
 alias c='clear'
 alias e='exit'
 alias g='grep -rnw . -e'
