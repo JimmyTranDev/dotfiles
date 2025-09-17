@@ -100,20 +100,18 @@ else
   exit 1
 fi
 
+
 # Prepare commit message
-commit_title="${prefix}: ${emoji}"
-if [[ -n "$jira_key" ]]; then
-  commit_title+=" ${jira_key} ${summary_slug}"
-else
-  commit_title+=" ${summary_slug}"
-fi
-description=""
 if [[ -n "$jira_key" ]]; then
   if [[ -z "$ORG_JIRA_TICKET_LINK" ]]; then
     echo "Error: ORG_JIRA_TICKET_LINK environment variable is not set."
     exit 1
   fi
   description="Jira: ${ORG_JIRA_TICKET_LINK}${jira_key}"
+  commit_title="${prefix}: ${emoji} ${jira_key} ${summary_commit}"
+else
+  commit_title="${prefix}: ${emoji} ${summary_slug}"
+  description=""
 fi
 
 # Create empty commit

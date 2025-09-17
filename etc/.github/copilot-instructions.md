@@ -27,6 +27,18 @@
 1. Write unit tests for critical functions and components.
 1. Use descriptive names for test cases and assertions.
 1. Follow the project's testing framework and conventions.
+1. Use emojis for commit messages to indicate the type of change (e.g., ✨ for new features, 🐛 for bug fixes).
+
+## Copilot Chat Guidelines
+
+- Minimize unnecessary questions; prefer direct action when possible.
+- Gather context efficiently before making changes.
+- Only ask for clarification if absolutely required to avoid mistakes.
+- Prioritize speed and accuracy in all tasks.
+- Use best practices and popular tools/libraries when relevant.
+- Always confirm completion or blockers before ending a session.
+- Avoid repeating information or steps unless needed for clarity.
+- Respect user preferences and workspace conventions.
 
 ---
 
