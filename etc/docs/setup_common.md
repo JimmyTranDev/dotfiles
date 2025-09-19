@@ -11,8 +11,8 @@ ssh-add ~/.ssh/id_ed25519
 ## Install
 
 ```sh
-~/Programming/dotfiles/etc/scripts/clone_essential_repos.sh
-~/Programming/dotfiles/etc/scripts/install.sh
+~/Programming/dotfiles/etc/scripts/install/clone_essential_repos.sh
+~/Programming/dotfiles/etc/scripts/install/install.sh
 ```
 
 ## Sync secrets
