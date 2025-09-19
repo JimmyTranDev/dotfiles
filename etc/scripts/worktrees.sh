@@ -221,12 +221,16 @@ case "$subcommand" in
     if [[ ! -d "$MAIN_REPO/.git" ]]; then
       print_color yellow "Warning: $MAIN_REPO is not a valid git repository. Skipping git cleanup."
     else
-      if git -C "$MAIN_REPO" worktree list | grep -q " $WORKTREE_PATH "; then
+      cd "$MAIN_REPO" || {
+        print_color red "Error: Could not cd to $MAIN_REPO. Aborting."
+        exit 1
+      }
+      if git worktree list | grep -q " $WORKTREE_PATH "; then
         print_color yellow "Removing worktree via git..."
-        git -C "$MAIN_REPO" worktree remove "$WORKTREE_PATH"
+        git worktree remove "$WORKTREE_PATH"
       else
         print_color yellow "Worktree not listed in git, pruning stale references..."
-        git -C "$MAIN_REPO" worktree prune
+        git worktree prune
       fi
     fi
     if [[ -d "$WORKTREE_PATH" ]]; then
