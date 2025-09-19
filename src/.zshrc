@@ -50,10 +50,10 @@ alias f="$HOME/Programming/dotfiles/etc/scripts/fetch_all_folders.sh $HOME/Progr
 alias x='chmod +x ~/Programming/dotfiles/etc/scripts/*.sh'
 alias k="$HOME/Programming/dotfiles/etc/scripts/kill_port.sh"
 alias nvm='fnm'
-alias wn='$HOME/Programming/dotfiles/etc/scripts/create_worktree.sh'
-alias wD='$HOME/Programming/dotfiles/etc/scripts/delete_worktree.sh'
-alias wC="$HOME/Programming/dotfiles/etc/scripts/remove_merged_worktrees.sh"
-alias wr="$HOME/Programming/dotfiles/etc/scripts/rename_worktree_branch.sh"
+alias wn="$HOME/Programming/dotfiles/etc/scripts/worktree/worktree_create.sh"
+alias wD="$HOME/Programming/dotfiles/etc/scripts/worktree/worktree_delete.sh"
+alias wC="$HOME/Programming/dotfiles/etc/scripts/worktree/worktree_clean.sh"
+alias wr="$HOME/Programming/dotfiles/etc/scripts/worktree/worktree_rename.sh"
 
 select_project() {
   local selected_project
