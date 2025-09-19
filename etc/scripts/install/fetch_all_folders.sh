@@ -1,4 +1,6 @@
-#!/bin/bash
+
+#!/bin/zsh
+source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
 
 # Define the target directory (default to current if not passed)
 TARGET_DIR="${1:-.}"

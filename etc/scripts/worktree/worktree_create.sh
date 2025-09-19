@@ -4,26 +4,14 @@
 
 set -e
 
-autoload -U colors && colors
+
+source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
+require_tool git
+require_tool fzf
 
 PROGRAMMING_DIR="$HOME/Programming"
 WORKTREES_DIR="$HOME/Worktrees"
 mkdir -p "$WORKTREES_DIR"
-
-function require_tool() {
-  if ! command -v "$1" &>/dev/null; then
-    print -P "%F{red}Error: Required tool '$1' not found.%f"
-    exit 1
-  fi
-}
-require_tool git
-require_tool fzf
-
-# Slugify function for branch names
-slugify() {
-  local input="$1"
-  echo "$input" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//'
-}
 
 # Select project folder interactively
 cd "$PROGRAMMING_DIR" || exit 1

@@ -6,14 +6,8 @@ done
 # Usage: zsh worktree_delete.sh [worktree_path]
 
 set -e
-autoload -U colors && colors
 
-function require_tool() {
-  if ! command -v "$1" &>/dev/null; then
-    print -P "%F{red}Error: Required tool '$1' not found.%f"
-    exit 1
-  fi
-}
+source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
 require_tool git
 require_tool fzf
 

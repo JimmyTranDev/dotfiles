@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
 set -euo pipefail
 
 if [ "$(uname)" == "Darwin" ]; then

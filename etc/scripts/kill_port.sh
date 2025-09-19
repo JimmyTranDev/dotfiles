@@ -1,4 +1,6 @@
-#!/bin/bash
+
+#!/bin/zsh
+source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
 
 if [ -z "$1" ]; then
   echo "Usage: $0 <port>"

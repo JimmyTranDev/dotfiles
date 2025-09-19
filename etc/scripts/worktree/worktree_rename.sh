@@ -3,14 +3,8 @@
 # Usage: zsh worktree_rename.sh
 
 set -e
-autoload -U colors && colors
 
-function require_tool() {
-	if ! command -v "$1" &>/dev/null; then
-		print -P "%F{red}Error: Required tool '$1' not found.%f"
-		exit 1
-	fi
-}
+source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
 require_tool git
 
 current_branch=$(git rev-parse --abbrev-ref HEAD)
