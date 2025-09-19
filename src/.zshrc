@@ -50,10 +50,10 @@ alias f="$HOME/Programming/dotfiles/etc/scripts/install/fetch_all_folders.sh $HO
 alias x='find ~/Programming/dotfiles/etc/scripts -type f -name "*.sh" -exec chmod +x {} +'
 alias k="$HOME/Programming/dotfiles/etc/scripts/kill_port.sh"
 alias nvm='fnm'
-alias wn="$HOME/Programming/dotfiles/etc/scripts/worktree/worktree_create.sh"
-alias wD="$HOME/Programming/dotfiles/etc/scripts/worktree/worktree_delete.sh"
-alias wC="$HOME/Programming/dotfiles/etc/scripts/worktree/worktree_clean.sh"
-alias wr="$HOME/Programming/dotfiles/etc/scripts/worktree/worktree_rename.sh"
+alias wn='zsh $HOME/Programming/dotfiles/etc/scripts/worktrees.sh create'
+alias wD='zsh $HOME/Programming/dotfiles/etc/scripts/worktrees.sh delete'
+alias wC='zsh $HOME/Programming/dotfiles/etc/scripts/worktrees.sh clean'
+alias wr='zsh $HOME/Programming/dotfiles/etc/scripts/worktrees.sh rename'
 
 select_project() {
   local selected_project
