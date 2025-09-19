@@ -36,9 +36,6 @@ done
 [[ -f "$HOME/Programming/secrets/env.sh" ]] && source "$HOME/Programming/secrets/env.sh"
 
 alias a='eval "$(poetry env activate)"'
-alias wn='$HOME/Programming/dotfiles/etc/scripts/create_worktree.sh'
-alias wD='$HOME/Programming/dotfiles/etc/scripts/delete_worktree.sh'
-alias wC="$HOME/Programming/dotfiles/etc/scripts/remove_merged_worktrees.sh"
 alias c='clear'
 alias e='exit'
 alias g='grep -rnw . -e'
@@ -53,6 +50,10 @@ alias f="$HOME/Programming/dotfiles/etc/scripts/fetch_all_folders.sh $HOME/Progr
 alias x='chmod +x ~/Programming/dotfiles/etc/scripts/*.sh'
 alias k="$HOME/Programming/dotfiles/etc/scripts/kill_port.sh"
 alias nvm='fnm'
+alias wn='$HOME/Programming/dotfiles/etc/scripts/create_worktree.sh'
+alias wD='$HOME/Programming/dotfiles/etc/scripts/delete_worktree.sh'
+alias wC="$HOME/Programming/dotfiles/etc/scripts/remove_merged_worktrees.sh"
+alias wr="$HOME/Programming/dotfiles/etc/scripts/rename_worktree_branch.sh"
 
 select_project() {
   local selected_project
