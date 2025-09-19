@@ -218,12 +218,16 @@ case "$subcommand" in
       exit 1
     fi
     print_color yellow "Main repo detected at: $MAIN_REPO"
-    if git -C "$MAIN_REPO" worktree list | grep -q " $WORKTREE_PATH "; then
-      print_color yellow "Removing worktree via git..."
-      git -C "$MAIN_REPO" worktree remove "$WORKTREE_PATH"
+    if [[ ! -d "$MAIN_REPO/.git" ]]; then
+      print_color yellow "Warning: $MAIN_REPO is not a valid git repository. Skipping git cleanup."
     else
-      print_color yellow "Worktree not listed in git, pruning stale references..."
-      git -C "$MAIN_REPO" worktree prune
+      if git -C "$MAIN_REPO" worktree list | grep -q " $WORKTREE_PATH "; then
+        print_color yellow "Removing worktree via git..."
+        git -C "$MAIN_REPO" worktree remove "$WORKTREE_PATH"
+      else
+        print_color yellow "Worktree not listed in git, pruning stale references..."
+        git -C "$MAIN_REPO" worktree prune
+      fi
     fi
     if [[ -d "$WORKTREE_PATH" ]]; then
       print_color yellow "Deleting directory $WORKTREE_PATH..."
