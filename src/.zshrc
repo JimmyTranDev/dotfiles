@@ -38,6 +38,7 @@ done
 alias a='eval "$(poetry env activate)"'
 alias c='clear'
 alias e='exit'
+alias worktrees='zsh $HOME/Programming/dotfiles/etc/scripts/worktrees.sh'
 alias g='grep -rnw . -e'
 alias i="$HOME/Programming/dotfiles/etc/scripts/install/install.sh"
 alias I="$HOME/Programming/dotfiles/etc/scripts/update_dotfiles.sh"
@@ -50,6 +51,7 @@ alias f="$HOME/Programming/dotfiles/etc/scripts/install/fetch_all_folders.sh $HO
 alias x='find ~/Programming/dotfiles/etc/scripts -type f -name "*.sh" -exec chmod +x {} +'
 alias k="$HOME/Programming/dotfiles/etc/scripts/kill_port.sh"
 alias nvm='fnm'
+alias wo='zsh $HOME/Programming/dotfiles/etc/scripts/worktrees.sh checkout'
 alias wn='zsh $HOME/Programming/dotfiles/etc/scripts/worktrees.sh create'
 alias wD='zsh $HOME/Programming/dotfiles/etc/scripts/worktrees.sh delete'
 alias wC='zsh $HOME/Programming/dotfiles/etc/scripts/worktrees.sh clean'

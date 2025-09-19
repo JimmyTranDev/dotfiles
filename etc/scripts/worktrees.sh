@@ -82,12 +82,13 @@ WORKTREES_DIR="$HOME/Worktrees"
 PROGRAMMING_DIR="$HOME/Programming"
 
 function usage() {
-  print -P "%F{yellow}Usage:%f zsh worktrees.sh <create|delete|clean|rename> [args]"
+  print -P "%F{yellow}Usage:%f zsh worktrees.sh <create|delete|clean|rename|checkout> [args]"
   print -P "%F{yellow}Subcommands:%f"
-  print -P "  create   - Create a new worktree (interactive, JIRA supported)"
-  print -P "  delete   - Delete a worktree (interactive or by path)"
-  print -P "  clean    - Remove worktrees whose branches are merged into main"
-  print -P "  rename   - Rename current branch (JIRA supported)"
+  print -P "  create    - Create a new worktree (interactive, JIRA supported)"
+  print -P "  delete    - Delete a worktree (interactive or by path)"
+  print -P "  clean     - Remove worktrees whose branches are merged into main"
+  print -P "  rename    - Rename current branch (JIRA supported)"
+  print -P "  checkout  - Checkout a remote branch locally (interactive)"
   exit 1
 }
 
@@ -99,20 +100,59 @@ subcommand="$1"
 shift
 
 case "$subcommand" in
-  create)
+  checkout)
     require_tool git
     require_tool fzf
-    mkdir -p "$WORKTREES_DIR"
-    cd "$PROGRAMMING_DIR" || exit 1
     local proj
-    proj=$(ls -d */ | sed 's#/##' | sort | select_fzf "Select project folder: ")
+    proj=$(ls -d "$PROGRAMMING_DIR"/*/ | sed "s#$PROGRAMMING_DIR/##;s#/##" | sort | select_fzf "Select project folder: ")
     if [[ -z "$proj" || ! -d "$PROGRAMMING_DIR/$proj" ]]; then
       print_color red "No valid project selected."
       exit 1
     fi
     repo_dir="$PROGRAMMING_DIR/$proj"
-    cd "$repo_dir" || exit 1
-    git fetch origin develop || print_color yellow "Warning: Could not fetch 'develop' branch."
+    git -C "$repo_dir" fetch origin
+    remote_branches=( $(git -C "$repo_dir" branch -r | grep '^  origin/' | sed 's/^  origin\///' | grep -vE '^HEAD$' | sort) )
+    if [[ ${#remote_branches[@]} -eq 0 ]]; then
+      print_color red "No remote branches found."
+      exit 1
+    fi
+    branch_sel=$(select_fzf "Select remote branch to checkout: " "${remote_branches[@]}")
+    if [[ -z "$branch_sel" ]]; then
+      print_color red "No branch selected."
+      exit 1
+    fi
+    local_branch="$branch_sel"
+    if git -C "$repo_dir" show-ref --verify --quiet "refs/heads/$local_branch"; then
+      print_color yellow "Local branch '$local_branch' already exists."
+    else
+      git -C "$repo_dir" checkout -b "$local_branch" "origin/$branch_sel"
+      print_color green "Checked out '$local_branch' tracking 'origin/$branch_sel'."
+    fi
+    print_color cyan "Do you want to create a worktree for this branch? (y/n): "
+    read -r create_wt
+    if [[ "$create_wt" =~ ^[Yy]$ ]]; then
+      mkdir -p "$WORKTREES_DIR"
+      worktree_path="$WORKTREES_DIR/$(echo "$local_branch" | tr '/' '_')"
+      if git -C "$repo_dir" worktree add "$worktree_path" "$local_branch"; then
+        print_color green "Worktree created at: $worktree_path"
+        cd "$worktree_path" || print_color yellow "Warning: Could not cd to $worktree_path."
+      else
+        print_color red "Failed to create worktree. It may already exist."
+      fi
+    fi
+    ;;
+  create)
+    require_tool git
+    require_tool fzf
+    mkdir -p "$WORKTREES_DIR"
+    local proj
+    proj=$(ls -d "$PROGRAMMING_DIR"/*/ | sed "s#$PROGRAMMING_DIR/##;s#/##" | sort | select_fzf "Select project folder: ")
+    if [[ -z "$proj" || ! -d "$PROGRAMMING_DIR/$proj" ]]; then
+      print_color red "No valid project selected."
+      exit 1
+    fi
+    repo_dir="$PROGRAMMING_DIR/$proj"
+    git -C "$repo_dir" fetch origin develop || print_color yellow "Warning: Could not fetch 'develop' branch."
     types=(ci build docs feat perf refactor style test fix revert)
     emojis=("👷" "📦" "📚" "✨" "🚀" "🔨" "💎" "🧪" "🐛" "⏪")
     local prefix emoji
@@ -163,8 +203,8 @@ case "$subcommand" in
       commit_title="${prefix}: ${emoji} ${summary_commit}"
     fi
     worktree_path="$WORKTREES_DIR/$(echo "$branch_name" | tr '/' '_')"
-    if git worktree add -b "$branch_name" "$worktree_path"; then
-      cd "$worktree_path" || exit 1
+    if git -C "$repo_dir" worktree add -b "$branch_name" "$worktree_path"; then
+      cd "$worktree_path" || print_color yellow "Warning: Could not cd to $worktree_path."
       print_color green "Changed directory to $worktree_path"
     else
       print_color red "Failed to create worktree. It may already exist."
@@ -185,7 +225,7 @@ case "$subcommand" in
         description="Jira: ${ORG_JIRA_TICKET_LINK}${jira_key}"
       fi
     fi
-    git commit --allow-empty -m "$commit_title" ${description:+-m "$description"}
+    git -C "$repo_dir" commit --allow-empty -m "$commit_title" ${description:+-m "$description"}
     print_color green "Worktree created successfully at: $worktree_path"
     print_color green "Branch: $branch_name"
     ;;
@@ -221,16 +261,12 @@ case "$subcommand" in
     if [[ ! -d "$MAIN_REPO/.git" ]]; then
       print_color yellow "Warning: $MAIN_REPO is not a valid git repository. Skipping git cleanup."
     else
-      cd "$MAIN_REPO" || {
-        print_color red "Error: Could not cd to $MAIN_REPO. Aborting."
-        exit 1
-      }
-      if git worktree list | grep -q " $WORKTREE_PATH "; then
+      if git -C "$MAIN_REPO" worktree list | grep -q " $WORKTREE_PATH "; then
         print_color yellow "Removing worktree via git..."
-        git worktree remove "$WORKTREE_PATH"
+        git -C "$MAIN_REPO" worktree remove "$WORKTREE_PATH"
       else
         print_color yellow "Worktree not listed in git, pruning stale references..."
-        git worktree prune
+        git -C "$MAIN_REPO" worktree prune
       fi
     fi
     if [[ -d "$WORKTREE_PATH" ]]; then
@@ -245,9 +281,8 @@ case "$subcommand" in
     require_tool git
     main_branch="main"
     repo_root=$(git rev-parse --show-toplevel)
-    cd "$repo_root"
     print_color yellow "Scanning for merged worktrees..."
-    git worktree list | while read -r line; do
+    git -C "$repo_root" worktree list | while read -r line; do
       worktree_path=$(echo "$line" | awk '{print $1}')
       branch_ref=$(echo "$line" | grep -oE ' \[.*\]' | sed 's/\[//;s/\]//')
       branch_name=""
@@ -257,17 +292,18 @@ case "$subcommand" in
       if [[ -z "$branch_name" || "$branch_name" == "$main_branch" ]]; then
         continue
       fi
-      if git branch --merged "$main_branch" | grep -q "^  $branch_name$"; then
+      if git -C "$repo_root" branch --merged "$main_branch" | grep -q "^  $branch_name$"; then
         print_color yellow "Removing merged worktree: $worktree_path (branch: $branch_name)"
-        git worktree remove "$worktree_path"
-        git branch -d "$branch_name"
+        git -C "$repo_root" worktree remove "$worktree_path"
+        git -C "$repo_root" branch -d "$branch_name"
       fi
     done
     print_color green "Done removing merged worktrees."
     ;;
   rename)
     require_tool git
-    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    repo_root=$(git rev-parse --show-toplevel)
+    current_branch=$(git -C "$repo_root" rev-parse --abbrev-ref HEAD)
     print_color cyan "Current branch: $current_branch"
     jira_pattern='^[A-Z]+-[0-9]+'
     if [[ "$current_branch" =~ $jira_pattern ]]; then
@@ -283,7 +319,7 @@ case "$subcommand" in
           print_color green "Branch name already matches desired format. No changes made."
           exit 0
         fi
-        git branch -m "$new_branch"
+        git -C "$repo_root" branch -m "$new_branch"
         print_color green "Branch renamed to: $new_branch"
       else
         print_color red "Could not fetch summary. No changes made."
@@ -309,7 +345,7 @@ case "$subcommand" in
     else
       new_branch="$input"
     fi
-    git branch -m "$new_branch"
+    git -C "$repo_root" branch -m "$new_branch"
     print_color green "Branch renamed to: $new_branch"
     ;;
   *)
