@@ -315,26 +315,37 @@ case "$subcommand" in
     ;;
   clean)
     require_tool git
-    main_branch="main"
     repo_root=$(git rev-parse --show-toplevel)
-    print_color yellow "Scanning for merged worktrees..."
-    git -C "$repo_root" worktree list | while read -r line; do
-      worktree_path=$(echo "$line" | awk '{print $1}')
-      branch_ref=$(echo "$line" | grep -oE ' \[.*\]' | sed 's/\[//;s/\]//')
-      branch_name=""
-      if [[ "$branch_ref" == refs/heads/* ]]; then
-        branch_name=${branch_ref#refs/heads/}
-      fi
-      if [[ -z "$branch_name" || "$branch_name" == "$main_branch" ]]; then
-        continue
-      fi
-      if git -C "$repo_root" branch --merged "$main_branch" | grep -q "^  $branch_name$"; then
-        print_color yellow "Removing merged worktree: $worktree_path (branch: $branch_name)"
-        git -C "$repo_root" worktree remove "$worktree_path"
-        git -C "$repo_root" branch -d "$branch_name"
+    for main_branch in develop main; do
+      if git -C "$repo_root" rev-parse --verify $main_branch >/dev/null 2>&1; then
+        print_color yellow "Pulling latest $main_branch..."
+        git -C "$repo_root" checkout $main_branch && git -C "$repo_root" pull origin $main_branch
+        print_color yellow "Scanning for branches merged into $main_branch..."
+        merged_branches=$(git -C "$repo_root" branch --merged $main_branch | grep -v "^*" | grep -v " $main_branch$" | sed 's/^  //')
+        for branch_name in $merged_branches; do
+          # Find worktree path for this branch
+          worktree_path=$(git -C "$repo_root" worktree list --porcelain | awk -v b="$branch_name" '
+            $1=="worktree" {path=$2; in_block=0}
+            $1=="branch" && $2=="refs/heads/"b {in_block=1}
+            in_block && $1=="worktree" {print path}
+          ')
+          if [[ -n "$worktree_path" && -d "$worktree_path" ]]; then
+            print_color yellow "Removing merged worktree: $worktree_path (branch: $branch_name)"
+            remove_worktree_and_branch "$repo_root" "$worktree_path" "$branch_name" || true
+            if [[ -d "$worktree_path" ]]; then
+              print_color yellow "Force removing directory $worktree_path..."
+              rm -rf "$worktree_path"
+            fi
+          else
+            print_color yellow "Removing merged branch: $branch_name (no worktree)"
+            git -C "$repo_root" branch -d "$branch_name" || true
+          fi
+        done
+      else
+        print_color yellow "Branch $main_branch does not exist, skipping."
       fi
     done
-    print_color green "Done removing merged worktrees."
+    print_color green "Done removing merged worktrees and branches."
     ;;
   rename)
     require_tool git
