@@ -104,11 +104,34 @@ case "$subcommand" in
     require_tool git
     require_tool fzf
     local proj
-    proj=$(ls -d "$PROGRAMMING_DIR"/*/ | sed "s#$PROGRAMMING_DIR/##;s#/##" | sort | select_fzf "Select project folder: ")
+    local last_proj_file="$HOME/.last_project"
+    local last_proj=""
+    if [[ -f "$last_proj_file" ]]; then
+      last_proj=$(<"$last_proj_file")
+    fi
+    local all_projects
+    all_projects=($(ls -d "$PROGRAMMING_DIR"/*/ | sed "s#$PROGRAMMING_DIR/##;s#/##" | sort))
+    local projects_list=()
+    if [[ -n "$last_proj" ]]; then
+      for p in "${all_projects[@]}"; do
+        if [[ "$p" == "$last_proj" ]]; then
+          projects_list=("$p")
+        fi
+      done
+      for p in "${all_projects[@]}"; do
+        if [[ "$p" != "$last_proj" ]]; then
+          projects_list+=("$p")
+        fi
+      done
+    else
+      projects_list=("${all_projects[@]}")
+    fi
+    proj=$(select_fzf "Select project folder: " "${projects_list[@]}")
     if [[ -z "$proj" || ! -d "$PROGRAMMING_DIR/$proj" ]]; then
       print_color red "No valid project selected."
       exit 1
     fi
+    echo "$proj" > "$last_proj_file"
     repo_dir="$PROGRAMMING_DIR/$proj"
     git -C "$repo_dir" fetch origin
     remote_branches=( $(git -C "$repo_dir" branch -r | grep '^  origin/' | sed 's/^  origin\///' | grep -vE '^HEAD$' | sort) )
@@ -146,11 +169,34 @@ case "$subcommand" in
     require_tool fzf
     mkdir -p "$WORKTREES_DIR"
     local proj
-    proj=$(ls -d "$PROGRAMMING_DIR"/*/ | sed "s#$PROGRAMMING_DIR/##;s#/##" | sort | select_fzf "Select project folder: ")
+    local last_proj_file="$HOME/.last_project"
+    local last_proj=""
+    if [[ -f "$last_proj_file" ]]; then
+      last_proj=$(<"$last_proj_file")
+    fi
+    local all_projects
+    all_projects=($(ls -d "$PROGRAMMING_DIR"/*/ | sed "s#$PROGRAMMING_DIR/##;s#/##" | sort))
+    local projects_list=()
+    if [[ -n "$last_proj" ]]; then
+      for p in "${all_projects[@]}"; do
+        if [[ "$p" == "$last_proj" ]]; then
+          projects_list=("$p")
+        fi
+      done
+      for p in "${all_projects[@]}"; do
+        if [[ "$p" != "$last_proj" ]]; then
+          projects_list+=("$p")
+        fi
+      done
+    else
+      projects_list=("${all_projects[@]}")
+    fi
+    proj=$(select_fzf "Select project folder: " "${projects_list[@]}")
     if [[ -z "$proj" || ! -d "$PROGRAMMING_DIR/$proj" ]]; then
       print_color red "No valid project selected."
       exit 1
     fi
+    echo "$proj" > "$last_proj_file"
     repo_dir="$PROGRAMMING_DIR/$proj"
     git -C "$repo_dir" fetch origin develop || print_color yellow "Warning: Could not fetch 'develop' branch."
     types=(ci build docs feat perf refactor style test fix revert)
@@ -225,7 +271,7 @@ case "$subcommand" in
         description="Jira: ${ORG_JIRA_TICKET_LINK}${jira_key}"
       fi
     fi
-    git -C "$repo_dir" commit --allow-empty -m "$commit_title" ${description:+-m "$description"}
+  git -C "$worktree_path" commit --allow-empty -m "$commit_title" ${description:+-m "$description"}
     print_color green "Worktree created successfully at: $worktree_path"
     print_color green "Branch: $branch_name"
     ;;
