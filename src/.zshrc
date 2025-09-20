@@ -58,9 +58,32 @@ alias wC='zsh $HOME/Programming/dotfiles/etc/scripts/worktrees.sh clean'
 alias wr='zsh $HOME/Programming/dotfiles/etc/scripts/worktrees.sh rename'
 
 select_project() {
+  local last_proj_file="$HOME/.last_project"
+  local last_proj=""
+  [[ -f "$last_proj_file" ]] && last_proj=$(<"$last_proj_file")
+  local all_projects
+  all_projects=($(ls -d "$HOME/Programming"/*/ | sed "s#$HOME/Programming/##;s#/##" | sort))
+  local projects_list=()
+  if [[ -n "$last_proj" ]]; then
+    for p in "${all_projects[@]}"; do
+      if [[ "$p" == "$last_proj" ]]; then
+        projects_list=("$p")
+      fi
+    done
+    for p in "${all_projects[@]}"; do
+      if [[ "$p" != "$last_proj" ]]; then
+        projects_list+=("$p")
+      fi
+    done
+  else
+    projects_list=("${all_projects[@]}")
+  fi
   local selected_project
-  selected_project=$(ls ~/Programming/ | fzf)
-  [[ -n $selected_project ]] && cd "$HOME/Programming/$selected_project" && nvim
+  selected_project=$(printf "%s\n" "${projects_list[@]}" | fzf)
+  if [[ -n $selected_project ]]; then
+    echo "$selected_project" > "$last_proj_file"
+    cd "$HOME/Programming/$selected_project" && nvim
+  fi
 }
 zle -N select_project
 bindkey '^f' select_project
