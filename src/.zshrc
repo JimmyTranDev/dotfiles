@@ -75,6 +75,14 @@ select_worktree() {
 zle -N select_worktree
 bindkey '^g' select_worktree
 
+select_profile_folder() {
+  local all_profiles
+  all_profiles=($(ls -d "$HOME/Programming/profile"/*/ 2>/dev/null | xargs -n1 basename | sort))
+  fzf_select_and_cd "Select profile folder: " "$HOME/Programming/profile" "$HOME/.last_profile" "" "${all_profiles[@]}"
+}
+zle -N select_profile_folder
+bindkey '^p' select_profile_folder
+
 eval "$(starship init zsh)"
 eval "$(fnm env --use-on-cd --shell zsh)"
 
