@@ -131,10 +131,38 @@ case "$subcommand" in
     echo "$proj" > "$HOME/.last_project"
     local repo_dir="$PROGRAMMING_DIR/$proj"
     git -C "$repo_dir" fetch origin
-    local remote_branches=( $(git -C "$repo_dir" branch -r | grep '^  origin/' | sed 's/^  origin\///' | grep -vE '^HEAD$' | sort) )
-    [[ ${#remote_branches[@]} -eq 0 ]] && print_color red "No remote branches found." && exit 1
+    # Get your git user info
+    local user_email user_name
+    user_email=$(git -C "$repo_dir" config user.email)
+    user_name=$(git -C "$repo_dir" config user.name)
+    # Get all remote branches
+    local all_remote_branches
+  all_remote_branches=( $(git -C "$repo_dir" branch -r | grep '^  origin/' | sed 's/^  origin\///' | grep -vE '^HEAD$' | sort) )
+    # Get branches with worktrees
+    local worktree_branches
+  worktree_branches=( $(git -C "$repo_dir" worktree list --porcelain | awk '/^branch /{gsub("refs/heads/", "", $2); print $2}') )
+    # Filter branches: not authored by you and no worktree
+    local filtered_branches=()
+    for branch in "${all_remote_branches[@]}"; do
+      branch=$(echo "$branch" | xargs)
+      # Skip if worktree exists
+      if [[ " ${worktree_branches[@]} " =~ " $branch " ]]; then
+        continue
+      fi
+      # Get author email for branch's latest commit
+      local author_email
+      author_email=$(git -C "$repo_dir" log -1 --pretty=format:'%ae' origin/$branch 2>/dev/null | xargs)
+      # If author is you, skip (ignore whitespace and %)
+      clean_user_email=$(echo "$user_email" | xargs | tr -d '%')
+      clean_author_email=$(echo "$author_email" | xargs | tr -d '%')
+      if [[ "$clean_author_email" == "$clean_user_email" ]]; then
+        continue
+      fi
+      filtered_branches+=("$branch")
+    done
+    [[ ${#filtered_branches[@]} -eq 0 ]] && print_color red "No eligible remote branches found." && exit 1
     local branch_sel
-    branch_sel=$(select_fzf "Select remote branch to checkout: " "${remote_branches[@]}")
+    branch_sel=$(select_fzf "Select remote branch to checkout: " "${filtered_branches[@]}")
     [[ -z "$branch_sel" ]] && print_color red "No branch selected." && exit 1
     local local_branch="$branch_sel"
     if git -C "$repo_dir" show-ref --verify --quiet "refs/heads/$local_branch"; then
