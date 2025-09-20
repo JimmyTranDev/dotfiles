@@ -283,17 +283,17 @@ case "$subcommand" in
     WORKTREE_GITDIR="${BASH_REMATCH[1]}"
     MAIN_REPO=$(dirname "$(dirname "$WORKTREE_GITDIR")")
     print_color yellow "Main repo detected at: $MAIN_REPO"
+    # Change to main repo directory before git operations
+    cd "$MAIN_REPO"
     # Detect branch name robustly for the selected worktree
-    BRANCH_NAME=$(git -C "$MAIN_REPO" worktree list --porcelain | awk -v path="$WORKTREE_PATH" '
+    BRANCH_NAME=$(git worktree list --porcelain | awk -v path="$WORKTREE_PATH" '
       $1=="worktree" {in_block=($2==path)}
       in_block && $1=="branch" {print $2}
     ' | sed 's#refs/heads/##')
     if [[ -n "$BRANCH_NAME" ]]; then
-      print_color yellow "Removing worktree and branch: $WORKTREE_PATH ($BRANCH_NAME)"
       remove_worktree_and_branch "$MAIN_REPO" "$WORKTREE_PATH" "$BRANCH_NAME" || true
     else
-      print_color yellow "Branch not detected, only removing worktree."
-      git -C "$MAIN_REPO" worktree remove "$WORKTREE_PATH" || true
+      git worktree remove "$WORKTREE_PATH" || true
     fi
     # Always attempt to remove directory
     if [[ -d "$WORKTREE_PATH" ]]; then
