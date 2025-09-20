@@ -278,48 +278,38 @@ case "$subcommand" in
   delete)
     require_tool git
     require_tool fzf
+    # Select worktree path
     if [[ $# -eq 1 ]]; then
       WORKTREE_PATH="$1"
     else
       WORKTREE_PATH=$(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d | sort | select_fzf "Select a worktree to delete: ")
-      if [[ -z "$WORKTREE_PATH" ]]; then
-        print_color red "No worktree selected."
-        exit 1
-      fi
+      [[ -z "$WORKTREE_PATH" ]] && print_color red "No worktree selected." && exit 1
     fi
-    if [[ ! -d "$WORKTREE_PATH" ]]; then
-      print_color red "Error: Directory $WORKTREE_PATH does not exist."
-      exit 1
-    fi
-    if [[ ! -f "$WORKTREE_PATH/.git" ]]; then
-      print_color red "Error: $WORKTREE_PATH does not look like a git worktree (missing .git file)."
-      exit 1
-    fi
+    # Validate worktree
+    [[ ! -d "$WORKTREE_PATH" ]] && print_color red "Error: Directory $WORKTREE_PATH does not exist." && exit 1
+    [[ ! -f "$WORKTREE_PATH/.git" ]] && print_color red "Error: $WORKTREE_PATH does not look like a git worktree (missing .git file)." && exit 1
+    # Detect main repo
     GITDIR_LINE=$(head -n1 "$WORKTREE_PATH/.git")
-    if [[ "$GITDIR_LINE" =~ ^gitdir:\ (.*)$ ]]; then
-      WORKTREE_GITDIR="${BASH_REMATCH[1]}"
-      MAIN_REPO=$(dirname "$(dirname "$WORKTREE_GITDIR")")
-    else
-      print_color red "Error: Could not parse .git file in $WORKTREE_PATH"
-      exit 1
-    fi
+    [[ "$GITDIR_LINE" =~ ^gitdir:\ (.*)$ ]] || { print_color red "Error: Could not parse .git file in $WORKTREE_PATH"; exit 1; }
+    WORKTREE_GITDIR="${BASH_REMATCH[1]}"
+    MAIN_REPO=$(dirname "$(dirname "$WORKTREE_GITDIR")")
     print_color yellow "Main repo detected at: $MAIN_REPO"
-    if [[ ! -d "$MAIN_REPO/.git" ]]; then
-      print_color yellow "Warning: $MAIN_REPO is not a valid git repository. Skipping git cleanup."
+    # Detect branch name robustly for the selected worktree
+    BRANCH_NAME=$(git -C "$MAIN_REPO" worktree list --porcelain | awk -v path="$WORKTREE_PATH" '
+      $1=="worktree" {in_block=($2==path)}
+      in_block && $1=="branch" {print $2}
+    ' | sed 's#refs/heads/##')
+    if [[ -n "$BRANCH_NAME" ]]; then
+      print_color yellow "Removing worktree and branch: $WORKTREE_PATH ($BRANCH_NAME)"
+      remove_worktree_and_branch "$MAIN_REPO" "$WORKTREE_PATH" "$BRANCH_NAME" || true
     else
-      if git -C "$MAIN_REPO" worktree list | grep -q " $WORKTREE_PATH "; then
-        print_color yellow "Removing worktree via git..."
-        git -C "$MAIN_REPO" worktree remove "$WORKTREE_PATH"
-      else
-        print_color yellow "Worktree not listed in git, pruning stale references..."
-        git -C "$MAIN_REPO" worktree prune
-      fi
+      print_color yellow "Branch not detected, only removing worktree."
+      git -C "$MAIN_REPO" worktree remove "$WORKTREE_PATH" || true
     fi
+    # Always attempt to remove directory
     if [[ -d "$WORKTREE_PATH" ]]; then
-      print_color yellow "Deleting directory $WORKTREE_PATH..."
+      print_color yellow "Force removing directory $WORKTREE_PATH..."
       rm -rf "$WORKTREE_PATH"
-    else
-      print_color green "Directory $WORKTREE_PATH already deleted."
     fi
     print_color green "✅ Worktree deletion complete."
     ;;
