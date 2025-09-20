@@ -9,28 +9,48 @@ source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
 
 # --- Reusable Functions ---
 
-# Print colored message
-function print_color() {
-  local color="$1"; shift
-  print -P "%F{$color}$*%f"
-}
 
-# Prompt for input with color
-function prompt_input() {
+# Print colored message
+print_color() {
   local color="$1"; shift
   print -P "%F{$color}$*%f"
-  read -r input
-  echo "$input"
 }
 
 # Select from list using fzf
-function select_fzf() {
+select_fzf() {
   local prompt="$1"; shift
-  if [[ $# -gt 0 ]]; then
-    printf "%s\n" "$@" | fzf --prompt="$prompt"
+  [[ $# -gt 0 ]] && printf "%s\n" "$@" | fzf --prompt="$prompt" || fzf --prompt="$prompt"
+}
+
+# Get package manager in repo
+detect_package_manager() {
+  [[ -f pnpm-lock.yaml ]] && echo "pnpm" && return
+  [[ -f package-lock.json ]] && echo "npm" && return
+  [[ -f yarn.lock ]] && echo "yarn" && return
+  echo ""
+}
+
+# Remove worktree and branch
+remove_worktree_and_branch() {
+  local repo="$1" worktree_path="$2" branch_name="$3"
+  git -C "$repo" worktree remove "$worktree_path"
+  git -C "$repo" branch -d "$branch_name"
+}
+
+# Select project interactively, prioritizing last used
+select_project() {
+  local last_proj_file="$HOME/.last_project"
+  local last_proj=""
+  [[ -f "$last_proj_file" ]] && last_proj=$(<"$last_proj_file")
+  local all_projects=( $(ls -d "$PROGRAMMING_DIR"/*/ | sed "s#$PROGRAMMING_DIR/##;s#/##" | sort) )
+  local projects_list=()
+  if [[ -n "$last_proj" ]]; then
+    for p in "${all_projects[@]}"; do [[ "$p" == "$last_proj" ]] && projects_list+=("$p"); done
+    for p in "${all_projects[@]}"; do [[ "$p" != "$last_proj" ]] && projects_list+=("$p"); done
   else
-    fzf --prompt="$prompt"
+    projects_list=("${all_projects[@]}")
   fi
+  select_fzf "Select project folder: " "${projects_list[@]}"
 }
 
 # Get package manager in repo
@@ -104,64 +124,39 @@ case "$subcommand" in
     require_tool git
     require_tool fzf
     local proj
-    local last_proj_file="$HOME/.last_project"
-    local last_proj=""
-    if [[ -f "$last_proj_file" ]]; then
-      last_proj=$(<"$last_proj_file")
-    fi
-    local all_projects
-    all_projects=($(ls -d "$PROGRAMMING_DIR"/*/ | sed "s#$PROGRAMMING_DIR/##;s#/##" | sort))
-    local projects_list=()
-    if [[ -n "$last_proj" ]]; then
-      for p in "${all_projects[@]}"; do
-        if [[ "$p" == "$last_proj" ]]; then
-          projects_list=("$p")
-        fi
-      done
-      for p in "${all_projects[@]}"; do
-        if [[ "$p" != "$last_proj" ]]; then
-          projects_list+=("$p")
-        fi
-      done
-    else
-      projects_list=("${all_projects[@]}")
-    fi
-    proj=$(select_fzf "Select project folder: " "${projects_list[@]}")
+    proj=$(select_project)
     if [[ -z "$proj" || ! -d "$PROGRAMMING_DIR/$proj" ]]; then
-      print_color red "No valid project selected."
-      exit 1
+      print_color red "No valid project selected."; exit 1
     fi
-    echo "$proj" > "$last_proj_file"
-    repo_dir="$PROGRAMMING_DIR/$proj"
+    echo "$proj" > "$HOME/.last_project"
+    local repo_dir="$PROGRAMMING_DIR/$proj"
     git -C "$repo_dir" fetch origin
-    remote_branches=( $(git -C "$repo_dir" branch -r | grep '^  origin/' | sed 's/^  origin\///' | grep -vE '^HEAD$' | sort) )
-    if [[ ${#remote_branches[@]} -eq 0 ]]; then
-      print_color red "No remote branches found."
-      exit 1
-    fi
+    local remote_branches=( $(git -C "$repo_dir" branch -r | grep '^  origin/' | sed 's/^  origin\///' | grep -vE '^HEAD$' | sort) )
+    [[ ${#remote_branches[@]} -eq 0 ]] && print_color red "No remote branches found." && exit 1
+    local branch_sel
     branch_sel=$(select_fzf "Select remote branch to checkout: " "${remote_branches[@]}")
-    if [[ -z "$branch_sel" ]]; then
-      print_color red "No branch selected."
-      exit 1
-    fi
-    local_branch="$branch_sel"
+    [[ -z "$branch_sel" ]] && print_color red "No branch selected." && exit 1
+    local local_branch="$branch_sel"
     if git -C "$repo_dir" show-ref --verify --quiet "refs/heads/$local_branch"; then
       print_color yellow "Local branch '$local_branch' already exists."
     else
-      git -C "$repo_dir" checkout -b "$local_branch" "origin/$branch_sel"
-      print_color green "Checked out '$local_branch' tracking 'origin/$branch_sel'."
+      print_color green "Branch '$local_branch' will be created with worktree."
     fi
-    print_color cyan "Do you want to create a worktree for this branch? (y/n): "
-    read -r create_wt
-    if [[ "$create_wt" =~ ^[Yy]$ ]]; then
-      mkdir -p "$WORKTREES_DIR"
-      worktree_path="$WORKTREES_DIR/$(echo "$local_branch" | tr '/' '_')"
-      if git -C "$repo_dir" worktree add "$worktree_path" "$local_branch"; then
-        print_color green "Worktree created at: $worktree_path"
-        cd "$worktree_path" || print_color yellow "Warning: Could not cd to $worktree_path."
+    mkdir -p "$WORKTREES_DIR"
+    local worktree_path="$WORKTREES_DIR/$(echo "$local_branch" | tr '/' '_')"
+    if git -C "$repo_dir" worktree add "$worktree_path" "$local_branch"; then
+      print_color green "Worktree created at: $worktree_path"
+      cd "$worktree_path" || print_color yellow "Warning: Could not cd to $worktree_path."
+      local pm
+      pm=$(detect_package_manager)
+      if [[ -n "$pm" ]]; then
+        print_color cyan "Running $pm install in $worktree_path..."
+        "$pm" install
       else
-        print_color red "Failed to create worktree. It may already exist."
+        print_color yellow "No supported lockfile (pnpm-lock.yaml, package-lock.json, yarn.lock) found. Skipping install."
       fi
+    else
+      print_color red "Failed to create worktree. It may already exist."
     fi
     ;;
   create)
@@ -169,49 +164,22 @@ case "$subcommand" in
     require_tool fzf
     mkdir -p "$WORKTREES_DIR"
     local proj
-    local last_proj_file="$HOME/.last_project"
-    local last_proj=""
-    if [[ -f "$last_proj_file" ]]; then
-      last_proj=$(<"$last_proj_file")
-    fi
-    local all_projects
-    all_projects=($(ls -d "$PROGRAMMING_DIR"/*/ | sed "s#$PROGRAMMING_DIR/##;s#/##" | sort))
-    local projects_list=()
-    if [[ -n "$last_proj" ]]; then
-      for p in "${all_projects[@]}"; do
-        if [[ "$p" == "$last_proj" ]]; then
-          projects_list=("$p")
-        fi
-      done
-      for p in "${all_projects[@]}"; do
-        if [[ "$p" != "$last_proj" ]]; then
-          projects_list+=("$p")
-        fi
-      done
-    else
-      projects_list=("${all_projects[@]}")
-    fi
-    proj=$(select_fzf "Select project folder: " "${projects_list[@]}")
+    proj=$(select_project)
     if [[ -z "$proj" || ! -d "$PROGRAMMING_DIR/$proj" ]]; then
-      print_color red "No valid project selected."
-      exit 1
+      print_color red "No valid project selected."; exit 1
     fi
-    echo "$proj" > "$last_proj_file"
-    repo_dir="$PROGRAMMING_DIR/$proj"
+    echo "$proj" > "$HOME/.last_project"
+    local repo_dir="$PROGRAMMING_DIR/$proj"
     git -C "$repo_dir" fetch origin develop || print_color yellow "Warning: Could not fetch 'develop' branch."
-    types=(ci build docs feat perf refactor style test fix revert)
-    emojis=("👷" "📦" "📚" "✨" "🚀" "🔨" "💎" "🧪" "🐛" "⏪")
-    local prefix emoji
+    local types=(ci build docs feat perf refactor style test fix revert)
+    local emojis=("👷" "📦" "📚" "✨" "🚀" "🔨" "💎" "🧪" "🐛" "⏪")
+    local type_sel
     type_sel=$(select_fzf "Select change type: " "${types[@]}")
-    if [[ -z "$type_sel" ]]; then
-      print_color red "No change type selected."
-      exit 1
-    fi
+    [[ -z "$type_sel" ]] && print_color red "No change type selected." && exit 1
+    local prefix emoji
     for i in {1..${#types[@]}}; do
       if [[ "$type_sel" == "${types[$((i - 1))]}" ]]; then
-        prefix="$type_sel"
-        emoji="${emojis[$((i - 1))]}"
-        break
+        prefix="$type_sel"; emoji="${emojis[$((i - 1))]}"; break
       fi
     done
     local jira_key summary branch_name summary_commit commit_title description
@@ -222,40 +190,33 @@ case "$subcommand" in
       require_tool jq
       print_color cyan "Enter Jira ticket number (e.g. SB-1234): "
       read -r jira_key
-      if [[ -z "$jira_key" ]]; then
-        print_color red "No Jira key entered."
-        exit 1
-      fi
+      [[ -z "$jira_key" ]] && print_color red "No Jira key entered." && exit 1
       summary=$(jira issue view "$jira_key" --raw | jq -r '.fields.summary')
-      if [[ -z "$summary" ]]; then
-        print_color red "Could not fetch summary for $jira_key."
-        exit 1
-      fi
+      [[ -z "$summary" ]] && print_color red "Could not fetch summary for $jira_key." && exit 1
+      local jira_key_low slug
       jira_key_low=$(echo "$jira_key" | tr '[:upper:]' '[:lower:]')
       slug=$(slugify "$summary")
       branch_name="${prefix}/${jira_key_low}_${slug}"
       summary_commit=$(echo "$summary" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9 ]//g' | sed 's/  */ /g')
+      local jira_key_up
       jira_key_up=$(echo "$jira_key" | tr '[:lower:]' '[:upper:]')
       commit_title="${prefix}: ${emoji} ${jira_key_up} ${summary_commit}"
     else
       print_color cyan "Enter branch slug (lowercase, hyphens, e.g., my-feature): "
       read -r slug
-      if [[ -z "$slug" ]]; then
-        print_color red "Slug cannot be empty."
-        exit 1
-      fi
+      [[ -z "$slug" ]] && print_color red "Slug cannot be empty." && exit 1
       branch_name="${prefix}/$(slugify "$slug")"
       summary_commit=$(echo "$slug" | tr '-' ' ')
       commit_title="${prefix}: ${emoji} ${summary_commit}"
     fi
-    worktree_path="$WORKTREES_DIR/$(echo "$branch_name" | tr '/' '_')"
+    local worktree_path="$WORKTREES_DIR/$(echo "$branch_name" | tr '/' '_')"
     if git -C "$repo_dir" worktree add -b "$branch_name" "$worktree_path"; then
       cd "$worktree_path" || print_color yellow "Warning: Could not cd to $worktree_path."
       print_color green "Changed directory to $worktree_path"
     else
-      print_color red "Failed to create worktree. It may already exist."
-      exit 1
+      print_color red "Failed to create worktree. It may already exist."; exit 1
     fi
+    local pm
     pm=$(detect_package_manager)
     if [[ -n "$pm" ]]; then
       print_color cyan "Running $pm install..."
@@ -271,7 +232,7 @@ case "$subcommand" in
         description="Jira: ${ORG_JIRA_TICKET_LINK}${jira_key}"
       fi
     fi
-  git -C "$worktree_path" commit --allow-empty -m "$commit_title" ${description:+-m "$description"}
+    git -C "$worktree_path" commit --allow-empty -m "$commit_title" ${description:+-m "$description"}
     print_color green "Worktree created successfully at: $worktree_path"
     print_color green "Branch: $branch_name"
     ;;
