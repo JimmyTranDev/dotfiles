@@ -57,47 +57,20 @@ alias wD='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh delete'
 alias wC='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh clean'
 alias wr='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh rename'
 
+source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
+
 select_project() {
-  local last_proj_file="$HOME/.last_project"
-  local last_proj=""
-  [[ -f "$last_proj_file" ]] && last_proj=$(<"$last_proj_file")
   local all_projects
   all_projects=($(ls -d "$HOME/Programming"/*/ | sed "s#$HOME/Programming/##;s#/##" | sort))
-  local projects_list=()
-  if [[ -n "$last_proj" ]]; then
-    for p in "${all_projects[@]}"; do
-      if [[ "$p" == "$last_proj" ]]; then
-        projects_list=("$p")
-      fi
-    done
-    for p in "${all_projects[@]}"; do
-      if [[ "$p" != "$last_proj" ]]; then
-        projects_list+=("$p")
-      fi
-    done
-  else
-    projects_list=("${all_projects[@]}")
-  fi
-  local selected_project
-  selected_project=$(printf "%s\n" "${projects_list[@]}" | fzf)
-  if [[ -n $selected_project ]]; then
-    echo "$selected_project" > "$last_proj_file"
-    cd "$HOME/Programming/$selected_project" && nvim
-  fi
+  fzf_select_and_cd "Select project: " "$HOME/Programming" "$HOME/.last_project" "nvim" "${all_projects[@]}"
 }
 zle -N select_project
 bindkey '^f' select_project
 
 select_worktree() {
-  local folder_name folder_path
-  folder_name=$(find "$HOME/Worktrees" -mindepth 1 -maxdepth 1 -type d | xargs -n1 basename | sort | fzf --prompt="Select a worktree folder: ")
-  if [[ -n "$folder_name" ]]; then
-    folder_path="$HOME/Worktrees/$folder_name"
-    cd "$folder_path"
-  else
-    echo "No folder selected."
-    return 1
-  fi
+  local all_worktrees
+  all_worktrees=($(find "$HOME/Worktrees" -mindepth 1 -maxdepth 1 -type d | xargs -n1 basename | sort))
+  fzf_select_and_cd "Select a worktree folder: " "$HOME/Worktrees" "$HOME/.last_worktree" "" "${all_worktrees[@]}"
 }
 zle -N select_worktree
 bindkey '^g' select_worktree
