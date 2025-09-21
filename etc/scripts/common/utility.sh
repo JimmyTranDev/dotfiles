@@ -1,8 +1,6 @@
 #!/bin/zsh
 # utility.sh - Common reusable functions for dotfiles scripts
 
-set -e
-
 autoload -U colors && colors
 
 require_tool() {

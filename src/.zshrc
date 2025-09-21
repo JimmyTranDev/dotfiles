@@ -99,3 +99,12 @@ zellij_tab_name_update() {
 }
 zellij_tab_name_update
 chpwd_functions+=(zellij_tab_name_update)
+
+# Catppuccin Latte colors for fzf
+export FZF_DEFAULT_OPTS="\
+  --color=bg:#e1e2e7,fg:#4c4f69,hl:#d20f39 \
+  --color=fg+:#4c4f69,bg+:#f5e0dc,hl+:#d20f39 \
+  --color=info:#1e66f5,prompt:#fe640b,spinner:#df8e1d \
+  --color=header:#8839ef,marker:#179299 \
+  --color=border:#dce0e8 \
+"
