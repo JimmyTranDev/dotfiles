@@ -205,9 +205,10 @@ case "$subcommand" in
     type_sel=$(select_fzf "Select change type: " "${types[@]}")
     [[ -z "$type_sel" ]] && print_color red "No change type selected." && exit 1
     local prefix emoji
-    for i in {1..${#types[@]}}; do
-      if [[ "$type_sel" == "${types[$((i - 1))]}" ]]; then
-        prefix="$type_sel"; emoji="${emojis[$((i - 1))]}"; break
+    for i in {1..${#types[@]}}; do :; done # dummy for brace expansion
+    for i in "${(@k)types}"; do
+      if [[ "$type_sel" == "${types[$i]}" ]]; then
+        prefix="$type_sel"; emoji="${emojis[$i]}"; break
       fi
     done
     local jira_key summary branch_name summary_commit commit_title description
