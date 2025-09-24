@@ -68,13 +68,12 @@ select_project() {
   local last_proj=""
   [[ -f "$last_proj_file" ]] && last_proj=$(<"$last_proj_file")
   
-  # Get all projects safely
+  # Get all projects safely  
   local all_projects=()
   if [[ -d "$PROGRAMMING_DIR" ]]; then
     while IFS= read -r -d '' dir; do
-      local proj_name
-      proj_name=$(basename "$dir")
-      all_projects+=("$proj_name")
+      # Use parameter expansion instead of command substitution to avoid output
+      all_projects+=("${dir##*/}")
     done < <(find "$PROGRAMMING_DIR" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
   fi
   
