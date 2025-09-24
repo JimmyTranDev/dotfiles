@@ -141,7 +141,14 @@ case "$subcommand" in
       print_color green "Branch '$local_branch' will be created with worktree."
     fi
     mkdir -p "$WORKTREES_DIR"
-    local worktree_path="$WORKTREES_DIR/$(echo "$local_branch" | tr '/' '_')"
+    # Create folder name without prefix (remove everything before and including the first slash)
+    local folder_name
+    if [[ "$local_branch" =~ ^[^/]+/(.+)$ ]]; then
+      folder_name="${match[1]}"
+    else
+      folder_name="$local_branch"
+    fi
+    local worktree_path="$WORKTREES_DIR/${folder_name}"
     if git -C "$repo_dir" worktree add "$worktree_path" "$local_branch"; then
       print_color green "Worktree created at: $worktree_path"
       cd "$worktree_path" || print_color yellow "Warning: Could not cd to $worktree_path."
@@ -200,6 +207,8 @@ case "$subcommand" in
       local jira_key_up
       jira_key_up=$(echo "$jira_key" | tr '[:lower:]' '[:upper:]')
       commit_title="${prefix}: ${emoji} ${jira_key_up} ${summary_commit}"
+      # Create folder name without prefix (remove everything before and including the first slash)
+      local folder_name="${jira_key_low}_${slug}"
     else
       print_color cyan "Enter branch slug (lowercase, hyphens, e.g., my-feature): "
       read -r slug
@@ -207,8 +216,10 @@ case "$subcommand" in
       branch_name="${prefix}/$(slugify "$slug")"
       summary_commit=$(echo "$slug" | tr '-' ' ')
       commit_title="${prefix}: ${emoji} ${summary_commit}"
+      # Create folder name without prefix (use the slugified version directly)
+      local folder_name="$(slugify "$slug")"
     fi
-    local worktree_path="$WORKTREES_DIR/$(echo "$branch_name" | tr '/' '_')"
+    local worktree_path="$WORKTREES_DIR/${folder_name}"
     if git -C "$repo_dir" worktree add -b "$branch_name" "$worktree_path"; then
       cd "$worktree_path" || print_color yellow "Warning: Could not cd to $worktree_path."
       print_color green "Changed directory to $worktree_path"
@@ -274,12 +285,9 @@ case "$subcommand" in
       BRANCH_NAME=$(echo "$worktree_info" | sed 's/^branch refs\/heads\///')
     fi
     
-    # Fallback: try to detect from directory name if the above fails
+    # If git detection fails, we can't reliably determine the branch name from folder name anymore
     if [[ -z "$BRANCH_NAME" ]]; then
-      local dir_name=$(basename "$WORKTREE_PATH")
-      # Convert directory name back to branch name (reverse the transformation from create)
-      BRANCH_NAME=$(echo "$dir_name" | tr '_' '/')
-      print_color yellow "Could not detect branch from git, using directory name: $BRANCH_NAME"
+      print_color yellow "Could not detect branch name from git worktree list"
     fi
     
     print_color yellow "Detected branch name: '$BRANCH_NAME'"
