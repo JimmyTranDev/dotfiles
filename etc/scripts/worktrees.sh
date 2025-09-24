@@ -341,10 +341,10 @@ cmd_create() {
       return 1
     fi
     
-    local jira_key_low slug
-    jira_key_low=$(echo "$jira_key" | tr '[:upper:]' '[:lower:]')
+    local jira_key_up slug
+    jira_key_up=$(echo "$jira_key" | tr '[:lower:]' '[:upper:]')
     slug=$(slugify "$summary")
-    folder_name="${jira_key_low}_${slug}"
+    folder_name="${jira_key_up}_${slug}"
     
     # Set description with JIRA link if available
     if [[ -n "$ORG_JIRA_TICKET_LINK" ]]; then
