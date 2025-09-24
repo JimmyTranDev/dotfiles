@@ -250,26 +250,94 @@ case "$subcommand" in
     [[ ! -f "$WORKTREE_PATH/.git" ]] && print_color red "Error: $WORKTREE_PATH does not look like a git worktree (missing .git file)." && exit 1
     # Detect main repo
     GITDIR_LINE=$(head -n1 "$WORKTREE_PATH/.git")
-    [[ "$GITDIR_LINE" =~ ^gitdir:\ (.*)$ ]] || { print_color red "Error: Could not parse .git file in $WORKTREE_PATH"; exit 1; }
-    WORKTREE_GITDIR="${BASH_REMATCH[1]}"
+    if [[ "$GITDIR_LINE" =~ ^gitdir:\ (.*)$ ]]; then
+      WORKTREE_GITDIR="${match[1]}"
+    else
+      print_color red "Error: Could not parse .git file in $WORKTREE_PATH"
+      exit 1
+    fi
+    # Get the actual repository root (not the .git directory)
     MAIN_REPO=$(dirname "$(dirname "$WORKTREE_GITDIR")")
     print_color yellow "Main repo detected at: $MAIN_REPO"
+    
     # Change to main repo directory before git operations
     cd "$MAIN_REPO"
-    # Detect branch name robustly for the selected worktree
-    BRANCH_NAME=$(git worktree list --porcelain | awk -v path="$WORKTREE_PATH" '
-      $1=="worktree" {in_block=($2==path)}
-      in_block && $1=="branch" {print $2}
-    ' | sed 's#refs/heads/##')
-    if [[ -n "$BRANCH_NAME" ]]; then
-      remove_worktree_and_branch "$MAIN_REPO" "$WORKTREE_PATH" "$BRANCH_NAME" || true
-    else
-      git worktree remove "$WORKTREE_PATH" || true
+    
+    # Detect branch name using a more reliable method
+    BRANCH_NAME=""
+    
+    # First try the simple approach - get all worktrees and find matching path
+    local worktree_info
+    worktree_info=$(git worktree list --porcelain | grep -A2 "^worktree $WORKTREE_PATH$" | grep "^branch " | head -1)
+    
+    if [[ -n "$worktree_info" ]]; then
+      BRANCH_NAME=$(echo "$worktree_info" | sed 's/^branch refs\/heads\///')
     fi
-    # Always attempt to remove directory
+    
+    # Fallback: try to detect from directory name if the above fails
+    if [[ -z "$BRANCH_NAME" ]]; then
+      local dir_name=$(basename "$WORKTREE_PATH")
+      # Convert directory name back to branch name (reverse the transformation from create)
+      BRANCH_NAME=$(echo "$dir_name" | tr '_' '/')
+      print_color yellow "Could not detect branch from git, using directory name: $BRANCH_NAME"
+    fi
+    
+    print_color yellow "Detected branch name: '$BRANCH_NAME'"
+    
+    if [[ -n "$BRANCH_NAME" ]]; then
+      print_color yellow "Deleting worktree and branch: $BRANCH_NAME"
+      
+      # Check if worktree directory actually exists
+      if [[ -d "$WORKTREE_PATH" ]]; then
+        # Remove worktree first
+        if git worktree remove "$WORKTREE_PATH" 2>/dev/null; then
+          print_color green "Successfully removed worktree: $WORKTREE_PATH"
+        else
+          print_color yellow "Failed to remove worktree cleanly, forcing removal..."
+          git worktree remove --force "$WORKTREE_PATH" 2>/dev/null || true
+        fi
+      else
+        # Directory doesn't exist, but git still tracks it - prune it
+        print_color yellow "Worktree directory doesn't exist, pruning from git..."
+        git worktree prune 2>/dev/null || true
+      fi
+      
+      # Remove local branch
+      print_color yellow "Removing local branch: $BRANCH_NAME"
+      if git show-ref --verify --quiet "refs/heads/$BRANCH_NAME"; then
+        git branch -d "$BRANCH_NAME" 2>/dev/null || git branch -D "$BRANCH_NAME" 2>/dev/null || true
+        print_color green "Successfully removed local branch: $BRANCH_NAME"
+      else
+        print_color yellow "Local branch $BRANCH_NAME does not exist"
+      fi
+      
+      # Check if remote branch exists and delete it
+      if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
+        print_color yellow "Deleting remote branch: origin/$BRANCH_NAME"
+        if git push origin --delete "$BRANCH_NAME" 2>/dev/null; then
+          print_color green "Successfully deleted remote branch: origin/$BRANCH_NAME"
+        else
+          print_color red "Failed to delete remote branch: origin/$BRANCH_NAME"
+        fi
+      else
+        print_color yellow "Remote branch origin/$BRANCH_NAME does not exist or already deleted"
+      fi
+    else
+      print_color yellow "Could not detect branch name, attempting cleanup anyway..."
+      
+      # Try to prune worktrees first
+      git worktree prune 2>/dev/null || true
+      
+      # Try to remove the worktree if it exists
+      if [[ -d "$WORKTREE_PATH" ]]; then
+        git worktree remove "$WORKTREE_PATH" 2>/dev/null || git worktree remove --force "$WORKTREE_PATH" 2>/dev/null || true
+      fi
+    fi
+    
+    # Always attempt to remove directory if it still exists
     if [[ -d "$WORKTREE_PATH" ]]; then
       print_color yellow "Force removing directory $WORKTREE_PATH..."
-      rm -rf "$WORKTREE_PATH"
+      rm -rf "$WORKTREE_PATH" || true
     fi
     print_color green "✅ Worktree deletion complete."
     ;;
