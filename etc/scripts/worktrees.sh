@@ -182,12 +182,22 @@ case "$subcommand" in
     type_sel=$(select_fzf "Select change type: " "${types[@]}")
     [[ -z "$type_sel" ]] && print_color red "No change type selected." && exit 1
     local prefix emoji
-    for i in {1..${#types[@]}}; do :; done # dummy for brace expansion
-    for i in "${(@k)types}"; do
+    # Find the index of the selected type and get corresponding emoji
+    for i in {1..${#types[@]}}; do
       if [[ "$type_sel" == "${types[$i]}" ]]; then
-        prefix="$type_sel"; emoji="${emojis[$i]}"; break
+        prefix="$type_sel"
+        emoji="${emojis[$i]}"
+        break
       fi
     done
+    
+    # Ensure prefix and emoji are set
+    if [[ -z "$prefix" || -z "$emoji" ]]; then
+      print_color red "Error: Failed to set prefix or emoji for type '$type_sel'"
+      exit 1
+    fi
+    
+    print_color yellow "Selected: $prefix ($emoji)"
     local jira_key summary branch_name summary_commit commit_title description
     print_color cyan "Do you have a Jira ticket? (y/n): "
     read -r has_jira
@@ -197,8 +207,48 @@ case "$subcommand" in
       print_color cyan "Enter Jira ticket number (e.g. SB-1234): "
       read -r jira_key
       [[ -z "$jira_key" ]] && print_color red "No Jira key entered." && exit 1
-      summary=$(jira issue view "$jira_key" --raw | jq -r '.fields.summary')
-      [[ -z "$summary" ]] && print_color red "Could not fetch summary for $jira_key." && exit 1
+      
+      print_color yellow "Fetching Jira ticket details for $jira_key..."
+      
+      # Test jira command availability
+      if ! command -v jira >/dev/null 2>&1; then
+        print_color red "Jira CLI not found. Please install it first."
+        exit 1
+      fi
+      
+      # Fetch jira ticket with better error handling
+      local jira_raw jira_exit_code
+      jira_raw=$(jira issue view "$jira_key" --raw 2>&1)
+      jira_exit_code=$?
+      
+      if [[ $jira_exit_code -ne 0 ]]; then
+        print_color red "Failed to fetch Jira ticket $jira_key:"
+        print_color red "$jira_raw"
+        exit 1
+      fi
+      
+      if [[ -z "$jira_raw" ]]; then
+        print_color red "Empty response from Jira for ticket $jira_key"
+        exit 1
+      fi
+      
+      # Parse summary with better error handling
+      summary=$(echo "$jira_raw" | jq -r '.fields.summary' 2>/dev/null)
+      local jq_exit_code=$?
+      
+      if [[ $jq_exit_code -ne 0 ]]; then
+        print_color red "Failed to parse Jira response. Raw response:"
+        print_color red "$jira_raw"
+        exit 1
+      fi
+      
+      if [[ -z "$summary" || "$summary" == "null" ]]; then
+        print_color red "Could not extract summary from Jira ticket $jira_key"
+        print_color red "Raw response: $jira_raw"
+        exit 1
+      fi
+      
+      print_color green "Found: $summary"
       local jira_key_low slug
       jira_key_low=$(echo "$jira_key" | tr '[:upper:]' '[:lower:]')
       slug=$(slugify "$summary")
