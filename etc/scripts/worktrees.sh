@@ -90,13 +90,6 @@ function format_commit_title() {
   echo "${prefix}: ${emoji} ${jira_key_up} ${summary_commit}"
 }
 
-# Remove worktree and branch
-function remove_worktree_and_branch() {
-  local repo="$1" worktree_path="$2" branch_name="$3"
-  git -C "$repo" worktree remove "$worktree_path"
-  git -C "$repo" branch -d "$branch_name"
-}
-
 
 WORKTREES_DIR="$HOME/Worktrees"
 PROGRAMMING_DIR="$HOME/Programming"
@@ -138,31 +131,8 @@ case "$subcommand" in
     # Get all remote branches
     local all_remote_branches
   all_remote_branches=( $(git -C "$repo_dir" branch -r | grep '^  origin/' | sed 's/^  origin\///' | grep -vE '^HEAD$' | sort) )
-    # Get branches with worktrees
-    local worktree_branches
-  worktree_branches=( $(git -C "$repo_dir" worktree list --porcelain | awk '/^branch /{gsub("refs/heads/", "", $2); print $2}') )
-    # Filter branches: not authored by you and no worktree
-    local filtered_branches=()
-    for branch in "${all_remote_branches[@]}"; do
-      branch=$(echo "$branch" | xargs)
-      # Skip if worktree exists
-      if [[ " ${worktree_branches[@]} " =~ " $branch " ]]; then
-        continue
-      fi
-      # Get author email for branch's latest commit
-      local author_email
-      author_email=$(git -C "$repo_dir" log -1 --pretty=format:'%ae' origin/$branch 2>/dev/null | xargs)
-      # If author is you, skip (ignore whitespace and %)
-      clean_user_email=$(echo "$user_email" | xargs | tr -d '%')
-      clean_author_email=$(echo "$author_email" | xargs | tr -d '%')
-      if [[ "$clean_author_email" == "$clean_user_email" ]]; then
-        continue
-      fi
-      filtered_branches+=("$branch")
-    done
-    [[ ${#filtered_branches[@]} -eq 0 ]] && print_color red "No eligible remote branches found." && exit 1
     local branch_sel
-    branch_sel=$(select_fzf "Select remote branch to checkout: " "${filtered_branches[@]}")
+    branch_sel=$(select_fzf "Select remote branch to checkout: " "${all_remote_branches[@]}")
     [[ -z "$branch_sel" ]] && print_color red "No branch selected." && exit 1
     local local_branch="$branch_sel"
     if git -C "$repo_dir" show-ref --verify --quiet "refs/heads/$local_branch"; then
@@ -305,36 +275,137 @@ case "$subcommand" in
     ;;
   clean)
     require_tool git
-    repo_root=$(git rev-parse --show-toplevel)
-    for main_branch in develop main; do
-      if git -C "$repo_root" rev-parse --verify $main_branch >/dev/null 2>&1; then
-        print_color yellow "Pulling latest $main_branch..."
-        git -C "$repo_root" checkout $main_branch && git -C "$repo_root" pull origin $main_branch
-        print_color yellow "Scanning for branches merged into $main_branch..."
-        merged_branches=$(git -C "$repo_root" branch --merged $main_branch | grep -v "^*" | grep -v " $main_branch$" | sed 's/^  //')
-        for branch_name in $merged_branches; do
-          # Find worktree path for this branch
-          worktree_path=$(git -C "$repo_root" worktree list --porcelain | awk -v b="$branch_name" '
-            $1=="worktree" {path=$2; in_block=0}
-            $1=="branch" && $2=="refs/heads/"b {in_block=1}
-            in_block && $1=="worktree" {print path}
-          ')
-          if [[ -n "$worktree_path" && -d "$worktree_path" ]]; then
-            print_color yellow "Removing merged worktree: $worktree_path (branch: $branch_name)"
-            remove_worktree_and_branch "$repo_root" "$worktree_path" "$branch_name" || true
-            if [[ -d "$worktree_path" ]]; then
-              print_color yellow "Force removing directory $worktree_path..."
-              rm -rf "$worktree_path"
-            fi
-          else
-            print_color yellow "Removing merged branch: $branch_name (no worktree)"
-            git -C "$repo_root" branch -d "$branch_name" || true
-          fi
-        done
-      else
-        print_color yellow "Branch $main_branch does not exist, skipping."
+    # Check if we're in a git repository
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+      print_color red "Error: Not in a git repository."
+      exit 1
+    fi
+    
+    local repo_root
+    repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || {
+      print_color red "Error: Failed to get repository root."
+      exit 1
+    }
+    print_color yellow "Working in repository: $repo_root"
+    
+    # Find the main branch (prefer develop, fallback to main)
+    local main_branch=""
+    for branch in develop main; do
+      if git -C "$repo_root" rev-parse --verify "$branch" >/dev/null 2>&1; then
+        main_branch="$branch"
+        break
       fi
     done
+    
+    if [[ -z "$main_branch" ]]; then
+      print_color red "Error: Neither 'develop' nor 'main' branch found."
+      exit 1
+    fi
+    
+    print_color yellow "Using main branch: $main_branch"
+    print_color yellow "Pulling latest $main_branch..."
+    git -C "$repo_root" checkout "$main_branch" || {
+      print_color red "Error: Failed to checkout $main_branch"
+      exit 1
+    }
+    git -C "$repo_root" pull origin "$main_branch" || {
+      print_color yellow "Warning: Failed to pull latest $main_branch"
+    }
+    
+    # Fetch latest to get current remote state
+    print_color yellow "Fetching latest remote refs..."
+    git -C "$repo_root" fetch --prune origin || {
+      print_color yellow "Warning: Failed to fetch from origin"
+    }
+    
+    print_color yellow "Finding branches to clean up..."
+    
+    # Get all local branches except the main branch and current branch
+    local all_local_branches
+    all_local_branches=$(git -C "$repo_root" branch --format='%(refname:short)' 2>/dev/null | grep -v "^$main_branch\$" || true)
+    
+    if [[ -z "$all_local_branches" ]]; then
+      print_color green "No local branches found to evaluate."
+      exit 0
+    fi
+    
+    local branches_to_delete=()
+    
+    # Process each branch
+    while IFS= read -r branch_name; do
+      [[ -z "$branch_name" ]] && continue
+      [[ "$branch_name" == "$main_branch" ]] && continue
+      
+      local should_delete=false
+      local reason=""
+      
+      # Method 1: Check if branch is in merged branches list
+      local merged_check
+      merged_check=$(git -C "$repo_root" branch --merged "$main_branch" --format='%(refname:short)' 2>/dev/null | grep "^${branch_name}\$" || true)
+      if [[ -n "$merged_check" ]]; then
+        should_delete=true
+        reason="merged into $main_branch"
+      else
+        # Method 2: Check if remote branch no longer exists
+        if ! git -C "$repo_root" ls-remote --exit-code --heads origin "$branch_name" >/dev/null 2>&1; then
+          should_delete=true
+          reason="remote branch deleted"
+        fi
+      fi
+      
+      if [[ "$should_delete" == "true" ]]; then
+        branches_to_delete+=("$branch_name:$reason")
+      fi
+    done <<< "$all_local_branches"
+    
+    if [[ ${#branches_to_delete[@]} -eq 0 ]]; then
+      print_color green "No branches found to clean up."
+      exit 0
+    fi
+    
+    print_color yellow "Found ${#branches_to_delete[@]} branches to clean up:"
+    for branch_info in "${branches_to_delete[@]}"; do
+      local branch_name="${branch_info%:*}"
+      local reason="${branch_info#*:}"
+      print_color yellow "  $branch_name ($reason)"
+    done
+    
+    for branch_info in "${branches_to_delete[@]}"; do
+      local branch_name="${branch_info%:*}"
+      local reason="${branch_info#*:}"
+      
+      # Find worktree path for this branch
+      local worktree_path
+      worktree_path=$(git -C "$repo_root" worktree list --porcelain | awk -v branch="refs/heads/$branch_name" '
+        $1 == "worktree" { current_path = $2 }
+        $1 == "branch" && $2 == branch { print current_path; exit }
+      ')
+      
+      if [[ -n "$worktree_path" && -d "$worktree_path" ]]; then
+        print_color yellow "Removing worktree: $worktree_path (branch: $branch_name - $reason)"
+        # Try to remove worktree first
+        if git -C "$repo_root" worktree remove "$worktree_path" 2>/dev/null; then
+          print_color green "Successfully removed worktree: $worktree_path"
+        else
+          print_color yellow "Failed to remove worktree cleanly, forcing removal..."
+          git -C "$repo_root" worktree remove --force "$worktree_path" 2>/dev/null || true
+        fi
+        
+        # Remove directory if it still exists
+        if [[ -d "$worktree_path" ]]; then
+          print_color yellow "Force removing directory $worktree_path..."
+          rm -rf "$worktree_path" 2>/dev/null || true
+        fi
+        
+        # Remove the branch
+        print_color yellow "Removing branch: $branch_name"
+        git -C "$repo_root" branch -d "$branch_name" 2>/dev/null || git -C "$repo_root" branch -D "$branch_name" 2>/dev/null || true
+      else
+        print_color yellow "Removing branch: $branch_name ($reason)"
+        git -C "$repo_root" branch -d "$branch_name" 2>/dev/null || git -C "$repo_root" branch -D "$branch_name" 2>/dev/null || true
+      fi
+    done
+    
     print_color green "Done removing merged worktrees and branches."
     ;;
   rename)
