@@ -1,6 +1,7 @@
 # Taps
 tap "FelixKratz/formulae"
 tap "koekeishiya/formulae"
+tap "supabase/tap"
 tap "tursodatabase/tap"
 
 brew "vercel-cli"
@@ -27,6 +28,7 @@ brew "maven"
 brew "act"
 brew "b2-tools"
 brew "jira-cli"
+brew "supabase/tap/supabase"
 
 # Yazi dependencies
 brew "fd"
