@@ -1,14 +1,7 @@
 #!/bin/bash
 
-
 source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
-set -e  echo "Updating system and installing packages..."
-  sudo pacman -Syu --noconfirm
-  for pkg in "${packages[@]}"; do
-    sudo pacman -S --needed --noconfirm "$pkg"
-  done
-  aurs=(fnm)
-  echo "Updating AUR and installing AUR packages..."fail
+set -e
 
 if [ "$(uname)" == "Darwin" ]; then
   echo "Detected macOS. Running macOS setup..."
