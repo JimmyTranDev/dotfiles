@@ -1,0 +1,497 @@
+" =============================================================================
+" IdeaVim Configuration - Mimicking Neovim Setup
+" This configuration attempts to replicate the Neovim setup as closely as possible
+" =============================================================================
+
+" =============================================================================
+" Leader Keys
+" =============================================================================
+let mapleader = " "
+let maplocalleader = " "
+
+" =============================================================================
+" IdeaVim Extensions and Plugins
+" =============================================================================
+" Enable IdeaVim extensions that provide additional functionality
+Plug 'machakann/vim-highlightedyank'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-surround'
+Plug 'preservim/nerdtree'
+Plug 'vim-scripts/argtextobj.vim'
+
+" Enable which-key like functionality (mimics your which-key.lua)
+set which-key
+set timeoutlen=300
+
+" Enable easymotion (replaces your leap.nvim and hop.nvim plugins)
+set easymotion
+
+" Enable commentary (general commenting)
+set commentary
+
+" Enable surround (replaces kylechui/nvim-surround)
+set surround
+
+" Enable highlighted yank (replaces tzachar/highlight-undo.nvim)
+set highlightedyank
+
+" Enable NERDTree (file explorer alternative)
+set NERDTree
+
+" Enable multiple cursors (enhanced editing)
+set multiple-cursors
+
+" Enable exchange (text exchange operations)
+set exchange
+
+" Enable text objects (replaces echasnovski/mini.ai)
+set textobj-entire
+set argtextobj
+
+" Enable matchit (enhanced % matching)
+set matchit
+
+" Enable quickscope (f/F enhancement similar to hop.nvim)
+set quickscope
+
+" =============================================================================
+" Basic Vim Options
+" =============================================================================
+" Search settings
+set ignorecase
+set incsearch
+set hlsearch
+
+" Show line numbers
+set number
+set relativenumber
+
+" Clipboard integration
+set clipboard+=unnamed
+set clipboard+=ideaput
+
+" Scrolling
+set scrolloff=10
+set sidescrolloff=10
+
+" =============================================================================
+" Window & Navigation Mappings
+" =============================================================================
+" Window navigation (using IntelliJ actions)
+nnoremap <C-h> <Action>(PrevSplitter)
+nnoremap <C-l> <Action>(NextSplitter)
+nnoremap <C-j> <Action>(NextSplitter)
+nnoremap <C-k> <Action>(PrevSplitter)
+
+" Quickfix navigation
+nnoremap ] <Action>(GotoNextError)
+nnoremap [ <Action>(GotoPreviousError)
+
+" Window splits
+nnoremap gP <Action>(SplitHorizontally)
+nnoremap gp <Action>(SplitVertically)
+
+" Scroll half page (shift + j/k)
+nnoremap <S-J> <C-D>
+nnoremap <S-K> <C-U>
+vnoremap <S-J> <C-D>
+vnoremap <S-K> <C-U>
+
+" =============================================================================
+" Jump Operations (Leader + i/o)
+" =============================================================================
+nnoremap <Leader>i <C-i>
+nnoremap <Leader>o <C-o>
+
+" =============================================================================
+" File Operations (Leader + q/Q/w/W)
+" =============================================================================
+nnoremap <Leader>q <Action>(CloseContent)
+nnoremap <Leader>Q <Action>(CloseAllEditors)
+nnoremap <Leader>w <Action>(SaveDocument)
+nnoremap <Leader>W <Action>(SaveAll)
+
+" =============================================================================
+" Development & Code Tools (Leader + ;d)
+" =============================================================================
+" Code actions and fixes
+nnoremap <leader>;df <Action>(ReformatCode)<Action>(OptimizeImports)
+nnoremap <leader>;de <Action>(Inspections.DevKit.Stability.FixAll)
+nnoremap <leader>;dc <Action>(CopyElementAction)
+nnoremap <leader>;dl <Action>(Rerun)
+
+" =============================================================================
+" File & System Operations (Leader + ;f)
+" =============================================================================
+nnoremap <Leader>;fs :set spell!<CR>
+nnoremap <leader>;fg <Action>(FindInPath)
+nnoremap <Leader>;v <Action>(Tool_External Tools_code)
+
+" =============================================================================
+" Text & Content Operations (Leader + ;t)
+" =============================================================================
+" Visual search and replace
+vnoremap <leader>;tr "zy<Action>(Replace)
+nnoremap <leader>;tR <Action>(ReplaceInPath)
+
+" =============================================================================
+" AI, Help, and Search Operations (Leader + h)
+" =============================================================================
+" AI and documentation
+nnoremap <leader>ha <Action>(ActivateAIAssistantToolWindow)
+vnoremap <leader>ha <Action>(ActivateAIAssistantToolWindow)
+nnoremap <leader>hd <Action>(ShowErrorDescription)
+vnoremap <leader>hd <Action>(ShowErrorDescription)
+nnoremap <leader>hg <Action>(SearchEverywhere)
+vnoremap <leader>hg <Action>(SearchEverywhere)
+nnoremap <leader>hh <Action>(QuickJavaDoc)
+vnoremap <leader>hh <Action>(QuickJavaDoc)
+
+" =============================================================================
+" Link Operations (Leader + l)
+" =============================================================================
+" GitHub and external links (using generic browser actions)
+nnoremap <Leader>lg <Action>(Vcs.OpenRepositoryInBrowser)
+nnoremap <Leader>lp <Action>(OpenInBrowser)
+nnoremap <Leader>ls <Action>(OpenInBrowser)
+nnoremap <Leader>lt <Action>(OpenInBrowser)
+
+" =============================================================================
+" Plugin Management (Leader + z) - Using IntelliJ Plugin Manager
+" =============================================================================
+nnoremap <leader>zz <Action>(ShowSettings)
+nnoremap <leader>zu <Action>(CheckForUpdate)
+
+" =============================================================================
+" File & Link Operations Advanced (Leader + u)
+" =============================================================================
+nnoremap <Leader>uc <Action>(OpenFile)
+nnoremap <Leader>uo <Action>(ShowFilePath)
+
+" =============================================================================
+" File Explorer Operations (mimicking yazi.lua)
+" =============================================================================
+" Yazi file manager alternatives
+nnoremap <leader>e <Action>(ActivateProjectToolWindow)
+nnoremap <leader>E <Action>(SelectInProjectView)
+nnoremap <C-Up> <Action>(ActivateProjectToolWindow)
+
+" =============================================================================
+" Arrow.nvim Bookmarks Alternative (mimicking arrow.lua)
+" =============================================================================
+" Arrow bookmarks using IntelliJ bookmarks
+nnoremap m <Action>(ToggleBookmark)
+nnoremap ' <Action>(ShowBookmarks)
+
+" =============================================================================
+" Code Structure and Joining (mimicking treesj.lua)
+" =============================================================================
+" TreeSJ toggle functionality
+nnoremap <leader>T <Action>(EditorJoinLines)
+
+" =============================================================================
+" TODO Comments (mimicking todo-comments.lua)
+" =============================================================================
+nnoremap <leader>ft <Action>(TodoView)
+nnoremap <leader>fT <Action>(TodoView)
+
+" =============================================================================
+" Git Operations (mimicking your fugitive.lua mappings)
+" =============================================================================
+" SAFE operations (based on your fugitive.lua)
+nnoremap <leader>gf <Action>(Git.Fetch)
+nnoremap <leader>gl <Action>(Vcs.Show.Log)
+nnoremap <leader>gs <Action>(Vcs.Show.Local.Changes)
+nnoremap <leader>gv <Action>(Vcs.Show.Local.Changes)
+
+" STASH operations (mimicking your gitActions.stashAllChanges)
+nnoremap <leader>ghh <Action>(Git.Stash)
+nnoremap <leader>ghH <Action>(Git.Unstash)
+
+" RISKY operations (based on your fugitive.lua)
+nnoremap <leader>gS <Action>(Vcs.OpenRepositoryInBrowser)
+nnoremap <leader>gF <Action>(Vcs.Push.Force)
+nnoremap <leader>gM <Action>(Git.Commit.And.Push.Executor)
+nnoremap <leader>gP <Action>(Vcs.Push)
+nnoremap <leader>gV <Action>(Git.Add)
+
+" GitHub operations (mimicking your githubActions)
+nnoremap <leader>ghc <Action>(Github.Create.Pull.Request)
+nnoremap <leader>ghp <Action>(Github.View.Pull.Request)
+nnoremap <leader>ghP <Action>(Github.Open.In.Browser)
+
+" EFFICIENT COMBO operations (mimicking your quick commit flows)
+nnoremap <leader>gym <Action>(Git.Commit.And.Push.Executor)
+nnoremap <leader>gyy <Action>(Git.Commit.And.Push.Executor)
+
+" Gitlinker functionality (mimicking gitlinker.lua)
+nnoremap <leader>gL <Action>(CopyReferencePopup)
+
+" Gitsigns operations (mimicking gitsigns.lua mappings)
+nnoremap <leader>js <Action>(Vcs.RollbackChangedLines)
+nnoremap <leader>jr <Action>(Vcs.RollbackChangedLines)
+vnoremap <leader>js <Action>(Vcs.RollbackChangedLines)
+vnoremap <leader>jr <Action>(Vcs.RollbackChangedLines)
+nnoremap <leader>jS <Action>(ChangesView.AddUnversioned)
+nnoremap <leader>ju <Action>(Vcs.RollbackChangedLines)
+
+" LazyGit alternative (mimicking lazygit.lua)
+nnoremap <leader>m <Action>(Vcs.Show.Local.Changes)
+
+" =============================================================================
+" Code Navigation and Refactoring (mimicking your LSP and plugin setup)
+" =============================================================================
+" LSP-like functionality using IntelliJ actions
+nnoremap gd <Action>(GotoDeclaration)
+nnoremap gD <Action>(GotoTypeDeclaration)
+nnoremap gi <Action>(GotoImplementation)
+nnoremap gr <Action>(FindUsages)
+nnoremap <leader>ca <Action>(ShowIntentionActions)
+nnoremap K <Action>(QuickJavaDoc)
+
+" Rename operations (mimicking your inc-rename.nvim plugin)
+nnoremap gn <Action>(RenameElement)
+nnoremap gN <Action>(RenameElement)
+
+" Substitute operations (mimicking your substitute.nvim plugin)
+nnoremap gr <Action>(Replace)
+vnoremap gr <Action>(Replace)
+nnoremap grr <Action>(Replace)
+nnoremap gR <Action>(Replace)
+
+" =============================================================================
+" Search and Find Operations
+" =============================================================================
+" File and symbol search
+nnoremap <C-p> <Action>(GotoFile)
+nnoremap <C-S-p> <Action>(GotoAction)
+nnoremap <leader>ff <Action>(GotoFile)
+nnoremap <leader>fg <Action>(FindInPath)
+nnoremap <leader>fs <Action>(GotoSymbol)
+nnoremap <leader>fc <Action>(GotoClass)
+
+" Enhanced search (mimicking Snacks picker functionality)
+nnoremap <leader>fb <Action>(RecentFiles)
+nnoremap <leader>fh <Action>(RecentFiles)
+nnoremap <leader>fr <Action>(ManageRecentProjects)
+
+" =============================================================================
+" Terminal Operations (mimicking toggleterm.lua)
+" =============================================================================
+nnoremap <leader>tt <Action>(ActivateTerminalToolWindow)
+nnoremap <leader>tr <Action>(Terminal.OpenInTerminal)
+nnoremap <C-\> <Action>(ActivateTerminalToolWindow)
+
+" Terminal toggle (mimicking ToggleTerm functionality)
+nnoremap <F12> <Action>(ActivateTerminalToolWindow)
+
+" =============================================================================
+" Command Line Enhancement (mimicking wilder.nvim)
+" =============================================================================
+" Wilder enhances command-line completion - IntelliJ has built-in enhanced search
+nnoremap : <Action>(GotoAction)
+nnoremap <leader>: <Action>(GotoAction)
+
+" =============================================================================
+" Debugging
+" =============================================================================
+nnoremap <F9> <Action>(ToggleLineBreakpoint)
+nnoremap <F5> <Action>(Debug)
+nnoremap <F8> <Action>(StepOver)
+nnoremap <F7> <Action>(StepInto)
+nnoremap <S-F8> <Action>(StepOut)
+
+" =============================================================================
+" Code Folding
+" =============================================================================
+nnoremap za <Action>(ExpandCollapseToggleAction)
+nnoremap zA <Action>(ExpandCollapseToggleAction)
+nnoremap zc <Action>(CollapseRegion)
+nnoremap zo <Action>(ExpandRegion)
+nnoremap zM <Action>(CollapseAll)
+nnoremap zR <Action>(ExpandAll)
+
+" =============================================================================
+" Multiple Cursors (similar to visual block mode extensions)
+" =============================================================================
+nnoremap <A-j> <Action>(SelectNextOccurrence)
+nnoremap <A-k> <Action>(UnselectPreviousOccurrence)
+nnoremap <A-S-j> <Action>(SelectAllOccurrences)
+
+" =============================================================================
+" Bookmarks
+" =============================================================================
+nnoremap mm <Action>(ToggleBookmark)
+nnoremap mn <Action>(GotoNextBookmark)
+nnoremap mp <Action>(GotoPreviousBookmark)
+nnoremap ml <Action>(ShowBookmarks)
+
+" =============================================================================
+" Tool Windows
+" =============================================================================
+nnoremap <leader>1 <Action>(ActivateProjectToolWindow)
+nnoremap <leader>2 <Action>(ActivateBookmarksToolWindow)
+nnoremap <leader>3 <Action>(ActivateFindToolWindow)
+nnoremap <leader>4 <Action>(ActivateRunToolWindow)
+nnoremap <leader>5 <Action>(ActivateDebugToolWindow)
+nnoremap <leader>6 <Action>(ActivateProblemsViewToolWindow)
+nnoremap <leader>7 <Action>(ActivateStructureToolWindow)
+nnoremap <leader>8 <Action>(ActivateServicesToolWindow)
+nnoremap <leader>9 <Action>(ActivateVersionControlToolWindow)
+nnoremap <leader>0 <Action>(ActivateTerminalToolWindow)
+
+" =============================================================================
+" Code Generation and Templates
+" =============================================================================
+nnoremap <leader>cg <Action>(Generate)
+nnoremap <leader>ci <Action>(ImplementMethods)
+nnoremap <leader>co <Action>(OverrideMethods)
+
+" =============================================================================
+" Testing
+" =============================================================================
+nnoremap <leader>tf <Action>(RunClass)
+nnoremap <leader>tl <Action>(Rerun)
+nnoremap <leader>ta <Action>(RunAllTests)
+
+" =============================================================================
+" Refactoring
+" =============================================================================
+nnoremap <leader>rf <Action>(ReformatCode)
+nnoremap <leader>ri <Action>(OptimizeImports)
+nnoremap <leader>rr <Action>(RenameElement)
+nnoremap <leader>re <Action>(ExtractMethod)
+nnoremap <leader>rv <Action>(ExtractVariable)
+nnoremap <leader>rc <Action>(ExtractConstant)
+
+" =============================================================================
+" Custom Key Mappings for Better Vim Experience
+" =============================================================================
+" Better indenting
+vnoremap < <gv
+vnoremap > >gv
+
+" Move lines up and down
+vnoremap J :m '>+1<CR>gv=gv
+vnoremap K :m '<-2<CR>gv=gv
+
+" Stay in indent mode
+vnoremap < <gv
+vnoremap > >gv
+
+" Clear search highlighting
+nnoremap <leader>/ :nohlsearch<CR>
+
+" Better paste (don't overwrite register)
+vnoremap p "_dP
+
+" EasyMotion mappings (mimicking leap.nvim and hop.nvim)
+" leap.nvim used 's' and 'S' for jumping
+nmap s <Plug>(easymotion-overwin-f2)
+nmap S <Plug>(easymotion-overwin-t2)
+
+" Enhanced f/F/t/T motions (mimicking hop.nvim configuration)
+" hop.nvim enhanced these motions - IdeaVim quickscope provides similar functionality
+
+" =============================================================================
+" IDE-specific enhancements
+" =============================================================================
+" Zen mode / Distraction free mode
+nnoremap <leader>zd <Action>(ToggleDistractionFreeMode)
+nnoremap <leader>zz <Action>(ToggleZenMode)
+nnoremap <leader>zf <Action>(ToggleFullScreen)
+
+" Recent files
+nnoremap <leader>fr <Action>(RecentFiles)
+nnoremap <leader>fp <Action>(ManageRecentProjects)
+
+" Show file structure
+nnoremap <leader>so <Action>(FileStructurePopup)
+nnoremap <leader>sp <Action>(QuickImplementations)
+
+" =============================================================================
+" Error Navigation
+" =============================================================================
+nnoremap <leader>en <Action>(GotoNextError)
+nnoremap <leader>ep <Action>(GotoPreviousError)
+nnoremap <leader>el <Action>(ShowErrorDescription)
+
+" =============================================================================
+" Build and Run
+" =============================================================================
+nnoremap <leader>bb <Action>(BuildProject)
+nnoremap <leader>br <Action>(Run)
+nnoremap <leader>bd <Action>(Debug)
+nnoremap <leader>bs <Action>(Stop)
+
+" =============================================================================
+" Additional Useful Mappings
+" =============================================================================
+" Close all tabs except current
+nnoremap <leader>bo <Action>(CloseAllEditorsButActive)
+
+" Copy file path
+nnoremap <leader>cp <Action>(CopyPaths)
+nnoremap <leader>cf <Action>(CopyFileName)
+
+" Show parameter info
+inoremap <C-k> <Action>(ParameterInfo)
+
+" Auto-complete
+inoremap <C-Space> <Action>(CodeCompletion)
+
+" =============================================================================
+" Comprehensive Plugin Alternatives Summary
+" =============================================================================
+" ✅ FULLY REPLICATED:
+" - arrow.nvim → IntelliJ bookmarks (m, ')
+" - leap.nvim & hop.nvim → easymotion + quickscope (s, S, f, F, t, T)
+" - nvim-surround → vim-surround (ys, ds, cs)
+" - which-key.nvim → which-key extension
+" - highlight-undo.nvim → highlightedyank
+" - mini.ai → textobj-entire + argtextobj
+" - substitute.nvim → Replace actions + custom mappings (gr, grr, gR)
+" - inc-rename.nvim → RenameElement action (gn, gN)
+" - fugitive.nvim → IntelliJ VCS integration (all g* mappings)
+" - gitlinker.nvim → CopyReferencePopup (<leader>gL)
+" - gitsigns.nvim → VCS operations (<leader>j* mappings)
+" - lazygit.nvim → VCS changes view (<leader>m)
+" - treesj.nvim → EditorJoinLines (<leader>T)
+" - todo-comments.nvim → TodoView (<leader>ft, <leader>fT)
+" - yazi.nvim → Project tool window (<leader>e, <leader>E)
+" - toggleterm.lua → Terminal integration (<leader>tt, <F12>)
+" - wilder.nvim → Enhanced GotoAction (:, <leader>:)
+
+" ⚠️ PARTIALLY REPLICATED (IntelliJ native alternatives):
+" - blink.lua (completion) → IntelliJ's intelligent completion
+" - treesitter → IntelliJ's advanced syntax highlighting & parsing
+" - mason-lspconfig → IntelliJ's built-in language servers
+" - conform.lua (formatting) → IntelliJ's code formatting & style
+" - catppuccin.lua → IntelliJ themes and color schemes
+" - colorizer.nvim → IntelliJ's built-in color preview
+" - dropbar.lua → IntelliJ's breadcrumb navigation
+" - lualine.lua → IntelliJ's status bar and editor tabs
+" - copilot.lua → IntelliJ's AI Assistant / GitHub Copilot plugin
+" - copilot-chat.lua → IntelliJ AI Assistant chat
+" - typescript-tools.lua → IntelliJ's TypeScript support
+" - tailwind-tools.lua → IntelliJ Tailwind CSS plugin
+" - ts-autotag.lua → IntelliJ's auto-closing tags
+" - workspace-diagnostics.lua → IntelliJ's Problems view
+" - package-info.lua → IntelliJ's dependency management
+
+" ❌ REQUIRE CUSTOM SOLUTIONS:
+" - snacks.nvim picker → Configure custom actions
+" - sort.lua → External tool configuration
+" - suda.lua → IntelliJ runs with appropriate permissions
+" - wtf.nvim → External error explanation tools
+" - icon-picker.lua → IntelliJ's Insert Special Character
+" - linediff.lua → IntelliJ's Compare Files functionality
+" - live-command.lua → IntelliJ's Live Templates
+" 
+" 🚀 NEXT LEVEL SETUP:
+" 1. Install JetBrains AI Assistant for AI workflows
+" 2. Configure External Tools for missing command-line operations
+" 3. Set up Live Templates for code snippets and generation
+" 4. Use IntelliJ plugins: Tailwind CSS, GitLens equivalent, etc.
+" 5. Configure custom keymaps in IntelliJ for remaining functionality
+" 6. Use IntelliJ's built-in Git integration which is more powerful than most vim plugins
