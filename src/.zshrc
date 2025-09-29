@@ -101,6 +101,20 @@ zellij_tab_name_update() {
 zellij_tab_name_update
 chpwd_functions+=(zellij_tab_name_update)
 
+# ===================================================================
+# THEME MANAGEMENT
+# ===================================================================
+
+# Source theme configuration
+if [[ -f "$HOME/Programming/dotfiles/etc/theme.conf" ]]; then
+  source "$HOME/Programming/dotfiles/etc/theme.conf"
+fi
+
+# Theme management aliases
+alias theme-set="zsh $HOME/Programming/dotfiles/etc/scripts/theme.sh set"
+alias theme-get="zsh $HOME/Programming/dotfiles/etc/scripts/theme.sh get"
+alias theme-list="zsh $HOME/Programming/dotfiles/etc/scripts/theme.sh list"
+
 # Catppuccin Mocha colors for fzf
 export FZF_DEFAULT_OPTS="\
   --color=bg:#1e1e2e,fg:#cdd6f4,hl:#f38ba8 \
