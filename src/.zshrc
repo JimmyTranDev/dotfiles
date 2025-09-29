@@ -101,11 +101,11 @@ zellij_tab_name_update() {
 zellij_tab_name_update
 chpwd_functions+=(zellij_tab_name_update)
 
-# Catppuccin Latte colors for fzf
+# Catppuccin Mocha colors for fzf
 export FZF_DEFAULT_OPTS="\
-  --color=bg:#e1e2e7,fg:#4c4f69,hl:#d20f39 \
-  --color=fg+:#4c4f69,bg+:#f5e0dc,hl+:#d20f39 \
-  --color=info:#1e66f5,prompt:#fe640b,spinner:#df8e1d \
-  --color=header:#8839ef,marker:#179299 \
-  --color=border:#dce0e8 \
+  --color=bg:#1e1e2e,fg:#cdd6f4,hl:#f38ba8 \
+  --color=fg+:#cdd6f4,bg+:#313244,hl+:#f38ba8 \
+  --color=info:#89b4fa,prompt:#fab387,spinner:#f9e2af \
+  --color=header:#cba6f7,marker:#89dceb \
+  --color=border:#6c7086 \
 "
