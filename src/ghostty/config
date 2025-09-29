@@ -1,4 +1,4 @@
-theme = catppuccin-latte.conf
+theme = catppuccin-mocha.conf
 initial-command = zellij
 shell-integration = zsh
 keybind = clear
