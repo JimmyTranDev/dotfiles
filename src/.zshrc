@@ -115,11 +115,8 @@ alias theme-set="zsh $HOME/Programming/dotfiles/etc/scripts/theme.sh set"
 alias theme-get="zsh $HOME/Programming/dotfiles/etc/scripts/theme.sh get"
 alias theme-list="zsh $HOME/Programming/dotfiles/etc/scripts/theme.sh list"
 
-# Catppuccin Mocha colors for fzf
+# Catppuccin Umocha colors for fzf
 export FZF_DEFAULT_OPTS="\
-  --color=bg:#1e1e2e,fg:#cdd6f4,hl:#f38ba8 \
-  --color=fg+:#cdd6f4,bg+:#313244,hl+:#f38ba8 \
-  --color=info:#89b4fa,prompt:#fab387,spinner:#f9e2af \
-  --color=header:#cba6f7,marker:#89dceb \
-  --color=border:#6c7086 \
+  --color=bg:#1e1e2e,fg:#cdd6f4,hl:#f38ba8 --color=fg+:#cdd6f4,bg+:#313244,hl+:#f38ba8 --color=info:#89b4fa,prompt:#fab387,spinner:#f9e2af --color=header:#cba6f7,marker:#89dceb --color=border:#6c7086 \
 "
+
