@@ -4,10 +4,10 @@
 # ===================================================================
 # 
 # A comprehensive tool for managing git worktrees with JIRA integration.
-# Supports creating, deleting, cleaning, and renaming worktrees across
+# Supports creating, deleting, cleaning, renaming, moving, and checking out worktrees across
 # multiple repositories with automatic dependency installation.
 #
-# Usage: zsh worktrees.sh <create|delete|clean|rename|checkout> [args]
+# Usage: zsh worktrees.sh <create|delete|clean|rename|checkout|move> [args]
 #
 # Dependencies:
 #   - git (required)
@@ -257,13 +257,14 @@ find_main_branch() {
 # ===================================================================
 
 usage() {
-  print -P "%F{yellow}Usage:%f zsh worktrees.sh <create|delete|clean|rename|checkout> [args]"
+  print -P "%F{yellow}Usage:%f zsh worktrees.sh <create|delete|clean|rename|checkout|move> [args]"
   print -P "%F{yellow}Subcommands:%f"
   print -P "  create    - Create a new worktree (interactive, JIRA supported)"
   print -P "  delete    - Delete a worktree (interactive or by path)"
   print -P "  clean     - Remove worktrees whose branches are merged into main"
   print -P "  rename    - Rename current branch (JIRA supported)"
   print -P "  checkout  - Checkout a remote branch locally (interactive)"
+  print -P "  move      - Move a worktree to a new location (interactive)"
   exit 1
 }
 
@@ -908,6 +909,113 @@ cmd_rename() {
   print_color green "Branch renamed to: $new_branch"
 }
 
+# Move worktree subcommand
+cmd_move() {
+  require_tool git
+  require_tool fzf
+  
+  local source_path="$1"
+  local dest_path="$2"
+  
+  # Select source worktree if not provided
+  if [[ -z "$source_path" ]]; then
+    if [[ ! -d "$WORKTREES_DIR" ]]; then
+      print_color red "Worktrees directory $WORKTREES_DIR does not exist"
+      return 1
+    fi
+    
+    local available_worktrees
+    available_worktrees=( $(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d | sort) )
+    
+    if [[ ${#available_worktrees[@]} -eq 0 ]]; then
+      print_color red "No worktrees found in $WORKTREES_DIR"
+      return 1
+    fi
+    
+    source_path=$(select_fzf "Select a worktree to move: " "${available_worktrees[@]}") || {
+      print_color red "No worktree selected."
+      return 1
+    }
+  fi
+  
+  # Validate source worktree
+  if [[ ! -d "$source_path" ]]; then
+    print_color red "Error: Directory $source_path does not exist."
+    return 1
+  fi
+  
+  if [[ ! -f "$source_path/.git" ]]; then
+    print_color red "Error: $source_path does not look like a git worktree (missing .git file)."
+    return 1
+  fi
+  
+  # Get worktree name from path
+  local worktree_name
+  worktree_name=$(basename "$source_path")
+  
+  # Get destination path if not provided
+  if [[ -z "$dest_path" ]]; then
+    print_color cyan "Enter new location for worktree '$worktree_name':"
+    print_color yellow "Current location: $source_path"
+    print_color yellow "Enter full path or just new parent directory:"
+    read dest_path
+    
+    if [[ -z "$dest_path" ]]; then
+      print_color red "No destination path provided."
+      return 1
+    fi
+    
+    # If dest_path is just a directory, append the worktree name
+    if [[ -d "$dest_path" ]]; then
+      dest_path="$dest_path/$worktree_name"
+    fi
+  fi
+  
+  # Validate destination
+  if [[ -e "$dest_path" ]]; then
+    print_color red "Error: Destination $dest_path already exists."
+    return 1
+  fi
+  
+  # Create destination directory if parent doesn't exist
+  local dest_parent
+  dest_parent=$(dirname "$dest_path")
+  if [[ ! -d "$dest_parent" ]]; then
+    print_color yellow "Creating parent directory: $dest_parent"
+    mkdir -p "$dest_parent" || {
+      print_color red "Error: Could not create parent directory $dest_parent"
+      return 1
+    }
+  fi
+  
+  # Detect main repo
+  local gitdir_line
+  gitdir_line=$(head -n1 "$source_path/.git")
+  
+  local worktree_gitdir
+  if [[ "$gitdir_line" =~ ^gitdir:\ (.*)$ ]]; then
+    worktree_gitdir="${match[1]}"
+  else
+    print_color red "Error: Could not parse .git file in $source_path"
+    return 1
+  fi
+  
+  # Get the actual repository root (not the .git directory)
+  local main_repo
+  main_repo=$(dirname "$(dirname "$worktree_gitdir")")
+  
+  print_color yellow "Moving worktree from $source_path to $dest_path..."
+  
+  # Use git worktree move command
+  git -C "$main_repo" worktree move "$source_path" "$dest_path" || {
+    print_color red "Error: Failed to move worktree. Check that Git version supports 'git worktree move' (Git 2.17+)"
+    return 1
+  }
+  
+  print_color green "Successfully moved worktree to: $dest_path"
+  print_color cyan "You can now access the worktree at the new location."
+}
+
 if [[ $# -lt 1 ]]; then
   usage
 fi
@@ -934,6 +1042,9 @@ case "$subcommand" in
     ;;
   rename)
     cmd_rename || exit 1
+    ;;
+  move)
+    cmd_move "$@" || exit 1
     ;;
   *)
     usage
