@@ -100,6 +100,29 @@ find_git_worktrees() {
   done | sort
 }
 
+find_non_git_dirs() {
+  local base_dir="$1"
+  local max_depth="${2:-1}"
+  
+  # Find all directories at the specified depth that are not git repositories
+  find "$base_dir" -maxdepth "$max_depth" -type d 2>/dev/null | while read -r dir; do
+    # Skip the base directory itself
+    if [[ "$dir" == "$base_dir" ]]; then
+      continue
+    fi
+    
+    # Check if it's not a git repository (no .git directory or file)
+    if [[ ! -d "$dir/.git" && ! -f "$dir/.git" ]]; then
+      # Get the relative path from base_dir
+      relative_path="${dir#$base_dir/}"
+      # Only include top-level directories (no subdirectories)
+      if [[ "$relative_path" != */* ]]; then
+        echo "$relative_path"
+      fi
+    fi
+  done | sort
+}
+
 find_git_repos_and_worktrees() {
   local base_dir="$1"
   local max_depth="${2:-2}"
@@ -121,6 +144,17 @@ find_git_repos_and_worktrees() {
         echo "$relative_path"
       fi
     done
+  } | sort -u
+}
+
+find_all_projects() {
+  local base_dir="$1"
+  local max_depth="${2:-2}"
+  
+  # Combine git repositories and non-git directories
+  {
+    find_git_repos "$base_dir" "$max_depth"
+    find_non_git_dirs "$base_dir" 1
   } | sort -u
 }
 
@@ -258,6 +292,54 @@ fzf_select_git_repo_and_cd() {
   
   local selected
   selected=$(printf "%s\n" "${sorted_repos[@]}" | fzf --prompt="$prompt")
+  if [[ -n "$selected" ]]; then
+    echo "$selected" > "$last_file"
+    cd "$base_dir/$selected"
+    [[ -n "$open_cmd" ]] && eval "$open_cmd"
+  else
+    echo "No selection."
+    return 1
+  fi
+}
+
+fzf_select_all_projects_and_cd() {
+  local prompt="$1"
+  local base_dir="$2"
+  local last_file="$3"
+  local open_cmd="$4"
+  local max_depth="${5:-2}"
+  
+  # Get all projects (git repos and non-git directories) in the base directory
+  local all_projects
+  all_projects=($(find_all_projects "$base_dir" "$max_depth"))
+  
+  if [[ ${#all_projects[@]} -eq 0 ]]; then
+    echo "No projects found in $base_dir"
+    return 1
+  fi
+  
+  local last_sel=""
+  [[ -f "$last_file" ]] && last_sel=$(<"$last_file")
+  local sorted_projects=()
+  
+  # Prioritize the last selected project
+  if [[ -n "$last_sel" ]]; then
+    for project in "${all_projects[@]}"; do
+      if [[ "$project" == "$last_sel" ]]; then
+        sorted_projects=("$project")
+      fi
+    done
+    for project in "${all_projects[@]}"; do
+      if [[ "$project" != "$last_sel" ]]; then
+        sorted_projects+=("$project")
+      fi
+    done
+  else
+    sorted_projects=("${all_projects[@]}")
+  fi
+  
+  local selected
+  selected=$(printf "%s\n" "${sorted_projects[@]}" | fzf --prompt="$prompt")
   if [[ -n "$selected" ]]; then
     echo "$selected" > "$last_file"
     cd "$base_dir/$selected"

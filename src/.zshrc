@@ -61,7 +61,7 @@ alias vsc='cd ~/Library/Application\ Support/Code/User/'
 source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
 
 select_project() {
-  fzf_select_git_repo_and_cd "Select project git repository: " "$HOME/Programming" "$HOME/.last_project" "nvim" 3
+  fzf_select_all_projects_and_cd "Select project: " "$HOME/Programming" "$HOME/.last_project" "nvim" 3
 }
 zle -N select_project
 bindkey '^f' select_project
