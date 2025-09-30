@@ -68,3 +68,130 @@ fzf_select_and_cd() {
     return 1
   fi
 }
+
+find_git_repos() {
+  local base_dir="$1"
+  local max_depth="${2:-2}"
+  
+  # Find all .git directories and extract the repo names
+  find "$base_dir" -maxdepth "$max_depth" -name ".git" -type d 2>/dev/null | while read -r git_dir; do
+    # Get the parent directory of .git (which is the repo root)
+    repo_path=$(dirname "$git_dir")
+    # Get the relative path from base_dir
+    relative_path="${repo_path#$base_dir/}"
+    echo "$relative_path"
+  done | sort
+}
+
+find_git_worktrees() {
+  local base_dir="$1"
+  local max_depth="${2:-2}"
+  
+  # Find all .git files (not directories) which indicate worktrees
+  find "$base_dir" -maxdepth "$max_depth" -name ".git" -type f 2>/dev/null | while read -r git_file; do
+    # Verify it's actually a worktree by checking if it contains "gitdir:"
+    if grep -q "^gitdir:" "$git_file" 2>/dev/null; then
+      # Get the parent directory (which is the worktree root)
+      worktree_path=$(dirname "$git_file")
+      # Get the relative path from base_dir
+      relative_path="${worktree_path#$base_dir/}"
+      echo "$relative_path"
+    fi
+  done | sort
+}
+
+fzf_select_git_worktree_and_cd() {
+  local prompt="$1"
+  local base_dir="$2"
+  local last_file="$3"
+  local open_cmd="$4"
+  local max_depth="${5:-2}"
+  
+  # Get all git worktrees in the base directory
+  local git_worktrees
+  git_worktrees=($(find_git_worktrees "$base_dir" "$max_depth"))
+  
+  if [[ ${#git_worktrees[@]} -eq 0 ]]; then
+    echo "No git worktrees found in $base_dir"
+    return 1
+  fi
+  
+  local last_sel=""
+  [[ -f "$last_file" ]] && last_sel=$(<"$last_file")
+  local sorted_worktrees=()
+  
+  # Prioritize the last selected worktree
+  if [[ -n "$last_sel" ]]; then
+    for worktree in "${git_worktrees[@]}"; do
+      if [[ "$worktree" == "$last_sel" ]]; then
+        sorted_worktrees=("$worktree")
+      fi
+    done
+    for worktree in "${git_worktrees[@]}"; do
+      if [[ "$worktree" != "$last_sel" ]]; then
+        sorted_worktrees+=("$worktree")
+      fi
+    done
+  else
+    sorted_worktrees=("${git_worktrees[@]}")
+  fi
+  
+  local selected
+  selected=$(printf "%s\n" "${sorted_worktrees[@]}" | fzf --prompt="$prompt")
+  if [[ -n "$selected" ]]; then
+    echo "$selected" > "$last_file"
+    cd "$base_dir/$selected"
+    [[ -n "$open_cmd" ]] && eval "$open_cmd"
+  else
+    echo "No selection."
+    return 1
+  fi
+}
+
+fzf_select_git_repo_and_cd() {
+  local prompt="$1"
+  local base_dir="$2"
+  local last_file="$3"
+  local open_cmd="$4"
+  local max_depth="${5:-2}"
+  
+  # Get all git repositories in the base directory
+  local git_repos
+  git_repos=($(find_git_repos "$base_dir" "$max_depth"))
+  
+  if [[ ${#git_repos[@]} -eq 0 ]]; then
+    echo "No git repositories found in $base_dir"
+    return 1
+  fi
+  
+  local last_sel=""
+  [[ -f "$last_file" ]] && last_sel=$(<"$last_file")
+  local sorted_repos=()
+  
+  # Prioritize the last selected repo
+  if [[ -n "$last_sel" ]]; then
+    for repo in "${git_repos[@]}"; do
+      if [[ "$repo" == "$last_sel" ]]; then
+        sorted_repos=("$repo")
+      fi
+    done
+    for repo in "${git_repos[@]}"; do
+      if [[ "$repo" != "$last_sel" ]]; then
+        sorted_repos+=("$repo")
+      fi
+    done
+  else
+    sorted_repos=("${git_repos[@]}")
+  fi
+  
+  local selected
+  selected=$(printf "%s\n" "${sorted_repos[@]}" | fzf --prompt="$prompt")
+  if [[ -n "$selected" ]]; then
+    echo "$selected" > "$last_file"
+    cd "$base_dir/$selected"
+    [[ -n "$open_cmd" ]] && eval "$open_cmd"
+  else
+    echo "No selection."
+    return 1
+  fi
+}

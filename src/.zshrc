@@ -61,31 +61,16 @@ alias vsc='cd ~/Library/Application\ Support/Code/User/'
 source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
 
 select_project() {
-  local all_projects
-  all_projects=($(ls -d "$HOME/Programming"/*/ | sed "s#$HOME/Programming/##;s#/##" | sort))
-  fzf_select_and_cd "Select project: " "$HOME/Programming" "$HOME/.last_project" "nvim" "${all_projects[@]}"
-  nvim
+  fzf_select_git_repo_and_cd "Select project git repository: " "$HOME/Programming" "$HOME/.last_project" "nvim" 3
 }
 zle -N select_project
 bindkey '^f' select_project
 
 select_worktree() {
-  local all_worktrees
-  all_worktrees=($(find "$HOME/Worktrees" -mindepth 1 -maxdepth 1 -type d | xargs -n1 basename | sort))
-  fzf_select_and_cd "Select a worktree folder: " "$HOME/Worktrees" "$HOME/.last_worktree" "" "${all_worktrees[@]}"
-  nvim
+  fzf_select_git_worktree_and_cd "Select a git worktree: " "$HOME/Worktrees" "$HOME/.last_worktree" "nvim" 2
 }
 zle -N select_worktree
 bindkey '^g' select_worktree
-
-select_profile_folder() {
-  local all_profiles
-  all_profiles=($(ls -d "$HOME/Programming/profile"/*/ 2>/dev/null | xargs -n1 basename | sort))
-  fzf_select_and_cd "Select profile folder: " "$HOME/Programming/profile" "$HOME/.last_profile" "" "${all_profiles[@]}"
-  nvim
-}
-zle -N select_profile_folder
-bindkey '^p' select_profile_folder
 
 eval "$(starship init zsh)"
 eval "$(fnm env --use-on-cd --shell zsh)"
