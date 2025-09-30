@@ -100,6 +100,30 @@ find_git_worktrees() {
   done | sort
 }
 
+find_git_repos_and_worktrees() {
+  local base_dir="$1"
+  local max_depth="${2:-2}"
+  
+  # Find both regular git repositories (.git directories) and worktrees (.git files)
+  {
+    # Find git repositories (.git directories)
+    find "$base_dir" -maxdepth "$max_depth" -name ".git" -type d 2>/dev/null | while read -r git_dir; do
+      repo_path=$(dirname "$git_dir")
+      relative_path="${repo_path#$base_dir/}"
+      echo "$relative_path"
+    done
+    
+    # Find git worktrees (.git files with gitdir: references)
+    find "$base_dir" -maxdepth "$max_depth" -name ".git" -type f 2>/dev/null | while read -r git_file; do
+      if grep -q "^gitdir:" "$git_file" 2>/dev/null; then
+        worktree_path=$(dirname "$git_file")
+        relative_path="${worktree_path#$base_dir/}"
+        echo "$relative_path"
+      fi
+    done
+  } | sort -u
+}
+
 fzf_select_git_worktree_and_cd() {
   local prompt="$1"
   local base_dir="$2"
@@ -138,6 +162,54 @@ fzf_select_git_worktree_and_cd() {
   
   local selected
   selected=$(printf "%s\n" "${sorted_worktrees[@]}" | fzf --prompt="$prompt")
+  if [[ -n "$selected" ]]; then
+    echo "$selected" > "$last_file"
+    cd "$base_dir/$selected"
+    [[ -n "$open_cmd" ]] && eval "$open_cmd"
+  else
+    echo "No selection."
+    return 1
+  fi
+}
+
+fzf_select_git_repos_and_worktrees_and_cd() {
+  local prompt="$1"
+  local base_dir="$2"
+  local last_file="$3"
+  local open_cmd="$4"
+  local max_depth="${5:-2}"
+  
+  # Get all git repositories and worktrees in the base directory
+  local git_items
+  git_items=($(find_git_repos_and_worktrees "$base_dir" "$max_depth"))
+  
+  if [[ ${#git_items[@]} -eq 0 ]]; then
+    echo "No git repositories or worktrees found in $base_dir"
+    return 1
+  fi
+  
+  local last_sel=""
+  [[ -f "$last_file" ]] && last_sel=$(<"$last_file")
+  local sorted_items=()
+  
+  # Prioritize the last selected item
+  if [[ -n "$last_sel" ]]; then
+    for item in "${git_items[@]}"; do
+      if [[ "$item" == "$last_sel" ]]; then
+        sorted_items=("$item")
+      fi
+    done
+    for item in "${git_items[@]}"; do
+      if [[ "$item" != "$last_sel" ]]; then
+        sorted_items+=("$item")
+      fi
+    done
+  else
+    sorted_items=("${git_items[@]}")
+  fi
+  
+  local selected
+  selected=$(printf "%s\n" "${sorted_items[@]}" | fzf --prompt="$prompt")
   if [[ -n "$selected" ]]; then
     echo "$selected" > "$last_file"
     cd "$base_dir/$selected"
