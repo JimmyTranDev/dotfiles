@@ -56,6 +56,7 @@ alias wn='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh create'
 alias wD='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh delete'
 alias wC='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh clean'
 alias wr='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh rename'
+alias wu='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh update'
 alias vsc='cd ~/Library/Application\ Support/Code/User/'
 
 source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
