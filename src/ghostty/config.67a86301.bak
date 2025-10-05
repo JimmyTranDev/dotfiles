@@ -11,4 +11,3 @@ clipboard-read = allow
 clipboard-write = allow
 font-size = 16
 confirm-close-surface = false
-keybind = shift+enter=text:\x1b\r

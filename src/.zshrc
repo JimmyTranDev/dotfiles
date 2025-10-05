@@ -39,6 +39,7 @@ alias a='eval "$(poetry env activate)"'
 alias c='clear'
 alias e='exit'
 alias worktrees='zsh $HOME/Programming/dotfiles/etc/scripts/worktrees.sh'
+alias o='opencode'
 alias g='grep -rnw . -e'
 alias i="$HOME/Programming/dotfiles/etc/scripts/install/install.sh"
 alias I="$HOME/Programming/dotfiles/etc/scripts/update_dotfiles.sh"
