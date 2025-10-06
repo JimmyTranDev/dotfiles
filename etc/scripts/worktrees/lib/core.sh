@@ -163,3 +163,157 @@ find_main_branch() {
   
   echo "$main_branch"
 }
+
+# Validate branch name
+is_valid_branch_name() {
+  local branch_name="$1"
+  
+  # Check if empty
+  [[ -z "$branch_name" ]] && return 1
+  
+  # Check for invalid characters (spaces, etc.)
+  [[ "$branch_name" =~ [[:space:]] ]] && return 1
+  
+  # Check for git-invalid characters
+  [[ "$branch_name" =~ [\~\^\:\?\*\[\]] ]] && return 1
+  
+  return 0
+}
+
+# Select a git repository from Programming directory
+select_repository() {
+  local programming_dir="${PROGRAMMING_DIR:-$HOME/Programming}"
+  
+  if [[ ! -d "$programming_dir" ]]; then
+    print_color red "Error: Programming directory not found: $programming_dir" >&2
+    return 1
+  fi
+  
+  print_color cyan "Scanning for git repositories in $programming_dir..." >&2
+  
+  # Create temporary file to store repository paths
+  local temp_repos=$(mktemp)
+  find "$programming_dir" -maxdepth 2 -name ".git" -type d 2>/dev/null | while read git_dir; do
+    dirname "$git_dir" >> "$temp_repos"
+  done
+  
+  if [[ ! -s "$temp_repos" ]]; then
+    print_color red "No git repositories found in $programming_dir" >&2
+    rm -f "$temp_repos"
+    return 1
+  fi
+  
+  local repo_count=$(wc -l < "$temp_repos")
+  print_color yellow "Found $repo_count git repositories:" >&2
+  
+  # Use fzf to select repository if available
+  if check_tool fzf; then
+    local selected_repo
+    selected_repo=$(cat "$temp_repos" | while read repo; do basename "$repo"; done | fzf --prompt="Select repository: " --height=40% --reverse)
+    
+    if [[ -z "$selected_repo" ]]; then
+      print_color red "No repository selected" >&2
+      rm -f "$temp_repos"
+      return 1
+    fi
+    
+    # Find the full path for the selected repository
+    local full_path
+    full_path=$(cat "$temp_repos" | while read repo; do
+      if [[ "$(basename "$repo")" == "$selected_repo" ]]; then
+        echo "$repo"
+        break
+      fi
+    done)
+    
+    rm -f "$temp_repos"
+    echo "$full_path"
+    return 0
+  else
+    # Fallback to manual selection
+    local i=1
+    cat "$temp_repos" | while read repo; do
+      print_color yellow "  $i. $(basename "$repo")" >&2
+      ((i++))
+    done
+    
+    print_color cyan "Enter repository number (1-$repo_count): " >&2
+    local choice
+    read choice
+    
+    if [[ "$choice" =~ ^[0-9]+$ ]] && [[ "$choice" -ge 1 ]] && [[ "$choice" -le $repo_count ]]; then
+      local selected_repo
+      selected_repo=$(sed -n "${choice}p" "$temp_repos")
+      rm -f "$temp_repos"
+      echo "$selected_repo"
+      return 0
+    else
+      print_color red "Invalid selection" >&2
+      return 1
+    fi
+  fi
+}
+
+# Find a repository by name in Programming directory
+find_repository_by_name() {
+  local repo_name="$1"
+  local programming_dir="${PROGRAMMING_DIR:-$HOME/Programming}"
+  
+  if [[ -z "$repo_name" ]]; then
+    print_color red "Error: Repository name is required" >&2
+    return 1
+  fi
+  
+  if [[ ! -d "$programming_dir" ]]; then
+    print_color red "Error: Programming directory not found: $programming_dir" >&2
+    return 1
+  fi
+  
+  # Create temporary file to store repository paths
+  local temp_repos=$(mktemp)
+  find "$programming_dir" -maxdepth 2 -name ".git" -type d 2>/dev/null | while read git_dir; do
+    dirname "$git_dir" >> "$temp_repos"
+  done
+  
+  if [[ ! -s "$temp_repos" ]]; then
+    print_color red "No git repositories found in $programming_dir" >&2
+    rm -f "$temp_repos"
+    return 1
+  fi
+  
+  # Look for exact repository name match
+  local found_repo
+  found_repo=$(cat "$temp_repos" | while read repo; do
+    if [[ "$(basename "$repo")" == "$repo_name" ]]; then
+      echo "$repo"
+      break
+    fi
+  done)
+  
+  rm -f "$temp_repos"
+  
+  if [[ -n "$found_repo" ]]; then
+    echo "$found_repo"
+    return 0
+  else
+    print_color red "Error: Repository '$repo_name' not found in $programming_dir" >&2
+    print_color yellow "Available repositories:" >&2
+    find "$programming_dir" -maxdepth 2 -name ".git" -type d 2>/dev/null | while read git_dir; do
+      print_color yellow "  - $(basename "$(dirname "$git_dir")")" >&2
+    done
+    return 1
+  fi
+}
+
+# Get repository - either by name or interactive selection
+get_repository() {
+  local repo_name="$1"
+  
+  if [[ -n "$repo_name" ]]; then
+    # Try to find repository by name
+    find_repository_by_name "$repo_name"
+  else
+    # Interactive selection
+    select_repository
+  fi
+}

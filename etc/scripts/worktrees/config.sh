@@ -4,8 +4,8 @@
 # ===================================================================
 
 # Global configuration
-export WORKTREES_DIR="$HOME/Worktrees"
-export PROGRAMMING_DIR="$HOME/Programming"
+export WORKTREES_DIR="${WORKTREES_DIR:-$HOME/Worktrees}"
+export PROGRAMMING_DIR="${PROGRAMMING_DIR:-$HOME/Programming}"
 
 # Change types and their corresponding emojis
 export WORKTREE_TYPES=(ci build docs feat perf refactor style test fix revert)

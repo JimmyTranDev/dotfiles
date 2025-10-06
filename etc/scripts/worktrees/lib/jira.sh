@@ -231,3 +231,31 @@ process_jira_ticket() {
   
   return 0
 }
+
+# Clean JIRA summary for use in branch names
+clean_jira_summary() {
+  local summary="$1"
+  echo "$summary" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//'
+}
+
+# Create branch name from JIRA ticket
+create_branch_from_jira() {
+  local jira_ticket="$1"
+  
+  if [[ -z "$jira_ticket" ]]; then
+    print_color red "Error: JIRA ticket is required"
+    return 1
+  fi
+  
+  local summary
+  summary=$(get_jira_summary "$jira_ticket" 2>/dev/null)
+  
+  if [[ $? -eq 0 && -n "$summary" ]]; then
+    local clean_summary
+    clean_summary=$(clean_jira_summary "$summary")
+    echo "${jira_ticket}-${clean_summary}"
+  else
+    # Fallback to just the ticket number
+    echo "$jira_ticket"
+  fi
+}

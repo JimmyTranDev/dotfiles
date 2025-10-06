@@ -14,8 +14,36 @@ cmd_create() {
   fi
   
   local jira_ticket="$1"
+  local repo_name="$2"
   
-  # Prompt for JIRA ticket if not provided
+  # Get repository first - either by name or interactive selection
+  local main_repo
+  if [[ -n "$repo_name" ]]; then
+    print_color yellow "Looking for repository: $repo_name"
+    main_repo=$(get_repository "$repo_name") || {
+      print_color red "Error: Could not find repository '$repo_name'"
+      return 1
+    }
+  else
+    main_repo=$(get_repository) || {
+      print_color red "Error: Repository selection failed"
+      return 1
+    }
+  fi
+  
+  print_color yellow "Using repository: $(basename "$main_repo")"
+  print_color yellow "Repository path: $main_repo"
+  
+  # Get the main branch for the selected repository
+  local main_branch
+  main_branch=$(find_main_branch "$main_repo") || {
+    print_color red "Error: Could not find main branch in $main_repo"
+    return 1
+  }
+  
+  print_color yellow "Base branch: $main_branch"
+  
+  # Now prompt for JIRA ticket if not provided
   if [[ -z "$jira_ticket" ]]; then
     print_color cyan "Enter JIRA ticket (e.g., ABC-123) or leave empty to skip JIRA integration:"
     read -r jira_ticket
@@ -67,22 +95,6 @@ cmd_create() {
   fi
   
   print_color cyan "Creating worktree for branch: $branch_name"
-  
-  # Detect main repository
-  local main_repo
-  main_repo=$(git rev-parse --show-toplevel 2>/dev/null) || {
-    print_color red "Error: Not in a git repository"
-    return 1
-  }
-  
-  local main_branch
-  main_branch=$(find_main_branch "$main_repo") || {
-    print_color red "Error: Could not find main branch"
-    return 1
-  }
-  
-  print_color yellow "Using main repository: $(basename "$main_repo")"
-  print_color yellow "Base branch: $main_branch"
   
   # Create worktree directory path
   local worktree_dir="$WORKTREES_DIR/$(basename "$main_repo")-$branch_name"

@@ -32,10 +32,13 @@ USAGE:
   worktree <command> [options]
 
 COMMANDS:
-  create [jira-ticket]     Create a new worktree
-                          If no JIRA ticket provided, prompts for input
+  create [jira-ticket] [repo] Create a new worktree
+                          Prompts to select repository first from ~/Programming if not specified
+                          Then prompts for JIRA ticket if not provided
+                          Creates worktree in ~/Worktrees
                           Examples:
-                            worktree create ABC-123
+                            worktree create ABC-123 my-repo
+                            worktree create ABC-123 (interactive repo selection)
                             worktree create (interactive)
 
   checkout [branch]        Checkout existing remote branch as worktree
@@ -68,10 +71,10 @@ ENVIRONMENT:
   JIRA_PATTERN           Regex pattern for JIRA tickets (default: [A-Z]+-[0-9]+)
 
 EXAMPLES:
-  # Create worktree for JIRA ticket
+  # Create worktree for JIRA ticket (will prompt for repository selection)
   worktree create ABC-123
 
-  # Interactive creation
+  # Interactive creation (prompts for JIRA ticket and repository)
   worktree create
 
   # Checkout existing branch
@@ -82,6 +85,13 @@ EXAMPLES:
 
   # Rename current branch with JIRA integration
   worktree rename
+
+WORKFLOW:
+  1. Run 'worktree create [ticket] [repo]'
+  2. Select repository from ~/Programming (if not provided)
+  3. Enter JIRA ticket or branch name (if not provided)
+  4. Worktree created in ~/Worktrees/[repo-name]-[branch-name]
+  5. Automatically navigate to new worktree directory
 
 DEPENDENCIES:
   Required: git
