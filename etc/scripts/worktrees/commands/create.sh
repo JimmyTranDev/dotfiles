@@ -60,11 +60,13 @@ cmd_create() {
     else
       print_color yellow "Fetching JIRA ticket details..."
       
-      summary=$(get_jira_summary "$jira_ticket")
+      # Capture only the summary, redirect status messages to stderr
+      summary=$(get_jira_summary "$jira_ticket" 2>/dev/null)
       if [[ $? -eq 0 && -n "$summary" ]]; then
         print_color green "✅ JIRA ticket found: $summary"
+        # Clean the summary thoroughly - remove any stray output and normalize
         local clean_summary
-        clean_summary=$(echo "$summary" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//')
+        clean_summary=$(echo "$summary" | head -1 | sed 's/[0-9]*m//g' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//')
         branch_name="${jira_ticket}-${clean_summary}"
       else
         print_color yellow "Could not fetch JIRA summary. Using ticket number as branch name."
@@ -87,7 +89,8 @@ cmd_create() {
   fi
   
   # Ensure we have a clean branch name
-  branch_name=$(echo "$branch_name" | sed 's/[^a-zA-Z0-9._-]/_/g')
+  # Strip any remaining artifacts and sanitize thoroughly
+  branch_name=$(echo "$branch_name" | head -1 | sed 's/[0-9]*m//g' | tr -d '\n\r' | sed 's/[^a-zA-Z0-9._-]/_/g; s/__*/_/g; s/^_//; s/_$//')
   
   if [[ -z "$branch_name" ]]; then
     print_color red "Invalid branch name. Aborting."
@@ -96,8 +99,8 @@ cmd_create() {
   
   print_color cyan "Creating worktree for branch: $branch_name"
   
-  # Create worktree directory path
-  local worktree_dir="$WORKTREES_DIR/$(basename "$main_repo")-$branch_name"
+  # Create worktree directory path (using just the branch name)
+  local worktree_dir="$WORKTREES_DIR/$branch_name"
   
   # Check if worktree directory already exists
   if [[ -d "$worktree_dir" ]]; then
@@ -123,6 +126,12 @@ cmd_create() {
   print_color cyan "📁 Path: $worktree_dir"
   print_color cyan "🌿 Branch: $branch_name"
   
+  # Create an empty initial commit with the branch name
+  print_color yellow "Creating initial commit..."
+  git -C "$worktree_dir" commit --allow-empty -m "$branch_name" || {
+    print_color yellow "Warning: Could not create initial commit"
+  }
+  
   if [[ -n "$summary" ]]; then
     print_color cyan "📋 JIRA: $jira_ticket - $summary"
   fi
@@ -132,6 +141,45 @@ cmd_create() {
     print_color yellow "Warning: Could not navigate to worktree directory"
     return 0
   }
+  
+  # Install dependencies if package.json exists
+  if [[ -f "package.json" ]]; then
+    print_color yellow "📦 Package.json found. Installing dependencies..."
+    
+    local package_manager
+    package_manager=$(detect_package_manager)
+    
+    if [[ -n "$package_manager" ]]; then
+      print_color cyan "Using package manager: $package_manager"
+      
+      case "$package_manager" in
+        "pnpm")
+          if command -v pnpm >/dev/null 2>&1; then
+            pnpm install
+          else
+            print_color yellow "pnpm not found, falling back to npm"
+            npm install
+          fi
+          ;;
+        "yarn")
+          if command -v yarn >/dev/null 2>&1; then
+            yarn install
+          else
+            print_color yellow "yarn not found, falling back to npm"
+            npm install
+          fi
+          ;;
+        "npm"|*)
+          npm install
+          ;;
+      esac
+    else
+      print_color yellow "No lock file found, using npm"
+      npm install
+    fi
+  else
+    print_color cyan "No package.json found, skipping dependency installation"
+  fi
   
   print_color yellow "Now in worktree directory. Happy coding! 🚀"
 }

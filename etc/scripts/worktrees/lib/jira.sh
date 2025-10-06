@@ -27,41 +27,41 @@ get_jira_summary() {
     return 1
   fi
   
-  print_color blue "Fetching JIRA ticket: $jira_key"
+  print_color blue "Fetching JIRA ticket: $jira_key" >&2
   
   local jira_raw
   if ! jira_raw=$(jira issue view "$jira_key" --raw 2>&1); then
-    print_color red "Failed to fetch JIRA ticket: $jira_key"
-    print_color red "Error output: $jira_raw"
+    print_color red "Failed to fetch JIRA ticket: $jira_key" >&2
+    print_color red "Error output: $jira_raw" >&2
     return 1
   fi
   
   if [[ -z "$jira_raw" ]]; then
-    print_color red "Empty response from JIRA CLI for ticket: $jira_key"
+    print_color red "Empty response from JIRA CLI for ticket: $jira_key" >&2
     return 1
   fi
   
   # Check if the response is valid JSON
   if ! echo "$jira_raw" | jq . >/dev/null 2>&1; then
-    print_color red "Invalid JSON response from JIRA CLI"
-    print_color red "Response: $jira_raw"
+    print_color red "Invalid JSON response from JIRA CLI" >&2
+    print_color red "Response: $jira_raw" >&2
     return 1
   fi
   
   local summary
   if ! summary=$(echo "$jira_raw" | jq -r '.fields.summary' 2>/dev/null); then
-    print_color red "Failed to parse JIRA response for: $jira_key"
-    print_color red "Raw response: $jira_raw"
+    print_color red "Failed to parse JIRA response for: $jira_key" >&2
+    print_color red "Raw response: $jira_raw" >&2
     return 1
   fi
   
   if [[ -z "$summary" || "$summary" == "null" ]]; then
-    print_color red "Could not extract summary from JIRA ticket: $jira_key"
-    print_color red "Summary field value: '$summary'"
+    print_color red "Could not extract summary from JIRA ticket: $jira_key" >&2
+    print_color red "Summary field value: '$summary'" >&2
     return 1
   fi
   
-  print_color blue "Successfully extracted summary: $summary"
+  print_color blue "Successfully extracted summary: $summary" >&2
   echo "$summary"
 }
 
