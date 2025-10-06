@@ -1,0 +1,154 @@
+#!/bin/zsh
+# ===================================================================
+# worktree - Main Git Worktree Management Script
+# ===================================================================
+# A comprehensive script for managing git worktrees with JIRA integration.
+# Split into modular components for better maintainability.
+
+# Set strict mode but with graceful error handling
+# setopt NO_UNSET  # Disabled due to compatibility issues with sourced files
+
+# Get script directory for imports
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Source core configuration and libraries
+source "$SCRIPT_DIR/config.sh"
+source "$SCRIPT_DIR/lib/core.sh"
+source "$SCRIPT_DIR/lib/jira.sh"
+
+# Source all command modules
+source "$SCRIPT_DIR/commands/create.sh"
+source "$SCRIPT_DIR/commands/checkout.sh"
+source "$SCRIPT_DIR/commands/delete.sh"
+source "$SCRIPT_DIR/commands/update.sh"
+source "$SCRIPT_DIR/commands/other.sh"
+
+# Display help information
+show_help() {
+  cat << 'EOF'
+Git Worktree Management Script
+
+USAGE:
+  worktree <command> [options]
+
+COMMANDS:
+  create [jira-ticket]     Create a new worktree
+                          If no JIRA ticket provided, prompts for input
+                          Examples:
+                            worktree create ABC-123
+                            worktree create (interactive)
+
+  checkout [branch]        Checkout existing remote branch as worktree
+                          If no branch provided, shows fzf selector
+                          Examples:
+                            worktree checkout feature/new-feature
+                            worktree checkout (interactive)
+
+  delete [pattern]         Delete worktree(s)
+                          If no pattern provided, shows fzf selector
+                          Examples:
+                            worktree delete ABC-123
+                            worktree delete (interactive)
+
+  update                   Update all worktrees (git pull)
+
+  clean                    Clean merged/deleted branches from all repos
+
+  rename                   Rename current branch (with JIRA integration)
+
+  move [source] [dest]     Move worktree to new location
+                          If no paths provided, interactive selection
+
+GLOBAL OPTIONS:
+  -h, --help              Show this help message
+  -v, --version           Show version information
+
+ENVIRONMENT:
+  WORKTREES_DIR           Directory for worktrees (default: ~/worktrees)
+  JIRA_PATTERN           Regex pattern for JIRA tickets (default: [A-Z]+-[0-9]+)
+
+EXAMPLES:
+  # Create worktree for JIRA ticket
+  worktree create ABC-123
+
+  # Interactive creation
+  worktree create
+
+  # Checkout existing branch
+  worktree checkout feature/new-login
+
+  # Clean all repositories
+  worktree clean
+
+  # Rename current branch with JIRA integration
+  worktree rename
+
+DEPENDENCIES:
+  Required: git
+  Optional: jira (for JIRA integration), fzf (for interactive selection)
+
+EOF
+}
+
+# Display version information
+show_version() {
+  echo "Git Worktree Management Script v2.0.0"
+  echo "Modular version with JIRA integration"
+}
+
+# Main command router
+main() {
+  local command="$1"
+  
+  case "$command" in
+    create)
+      shift
+      cmd_create "$@"
+      ;;
+    checkout)
+      shift
+      cmd_checkout "$@"
+      ;;
+    delete)
+      shift
+      cmd_delete "$@"
+      ;;
+    update)
+      shift
+      cmd_update "$@"
+      ;;
+    clean)
+      shift
+      cmd_clean "$@"
+      ;;
+    rename)
+      shift
+      cmd_rename "$@"
+      ;;
+    move)
+      shift
+      cmd_move "$@"
+      ;;
+    -h|--help|help)
+      show_help
+      ;;
+    -v|--version|version)
+      show_version
+      ;;
+    "")
+      print_color red "Error: No command provided."
+      echo
+      show_help
+      return 1
+      ;;
+    *)
+      print_color red "Error: Unknown command '$command'"
+      echo
+      show_help
+      return 1
+      ;;
+  esac
+}
+
+# Run main function with all arguments
+main "$@"

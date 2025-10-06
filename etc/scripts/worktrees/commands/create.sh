@@ -1,0 +1,125 @@
+#!/bin/zsh
+# ===================================================================
+# create.sh - Create Worktree Command
+# ===================================================================
+
+# Create worktree subcommand
+cmd_create() {
+  if ! check_tool git; then
+    return 1
+  fi
+  
+  if ! check_tool fzf; then
+    return 1
+  fi
+  
+  local jira_ticket="$1"
+  
+  # Prompt for JIRA ticket if not provided
+  if [[ -z "$jira_ticket" ]]; then
+    print_color cyan "Enter JIRA ticket (e.g., ABC-123) or leave empty to skip JIRA integration:"
+    read -r jira_ticket
+  fi
+  
+  local branch_name=""
+  local summary=""
+  
+  # Try to get JIRA summary if ticket provided
+  if [[ -n "$jira_ticket" && "$jira_ticket" =~ $JIRA_PATTERN ]]; then
+    if ! check_tool jira; then
+      print_color yellow "JIRA CLI not available. Proceeding without JIRA integration."
+      branch_name="$jira_ticket"
+    else
+      print_color yellow "Fetching JIRA ticket details..."
+      
+      summary=$(get_jira_summary "$jira_ticket")
+      if [[ $? -eq 0 && -n "$summary" ]]; then
+        print_color green "✅ JIRA ticket found: $summary"
+        local clean_summary
+        clean_summary=$(echo "$summary" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//')
+        branch_name="${jira_ticket}-${clean_summary}"
+      else
+        print_color yellow "Could not fetch JIRA summary. Using ticket number as branch name."
+        branch_name="$jira_ticket"
+      fi
+    fi
+  elif [[ -n "$jira_ticket" ]]; then
+    # User provided something that's not a JIRA ticket
+    branch_name="$jira_ticket"
+    print_color yellow "Input doesn't match JIRA pattern. Using as branch name directly."
+  else
+    # No input provided
+    print_color cyan "Enter branch name:"
+    read -r branch_name
+    
+    if [[ -z "$branch_name" ]]; then
+      print_color red "No branch name provided. Aborting."
+      return 1
+    fi
+  fi
+  
+  # Ensure we have a clean branch name
+  branch_name=$(echo "$branch_name" | sed 's/[^a-zA-Z0-9._-]/_/g')
+  
+  if [[ -z "$branch_name" ]]; then
+    print_color red "Invalid branch name. Aborting."
+    return 1
+  fi
+  
+  print_color cyan "Creating worktree for branch: $branch_name"
+  
+  # Detect main repository
+  local main_repo
+  main_repo=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    print_color red "Error: Not in a git repository"
+    return 1
+  }
+  
+  local main_branch
+  main_branch=$(find_main_branch "$main_repo") || {
+    print_color red "Error: Could not find main branch"
+    return 1
+  }
+  
+  print_color yellow "Using main repository: $(basename "$main_repo")"
+  print_color yellow "Base branch: $main_branch"
+  
+  # Create worktree directory path
+  local worktree_dir="$WORKTREES_DIR/$(basename "$main_repo")-$branch_name"
+  
+  # Check if worktree directory already exists
+  if [[ -d "$worktree_dir" ]]; then
+    print_color red "Error: Worktree directory already exists: $worktree_dir"
+    return 1
+  fi
+  
+  # Ensure worktrees directory exists
+  mkdir -p "$WORKTREES_DIR" || {
+    print_color red "Error: Could not create worktrees directory: $WORKTREES_DIR"
+    return 1
+  }
+  
+  print_color yellow "Creating worktree at: $worktree_dir"
+  
+  # Create and switch to the new worktree
+  git -C "$main_repo" worktree add -b "$branch_name" "$worktree_dir" "$main_branch" || {
+    print_color red "Error: Failed to create worktree"
+    return 1
+  }
+  
+  print_color green "✅ Worktree created successfully!"
+  print_color cyan "📁 Path: $worktree_dir"
+  print_color cyan "🌿 Branch: $branch_name"
+  
+  if [[ -n "$summary" ]]; then
+    print_color cyan "📋 JIRA: $jira_ticket - $summary"
+  fi
+  
+  # Navigate to the new worktree
+  cd "$worktree_dir" || {
+    print_color yellow "Warning: Could not navigate to worktree directory"
+    return 0
+  }
+  
+  print_color yellow "Now in worktree directory. Happy coding! 🚀"
+}

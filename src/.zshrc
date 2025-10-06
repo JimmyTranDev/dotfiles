@@ -38,7 +38,7 @@ done
 alias a='eval "$(poetry env activate)"'
 alias c='clear'
 alias e='exit'
-alias worktrees='zsh $HOME/Programming/dotfiles/etc/scripts/worktrees.sh'
+alias worktrees='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree'
 alias o='opencode'
 alias g='grep -rnw . -e'
 alias i="$HOME/Programming/dotfiles/etc/scripts/install/install.sh"
@@ -52,12 +52,12 @@ alias f="$HOME/Programming/dotfiles/etc/scripts/install/fetch_all_folders.sh $HO
 alias x='find ~/Programming/dotfiles/etc/scripts -type f -name "*.sh" -exec chmod +x {} +'
 alias k="$HOME/Programming/dotfiles/etc/scripts/kill_port.sh"
 alias nvm='fnm'
-alias wo='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh checkout'
-alias wn='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh create'
-alias wD='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh delete'
-alias wC='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh clean'
-alias wr='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh rename'
-alias wu='source $HOME/Programming/dotfiles/etc/scripts/worktrees.sh update'
+alias wo='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree checkout'
+alias wn='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree create'
+alias wD='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree delete'
+alias wC='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree clean'
+alias wr='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree rename'
+alias wu='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree update'
 alias vsc='cd ~/Library/Application\ Support/Code/User/'
 
 source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
