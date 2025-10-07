@@ -126,9 +126,18 @@ cmd_create() {
   print_color cyan "📁 Path: $worktree_dir"
   print_color cyan "🌿 Branch: $branch_name"
   
-  # Create an empty initial commit with the branch name
+  # Create an empty initial commit with the branch name and JIRA link if available
   print_color yellow "Creating initial commit..."
-  git -C "$worktree_dir" commit --allow-empty -m "$branch_name" || {
+  local commit_message="$branch_name"
+  
+  # Add JIRA link if we have a valid JIRA ticket
+  if [[ -n "$jira_ticket" && "$jira_ticket" =~ $JIRA_PATTERN ]]; then
+    commit_message="$branch_name
+
+Jira: ${ORG_JIRA_TICKET_LINK}${jira_ticket}"
+  fi
+  
+  git -C "$worktree_dir" commit --allow-empty -m "$commit_message" || {
     print_color yellow "Warning: Could not create initial commit"
   }
   
