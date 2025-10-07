@@ -63,13 +63,13 @@ alias vsc='cd ~/Library/Application\ Support/Code/User/'
 source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
 
 select_project() {
-  fzf_select_all_projects_and_cd "Select project: " "$HOME/Programming" "$HOME/.last_project" "nvim" 3
+  fzf_select_all_projects_and_cd "Select project: " "$HOME/Programming" "$HOME/.last_project" "" 3
 }
 zle -N select_project
 bindkey '^f' select_project
 
 select_worktree() {
-  fzf_select_git_repos_and_worktrees_and_cd "Select git repo/worktree: " "$HOME/Worktrees" "$HOME/.last_worktree" "nvim" 3
+  fzf_select_git_repos_and_worktrees_and_cd "Select git repo/worktree: " "$HOME/Worktrees" "$HOME/.last_worktree" "" 3
 }
 zle -N select_worktree
 bindkey '^g' select_worktree
