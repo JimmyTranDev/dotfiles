@@ -7,3 +7,4 @@
 1. Don't generate documentation or comments unless explicitly asked.
 1. Prefer to split up components into index.tsx, utils.ts, types.ts, etc. files.
 1. Prefer to use tailwindcss classes over custom css.
+1. use pnpm instead of npm or yarn.
