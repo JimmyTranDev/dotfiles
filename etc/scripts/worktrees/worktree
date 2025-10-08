@@ -35,7 +35,7 @@ COMMANDS:
   create [jira-ticket] [repo] Create a new worktree
                           Prompts to select repository first from ~/Programming if not specified
                           Then prompts for JIRA ticket if not provided
-                          Creates worktree in ~/Worktrees with empty initial commit
+                           Creates worktree in ~/Programming/Worktrees with empty initial commit
                           Automatically installs dependencies if package.json exists
                           Examples:
                             worktree create ABC-123 my-repo
@@ -91,7 +91,7 @@ WORKFLOW:
   1. Run 'worktree create [ticket] [repo]'
   2. Select repository from ~/Programming (if not provided)
   3. Enter JIRA ticket or branch name (if not provided)
-  4. Worktree created in ~/Worktrees/[branch-name]
+   4. Worktree created in ~/Programming/Worktrees/[branch-name]
   5. Empty initial commit created with branch name
   6. Navigate to new worktree directory
   7. Install dependencies automatically (if package.json exists)

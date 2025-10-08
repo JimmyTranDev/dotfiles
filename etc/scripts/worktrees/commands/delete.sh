@@ -70,13 +70,80 @@ cmd_delete() {
     return 1
   }
   
-  # Detect branch name using git worktree list
+  # Detect branch name using multiple methods
   local branch_name
-  local worktree_info
-  worktree_info=$(git worktree list --porcelain | grep -A2 "^worktree $worktree_path$" | grep "^branch " | head -1)
   
-  if [[ -n "$worktree_info" ]]; then
-    branch_name=$(echo "$worktree_info" | sed 's/^branch refs\/heads\///')
+  print_color yellow "Attempting to detect branch name..."
+  
+  # Method 1: Try to get branch from the worktree directory itself
+  if [[ -d "$worktree_path" ]]; then
+    print_color yellow "Method 1: Checking branch from worktree directory"
+    local old_pwd="$PWD"
+    cd "$worktree_path" 2>/dev/null && {
+      branch_name=$(git branch --show-current 2>/dev/null)
+      if [[ -n "$branch_name" ]]; then
+        print_color green "Found branch from worktree directory: $branch_name"
+      fi
+      cd "$old_pwd"
+    }
+  fi
+  
+  # Method 2: Parse git worktree list output
+  if [[ -z "$branch_name" ]]; then
+    print_color yellow "Method 2: Parsing git worktree list"
+    local worktree_list_output
+    worktree_list_output=$(git worktree list --porcelain 2>/dev/null)
+    
+    # Find the worktree entry and get the next branch line
+    local found_worktree=false
+    while IFS= read -r line; do
+      if [[ "$line" == "worktree $worktree_path" ]]; then
+        found_worktree=true
+      elif [[ "$found_worktree" == true && "$line" =~ ^branch ]]; then
+        branch_name=$(echo "$line" | sed 's/^branch refs\/heads\///')
+        print_color green "Found branch from worktree list: $branch_name"
+        break
+      elif [[ "$found_worktree" == true && "$line" =~ ^worktree ]]; then
+        # Hit another worktree entry, stop looking
+        break
+      fi
+    done <<< "$worktree_list_output"
+  fi
+  
+  # Method 3: Try basename matching in worktree list
+  if [[ -z "$branch_name" ]]; then
+    print_color yellow "Method 3: Trying basename matching"
+    local worktree_basename=$(basename "$worktree_path")
+    local worktree_list_output
+    worktree_list_output=$(git worktree list --porcelain 2>/dev/null)
+    
+    local found_worktree=false
+    while IFS= read -r line; do
+      if [[ "$line" =~ worktree.*/$worktree_basename$ ]]; then
+        found_worktree=true
+      elif [[ "$found_worktree" == true && "$line" =~ ^branch ]]; then
+        branch_name=$(echo "$line" | sed 's/^branch refs\/heads\///')
+        print_color green "Found branch from basename matching: $branch_name"
+        break
+      elif [[ "$found_worktree" == true && "$line" =~ ^worktree ]]; then
+        break
+      fi
+    done <<< "$worktree_list_output"
+  fi
+  
+  # Method 4: Extract from directory name (last resort)
+  if [[ -z "$branch_name" ]]; then
+    print_color yellow "Method 4: Extracting from directory name"
+    local dir_name=$(basename "$worktree_path")
+    # Common patterns: BW-1234_description, feature/BW-1234, etc.
+    if [[ "$dir_name" =~ ^(BW-[0-9]+) ]]; then
+      branch_name="$match[1]"
+      print_color yellow "Extracted branch from directory name: $branch_name"
+    elif [[ "$dir_name" =~ _(.+)$ ]]; then
+      # Remove prefix before underscore
+      branch_name=$(echo "$dir_name" | sed 's/^[^_]*_//')
+      print_color yellow "Extracted branch from directory name: $branch_name"
+    fi
   fi
   
   if [[ -z "$branch_name" ]]; then
@@ -85,28 +152,34 @@ cmd_delete() {
     print_color yellow "Detected branch name: '$branch_name'"
   fi
   
-  # Remove worktree and branches
-  if [[ -n "$branch_name" ]]; then
-    print_color yellow "Deleting worktree and branch: $branch_name"
-    
-    # Remove worktree first
-    if [[ -d "$worktree_path" ]]; then
-      if git worktree remove "$worktree_path" 2>/dev/null; then
-        print_color green "Successfully removed worktree: $worktree_path"
-      else
-        print_color yellow "Failed to remove worktree cleanly, forcing removal..."
-        git worktree remove --force "$worktree_path" 2>/dev/null || true
-      fi
+  # Remove worktree first (regardless of branch detection)
+  print_color yellow "Removing worktree: $worktree_path"
+  if [[ -d "$worktree_path" ]]; then
+    if git worktree remove "$worktree_path" 2>/dev/null; then
+      print_color green "Successfully removed worktree: $worktree_path"
     else
-      print_color yellow "Worktree directory doesn't exist, pruning from git..."
-      git worktree prune 2>/dev/null || true
+      print_color yellow "Failed to remove worktree cleanly, forcing removal..."
+      git worktree remove --force "$worktree_path" 2>/dev/null || true
     fi
+  else
+    print_color yellow "Worktree directory doesn't exist, pruning from git..."
+    git worktree prune 2>/dev/null || true
+  fi
+  
+  # Remove branches if detected
+  if [[ -n "$branch_name" ]]; then
+    print_color yellow "Deleting branch: $branch_name"
     
     # Remove local branch
     print_color yellow "Removing local branch: $branch_name"
     if git show-ref --verify --quiet "refs/heads/$branch_name"; then
-      git branch -d "$branch_name" 2>/dev/null || git branch -D "$branch_name" 2>/dev/null || true
-      print_color green "Successfully removed local branch: $branch_name"
+      if git branch -d "$branch_name" 2>/dev/null; then
+        print_color green "Successfully removed local branch: $branch_name"
+      elif git branch -D "$branch_name" 2>/dev/null; then
+        print_color green "Force removed local branch: $branch_name"
+      else
+        print_color red "Failed to remove local branch: $branch_name"
+      fi
     else
       print_color yellow "Local branch $branch_name does not exist"
     fi
@@ -123,12 +196,8 @@ cmd_delete() {
       print_color yellow "Remote branch origin/$branch_name does not exist or already deleted"
     fi
   else
-    print_color yellow "Could not detect branch name, attempting cleanup anyway..."
-    git worktree prune 2>/dev/null || true
-    
-    if [[ -d "$worktree_path" ]]; then
-      git worktree remove "$worktree_path" 2>/dev/null || git worktree remove --force "$worktree_path" 2>/dev/null || true
-    fi
+    print_color red "Could not detect branch name - branch cleanup skipped"
+    print_color yellow "You may need to manually delete the branch associated with this worktree"
   fi
   
   # Always attempt to remove directory if it still exists

@@ -90,7 +90,9 @@ cmd_create() {
   
   # Ensure we have a clean branch name
   # Strip any remaining artifacts and sanitize thoroughly
-  branch_name=$(echo "$branch_name" | head -1 | sed 's/[0-9]*m//g' | tr -d '\n\r' | sed 's/[^a-zA-Z0-9._-]/_/g; s/__*/_/g; s/^_//; s/_$//')
+  # Keep the original input for commit message
+  local original_input="$branch_name"
+  branch_name=$(echo "$branch_name" | head -1 | sed 's/[0-9]*m//g' | tr -d '\n\r' | sed 's/[^a-zA-Z0-9._-]/-/g; s/--*/-/g; s/^-//; s/-$//')
   
   if [[ -z "$branch_name" ]]; then
     print_color red "Invalid branch name. Aborting."
@@ -128,13 +130,25 @@ cmd_create() {
   
   # Create an empty initial commit with the branch name and JIRA link if available
   print_color yellow "Creating initial commit..."
-  local commit_message="$branch_name"
+  local commit_message
   
-  # Add JIRA link if we have a valid JIRA ticket
+  # Format commit message based on whether we have JIRA info
   if [[ -n "$jira_ticket" && "$jira_ticket" =~ $JIRA_PATTERN ]]; then
-    commit_message="$branch_name
+    if [[ -n "$summary" ]]; then
+      # Use the JIRA summary for a descriptive commit message
+      commit_message="feat: ✨ $jira_ticket $summary"
+    else
+      # Just use the ticket number
+      commit_message="feat: ✨ $jira_ticket"
+    fi
+    
+    # Add JIRA link in the commit body
+    commit_message="$commit_message
 
 Jira: ${ORG_JIRA_TICKET_LINK}${jira_ticket}"
+  else
+    # No JIRA ticket, use the original input message
+    commit_message="feat: ✨ $original_input"
   fi
   
   git -C "$worktree_dir" commit --allow-empty -m "$commit_message" || {

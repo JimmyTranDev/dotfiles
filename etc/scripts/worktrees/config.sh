@@ -4,7 +4,7 @@
 # ===================================================================
 
 # Global configuration
-export WORKTREES_DIR="${WORKTREES_DIR:-$HOME/Worktrees}"
+export WORKTREES_DIR="${WORKTREES_DIR:-$HOME/Programming/Worktrees}"
 export PROGRAMMING_DIR="${PROGRAMMING_DIR:-$HOME/Programming}"
 
 # Change types and their corresponding emojis
