@@ -124,8 +124,13 @@ cmd_checkout() {
   
   print_color green "Worktree created at: $worktree_path"
   
-  # Install dependencies
+  # Install dependencies and navigate to worktree
   install_dependencies "$worktree_path"
+  
+  # Navigate to the worktree directory
+  cd "$worktree_path" || {
+    print_color yellow "Warning: Could not navigate to worktree directory"
+  }
   
   print_color green "Checkout completed successfully!"
 }

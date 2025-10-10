@@ -52,8 +52,29 @@ alias f="$HOME/Programming/dotfiles/etc/scripts/install/fetch_all_folders.sh $HO
 alias x='find ~/Programming/dotfiles/etc/scripts -type f -name "*.sh" -exec chmod +x {} +'
 alias k="$HOME/Programming/dotfiles/etc/scripts/kill_port.sh"
 alias nvm='fnm'
-alias wo='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree checkout'
-alias wn='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree create'
+wn() {
+  # Source the worktree configuration and libraries
+  local script_dir="$HOME/Programming/dotfiles/etc/scripts/worktrees"
+  source "$script_dir/config.sh"
+  source "$script_dir/lib/core.sh" 
+  source "$script_dir/lib/jira.sh"
+  source "$script_dir/commands/create.sh"
+  
+  # Call the create command function directly
+  cmd_create "$@"
+}
+
+wo() {
+  # Source the worktree configuration and libraries
+  local script_dir="$HOME/Programming/dotfiles/etc/scripts/worktrees"
+  source "$script_dir/config.sh"
+  source "$script_dir/lib/core.sh"
+  source "$script_dir/lib/jira.sh" 
+  source "$script_dir/commands/checkout.sh"
+  
+  # Call the checkout command function directly
+  cmd_checkout "$@"
+}
 alias wD='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree delete'
 alias wC='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree clean'
 alias wr='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree rename'

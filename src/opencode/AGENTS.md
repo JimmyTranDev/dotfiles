@@ -8,3 +8,4 @@
 1. Prefer to split up components into index.tsx, utils.ts, types.ts, etc. files.
 1. Prefer to use tailwindcss classes over custom css.
 1. use pnpm instead of npm or yarn.
+1. use single quote

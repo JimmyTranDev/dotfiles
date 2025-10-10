@@ -159,15 +159,15 @@ Jira: ${ORG_JIRA_TICKET_LINK}${jira_ticket}"
     print_color cyan "📋 JIRA: $jira_ticket - $summary"
   fi
   
-  # Navigate to the new worktree
-  cd "$worktree_dir" || {
-    print_color yellow "Warning: Could not navigate to worktree directory"
-    return 0
-  }
   
   # Install dependencies if package.json exists
-  if [[ -f "package.json" ]]; then
+  if [[ -f "$worktree_dir/package.json" ]]; then
     print_color yellow "📦 Package.json found. Installing dependencies..."
+    
+    # Change to worktree directory for dependency installation
+    cd "$worktree_dir" || {
+      print_color yellow "Warning: Could not navigate to worktree directory for dependency installation"
+    }
     
     local package_manager
     package_manager=$(detect_package_manager)
@@ -202,6 +202,10 @@ Jira: ${ORG_JIRA_TICKET_LINK}${jira_ticket}"
     fi
   else
     print_color cyan "No package.json found, skipping dependency installation"
+    # Still navigate to the worktree directory
+    cd "$worktree_dir" || {
+      print_color yellow "Warning: Could not navigate to worktree directory"
+    }
   fi
   
   print_color yellow "Now in worktree directory. Happy coding! 🚀"
