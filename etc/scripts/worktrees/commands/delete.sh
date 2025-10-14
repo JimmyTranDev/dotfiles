@@ -42,9 +42,16 @@ cmd_delete() {
     return 1
   fi
   
+  # Check if this looks like a git worktree
   if [[ ! -f "$worktree_path/.git" ]]; then
-    print_color red "Error: $worktree_path does not look like a git worktree (missing .git file)."
-    return 1
+    print_color yellow "Warning: $worktree_path does not have a .git file (corrupted worktree)"
+    print_color yellow "Force removing directory $worktree_path..."
+    rm -rf "$worktree_path" || {
+      print_color red "Error: Failed to remove directory $worktree_path"
+      return 1
+    }
+    print_color green "✅ Successfully removed corrupted worktree directory."
+    return 0
   fi
   
   # Detect main repo
@@ -196,7 +203,7 @@ cmd_delete() {
       print_color yellow "Remote branch origin/$branch_name does not exist or already deleted"
     fi
   else
-    print_color red "Could not detect branch name - branch cleanup skipped"
+    print_color yellow "Could not detect branch name - branch cleanup skipped"
     print_color yellow "You may need to manually delete the branch associated with this worktree"
   fi
   

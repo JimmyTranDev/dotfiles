@@ -56,7 +56,7 @@ COMMANDS:
 
   update                   Update all worktrees (git pull)
 
-  clean                    Clean merged/deleted branches from all repos
+  clean                    Clean merged/deleted branches and stale worktree refs from all repos
 
   rename                   Rename current branch (with JIRA integration)
 

@@ -80,7 +80,63 @@ cmd_clean() {
       print_color yellow "Warning: Failed to pull latest $main_branch"
     }
     
-    # Additional clean logic would go here...
+    # Get list of local branches (excluding main branch and current branch)
+    local branches_to_check=()
+    while IFS= read -r branch; do
+      local clean_branch
+      clean_branch=$(echo "$branch" | sed 's/^[* ] //')
+      if [[ "$clean_branch" != "$main_branch" && "$clean_branch" != "HEAD" ]]; then
+        branches_to_check+=("$clean_branch")
+      fi
+    done < <(git -C "$repo_root" branch --format='%(refname:short)' 2>/dev/null)
+    
+    if [[ ${#branches_to_check[@]} -eq 0 ]]; then
+      print_color yellow "No branches to clean in $(basename "$repo_root")."
+    else
+      print_color yellow "Checking ${#branches_to_check[@]} branches for cleanup..."
+      
+      local cleaned_branches=0
+      for branch in "${branches_to_check[@]}"; do
+        # Check if branch is merged into main
+        if git -C "$repo_root" merge-base --is-ancestor "$branch" "$main_branch" 2>/dev/null; then
+          # Check if branch has been deleted on remote
+          local remote_exists=false
+          if git -C "$repo_root" ls-remote --heads origin "$branch" | grep -q "$branch"; then
+            remote_exists=true
+          fi
+          
+          # If branch is merged and either doesn't exist on remote or we want to clean merged branches
+          if [[ "$remote_exists" == "false" ]]; then
+            print_color yellow "  Deleting merged branch (not on remote): $branch"
+            if git -C "$repo_root" branch -d "$branch" 2>/dev/null; then
+              ((cleaned_branches++))
+            else
+              print_color red "    Failed to delete branch: $branch"
+            fi
+          else
+            # Branch exists on remote but is merged - ask user or use force flag
+            print_color yellow "  Branch '$branch' is merged but exists on remote"
+          fi
+        else
+          # Check if branch exists on remote
+          if ! git -C "$repo_root" ls-remote --heads origin "$branch" | grep -q "$branch"; then
+            print_color yellow "  Branch '$branch' not found on remote (may be safe to delete)"
+            print_color yellow "  Use 'git branch -D $branch' to force delete if needed"
+          fi
+        fi
+      done
+      
+      if [[ $cleaned_branches -gt 0 ]]; then
+        print_color green "  Cleaned $cleaned_branches branches"
+      else
+        print_color yellow "  No branches were automatically cleaned"
+      fi
+    fi
+    
+    # Clean up worktree references for deleted worktrees
+    print_color yellow "Cleaning up stale worktree references..."
+    git -C "$repo_root" worktree prune 2>/dev/null || true
+    
     print_color green "Done cleaning $(basename "$repo_root")."
   done
   

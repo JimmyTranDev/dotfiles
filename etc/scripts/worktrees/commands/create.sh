@@ -66,7 +66,7 @@ cmd_create() {
         print_color green "✅ JIRA ticket found: $summary"
         # Clean the summary thoroughly - remove any stray output and normalize
         local clean_summary
-        clean_summary=$(echo "$summary" | head -1 | sed 's/[0-9]*m//g' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//')
+        clean_summary=$(echo "$summary" | head -1 | sed 's/\x1b\[[0-9;]*m//g' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//')
         branch_name="${jira_ticket}-${clean_summary}"
       else
         print_color yellow "Could not fetch JIRA summary. Using ticket number as branch name."
@@ -92,7 +92,7 @@ cmd_create() {
   # Strip any remaining artifacts and sanitize thoroughly
   # Keep the original input for commit message
   local original_input="$branch_name"
-  branch_name=$(echo "$branch_name" | head -1 | sed 's/[0-9]*m//g' | tr -d '\n\r' | sed 's/[^a-zA-Z0-9._-]/-/g; s/--*/-/g; s/^-//; s/-$//')
+  branch_name=$(echo "$branch_name" | head -1 | sed 's/\x1b\[[0-9;]*m//g' | tr -d '\n\r' | sed 's/[^a-zA-Z0-9._-]/-/g; s/--*/-/g; s/^-//; s/-$//')
   
   if [[ -z "$branch_name" ]]; then
     print_color red "Invalid branch name. Aborting."
@@ -100,6 +100,38 @@ cmd_create() {
   fi
   
   print_color cyan "Creating worktree for branch: $branch_name"
+  
+  # Prompt for commit type selection
+  print_color cyan "Select commit type:"
+  local commit_types=("feat" "fix" "docs" "style" "refactor" "test" "chore" "revert" "build" "ci" "perf")
+  local commit_type
+  
+  if check_tool fzf; then
+    commit_type=$(printf '%s\n' "${commit_types[@]}" | fzf --prompt="Select commit type: " --height=40% --reverse)
+  else
+    # Fallback to manual selection if fzf is not available
+    echo "Available commit types:"
+    for i in "${!commit_types[@]}"; do
+      echo "$((i+1)). ${commit_types[$i]}"
+    done
+    echo -n "Enter number (1-${#commit_types[@]}) or type name [default: feat]: "
+    read -r selection
+    
+    if [[ "$selection" =~ ^[0-9]+$ ]] && [[ "$selection" -ge 1 ]] && [[ "$selection" -le "${#commit_types[@]}" ]]; then
+      commit_type="${commit_types[$((selection-1))]}"
+    elif [[ -n "$selection" ]]; then
+      commit_type="$selection"
+    else
+      commit_type="feat"
+    fi
+  fi
+  
+  # Default to feat if no selection made
+  if [[ -z "$commit_type" ]]; then
+    commit_type="feat"
+  fi
+  
+  print_color green "Selected commit type: $commit_type"
   
   # Create worktree directory path (using just the branch name)
   local worktree_dir="$WORKTREES_DIR/$branch_name"
@@ -136,10 +168,10 @@ cmd_create() {
   if [[ -n "$jira_ticket" && "$jira_ticket" =~ $JIRA_PATTERN ]]; then
     if [[ -n "$summary" ]]; then
       # Use the JIRA summary for a descriptive commit message
-      commit_message="feat: ✨ $jira_ticket $summary"
+      commit_message="$commit_type: ✨ $jira_ticket $summary"
     else
       # Just use the ticket number
-      commit_message="feat: ✨ $jira_ticket"
+      commit_message="$commit_type: ✨ $jira_ticket"
     fi
     
     # Add JIRA link in the commit body
@@ -148,7 +180,7 @@ cmd_create() {
 Jira: ${ORG_JIRA_TICKET_LINK}${jira_ticket}"
   else
     # No JIRA ticket, use the original input message
-    commit_message="feat: ✨ $original_input"
+    commit_message="$commit_type: ✨ $original_input"
   fi
   
   git -C "$worktree_dir" commit --allow-empty -m "$commit_message" || {
