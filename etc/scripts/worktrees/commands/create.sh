@@ -164,14 +164,31 @@ cmd_create() {
   print_color yellow "Creating initial commit..."
   local commit_message
   
+  # Map commit types to emojis
+  local emoji
+  case "$commit_type" in
+    "feat")     emoji="✨" ;;
+    "fix")      emoji="🐛" ;;
+    "docs")     emoji="📚" ;;
+    "style")    emoji="💎" ;;
+    "refactor") emoji="🔨" ;;
+    "test")     emoji="🧪" ;;
+    "chore")    emoji="🔧" ;;
+    "revert")   emoji="⏪" ;;
+    "build")    emoji="📦" ;;
+    "ci")       emoji="👷" ;;
+    "perf")     emoji="🚀" ;;
+    *)          emoji="✨" ;;  # Default fallback
+  esac
+
   # Format commit message based on whether we have JIRA info
   if [[ -n "$jira_ticket" && "$jira_ticket" =~ $JIRA_PATTERN ]]; then
     if [[ -n "$summary" ]]; then
       # Use the JIRA summary for a descriptive commit message
-      commit_message="$commit_type: ✨ $jira_ticket $summary"
+      commit_message="$commit_type: $emoji $jira_ticket $summary"
     else
       # Just use the ticket number
-      commit_message="$commit_type: ✨ $jira_ticket"
+      commit_message="$commit_type: $emoji $jira_ticket"
     fi
     
     # Add JIRA link in the commit body
@@ -180,7 +197,7 @@ cmd_create() {
 Jira: ${ORG_JIRA_TICKET_LINK}${jira_ticket}"
   else
     # No JIRA ticket, use the original input message
-    commit_message="$commit_type: ✨ $original_input"
+    commit_message="$commit_type: $emoji $original_input"
   fi
   
   git -C "$worktree_dir" commit --allow-empty -m "$commit_message" || {
