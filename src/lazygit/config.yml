@@ -1,3 +1,7 @@
 keybinding:
   universal:
     return: <c-a>
+os:
+  editPreset: 'nvim'
+  edit: 'nvim -u /Users/jimmy/Programming/nvim/init.lua --cmd "set rtp+=/Users/jimmy/Programming/nvim" {{filename}}'
+  editAtLine: 'nvim -u /Users/jimmy/Programming/nvim/init.lua --cmd "set rtp+=/Users/jimmy/Programming/nvim" +{{line}} {{filename}}'
