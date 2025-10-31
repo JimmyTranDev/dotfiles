@@ -3,6 +3,107 @@
 # create.sh - Create Worktree Command
 # ===================================================================
 
+# Log commit history to notes
+log_commit_history() {
+  local commit_message="$1"
+  local notes_dir="$HOME/Programming/notes.md"
+  
+  # Skip logging for notes.md files
+  if [[ "$commit_message" == *"notes.md"* ]]; then
+    return 0
+  fi
+  
+  # Get date information
+  local current_week=$(date +%V)
+  local current_year=$(date +%Y)
+  local short_date=$(date +%d.%m.%Y)
+  local day_name=$(date +%A)
+  
+  # Format log structure
+  local title="# Week $current_week, $current_year"
+  local day_title="## $day_name ($short_date)"
+  local log_file="$current_year-$current_week.md"
+  
+  # Get repository name from current directory
+  local repo_name=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)
+  if [[ -z "$repo_name" ]]; then
+    repo_name="unknown"
+  fi
+  
+  local log_dir="$notes_dir/$repo_name"
+  local log_file_path="$log_dir/$log_file"
+  
+  # Create log directory if it doesn't exist
+  mkdir -p "$log_dir"
+  
+  # Create or update log file
+  if [[ ! -f "$log_file_path" ]]; then
+    # Create new file with title, day title, and message
+    cat > "$log_file_path" << EOF
+$title
+
+$day_title
+$commit_message  
+EOF
+  else
+    # Read existing file and check for title and day sections
+    local has_title=false
+    local has_day=false
+    
+    while IFS= read -r line; do
+      if [[ "$line" == "$title" ]]; then
+        has_title=true
+      fi
+      if [[ "$line" == "$day_title" ]]; then
+        has_day=true
+      fi
+      if [[ "$has_title" == true && "$has_day" == true ]]; then
+        break
+      fi
+    done < "$log_file_path"
+    
+    # Add missing sections and append message
+    if [[ "$has_title" == false ]]; then
+      echo "$title" >> "$log_file_path"
+    fi
+    
+    if [[ "$has_day" == false ]]; then
+      if [[ -s "$log_file_path" ]]; then
+        echo "" >> "$log_file_path"
+      fi
+      echo "$day_title" >> "$log_file_path"
+    fi
+    
+    echo "$commit_message  " >> "$log_file_path"
+  fi
+  
+  # Auto-commit and push to notes repository
+  if [[ -d "$notes_dir/.git" ]]; then
+    print_color yellow "📝 Updating programming log..."
+    
+    # Change to notes directory for git operations
+    (
+      cd "$notes_dir" || return 1
+      
+      # Pull latest changes
+      git pull --no-rebase >/dev/null 2>&1
+      
+      # Add all changes
+      git add . >/dev/null 2>&1
+      
+      # Commit with no-verify to skip hooks
+      git commit --no-verify -m "feat: ✨ update" >/dev/null 2>&1
+      
+      # Push changes
+      git push >/dev/null 2>&1
+    )
+    
+    print_color green "✅ Log entry added to $log_file"
+  else
+    print_color yellow "📝 Log entry added to $log_file (no git repo for auto-sync)"
+  fi
+}
+
 # Create worktree subcommand
 cmd_create() {
   if ! check_tool git; then
@@ -203,6 +304,11 @@ Jira: ${ORG_JIRA_TICKET_LINK}${jira_ticket}"
   git -C "$worktree_dir" commit --allow-empty -m "$commit_message" || {
     print_color yellow "Warning: Could not create initial commit"
   }
+  
+  # Log the commit to programming notes
+  if [[ $? -eq 0 ]]; then
+    (cd "$worktree_dir" && log_commit_history "$commit_message")
+  fi
   
   if [[ -n "$summary" ]]; then
     print_color cyan "📋 JIRA: $jira_ticket - $summary"
