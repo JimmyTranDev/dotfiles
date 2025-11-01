@@ -33,15 +33,21 @@ This repository contains my personal dotfiles setup, meticulously crafted for a 
 - Starship prompt with informative modules
 
 ### 🤖 **Automation Scripts**
-- Git worktree management
+- Git worktree management with CLI tool (WTM)
 - Bulk repository updates
 - Port cleanup utilities
-- Branch auto-updating userscripts
+- Theme management and terminal automation
+- CSV processing utilities
 
 ## 📁 Repository Structure
 
 ```
 ├── etc/
+│   ├── cli/                     # 🔧 Command-line tools
+│   │   └── wtm/                 # Work Tree Manager (Go CLI)
+│   │       ├── cmd/             # CLI commands
+│   │       ├── internal/        # Internal packages
+│   │       └── main.go          # Entry point
 │   ├── docs/                    # 📚 Platform-specific setup guides
 │   │   ├── setup_mac.md        # macOS installation guide  
 │   │   ├── setup_wsl.md        # WSL/Linux setup instructions
@@ -51,12 +57,19 @@ This repository contains my personal dotfiles setup, meticulously crafted for a 
 │   │   │   ├── install.sh      # Main installation script
 │   │   │   ├── clone_essential_repos.sh
 │   │   │   └── fetch_all_folders.sh
+│   │   ├── worktrees/          # Git worktree management
+│   │   │   ├── commands/       # Core worktree commands
+│   │   │   ├── lib/            # Shared libraries
+│   │   │   ├── tests/          # Test framework
+│   │   │   ├── config.sh       # Configuration
+│   │   │   └── worktree        # Main script
 │   │   ├── common/             # Shared utilities
 │   │   ├── kill_port.sh        # Port cleanup utility
 │   │   ├── update_dotfiles.sh  # Dotfiles update script
-│   │   └── worktrees.sh        # Git worktree management
-│   └── userscripts/            # 🌐 Browser automation
-│       └── auto-update-branch.js
+│   │   ├── theme.sh            # Theme management
+│   │   ├── csv_sorter.sh       # CSV processing utility
+│   │   └── ghostty_zellij_startup.sh # Terminal startup script
+│   └── theme.conf              # Global theme configuration
 └── src/                        # ⚙️ Configuration files
     ├── Brewfile                # Homebrew package definitions
     ├── .zshrc                  # Zsh shell configuration
@@ -64,6 +77,7 @@ This repository contains my personal dotfiles setup, meticulously crafted for a 
     ├── btop/                   # System monitor themes
     ├── ghostty/                # Terminal emulator configs
     ├── lazygit/                # Git TUI configuration
+    ├── opencode/               # OpenCode configuration
     ├── skhd/                   # Hotkey daemon (macOS)
     ├── yabai/                  # Window manager (macOS)
     ├── yazi/                   # File manager + plugins
@@ -105,6 +119,13 @@ This repository contains my personal dotfiles setup, meticulously crafted for a 
    # Add to your shell profile or use the provided .zshrc
    alias i="$HOME/Programming/dotfiles/etc/scripts/install/install.sh"
    alias I="$HOME/Programming/dotfiles/etc/scripts/update_dotfiles.sh"
+   ```
+
+5. **Install WTM CLI** (optional)
+   ```bash
+   # Build and install the Work Tree Manager CLI
+   cd etc/cli/wtm
+   ./install.sh
    ```
 
 ### Updating
@@ -159,19 +180,30 @@ For sensitive configurations:
   - **Plugins**: Bookmarks, Git integration, Smart navigation, Copy file contents
   - **Custom keymaps**: Optimized for productivity
 
+### 🌳 Git Worktree Management
+- **WTM (Work Tree Manager)**: Advanced Go-based CLI tool for git worktree operations
+  - **Commands**: Create, checkout, delete, clean, move, rename, and update worktrees
+  - **Jira Integration**: Automatic branch naming and ticket linking
+  - **Configuration**: Customizable settings and defaults
+- **Legacy Scripts**: Shell-based worktree utilities with comprehensive test framework
+
 ### 🎨 Monitoring & System
 - **Btop**: Resource monitor with gorgeous Catppuccin themes
 - **Git workflows**: Lazygit configuration + automated branch management
+- **OpenCode**: AI-powered coding assistant configuration
 
 ## 📜 Utility Scripts
 
-| Script                  | Description                                       |
-| ----------------------- | ------------------------------------------------- |
-| `kill_port.sh`          | 🔪 Kill processes running on specific ports        |
-| `fetch_all_folders.sh`  | 🔄 Bulk update all git repositories in a directory |
-| `worktrees.sh`          | 🌳 Git worktree management utilities               |
-| `update_dotfiles.sh`    | ⬆️ Update and sync dotfiles configuration          |
-| `auto-update-branch.js` | 🤖 Browser automation for GitHub branch updates    |
+| Script                      | Description                                         |
+| --------------------------- | --------------------------------------------------- |
+| `wtm` (Go CLI)              | 🌳 Advanced Git worktree management tool            |
+| `kill_port.sh`              | 🔪 Kill processes running on specific ports         |
+| `fetch_all_folders.sh`      | 🔄 Bulk update all git repositories in a directory  |
+| `worktrees.sh`              | 🌳 Legacy Git worktree management utilities         |
+| `update_dotfiles.sh`        | ⬆️ Update and sync dotfiles configuration           |
+| `theme.sh`                  | 🎨 Theme management and switching utility           |
+| `csv_sorter.sh`             | 📊 CSV file processing and sorting utility          |
+| `ghostty_zellij_startup.sh` | 🚀 Terminal multiplexer startup automation         |
 
 ## 🎭 Themes & Aesthetics
 
