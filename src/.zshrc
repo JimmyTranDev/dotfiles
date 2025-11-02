@@ -36,7 +36,8 @@ done
 [[ -f "$HOME/Programming/secrets/env.sh" ]] && source "$HOME/Programming/secrets/env.sh"
 
 alias a='eval "$(poetry env activate)"'
-alias c='clear'
+alias c='claude'
+alias C='clear'
 alias e='exit'
 alias o='opencode'
 alias g='grep -rnw . -e'
