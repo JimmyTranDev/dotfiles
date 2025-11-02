@@ -23,6 +23,7 @@ if [ "$(uname)" == "Darwin" ]; then
     "$HOME/Programming/dotfiles/src/starship.toml $HOME/.config/starship.toml"
     "$HOME/Programming/dotfiles/src/ghostty $HOME/.config/ghostty"
     "$HOME/Programming/dotfiles/src/opencode $HOME/.config/opencode"
+    "$HOME/Programming/dotfiles/src/claude $HOME/.config/claude"
   )
   for entry in "${links[@]}"; do
     src=$(echo "$entry" | awk '{print $1}')
@@ -109,6 +110,7 @@ elif [ "$(uname)" == "Linux" ]; then
     "$HOME/Programming/dotfiles/src/btop $HOME/.config/btop"
     "$HOME/Programming/dotfiles/src/starship.toml $HOME/.config/starship.toml"
     "$HOME/Programming/dotfiles/src/opencode $HOME/.config/opencode"
+    "$HOME/Programming/dotfiles/src/claude $HOME/.config/claude"
   )
   for entry in "${links[@]}"; do
     src=$(echo "$entry" | awk '{print $1}')
