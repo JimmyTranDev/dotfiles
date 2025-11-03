@@ -3,40 +3,21 @@
 # delete.sh - Delete Worktree Command
 # ===================================================================
 
-# Delete worktree subcommand
-cmd_delete() {
-  if ! check_tool git; then
-    return 1
-  fi
-  
-  if ! check_tool fzf; then
-    return 1
-  fi
-  
+# Multi-select from list using fzf
+select_fzf_multi() {
+  local prompt="$1"; shift
+  [[ $# -gt 0 ]] && printf "%s\n" "$@" | fzf --multi --prompt="$prompt" || fzf --multi --prompt="$prompt"
+}
+
+# Delete a single worktree (extracted from main function)
+delete_single_worktree() {
   local worktree_path="$1"
   
-  # Select worktree if not provided
+  # Validate worktree path is provided
   if [[ -z "$worktree_path" ]]; then
-    if [[ ! -d "$WORKTREES_DIR" ]]; then
-      print_color red "Worktrees directory $WORKTREES_DIR does not exist"
-      return 1
-    fi
-    
-    local available_worktrees
-    available_worktrees=( $(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d | sort) )
-    
-    if [[ ${#available_worktrees[@]} -eq 0 ]]; then
-      print_color red "No worktrees found in $WORKTREES_DIR"
-      return 1
-    fi
-    
-    worktree_path=$(select_fzf "Select a worktree to delete: " "${available_worktrees[@]}") || {
-      print_color red "No worktree selected."
-      return 1
-    }
+    print_color red "Error: Worktree path is required for deletion"
+    return 1
   fi
-  
-  # Validate worktree
   if [[ ! -d "$worktree_path" ]]; then
     print_color red "Error: Directory $worktree_path does not exist."
     return 1
@@ -214,4 +195,90 @@ cmd_delete() {
   fi
   
   print_color green "✅ Worktree deletion complete."
+}
+
+# Delete worktree subcommand
+cmd_delete() {
+  if ! check_tool git; then
+    return 1
+  fi
+  
+  if ! check_tool fzf; then
+    return 1
+  fi
+  
+  local worktree_path="$1"
+  
+  # If no worktree path provided, allow selection
+  if [[ -z "$worktree_path" ]]; then
+    if [[ ! -d "$WORKTREES_DIR" ]]; then
+      print_color red "Worktrees directory $WORKTREES_DIR does not exist"
+      return 1
+    fi
+    
+    local available_worktrees
+    available_worktrees=( $(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d | sort) )
+    
+    if [[ ${#available_worktrees[@]} -eq 0 ]]; then
+      print_color red "No worktrees found in $WORKTREES_DIR"
+      return 1
+    fi
+    
+    print_color cyan "Use Tab to select multiple worktrees, Enter to confirm"
+    local selected_worktrees
+    selected_worktrees=$(select_fzf_multi "Select worktree(s) to delete: " "${available_worktrees[@]}") || {
+      print_color red "No worktrees selected."
+      return 1
+    }
+    
+    # Convert newline-separated list to array
+    local worktrees_to_delete=()
+    while IFS= read -r line; do
+      [[ -n "$line" ]] && worktrees_to_delete+=("$line")
+    done <<< "$selected_worktrees"
+    
+    if [[ ${#worktrees_to_delete[@]} -eq 0 ]]; then
+      print_color red "No worktrees selected for deletion."
+      return 1
+    fi
+    
+    # Confirm deletion of multiple worktrees
+    if [[ ${#worktrees_to_delete[@]} -gt 1 ]]; then
+      print_color yellow "You selected ${#worktrees_to_delete[@]} worktrees for deletion:"
+      for wt in "${worktrees_to_delete[@]}"; do
+        print_color yellow "  - $(basename "$wt")"
+      done
+      print_color cyan "Are you sure you want to delete all of these? (y/N)"
+      read -r confirm
+      if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+        print_color yellow "Deletion cancelled."
+        return 0
+      fi
+    fi
+    
+    # Delete each selected worktree
+    local success_count=0
+    local total_count=${#worktrees_to_delete[@]}
+    
+    for worktree_path in "${worktrees_to_delete[@]}"; do
+      print_color cyan "Deleting worktree $(($success_count + 1))/$total_count: $(basename "$worktree_path")"
+      if delete_single_worktree "$worktree_path"; then
+        ((success_count++))
+      else
+        print_color red "Failed to delete worktree: $worktree_path"
+      fi
+      echo # Add blank line between deletions for readability
+    done
+    
+    if [[ $success_count -eq $total_count ]]; then
+      print_color green "✅ Successfully deleted all $total_count worktrees."
+    else
+      print_color yellow "⚠️  Deleted $success_count out of $total_count worktrees."
+    fi
+    
+    return 0
+  else
+    # Single worktree deletion (original behavior)
+    delete_single_worktree "$worktree_path"
+  fi
 }
