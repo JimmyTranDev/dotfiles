@@ -1,7 +1,0 @@
-# Local settings should not be committed
-settings.local.json
-
-# Runtime data
-*.log
-transcripts/
-cache/

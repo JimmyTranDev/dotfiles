@@ -23,7 +23,7 @@ if [ "$(uname)" == "Darwin" ]; then
     "$HOME/Programming/dotfiles/src/starship.toml $HOME/.config/starship.toml"
     "$HOME/Programming/dotfiles/src/ghostty $HOME/.config/ghostty"
     "$HOME/Programming/dotfiles/src/opencode $HOME/.config/opencode"
-    "$HOME/Programming/dotfiles/src/claude $HOME/.config/claude"
+    "$HOME/Programming/dotfiles/src/.claude $HOME/.claude"
   )
   for entry in "${links[@]}"; do
     src=$(echo "$entry" | awk '{print $1}')

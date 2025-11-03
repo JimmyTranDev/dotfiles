@@ -1,0 +1,33 @@
+# Local settings should not be committed
+settings.local.json
+
+# Runtime data and logs
+*.log
+transcripts/
+cache/
+history.jsonl
+
+# Debug files
+debug/
+
+# Project-specific data and sessions
+projects/
+file-history/
+
+# IDE and session data
+ide/
+shell-snapshots/
+
+# Statsig cache and session data
+statsig/
+
+# Todo files (temporary task tracking)
+todos/
+
+# Local development files
+*.tmp
+*.temp
+.DS_Store
+
+# Lock files
+*.lock
