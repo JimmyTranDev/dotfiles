@@ -11,7 +11,6 @@ Update all commits in the current branch to follow conventional commit format wi
   - Clear, concise commit message following conventional commits format: `type(scope): description`
   - Preserve the original commit content and authorship
 - Use interactive rebase to update commit messages while maintaining commit order and content
-- Add the standard Claude Code co-author footer to each commit
 
 Common emoji mappings:
 - ✨ feat: new features
