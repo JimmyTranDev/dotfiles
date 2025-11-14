@@ -52,6 +52,7 @@ alias f="$HOME/Programming/dotfiles/etc/scripts/install/fetch_all_folders.sh $HO
 alias x='find ~/Programming/dotfiles/etc/scripts -type f -name "*.sh" -exec chmod +x {} +'
 alias k="$HOME/Programming/dotfiles/etc/scripts/kill_port.sh"
 alias csv="$HOME/Programming/dotfiles/etc/scripts/csv_sorter.sh"
+alias actx="$HOME/Programming/dotfiles/etc/scripts/select_git_folder_actx.sh"
 alias nvm='fnm'
 wn() {
   # Source the worktree configuration and libraries
@@ -91,7 +92,7 @@ zle -N select_project
 bindkey '^f' select_project
 
 select_worktree() {
-  fzf_select_git_repos_and_worktrees_and_cd "Select git repo/worktree: " "$HOME/Programming/Worktrees" "$HOME/.last_worktree" "" 3
+  fzf_select_git_repos_and_worktrees_and_cd "Select git repo/worktree: " "$HOME/Programming/checkout" "$HOME/.last_worktree" "" 3
 }
 zle -N select_worktree
 bindkey '^g' select_worktree
