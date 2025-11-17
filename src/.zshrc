@@ -92,7 +92,7 @@ zle -N select_project
 bindkey '^f' select_project
 
 select_worktree() {
-  fzf_select_git_repos_and_worktrees_and_cd "Select git repo/worktree: " "$HOME/Programming/checkout" "$HOME/.last_worktree" "" 3
+  fzf_select_git_repos_and_worktrees_and_cd "Select git repo/worktree: " "$HOME/Programming/Worktrees/" "$HOME/.last_worktree" "" 3
 }
 zle -N select_worktree
 bindkey '^g' select_worktree

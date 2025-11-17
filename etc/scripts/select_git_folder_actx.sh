@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Script to select a git folder from ~/Programming and create a symlink with -actx suffix
+# Also includes functionality to select worktree folders
 
 select_git_folder_actx() {
   local programming_dir="$HOME/Programming"
