@@ -67,3 +67,5 @@ cask "messenger"
 cask "claude-code"
 cask "karabiner-elements"
 cask "figma"
+cask "db-browser-for-sqlite"
+

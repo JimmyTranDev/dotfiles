@@ -210,7 +210,10 @@ fzf_select_git_worktree_and_cd() {
   selected=$(printf "%s\n" "${sorted_worktrees[@]}" | fzf --prompt="$prompt")
   if [[ -n "$selected" ]]; then
     echo "$selected" > "$last_file"
-    cd "$base_dir/$selected"
+    
+    # Normalize base_dir to ensure proper path joining
+    local normalized_base_dir="${base_dir%/}"
+    cd "$normalized_base_dir/$selected"
     [[ -n "$open_cmd" ]] && eval "$open_cmd"
   else
     echo "No selection."
@@ -258,7 +261,10 @@ fzf_select_git_repos_and_worktrees_and_cd() {
   selected=$(printf "%s\n" "${sorted_items[@]}" | fzf --prompt="$prompt")
   if [[ -n "$selected" ]]; then
     echo "$selected" > "$last_file"
-    cd "$base_dir/$selected"
+    
+    # Normalize base_dir to ensure proper path joining
+    local normalized_base_dir="${base_dir%/}"
+    cd "$normalized_base_dir/$selected"
     [[ -n "$open_cmd" ]] && eval "$open_cmd"
   else
     echo "No selection."
@@ -306,7 +312,10 @@ fzf_select_git_repo_and_cd() {
   selected=$(printf "%s\n" "${sorted_repos[@]}" | fzf --prompt="$prompt")
   if [[ -n "$selected" ]]; then
     echo "$selected" > "$last_file"
-    cd "$base_dir/$selected"
+    
+    # Normalize base_dir to ensure proper path joining
+    local normalized_base_dir="${base_dir%/}"
+    cd "$normalized_base_dir/$selected"
     [[ -n "$open_cmd" ]] && eval "$open_cmd"
   else
     echo "No selection."
@@ -354,7 +363,10 @@ fzf_select_all_projects_and_cd() {
   selected=$(printf "%s\n" "${sorted_projects[@]}" | fzf --prompt="$prompt")
   if [[ -n "$selected" ]]; then
     echo "$selected" > "$last_file"
-    cd "$base_dir/$selected"
+    
+    # Normalize base_dir to ensure proper path joining
+    local normalized_base_dir="${base_dir%/}"
+    cd "$normalized_base_dir/$selected"
     [[ -n "$open_cmd" ]] && eval "$open_cmd"
   else
     echo "No selection."
