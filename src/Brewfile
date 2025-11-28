@@ -62,4 +62,5 @@ cask "capcut"
 cask "messenger"
 cask "figma"
 cask "db-browser-for-sqlite"
+cask "flux-app"
 

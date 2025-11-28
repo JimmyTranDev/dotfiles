@@ -154,38 +154,11 @@ delete_single_worktree() {
     git worktree prune 2>/dev/null || true
   fi
   
-  # Remove branches if detected
+  # Skip branch deletion - branches will be preserved
   if [[ -n "$branch_name" ]]; then
-    print_color yellow "Deleting branch: $branch_name"
-    
-    # Remove local branch
-    print_color yellow "Removing local branch: $branch_name"
-    if git show-ref --verify --quiet "refs/heads/$branch_name"; then
-      if git branch -d "$branch_name" 2>/dev/null; then
-        print_color green "Successfully removed local branch: $branch_name"
-      elif git branch -D "$branch_name" 2>/dev/null; then
-        print_color green "Force removed local branch: $branch_name"
-      else
-        print_color red "Failed to remove local branch: $branch_name"
-      fi
-    else
-      print_color yellow "Local branch $branch_name does not exist"
-    fi
-    
-    # Check if remote branch exists and delete it
-    if git ls-remote --exit-code --heads origin "$branch_name" >/dev/null 2>&1; then
-      print_color yellow "Deleting remote branch: origin/$branch_name"
-      if git push origin --delete "$branch_name" 2>/dev/null; then
-        print_color green "Successfully deleted remote branch: origin/$branch_name"
-      else
-        print_color red "Failed to delete remote branch: origin/$branch_name"
-      fi
-    else
-      print_color yellow "Remote branch origin/$branch_name does not exist or already deleted"
-    fi
+    print_color yellow "Branch '$branch_name' will be preserved (not deleted)"
   else
-    print_color yellow "Could not detect branch name - branch cleanup skipped"
-    print_color yellow "You may need to manually delete the branch associated with this worktree"
+    print_color yellow "Could not detect branch name - no branch cleanup needed"
   fi
   
   # Always attempt to remove directory if it still exists
