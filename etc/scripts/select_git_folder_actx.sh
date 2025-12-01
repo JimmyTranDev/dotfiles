@@ -88,11 +88,12 @@ select_git_folder_actx() {
     selected_item=$(printf '%s\n' "${git_items[@]}" | fzf --prompt="$prompt_text" --height=40% --border 2>/dev/null) || selected_item=""
   fi
   
-  # Fallback: show numbered list and read selection
-  if [[ -z "$selected_item" ]]; then
-    echo "Available items:"
-    for i in "${!git_items[@]}"; do
-      echo "$((i+1)). ${git_items[i]}"
+  # If fzf failed or is not available, use fallback selection
+  if [[ -z "$selected_repo" ]]; then
+    # Fallback: show numbered list and read selection
+    echo "Available repositories:"
+    for i in "${!git_repos[@]}"; do
+      echo "$((i+1)). ${git_repos[i]}"
     done
     
     echo -n "Enter item number (1-${#git_items[@]}): "
