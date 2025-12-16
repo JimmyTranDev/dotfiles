@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
 	"github.com/jimmy/dotfiles-cli/internal/config"
@@ -52,20 +51,25 @@ func newThemeSetCmd(cfg *config.Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var themeName string
 
+			// Initialize theme for consistent styling
+			thm := ui.DefaultTheme
+			styles := thm.Styles()
+
 			// If no theme provided, show interactive selection
 			if len(args) == 0 {
-				color.Cyan("🎨 Interactive Theme Selection")
+				fmt.Println(styles.Accent.Render(ui.EmojiArt + " Interactive Theme Selection"))
 				fmt.Println()
 
 				// Show current theme
-				color.Yellow("Current theme: %s", cfg.Themes.Current)
+				currentText := styles.AccentSecondary.Render("Current theme: ") + styles.Value.Render(cfg.Themes.Current)
+				fmt.Println(currentText)
 				fmt.Println()
 
 				// Interactive selection using Bubble Tea
 				selected, err := selectThemeInteractively(cfg.Themes.Available)
 				if err != nil {
 					if ui.IsQuitError(err) {
-						color.Cyan("👋 Theme selection cancelled")
+						fmt.Println(styles.Info.Render(ui.EmojiWave + " Theme selection cancelled"))
 						return nil
 					}
 					return err
@@ -75,7 +79,7 @@ func newThemeSetCmd(cfg *config.Config) *cobra.Command {
 				themeName = args[0]
 			}
 
-			color.Cyan("🎨 Setting theme to: %s", themeName)
+			fmt.Println(styles.Accent.Render(ui.EmojiArt + " Setting theme to: " + themeName))
 
 			// Create theme manager and apply theme
 			themeManager := theme.NewManager(cfg)
@@ -83,8 +87,8 @@ func newThemeSetCmd(cfg *config.Config) *cobra.Command {
 				return fmt.Errorf("failed to set theme: %w", err)
 			}
 
-			color.Green("✓ Theme set successfully!")
-			color.Green("  Applied to: Ghostty, Zellij, btop, and FZF colors")
+			fmt.Println(styles.Success.Render(ui.EmojiSuccess + " Theme set successfully!"))
+			fmt.Println(styles.Success.Render("  Applied to: Ghostty, Zellij, btop, and FZF colors"))
 			return nil
 		},
 	}
@@ -97,12 +101,15 @@ func newThemeListCmd(cfg *config.Config) *cobra.Command {
 		Use:   "list",
 		Short: "List available themes",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			color.Cyan("📋 Available themes:")
-			for _, theme := range cfg.Themes.Available {
-				if theme == cfg.Themes.Current {
-					color.Green("→ %s (current)", theme)
+			thm := ui.DefaultTheme
+			styles := thm.Styles()
+
+			fmt.Println(styles.AccentSecondary.Render(ui.EmojiMenu + " Available themes:"))
+			for _, themeName := range cfg.Themes.Available {
+				if themeName == cfg.Themes.Current {
+					fmt.Println(styles.Success.Render(ui.EmojiArrow + " " + themeName + " (current)"))
 				} else {
-					fmt.Printf("  %s\n", theme)
+					fmt.Println(styles.Value.Render("  " + themeName))
 				}
 			}
 			return nil
@@ -117,7 +124,11 @@ func newThemeCurrentCmd(cfg *config.Config) *cobra.Command {
 		Use:   "current",
 		Short: "Show current theme",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			color.Cyan("Current theme: %s", cfg.Themes.Current)
+			thm := ui.DefaultTheme
+			styles := thm.Styles()
+
+			currentText := styles.AccentSecondary.Render("Current theme: ") + styles.Value.Render(cfg.Themes.Current)
+			fmt.Println(currentText)
 			return nil
 		},
 	}
@@ -130,30 +141,33 @@ func newStorageInitCmd(cfg *config.Config) *cobra.Command {
 		Use:   "init",
 		Short: "Initialize secrets directory with template files",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			color.Cyan("🔧 Interactive Secrets Directory Initialization")
+			thm := ui.DefaultTheme
+			styles := thm.Styles()
+
+			fmt.Println(styles.Accent.Render(ui.EmojiConfig + " Interactive Secrets Directory Initialization"))
 			fmt.Println()
 
 			secretsPath := fmt.Sprintf("%s/Programming/secrets", cfg.Directories.Home)
-			color.Yellow("This will initialize the secrets directory at:")
-			color.White("  %s", secretsPath)
+			fmt.Println(styles.AccentSecondary.Render("This will initialize the secrets directory at:"))
+			fmt.Println(styles.Value.Render("  " + secretsPath))
 			fmt.Println()
 
-			color.Yellow("Template files that will be created:")
-			color.White("  • technical_links.json - For technical bookmarks")
-			color.White("  • useful_links.json - For useful resource links")
+			fmt.Println(styles.AccentSecondary.Render("Template files that will be created:"))
+			fmt.Println(styles.Value.Render("  • technical_links.json - For technical bookmarks"))
+			fmt.Println(styles.Value.Render("  • useful_links.json - For useful resource links"))
 			fmt.Println()
 
 			// Confirmation prompt
-			fmt.Print("Continue with initialization? [Y/n]: ")
+			fmt.Print(styles.Help.Render("Continue with initialization? [Y/n]: "))
 			var response string
 			fmt.Scanln(&response)
 
 			if strings.ToLower(strings.TrimSpace(response)) == "n" {
-				color.Yellow("Initialization cancelled")
+				fmt.Println(styles.Info.Render("Initialization cancelled"))
 				return nil
 			}
 
-			color.Cyan("🔧 Initializing secrets directory...")
+			fmt.Println(styles.Accent.Render(ui.EmojiConfig + " Initializing secrets directory..."))
 
 			// Create storage manager
 			storageManager := storage.NewManager(cfg)
@@ -162,9 +176,9 @@ func newStorageInitCmd(cfg *config.Config) *cobra.Command {
 				return fmt.Errorf("failed to initialize secrets directory: %w", err)
 			}
 
-			color.Green("✓ Secrets directory initialized successfully!")
-			color.Green("  Location: %s", secretsPath)
-			color.Green("  Template files: technical_links.json, useful_links.json")
+			fmt.Println(styles.Success.Render(ui.EmojiSuccess + " Secrets directory initialized successfully!"))
+			fmt.Println(styles.Success.Render("  Location: " + secretsPath))
+			fmt.Println(styles.Success.Render("  Template files: technical_links.json, useful_links.json"))
 			return nil
 		},
 	}
@@ -188,25 +202,28 @@ Requires the following environment variables:
 Also requires the 'b2' CLI tool to be installed:
 pip install b2`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			color.Cyan("☁️ Interactive Cloud Storage Sync")
+			thm := ui.DefaultTheme
+			styles := thm.Styles()
+
+			fmt.Println(styles.Accent.Render(ui.EmojiCloud + " Interactive Cloud Storage Sync"))
 			fmt.Println()
 
 			// Show sync details
 			secretsPath := fmt.Sprintf("%s/Programming/secrets", cfg.Directories.Home)
-			color.Yellow("Sync configuration:")
-			color.White("  • Source: %s", secretsPath)
-			color.White("  • Target: Backblaze B2 cloud storage")
-			color.White("  • Excludes: .m2/repository files")
+			fmt.Println(styles.AccentSecondary.Render("Sync configuration:"))
+			fmt.Println(styles.Value.Render("  • Source: " + secretsPath))
+			fmt.Println(styles.Value.Render("  • Target: Backblaze B2 cloud storage"))
+			fmt.Println(styles.Value.Render("  • Excludes: .m2/repository files"))
 			fmt.Println()
 
 			// If no dry-run flag provided, ask user
 			if !cmd.Flags().Changed("dry-run") {
-				color.Yellow("Sync mode options:")
-				color.White("[1] Dry run - Preview changes without syncing")
-				color.White("[2] Full sync - Upload files to cloud storage")
+				fmt.Println(styles.AccentSecondary.Render("Sync mode options:"))
+				fmt.Println(styles.Key.Render("[1]") + " " + styles.Value.Render("Dry run - Preview changes without syncing"))
+				fmt.Println(styles.Key.Render("[2]") + " " + styles.Value.Render("Full sync - Upload files to cloud storage"))
 				fmt.Println()
 
-				fmt.Print("Select sync mode [1/2]: ")
+				fmt.Print(styles.Help.Render("Select sync mode [1/2]: "))
 				var mode string
 				fmt.Scanln(&mode)
 
@@ -216,17 +233,17 @@ pip install b2`,
 			}
 
 			if dryRun {
-				color.Cyan("🔍 Dry run: Checking what would be synced...")
+				fmt.Println(styles.Info.Render(ui.EmojiEye + " Dry run: Checking what would be synced..."))
 			} else {
-				color.Cyan("☁️ Syncing secrets to cloud storage...")
+				fmt.Println(styles.Accent.Render(ui.EmojiCloud + " Syncing secrets to cloud storage..."))
 
 				// Final confirmation for real sync
-				fmt.Print("This will upload your secrets to cloud storage. Continue? [y/N]: ")
+				fmt.Print(styles.Warning.Render("This will upload your secrets to cloud storage. Continue? [y/N]: "))
 				var confirm string
 				fmt.Scanln(&confirm)
 
 				if strings.ToLower(strings.TrimSpace(confirm)) != "y" {
-					color.Yellow("Sync cancelled")
+					fmt.Println(styles.Info.Render("Sync cancelled"))
 					return nil
 				}
 			}
@@ -236,11 +253,11 @@ pip install b2`,
 
 			// Validate credentials first
 			if err := storageManager.ValidateB2Credentials(); err != nil {
-				color.Red("❌ B2 credentials validation failed:")
-				color.Yellow("   Make sure these environment variables are set:")
-				color.Yellow("   - B2_BUCKET_NAME")
-				color.Yellow("   - B2_APPLICATION_KEY_ID")
-				color.Yellow("   - B2_APPLICATION_KEY")
+				fmt.Println(styles.Error.Render(ui.EmojiError + " B2 credentials validation failed:"))
+				fmt.Println(styles.Warning.Render("   Make sure these environment variables are set:"))
+				fmt.Println(styles.Warning.Render("   - B2_BUCKET_NAME"))
+				fmt.Println(styles.Warning.Render("   - B2_APPLICATION_KEY_ID"))
+				fmt.Println(styles.Warning.Render("   - B2_APPLICATION_KEY"))
 				return err
 			}
 
@@ -249,9 +266,9 @@ pip install b2`,
 			}
 
 			if dryRun {
-				color.Green("✓ Dry run completed - no files were actually synced")
+				fmt.Println(styles.Success.Render(ui.EmojiSuccess + " Dry run completed - no files were actually synced"))
 			} else {
-				color.Green("✓ Secrets synchronized successfully!")
+				fmt.Println(styles.Success.Render(ui.EmojiSuccess + " Secrets synchronized successfully!"))
 			}
 			return nil
 		},

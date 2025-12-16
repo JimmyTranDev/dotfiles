@@ -5,48 +5,12 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
-// Styles for the UI
-var (
-	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#04B575")).
-			Bold(true).
-			MarginLeft(2)
-
-	selectedStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#04B575")).
-			Bold(true).
-			Render
-
-	unselectedStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#626262")).
-			Render
-
-	highlightStyle = lipgloss.NewStyle().
-			Background(lipgloss.Color("#04B575")).
-			Foreground(lipgloss.Color("#FFFFFF")).
-			Bold(true).
-			Padding(0, 1)
-
-	descriptionStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#626262")).
-				MarginLeft(4)
-
-	headerStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#04B575")).
-			Bold(true).
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("#04B575")).
-			Padding(0, 1).
-			MarginBottom(1)
-
-	helpStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#626262")).
-			MarginTop(1).
-			MarginLeft(2)
-)
+// Get the current theme dynamically
+func getCurrentTheme() *CatppuccinTheme {
+	return GetCurrentTheme()
+}
 
 // SelectOption represents a selectable option
 type SelectOption struct {
@@ -122,39 +86,41 @@ func (m SelectModel) View() string {
 
 	var b strings.Builder
 
-	// Header
-	b.WriteString(headerStyle.Render("🛠️  " + m.title))
+	styles := getCurrentTheme().Styles()
+
+	// Header with emoji and beautiful styling
+	b.WriteString(styles.Header.Render(EmojiTool + "  " + m.title))
 	b.WriteString("\n\n")
 
 	// Options
 	for i, option := range m.options {
 		cursor := "  "
 		if i == m.cursor {
-			cursor = highlightStyle.Render("→ ")
+			cursor = styles.Cursor.Render(EmojiArrow + " ")
 		}
 
 		// Title with key shortcut
 		title := fmt.Sprintf("[%s] %s", option.Key, option.Title)
 		if i == m.cursor {
-			title = selectedStyle(title)
+			title = styles.Selected.Render(title)
 		} else {
-			title = unselectedStyle(title)
+			title = styles.Unselected.Render(title)
 		}
 
 		b.WriteString(cursor + title)
 
-		// Description
+		// Description (only show for selected item for cleaner look)
 		if option.Description != "" {
 			if i == m.cursor {
-				b.WriteString("\n" + descriptionStyle.Render("    "+option.Description))
+				b.WriteString("\n" + styles.Description.Render("    "+option.Description))
 			}
 		}
 		b.WriteString("\n")
 	}
 
-	// Help
+	// Help text with subtle styling
 	b.WriteString("\n")
-	b.WriteString(helpStyle.Render(m.help))
+	b.WriteString(styles.Help.Render(m.help))
 
 	return b.String()
 }

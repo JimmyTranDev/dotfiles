@@ -39,7 +39,7 @@ type MenuItem struct {
 var mainMenuItems = []MenuItem{
 	{
 		Key:         "w",
-		Description: "🌳 Worktree Management",
+		Description: ui.EmojiTree + " Worktree Management",
 		Command:     "worktree",
 		SubItems: []MenuItem{
 			{Key: "c", Description: "Create new worktree", Command: "worktree create"},
@@ -50,22 +50,23 @@ var mainMenuItems = []MenuItem{
 	},
 	{
 		Key:         "t",
-		Description: "🎨 Theme Management",
+		Description: ui.EmojiArt + " Theme Management",
 		Command:     "theme",
 		SubItems: []MenuItem{
-			{Key: "s", Description: "Set theme", Command: "theme set"},
-			{Key: "l", Description: "List themes", Command: "theme list"},
+			{Key: "s", Description: "Set application theme", Command: "theme set"},
+			{Key: "l", Description: "List available themes", Command: "theme list"},
 			{Key: "c", Description: "Show current theme", Command: "theme current"},
+			{Key: "u", Description: "Set CLI UI theme", Command: "ui set-theme"},
 		},
 	},
 	{
 		Key:         "i",
-		Description: "📦 Installation & Updates",
+		Description: ui.EmojiPackage + " Installation & Updates",
 		Command:     "install",
 	},
 	{
 		Key:         "s",
-		Description: "☁️ Storage Management",
+		Description: ui.EmojiCloud + " Storage Management",
 		Command:     "storage",
 		SubItems: []MenuItem{
 			{Key: "i", Description: "Initialize secrets", Command: "storage init"},
@@ -74,7 +75,7 @@ var mainMenuItems = []MenuItem{
 	},
 	{
 		Key:         "q",
-		Description: "❌ Exit",
+		Description: ui.EmojiExit + " Exit",
 		Command:     "quit",
 	},
 }
@@ -94,7 +95,8 @@ func runInteractiveMenu(cfg *config.Config) error {
 		choice, err := selectMainMenuWithBubbleTea(mainMenuItems)
 		if err != nil {
 			if ui.IsQuitError(err) {
-				color.Cyan("\n👋 Goodbye!")
+				fmt.Println()
+				ui.Quit("Goodbye!")
 				return nil
 			}
 			return err
@@ -103,10 +105,11 @@ func runInteractiveMenu(cfg *config.Config) error {
 		// Process choice
 		if err := processChoice(choice, cfg); err != nil {
 			if err.Error() == "quit" || ui.IsQuitError(err) {
-				color.Cyan("\n👋 Goodbye!")
+				fmt.Println()
+				ui.Quit("Goodbye!")
 				return nil
 			}
-			color.Red("Error: %v", err)
+			ui.Error("Error: " + err.Error())
 			waitForUser()
 			continue
 		}
@@ -123,22 +126,30 @@ func clearScreen() {
 }
 
 func showHeader() {
-	color.Cyan("╭─────────────────────────────────────────────╮")
-	color.Cyan("│           🛠️  Dotfiles Manager              │")
-	color.Cyan("│     Interactive Development Workflow       │")
-	color.Cyan("╰─────────────────────────────────────────────╯")
+	// Use Catppuccin theme colors for a beautiful header
+	theme := ui.GetCurrentTheme()
+	styles := theme.Styles()
+
+	// Create a beautiful header using lipgloss
+	headerText := `
+╭─────────────────────────────────────────────╮
+│           ` + ui.EmojiTool + `  Dotfiles Manager              │
+│     Interactive Development Workflow       │
+╰─────────────────────────────────────────────╯`
+
+	fmt.Println(styles.Accent.Render(headerText))
 	fmt.Println()
 }
 
 func showMainMenu() error {
-	color.Yellow("📋 Main Menu:")
+	ui.Section("Main Menu:")
 	fmt.Println()
 
 	for _, item := range mainMenuItems {
 		if item.Command == "quit" {
 			fmt.Println()
 		}
-		color.White("[%s] %s", item.Key, item.Description)
+		ui.Option(item.Key, item.Description)
 	}
 	fmt.Println()
 	return nil
@@ -256,14 +267,19 @@ func showSubMenu(parentItem MenuItem, cfg *config.Config) error {
 		clearScreen()
 		showHeader()
 
-		color.Yellow("📋 %s", parentItem.Description)
+		ui.Section(parentItem.Description)
 		fmt.Println()
 
 		for _, subItem := range parentItem.SubItems {
-			color.White("[%s] %s", subItem.Key, subItem.Description)
+			ui.Option(subItem.Key, subItem.Description)
 		}
 		fmt.Println()
-		color.White("[b] ← Back to main menu")
+
+		theme := ui.GetCurrentTheme()
+		styles := theme.Styles()
+		backText := styles.Key.Render("[b]")
+		backDesc := styles.Info.Render(ui.EmojiBackArrow + " Back to main menu")
+		fmt.Printf("%s %s\n", backText, backDesc)
 		fmt.Println()
 
 		choice, err := selectSubMenuWithBubbleTea(parentItem)
@@ -282,14 +298,14 @@ func showSubMenu(parentItem MenuItem, cfg *config.Config) error {
 		for _, subItem := range parentItem.SubItems {
 			if subItem.Key == choice {
 				if err := executeCommand(subItem.Command, cfg); err != nil {
-					color.Red("Error: %v", err)
+					ui.Error("Error: " + err.Error())
 				}
 				waitForUser()
 				return nil // Return to main menu after command
 			}
 		}
 
-		color.Red("Invalid choice: %s", choice)
+		ui.Error("Invalid choice: " + choice)
 		waitForUser()
 	}
 }
@@ -313,6 +329,7 @@ func getInteractiveCommandHandler(commandStr string, cfg *config.Config) func() 
 	handlers := map[string]func() error{
 		"theme set":    func() error { return executeInteractiveThemeSet(cfg) },
 		"storage sync": func() error { return executeInteractiveStorageSync(cfg) },
+		"ui set-theme": func() error { return executeInteractiveUIThemeSet(cfg) },
 	}
 	return handlers[commandStr]
 }
@@ -359,7 +376,7 @@ func executeInteractiveStorageSync(cfg *config.Config) error {
 	choice, err := ui.RunSelection("☁️ Storage Sync Options", options)
 	if err != nil {
 		if ui.IsQuitError(err) {
-			color.Cyan("👋 Storage sync cancelled")
+			ui.Info("Storage sync cancelled")
 			return nil
 		}
 		return err
@@ -377,13 +394,71 @@ func executeInteractiveStorageSync(cfg *config.Config) error {
 }
 
 func waitForUser() {
-	color.Cyan("\nPress Enter to continue (or 'q' to quit)...")
+	fmt.Println()
+	ui.Help("Press Enter to continue (or 'q' to quit)...")
 	scanner := bufio.NewScanner(os.Stdin)
 	if scanner.Scan() {
 		input := strings.TrimSpace(strings.ToLower(scanner.Text()))
 		if input == "q" {
-			color.Cyan("👋 Goodbye!")
+			ui.Quit("Goodbye!")
 			os.Exit(0)
 		}
 	}
+}
+
+func executeInteractiveUIThemeSet(cfg *config.Config) error {
+	// Create UI theme options
+	options := []ui.SelectOption{
+		{
+			Key:         "1",
+			Title:       "Mocha (Dark)",
+			Description: "Dark theme with warm, cozy colors - perfect for evening coding",
+		},
+		{
+			Key:         "2",
+			Title:       "Macchiato (Dark)",
+			Description: "Slightly lighter dark theme with softer contrast",
+		},
+		{
+			Key:         "3",
+			Title:       "Frappe (Dark)",
+			Description: "Cool-toned dark theme with blue undertones",
+		},
+		{
+			Key:         "4",
+			Title:       "Latte (Light)",
+			Description: "Light theme for daytime coding - easy on the eyes",
+		},
+	}
+
+	choice, err := ui.RunSelection(ui.EmojiArt+" CLI Theme Selection", options)
+	if err != nil {
+		if ui.IsQuitError(err) {
+			ui.Info("UI theme selection cancelled")
+			return nil
+		}
+		return err
+	}
+
+	var selectedVariant ui.CatppuccinVariant
+	switch choice {
+	case "1":
+		selectedVariant = ui.CatppuccinMocha
+	case "2":
+		selectedVariant = ui.CatppuccinMacchiato
+	case "3":
+		selectedVariant = ui.CatppuccinFrappe
+	case "4":
+		selectedVariant = ui.CatppuccinLatte
+	default:
+		return fmt.Errorf("invalid theme selection")
+	}
+
+	if err := ui.SetCurrentTheme(selectedVariant); err != nil {
+		return fmt.Errorf("failed to set UI theme: %w", err)
+	}
+
+	ui.Success("CLI UI theme updated to " + string(selectedVariant))
+	ui.Info("Theme will take effect on next CLI startup")
+	return nil
 }

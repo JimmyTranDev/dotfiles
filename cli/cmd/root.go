@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
 	"github.com/jimmy/dotfiles-cli/internal/config"
@@ -99,10 +98,14 @@ If no install type is provided, interactive selection is shown.`,
 			// Create install manager
 			installManager := install.NewManager(cfg)
 
+			// Initialize theme for consistent styling
+			theme := ui.DefaultTheme
+			styles := theme.Styles()
+
 			// Validate environment
 			if err := installManager.ValidateEnvironment(); err != nil {
-				color.Red("❌ Environment validation failed:")
-				color.Yellow("   %v", err)
+				fmt.Println(styles.Error.Render(ui.EmojiError + " Environment validation failed:"))
+				fmt.Println(styles.Warning.Render("   " + err.Error()))
 				return err
 			}
 
@@ -110,14 +113,16 @@ If no install type is provided, interactive selection is shown.`,
 
 			// If no install type provided, show interactive selection
 			if len(args) == 0 {
-				color.Cyan("🚀 Interactive Installation Selection")
+				fmt.Println(styles.Accent.Render(ui.EmojiRocket + " Interactive Installation Selection"))
 				fmt.Println()
 
 				// Show system info
 				systemInfo := installManager.GetSystemInfo()
-				color.Yellow("System Information:")
+				fmt.Println(styles.AccentSecondary.Render("System Information:"))
 				for key, value := range systemInfo {
-					color.White("  • %s: %s", key, value)
+					keyText := styles.Key.Render("  • " + key + ":")
+					valueText := styles.Value.Render(value)
+					fmt.Printf("%s %s\n", keyText, valueText)
 				}
 				fmt.Println()
 
@@ -128,24 +133,24 @@ If no install type is provided, interactive selection is shown.`,
 				selectedOption, err := selectInstallOptionInteractively(options)
 				if err != nil {
 					if ui.IsQuitError(err) {
-						color.Cyan("👋 Installation cancelled")
+						fmt.Println(styles.Info.Render(ui.EmojiWave + " Installation cancelled"))
 						return nil
 					}
 					return fmt.Errorf("install option selection failed: %w", err)
 				}
 				installType = selectedOption.Type
 
-				color.Green("✓ Selected: %s", selectedOption.Name)
+				fmt.Println(styles.Success.Render(ui.EmojiSuccess + " Selected: " + selectedOption.Name))
 				fmt.Println()
 
 				// Confirmation prompt
-				fmt.Print("Continue with installation? [Y/n/q]: ")
+				fmt.Print(styles.Help.Render("Continue with installation? [Y/n/q]: "))
 				var response string
 				fmt.Scanln(&response)
 
 				response = strings.ToLower(strings.TrimSpace(response))
 				if response == "n" || response == "q" {
-					color.Cyan("👋 Installation cancelled")
+					fmt.Println(styles.Info.Render(ui.EmojiWave + " Installation cancelled"))
 					return nil
 				}
 			} else {
@@ -153,7 +158,7 @@ If no install type is provided, interactive selection is shown.`,
 				installType = install.InstallType(args[0])
 			}
 
-			color.Cyan("🚀 Running installation: %s", installType)
+			fmt.Println(styles.Accent.Render(ui.EmojiRocket + " Running installation: " + string(installType)))
 
 			// Run installation
 			if err := installManager.RunInstall(installType, targetDir); err != nil {

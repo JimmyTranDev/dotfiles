@@ -164,4 +164,4 @@ verify: build ## Verify the build works correctly
 	@echo "$(BLUE)Verifying build...$(RESET)"
 	@./$(BINARY_NAME) --version
 	@./$(BINARY_NAME) --help > /dev/null
-	@echo "$(GREEN)✓ Build verification passed$(RESET)""
+	@echo "$(GREEN)✓ Build verification passed$(RESET)"

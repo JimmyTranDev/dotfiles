@@ -22,7 +22,9 @@ var (
 
 func main() {
 	if err := run(); err != nil {
-		color.Red("Error: %v", err)
+		// Import the theme for consistent error styling
+		// Note: We'll keep this simple for now since main.go should be minimal
+		fmt.Fprintf(os.Stderr, "❌ Error: %v\n", err)
 		os.Exit(1)
 	}
 }
