@@ -41,19 +41,14 @@ alias C='clear'
 alias e='exit'
 alias o='opencode'
 alias g='grep -rnw . -e'
-alias i="$HOME/Programming/dotfiles/etc/scripts/install/install.sh"
-alias I="$HOME/Programming/dotfiles/etc/scripts/update_dotfiles.sh"
 alias n='nvim'
 alias w='yabai --restart-service; skhd --restart-service'
 alias y='yazi'
 alias z='zellij'
 alias l='ls -la'
-alias f="$HOME/Programming/dotfiles/etc/scripts/install/fetch_all_folders.sh $HOME/Programming"
-alias x='find ~/Programming/dotfiles/etc/scripts -type f -name "*.sh" -exec chmod +x {} +'
 alias k="$HOME/Programming/dotfiles/etc/scripts/kill_port.sh"
-alias csv="$HOME/Programming/dotfiles/etc/scripts/csv_sorter.sh"
-alias actx="$HOME/Programming/dotfiles/etc/scripts/select_git_folder_actx.sh"
 alias nvm='fnm'
+
 wn() {
   # Source the worktree configuration and libraries
   local script_dir="$HOME/Programming/dotfiles/etc/scripts/worktrees"

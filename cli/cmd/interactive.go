@@ -2,17 +2,16 @@ package cmd
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
 	"github.com/jimmy/dotfiles-cli/internal/config"
+	"github.com/jimmy/dotfiles-cli/internal/ui"
 )
 
 // NewInteractiveMenuCmd creates an interactive menu command
@@ -91,8 +90,8 @@ func runInteractiveMenu(cfg *config.Config) error {
 			return err
 		}
 
-		// Get user choice with arrow key support
-		choice, err := getUserInputWithArrows("Select an option: ", mainMenuItems)
+		// Get user choice with Bubble Tea UI
+		choice, err := selectMainMenuWithBubbleTea(mainMenuItems)
 		if err != nil {
 			return err
 		}
@@ -150,16 +149,81 @@ func getUserInput(prompt string) (string, error) {
 	return strings.ToLower(strings.TrimSpace(scanner.Text())), nil
 }
 
-// getUserInputWithArrows provides arrow key navigation for menu selection
-func getUserInputWithArrows(prompt string, items []MenuItem) (string, error) {
-	// Try arrow key navigation first
-	selected, err := selectMenuItemWithArrows(items)
-	if err == nil {
-		return selected, nil
+// selectMainMenuWithBubbleTea provides main menu selection with Bubble Tea
+func selectMainMenuWithBubbleTea(items []MenuItem) (string, error) {
+	options := convertMenuItemsToUIOptions(items)
+	return ui.RunSelection("Dotfiles Manager - Main Menu", options)
+}
+
+// convertMenuItemsToUIOptions converts menu items to UI selection options
+func convertMenuItemsToUIOptions(items []MenuItem) []ui.SelectOption {
+	options := make([]ui.SelectOption, 0, len(items))
+	for _, item := range items {
+		description := buildMenuItemDescription(item)
+		title := cleanMenuItemTitle(item.Description)
+
+		options = append(options, ui.SelectOption{
+			Key:         item.Key,
+			Title:       title,
+			Description: description,
+		})
+	}
+	return options
+}
+
+// buildMenuItemDescription creates appropriate description for menu items
+func buildMenuItemDescription(item MenuItem) string {
+	switch {
+	case item.Command == "quit":
+		return "Exit the dotfiles manager"
+	case len(item.SubItems) > 0:
+		subDescriptions := make([]string, len(item.SubItems))
+		for i, subItem := range item.SubItems {
+			subDescriptions[i] = subItem.Description
+		}
+		return fmt.Sprintf("%d options: %s", len(item.SubItems), strings.Join(subDescriptions, ", "))
+	default:
+		return fmt.Sprintf("Execute %s command", item.Command)
+	}
+}
+
+// cleanMenuItemTitle removes emoji prefix from menu titles
+func cleanMenuItemTitle(title string) string {
+	// Find first space after emoji and return the rest
+	if spaceIndex := strings.Index(title, " "); spaceIndex > 0 {
+		return strings.TrimSpace(title[spaceIndex:])
+	}
+	return title
+}
+
+// selectSubMenuWithBubbleTea provides submenu selection with Bubble Tea
+func selectSubMenuWithBubbleTea(parentItem MenuItem) (string, error) {
+	options := convertSubMenuItemsToUIOptions(parentItem)
+	title := cleanMenuItemTitle(parentItem.Description)
+	return ui.RunSelection(title, options)
+}
+
+// convertSubMenuItemsToUIOptions converts submenu items to UI options
+func convertSubMenuItemsToUIOptions(parentItem MenuItem) []ui.SelectOption {
+	options := make([]ui.SelectOption, 0, len(parentItem.SubItems)+1)
+
+	// Add submenu items
+	for _, subItem := range parentItem.SubItems {
+		options = append(options, ui.SelectOption{
+			Key:         subItem.Key,
+			Title:       subItem.Description,
+			Description: fmt.Sprintf("Execute: %s", subItem.Command),
+		})
 	}
 
-	// Fallback to regular input
-	return getUserInput(prompt)
+	// Add back navigation option
+	options = append(options, ui.SelectOption{
+		Key:         "b",
+		Title:       "Back to Main Menu",
+		Description: "Return to the main menu",
+	})
+
+	return options
 }
 
 func processChoice(choice string, cfg *config.Config) error {
@@ -198,10 +262,7 @@ func showSubMenu(parentItem MenuItem, cfg *config.Config) error {
 		color.White("[b] ← Back to main menu")
 		fmt.Println()
 
-		// Create sub items with back option
-		subItemsWithBack := append(parentItem.SubItems, MenuItem{Key: "b", Description: "← Back to main menu", Command: "back"})
-
-		choice, err := selectSubMenuWithArrows(parentItem, subItemsWithBack)
+		choice, err := selectSubMenuWithBubbleTea(parentItem)
 		if err != nil {
 			return err
 		}
@@ -226,188 +287,36 @@ func showSubMenu(parentItem MenuItem, cfg *config.Config) error {
 	}
 }
 
-// selectMenuItemWithArrows provides arrow key navigation for menu items
-func selectMenuItemWithArrows(items []MenuItem) (string, error) {
-	// Disable input buffering to read single characters
-	if err := disableInputBuffering(); err != nil {
-		return "", fmt.Errorf("arrow navigation not available")
-	}
-	defer enableInputBuffering()
-
-	selectedIndex := 0
-
-	for {
-		// Clear screen and show menu
-		clearScreen()
-		showHeader()
-
-		color.Yellow("📋 Main Menu:")
-		color.Cyan("Use ↑/↓ arrow keys to navigate, Enter to select, q to quit")
-		fmt.Println()
-
-		// Display menu items with highlight
-		for i, item := range items {
-			if i == selectedIndex {
-				// Highlighted item
-				if item.Command == "quit" {
-					fmt.Println()
-					color.Green("→ [%s] %s", item.Key, item.Description)
-				} else {
-					color.Green("→ [%s] %s", item.Key, item.Description)
-				}
-			} else {
-				// Normal item
-				if item.Command == "quit" {
-					fmt.Println()
-					color.White("[%s] %s", item.Key, item.Description)
-				} else {
-					color.White("[%s] %s", item.Key, item.Description)
-				}
-			}
-		}
-		fmt.Println()
-
-		// Read single character
-		char, err := readChar()
-		if err != nil {
-			return "", fmt.Errorf("failed to read input: %w", err)
-		}
-
-		switch char {
-		case 27: // ESC sequence start
-			// Read the rest of the arrow key sequence
-			char2, _ := readChar()
-			if char2 == 91 { // '['
-				char3, _ := readChar()
-				switch char3 {
-				case 65: // Up arrow
-					if selectedIndex > 0 {
-						selectedIndex--
-					}
-				case 66: // Down arrow
-					if selectedIndex < len(items)-1 {
-						selectedIndex++
-					}
-				}
-			}
-		case 13, 10: // Enter
-			return items[selectedIndex].Key, nil
-		case 'q', 'Q':
-			return "q", nil
-		default:
-			// Check if the character matches any menu key
-			char_str := strings.ToLower(string(char))
-			for _, item := range items {
-				if item.Key == char_str {
-					return item.Key, nil
-				}
-			}
-		}
-	}
-}
-
-// selectSubMenuWithArrows provides arrow key navigation for submenu items
-func selectSubMenuWithArrows(parentItem MenuItem, items []MenuItem) (string, error) {
-	// Try arrow key navigation first
-	if err := disableInputBuffering(); err != nil {
-		// Fallback to regular input
-		choice, err := getUserInput("Select an option: ")
-		return choice, err
-	}
-	defer enableInputBuffering()
-
-	selectedIndex := 0
-
-	for {
-		clearScreen()
-		showHeader()
-
-		color.Yellow("📋 %s", parentItem.Description)
-		color.Cyan("Use ↑/↓ arrow keys to navigate, Enter to select, q to quit")
-		fmt.Println()
-
-		// Display submenu items with highlight
-		for i, item := range items {
-			if i == selectedIndex {
-				// Highlighted item
-				if item.Command == "back" {
-					fmt.Println()
-					color.Green("→ [%s] %s", item.Key, item.Description)
-				} else {
-					color.Green("→ [%s] %s", item.Key, item.Description)
-				}
-			} else {
-				// Normal item
-				if item.Command == "back" {
-					fmt.Println()
-					color.White("[%s] %s", item.Key, item.Description)
-				} else {
-					color.White("[%s] %s", item.Key, item.Description)
-				}
-			}
-		}
-		fmt.Println()
-
-		// Read single character
-		char, err := readChar()
-		if err != nil {
-			return "", fmt.Errorf("failed to read input: %w", err)
-		}
-
-		switch char {
-		case 27: // ESC sequence start
-			// Read the rest of the arrow key sequence
-			char2, _ := readChar()
-			if char2 == 91 { // '['
-				char3, _ := readChar()
-				switch char3 {
-				case 65: // Up arrow
-					if selectedIndex > 0 {
-						selectedIndex--
-					}
-				case 66: // Down arrow
-					if selectedIndex < len(items)-1 {
-						selectedIndex++
-					}
-				}
-			}
-		case 13, 10: // Enter
-			return items[selectedIndex].Key, nil
-		case 'q', 'Q':
-			return "b", nil // Go back on 'q'
-		default:
-			// Check if the character matches any menu key
-			char_str := strings.ToLower(string(char))
-			for _, item := range items {
-				if item.Key == char_str {
-					return item.Key, nil
-				}
-			}
-		}
-	}
-}
-
 func executeCommand(commandStr string, cfg *config.Config) error {
-	parts := strings.Fields(commandStr)
-	if len(parts) == 0 {
+	if commandStr == "" {
 		return fmt.Errorf("empty command")
 	}
 
-	// Handle special commands that need interactive input
-	switch commandStr {
-	case "theme set":
-		return executeInteractiveThemeSet(cfg)
-	case "storage sync":
-		// Add dry-run prompt
-		return executeInteractiveStorageSync(cfg)
+	// Handle special interactive commands
+	if handler := getInteractiveCommandHandler(commandStr, cfg); handler != nil {
+		return handler()
 	}
 
-	// Execute the command using the CLI
+	// Execute standard commands
+	return executeStandardCommand(commandStr)
+}
+
+// getInteractiveCommandHandler returns the appropriate handler for interactive commands
+func getInteractiveCommandHandler(commandStr string, cfg *config.Config) func() error {
+	handlers := map[string]func() error{
+		"theme set":    func() error { return executeInteractiveThemeSet(cfg) },
+		"storage sync": func() error { return executeInteractiveStorageSync(cfg) },
+	}
+	return handlers[commandStr]
+}
+
+// executeStandardCommand executes standard CLI commands
+func executeStandardCommand(commandStr string) error {
+	parts := strings.Fields(commandStr)
 	cmd := exec.Command("./dotfiles", parts...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-
 	return cmd.Run()
 }
 
@@ -426,12 +335,21 @@ func executeInteractiveThemeSet(cfg *config.Config) error {
 }
 
 func executeInteractiveStorageSync(cfg *config.Config) error {
-	color.Yellow("Storage sync options:")
-	color.White("[1] Dry run (preview changes)")
-	color.White("[2] Full sync")
-	fmt.Println()
+	// Create sync options for Bubble Tea
+	options := []ui.SelectOption{
+		{
+			Key:         "1",
+			Title:       "Dry Run",
+			Description: "Preview changes without actually syncing files",
+		},
+		{
+			Key:         "2",
+			Title:       "Full Sync",
+			Description: "Upload secrets to Backblaze B2 cloud storage",
+		},
+	}
 
-	choice, err := getUserInput("Select sync mode: ")
+	choice, err := ui.RunSelection("☁️ Storage Sync Options", options)
 	if err != nil {
 		return err
 	}
@@ -445,59 +363,6 @@ func executeInteractiveStorageSync(cfg *config.Config) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
-}
-
-func selectWithFZF(items []string, prompt string) (string, error) {
-	// Check if fzf is available
-	if _, err := exec.LookPath("fzf"); err != nil {
-		return "", fmt.Errorf("fzf not available")
-	}
-
-	// Prepare input for FZF
-	input := strings.Join(items, "\n")
-
-	// Run FZF
-	cmd := exec.Command("fzf", "--prompt="+prompt, "--height=40%", "--reverse")
-	cmd.Stdin = strings.NewReader(input)
-
-	var output bytes.Buffer
-	cmd.Stdout = &output
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("selection cancelled")
-	}
-
-	selected := strings.TrimSpace(output.String())
-	if selected == "" {
-		return "", fmt.Errorf("no selection made")
-	}
-
-	return selected, nil
-}
-
-func selectWithNumbers(items []string, title string) (string, error) {
-	fmt.Printf("\n%s:\n", title)
-	for i, item := range items {
-		color.White("[%d] %s", i+1, item)
-	}
-	fmt.Println()
-
-	choice, err := getUserInput(fmt.Sprintf("Enter number (1-%d): ", len(items)))
-	if err != nil {
-		return "", err
-	}
-
-	index, err := strconv.Atoi(choice)
-	if err != nil {
-		return "", fmt.Errorf("invalid number: %s", choice)
-	}
-
-	if index < 1 || index > len(items) {
-		return "", fmt.Errorf("choice out of range: %d", index)
-	}
-
-	return items[index-1], nil
 }
 
 func waitForUser() {

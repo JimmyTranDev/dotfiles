@@ -1,14 +1,9 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
-	"os"
-	"os/exec"
 	"strconv"
 	"strings"
-	"syscall"
-	"unsafe"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -16,158 +11,36 @@ import (
 	"github.com/jimmy/dotfiles-cli/internal/config"
 	"github.com/jimmy/dotfiles-cli/internal/storage"
 	"github.com/jimmy/dotfiles-cli/internal/theme"
+	"github.com/jimmy/dotfiles-cli/internal/ui"
 )
 
 // selectThemeInteractively provides interactive theme selection
 func selectThemeInteractively(themes []string) (string, error) {
-	// Try FZF first
-	selected, err := selectThemeWithFZF(themes)
-	if err == nil {
-		return selected, nil
-	}
-
-	// Fallback to numbered selection
-	return selectThemeWithNumbers(themes)
-}
-
-// selectThemeWithFZF uses FZF for theme selection
-func selectThemeWithFZF(themes []string) (string, error) {
-	// Check if fzf is available
-	if _, err := exec.LookPath("fzf"); err != nil {
-		return "", fmt.Errorf("fzf not available")
-	}
-
-	// Create preview for each theme
-	var buf bytes.Buffer
-	for _, theme := range themes {
-		buf.WriteString(theme + "\n")
-	}
-
-	// Run FZF with preview
-	cmd := exec.Command("fzf",
-		"--prompt=Select theme: ",
-		"--height=60%",
-		"--border",
-		"--reverse",
-		"--preview=echo 'Theme: {}'; echo; echo 'This theme will be applied to:'; echo '  • Ghostty terminal'; echo '  • Zellij multiplexer'; echo '  • btop system monitor'; echo '  • FZF colors'")
-	cmd.Stdin = strings.NewReader(buf.String())
-
-	var output bytes.Buffer
-	cmd.Stdout = &output
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("selection cancelled")
-	}
-
-	selected := strings.TrimSpace(output.String())
-	if selected == "" {
-		return "", fmt.Errorf("no theme selected")
-	}
-
-	return selected, nil
-}
-
-// selectThemeWithNumbers provides arrow key navigation for theme selection
-func selectThemeWithNumbers(themes []string) (string, error) {
-	return selectThemeWithArrows(themes)
-}
-
-// selectThemeWithArrows provides arrow key navigation with Enter to select for themes
-func selectThemeWithArrows(themes []string) (string, error) {
-	// Disable input buffering to read single characters
-	if err := disableInputBuffering(); err != nil {
-		// Fallback to numbered selection if terminal setup fails
-		return selectThemeWithNumbersFallback(themes)
-	}
-	defer enableInputBuffering()
-
-	selectedIndex := 0
-
-	for {
-		// Clear screen and show menu
-		clearScreen()
-		color.Cyan("🎨 Select Theme")
-		color.Yellow("Use ↑/↓ arrow keys to navigate, Enter to select, q to quit")
-		fmt.Println()
-
-		// Display themes with highlight
-		for i, theme := range themes {
-			if i == selectedIndex {
-				// Highlighted theme
-				color.Green("→ %s", theme)
-			} else {
-				// Normal theme
-				color.White("  %s", theme)
-			}
-		}
-		fmt.Println()
-
-		// Read single character
-		char, err := readChar()
-		if err != nil {
-			return "", fmt.Errorf("failed to read input: %w", err)
-		}
-
-		switch char {
-		case 27: // ESC sequence start
-			// Read the rest of the arrow key sequence
-			char2, _ := readChar()
-			if char2 == 91 { // '['
-				char3, _ := readChar()
-				switch char3 {
-				case 65: // Up arrow
-					if selectedIndex > 0 {
-						selectedIndex--
-					}
-				case 66: // Down arrow
-					if selectedIndex < len(themes)-1 {
-						selectedIndex++
-					}
-				}
-			}
-		case 13, 10: // Enter
-			return themes[selectedIndex], nil
-		case 'q', 'Q':
-			return "", fmt.Errorf("selection cancelled")
-		case '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			// Allow direct number selection as well
-			num := int(char - '0')
-			if num <= len(themes) {
-				selectedIndex = num - 1
-				return themes[selectedIndex], nil
-			}
-		}
-	}
-}
-
-// selectThemeWithNumbersFallback provides numbered selection fallback for themes
-func selectThemeWithNumbersFallback(themes []string) (string, error) {
-	color.Yellow("Available themes:")
-	fmt.Println()
-
+	// Convert themes to UI options
+	var options []ui.SelectOption
 	for i, theme := range themes {
-		color.White("[%d] %s", i+1, theme)
-	}
-	fmt.Println()
+		description := fmt.Sprintf("Apply %s theme to Ghostty, Zellij, btop, and FZF", theme)
 
-	fmt.Print("Enter theme number (1-", len(themes), "): ")
-
-	var input string
-	if _, err := fmt.Scanln(&input); err != nil {
-		return "", fmt.Errorf("failed to read input: %w", err)
+		options = append(options, ui.SelectOption{
+			Key:         fmt.Sprintf("%d", i+1),
+			Title:       theme,
+			Description: description,
+		})
 	}
 
-	selection, err := strconv.Atoi(strings.TrimSpace(input))
+	// Use Bubble Tea selection
+	selected, err := ui.RunSelection("🎨 Theme Selection", options)
 	if err != nil {
-		return "", fmt.Errorf("invalid number: %s", input)
+		return "", err
 	}
 
-	if selection < 1 || selection > len(themes) {
-		return "", fmt.Errorf("selection out of range: %d (valid: 1-%d)", selection, len(themes))
+	// Convert back to theme name
+	selectedIndex, err := strconv.Atoi(selected)
+	if err != nil || selectedIndex < 1 || selectedIndex > len(themes) {
+		return "", fmt.Errorf("invalid selection")
 	}
 
-	return themes[selection-1], nil
+	return themes[selectedIndex-1], nil
 }
 
 // newThemeSetCmd creates the theme set command
@@ -382,69 +255,4 @@ pip install b2`,
 
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be synced without actually syncing")
 	return cmd
-}
-
-// Terminal manipulation for arrow key navigation
-const (
-	tcgets = 0x5401
-	tcsets = 0x5402
-)
-
-type termios struct {
-	Iflag  uint32
-	Oflag  uint32
-	Cflag  uint32
-	Lflag  uint32
-	Cc     [20]uint8
-	Ispeed uint32
-	Ospeed uint32
-}
-
-var originalTermios *termios
-
-// disableInputBuffering disables input buffering for raw character input
-func disableInputBuffering() error {
-	fd := int(os.Stdin.Fd())
-
-	// Get current terminal settings
-	originalTermios = &termios{}
-	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, uintptr(fd), tcgets, uintptr(unsafe.Pointer(originalTermios)))
-	if errno != 0 {
-		return fmt.Errorf("failed to get terminal attributes: %v", errno)
-	}
-
-	// Copy settings for modification
-	newTermios := *originalTermios
-
-	// Disable canonical mode and echo
-	newTermios.Lflag &^= (syscall.ICANON | syscall.ECHO)
-
-	// Set new terminal settings
-	_, _, errno = syscall.Syscall(syscall.SYS_IOCTL, uintptr(fd), tcsets, uintptr(unsafe.Pointer(&newTermios)))
-	if errno != 0 {
-		return fmt.Errorf("failed to set terminal attributes: %v", errno)
-	}
-
-	return nil
-}
-
-// enableInputBuffering restores original terminal settings
-func enableInputBuffering() {
-	if originalTermios != nil {
-		fd := int(os.Stdin.Fd())
-		syscall.Syscall(syscall.SYS_IOCTL, uintptr(fd), tcsets, uintptr(unsafe.Pointer(originalTermios)))
-	}
-}
-
-// readChar reads a single character from stdin
-func readChar() (byte, error) {
-	var buf [1]byte
-	n, err := os.Stdin.Read(buf[:])
-	if err != nil {
-		return 0, err
-	}
-	if n == 0 {
-		return 0, fmt.Errorf("no input")
-	}
-	return buf[0], nil
 }
