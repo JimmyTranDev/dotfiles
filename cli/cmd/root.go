@@ -51,24 +51,6 @@ Supports switching themes for:
 	return cmd
 }
 
-// NewProjectCmd creates the project command
-func NewProjectCmd(cfg *config.Config) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "project",
-		Short: "Manage development projects",
-		Long: `Manage development projects and repositories.
-
-Find, select, and work with your development projects across multiple directories.`,
-	}
-
-	// Add subcommands
-	cmd.AddCommand(newProjectListCmd(cfg))
-	cmd.AddCommand(newProjectSelectCmd(cfg))
-	cmd.AddCommand(newProjectSyncCmd(cfg))
-
-	return cmd
-}
-
 // NewStorageCmd creates the storage command
 func NewStorageCmd(cfg *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
@@ -85,26 +67,6 @@ Provides functionality for:
 	// Add subcommands
 	cmd.AddCommand(newStorageInitCmd(cfg))
 	cmd.AddCommand(newStorageSyncCmd(cfg))
-
-	return cmd
-}
-
-// NewUtilsCmd creates the utils command
-func NewUtilsCmd(cfg *config.Config) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "utils",
-		Short: "Utility commands and helpers",
-		Long: `Various utility commands for common development tasks.
-
-Provides functionality for:
-- Killing processes on specific ports
-- Sorting CSV files by commonness score
-- Other development utilities`,
-	}
-
-	// Add subcommands
-	cmd.AddCommand(newUtilsKillPortCmd(cfg))
-	cmd.AddCommand(newUtilsCSVSortCmd(cfg))
 
 	return cmd
 }

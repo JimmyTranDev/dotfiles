@@ -60,31 +60,12 @@ var mainMenuItems = []MenuItem{
 		},
 	},
 	{
-		Key:         "p",
-		Description: "📂 Project Management",
-		Command:     "project",
-		SubItems: []MenuItem{
-			{Key: "s", Description: "Select project", Command: "project select"},
-			{Key: "l", Description: "List projects", Command: "project list"},
-			{Key: "y", Description: "Sync projects", Command: "project sync"},
-		},
-	},
-	{
 		Key:         "s",
 		Description: "☁️ Storage Management",
 		Command:     "storage",
 		SubItems: []MenuItem{
 			{Key: "i", Description: "Initialize secrets", Command: "storage init"},
 			{Key: "s", Description: "Sync to cloud", Command: "storage sync"},
-		},
-	},
-	{
-		Key:         "u",
-		Description: "🛠️ Utilities",
-		Command:     "utils",
-		SubItems: []MenuItem{
-			{Key: "k", Description: "Kill port", Command: "utils kill-port"},
-			{Key: "c", Description: "Sort CSV", Command: "utils csv-sort"},
 		},
 	},
 	{
@@ -235,11 +216,6 @@ func executeCommand(commandStr string, cfg *config.Config) error {
 	switch commandStr {
 	case "theme set":
 		return executeInteractiveThemeSet(cfg)
-	case "utils kill-port":
-		return executeInteractiveKillPort(cfg)
-	case "project select":
-		// Make project select interactive by default
-		parts = append(parts, "--symlink")
 	case "storage sync":
 		// Add dry-run prompt
 		return executeInteractiveStorageSync(cfg)
@@ -269,23 +245,6 @@ func executeInteractiveThemeSet(cfg *config.Config) error {
 
 	// Execute theme set command
 	cmd := exec.Command("./dotfiles", "theme", "set", selected)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
-
-func executeInteractiveKillPort(cfg *config.Config) error {
-	port, err := getUserInput("Enter port number to kill: ")
-	if err != nil {
-		return err
-	}
-
-	// Validate port number
-	if _, err := strconv.Atoi(port); err != nil {
-		return fmt.Errorf("invalid port number: %s", port)
-	}
-
-	cmd := exec.Command("./dotfiles", "utils", "kill-port", port)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()

@@ -65,9 +65,7 @@ maintainable Go CLI with improved error handling and user experience.`,
 	// Add subcommands
 	rootCmd.AddCommand(cmd.NewWorktreeCmd(cfg))
 	rootCmd.AddCommand(cmd.NewThemeCmd(cfg))
-	rootCmd.AddCommand(cmd.NewProjectCmd(cfg))
 	rootCmd.AddCommand(cmd.NewStorageCmd(cfg))
-	rootCmd.AddCommand(cmd.NewUtilsCmd(cfg))
 	rootCmd.AddCommand(cmd.NewInteractiveMenuCmd(cfg))
 
 	// Add interactive examples to help
@@ -99,8 +97,7 @@ Interactive Mode:
 
 Examples:
   dotfiles theme set           # Interactive theme selection
-  dotfiles project select      # Interactive project selection
-  dotfiles utils kill-port     # Interactive port selection
+  dotfiles worktree create     # Interactive worktree creation
   dotfiles storage sync        # Interactive sync options
   
 {{if .HasAvailableSubCommands}}Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
