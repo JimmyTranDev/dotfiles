@@ -94,6 +94,18 @@ func (m *manager) ValidateB2Credentials() error {
 	return nil
 }
 
+// setupB2Command configures a B2 command with proper environment to avoid terminal issues
+func setupB2Command(cmd *exec.Cmd) {
+	// Set environment variables to fix terminal size issues with B2 CLI
+	// This prevents the "buffer overflow" error in rst2ansi package
+	cmd.Env = append(os.Environ(),
+		"COLUMNS=80", // Force terminal width
+		"LINES=24",   // Force terminal height
+		"TERM=xterm", // Force terminal type
+		"NO_COLOR=1", // Disable colored output to avoid rst2ansi issues
+	)
+}
+
 // SyncSecrets syncs the secrets directory to B2 cloud storage
 func (m *manager) SyncSecrets(dryRun bool) error {
 	// Validate B2 credentials first
@@ -117,6 +129,7 @@ func (m *manager) SyncSecrets(dryRun bool) error {
 
 	// Authorize with B2
 	authCmd := exec.Command("b2", "account", "authorize", keyId, key)
+	setupB2Command(authCmd)
 	if err := authCmd.Run(); err != nil {
 		return fmt.Errorf("failed to authorize with B2: %w", err)
 	}
@@ -134,6 +147,7 @@ func (m *manager) SyncSecrets(dryRun bool) error {
 	syncCmd := exec.Command("b2", args...)
 	syncCmd.Stdout = os.Stdout
 	syncCmd.Stderr = os.Stderr
+	setupB2Command(syncCmd)
 
 	if err := syncCmd.Run(); err != nil {
 		return fmt.Errorf("failed to sync to B2: %w", err)
