@@ -1,10 +1,15 @@
 #!/bin/bash
 
-# Script to select a git folder from ~/Programming and create a symlink with -actx suffix
-# Also includes functionality to select worktree folders
+# Script to select a git folder or worktree from ~/Programming and create a symlink with -actx suffix
+# Supports both regular git repositories and git worktrees
+
+# Source utility functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common/utility.sh"
 
 select_git_folder_actx() {
   local programming_dir="$HOME/Programming"
+  local selection_type="${1:-both}" # Options: repos, worktrees, both
   
   # Check if Programming directory exists
   if [[ ! -d "$programming_dir" ]]; then
@@ -19,64 +24,82 @@ select_git_folder_actx() {
     return 1
   fi
   
-  # Find all git repositories using a much more efficient approach
-  local git_repos=()
+  # Find git repositories and/or worktrees based on selection type
+  local git_items=()
   
-  echo "Searching for git repositories..."
+  case "$selection_type" in
+    "repos")
+      echo "Searching for git repositories..."
+      while IFS= read -r line; do
+        [[ -n "$line" ]] && git_items+=("$line")
+      done < <(find_git_repos "$programming_dir" 2)
+      ;;
+    "worktrees")
+      echo "Searching for git worktrees..."
+      while IFS= read -r line; do
+        [[ -n "$line" ]] && git_items+=("$line")
+      done < <(find_git_worktrees "$programming_dir" 2)
+      ;;
+    "both"|*)
+      echo "Searching for git repositories and worktrees..."
+      while IFS= read -r line; do
+        [[ -n "$line" ]] && git_items+=("$line")
+      done < <(find_git_repos_and_worktrees "$programming_dir" 2)
+      ;;
+  esac
   
-  # Method 1: Check direct subdirectories first (most common case)
-  for dir in "$programming_dir"/*; do
-    if [[ -d "$dir/.git" ]]; then
-      local relative_path="${dir#$programming_dir/}"
-      git_repos+=("$relative_path")
-    fi
-  done
-  
-  # Method 2: If we found some repos, we're probably good
-  if [[ ${#git_repos[@]} -gt 0 ]]; then
-    echo "Found ${#git_repos[@]} repositories in direct subdirectories"
-  else
-    echo "No direct git repositories found, searching one level deeper..."
-    # Only search 2 levels deep to avoid infinite loops
-    for dir in "$programming_dir"/*/*; do
-      if [[ -d "$dir/.git" ]]; then
-        local relative_path="${dir#$programming_dir/}"
-        git_repos+=("$relative_path")
-      fi
-      # Limit to prevent too many results
-      if [[ ${#git_repos[@]} -gt 100 ]]; then
-        echo "Found too many repositories (>100), stopping search..."
-        break
-      fi
-    done
-  fi
-  
-  # Check if any git repos were found
-  if [[ ${#git_repos[@]} -eq 0 ]]; then
-    echo "No git repositories found in $programming_dir"
+  # Check if any git items were found
+  if [[ ${#git_items[@]} -eq 0 ]]; then
+    case "$selection_type" in
+      "repos")
+        echo "No git repositories found in $programming_dir"
+        ;;
+      "worktrees")
+        echo "No git worktrees found in $programming_dir"
+        ;;
+      *)
+        echo "No git repositories or worktrees found in $programming_dir"
+        ;;
+    esac
     return 1
   fi
   
-  # Use fzf to select a repository, with fallback for non-interactive mode
-  local selected_repo
+  echo "Found ${#git_items[@]} item(s)"
+  
+  # Use fzf to select an item, with fallback for non-interactive mode
+  local selected_item
+  local prompt_text
+  
+  case "$selection_type" in
+    "repos")
+      prompt_text="Select git repo: "
+      ;;
+    "worktrees")
+      prompt_text="Select git worktree: "
+      ;;
+    *)
+      prompt_text="Select git repo/worktree: "
+      ;;
+  esac
   
   # Check if we're in an interactive terminal and fzf can work properly
   if [[ -t 0 && -t 1 ]] && command -v fzf &> /dev/null && [[ -n "$TERM" ]] && [[ "$TERM" != "dumb" ]]; then
     # Try fzf - if it works, great; if not, we'll fall back
-    selected_repo=$(printf '%s\n' "${git_repos[@]}" | fzf --prompt="Select git repo: " --height=40% --border 2>/dev/null) || selected_repo=""
+    selected_item=$(printf '%s\n' "${git_items[@]}" | fzf --prompt="$prompt_text" --height=40% --border 2>/dev/null) || selected_item=""
   fi
   
-    # Fallback: show numbered list and read selection
-    echo "Available repositories:"
-    for i in "${!git_repos[@]}"; do
-      echo "$((i+1)). ${git_repos[i]}"
+  # Fallback: show numbered list and read selection
+  if [[ -z "$selected_item" ]]; then
+    echo "Available items:"
+    for i in "${!git_items[@]}"; do
+      echo "$((i+1)). ${git_items[i]}"
     done
     
-    echo -n "Enter repository number (1-${#git_repos[@]}): "
+    echo -n "Enter item number (1-${#git_items[@]}): "
     read -r selection
     
-    if [[ "$selection" =~ ^[0-9]+$ ]] && [[ "$selection" -ge 1 ]] && [[ "$selection" -le "${#git_repos[@]}" ]]; then
-      selected_repo="${git_repos[$((selection-1))]}"
+    if [[ "$selection" =~ ^[0-9]+$ ]] && [[ "$selection" -ge 1 ]] && [[ "$selection" -le "${#git_items[@]}" ]]; then
+      selected_item="${git_items[$((selection-1))]}"
     else
       echo "Invalid selection"
       return 1
@@ -84,13 +107,13 @@ select_git_folder_actx() {
   fi
   
   # Check if selection was made
-  if [[ -z "$selected_repo" ]]; then
-    echo "No repository selected"
+  if [[ -z "$selected_item" ]]; then
+    echo "No item selected"
     return 1
   fi
   
-  local source_path="$programming_dir/$selected_repo"
-  local target_name="${selected_repo##*/}-actx"
+  local source_path="$programming_dir/$selected_item"
+  local target_name="${selected_item##*/}-actx"
   local target_path="$(pwd)/$target_name"
   
   # Check if source exists
@@ -112,9 +135,19 @@ select_git_folder_actx() {
     fi
   fi
   
+  # Determine item type for informative output
+  local item_type
+  if [[ -d "$source_path/.git" ]]; then
+    item_type="repository"
+  elif [[ -f "$source_path/.git" ]]; then
+    item_type="worktree"
+  else
+    item_type="directory"
+  fi
+  
   # Create the symlink
   if ln -s "$source_path" "$target_path"; then
-    echo "Successfully created symlink: $target_name -> $selected_repo"
+    echo "Successfully created symlink: $target_name -> $selected_item ($item_type)"
     echo "Source: $source_path"
     echo "Target: $target_path"
   else
@@ -123,7 +156,70 @@ select_git_folder_actx() {
   fi
 }
 
-# Run the function if script is executed directly
+# Function to show help
+show_help() {
+  cat << EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Create a symlink with -actx suffix for git repositories and worktrees from ~/Programming
+
+OPTIONS:
+  -r, --repos        Select from git repositories only
+  -w, --worktrees    Select from git worktrees only  
+  -b, --both         Select from both repositories and worktrees (default)
+  -h, --help         Show this help message
+
+EXAMPLES:
+  $(basename "$0")           # Select from both repos and worktrees
+  $(basename "$0") -r        # Select from repositories only
+  $(basename "$0") -w        # Select from worktrees only
+
+DESCRIPTION:
+  This script scans ~/Programming for git repositories and worktrees, allows you to
+  select one interactively with fzf, and creates a symlink in the current directory
+  with the format: {name}-actx -> ~/Programming/{selected-item}
+  
+  Git repositories are directories containing .git subdirectories.
+  Git worktrees are directories containing .git files with gitdir: references.
+
+EOF
+}
+
+# Main execution logic
+main() {
+  local selection_type="both"
+  
+  # Parse command line arguments
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -r|--repos)
+        selection_type="repos"
+        shift
+        ;;
+      -w|--worktrees)
+        selection_type="worktrees"
+        shift
+        ;;
+      -b|--both)
+        selection_type="both"
+        shift
+        ;;
+      -h|--help)
+        show_help
+        return 0
+        ;;
+      *)
+        echo "Error: Unknown option '$1'"
+        echo "Use --help for usage information"
+        return 1
+        ;;
+    esac
+  done
+  
+  select_git_folder_actx "$selection_type"
+}
+
+# Run the main function if script is executed directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  select_git_folder_actx "$@"
+  main "$@"
 fi

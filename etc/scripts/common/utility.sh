@@ -73,15 +73,16 @@ find_git_repos() {
   local base_dir="$1"
   local max_depth="${2:-2}"
   
-  # Ensure base_dir has a trailing slash for proper path substitution
-  base_dir="${base_dir%/}/"
+  # Normalize base_dir to have no trailing slash, then add one for path substitution
+  base_dir="${base_dir%/}"
+  local base_dir_with_slash="${base_dir}/"
   
   # Find all .git directories and extract the repo names
   find "$base_dir" -maxdepth "$max_depth" -name ".git" -type d 2>/dev/null | while read -r git_dir; do
     # Get the parent directory of .git (which is the repo root)
     repo_path=$(dirname "$git_dir")
     # Get the relative path from base_dir
-    relative_path="${repo_path#$base_dir}"
+    relative_path="${repo_path#$base_dir_with_slash}"
     echo "$relative_path"
   done | sort
 }
@@ -90,8 +91,9 @@ find_git_worktrees() {
   local base_dir="$1"
   local max_depth="${2:-2}"
   
-  # Ensure base_dir has a trailing slash for proper path substitution
-  base_dir="${base_dir%/}/"
+  # Normalize base_dir to have no trailing slash, then add one for path substitution
+  base_dir="${base_dir%/}"
+  local base_dir_with_slash="${base_dir}/"
   
   # Find all .git files (not directories) which indicate worktrees
   find "$base_dir" -maxdepth "$max_depth" -name ".git" -type f 2>/dev/null | while read -r git_file; do
@@ -100,7 +102,7 @@ find_git_worktrees() {
       # Get the parent directory (which is the worktree root)
       worktree_path=$(dirname "$git_file")
       # Get the relative path from base_dir
-      relative_path="${worktree_path#$base_dir}"
+      relative_path="${worktree_path#$base_dir_with_slash}"
       echo "$relative_path"
     fi
   done | sort
@@ -110,20 +112,21 @@ find_non_git_dirs() {
   local base_dir="$1"
   local max_depth="${2:-1}"
   
-  # Ensure base_dir has a trailing slash for proper path substitution
-  base_dir="${base_dir%/}/"
+  # Normalize base_dir to have no trailing slash, then add one for path substitution
+  base_dir="${base_dir%/}"
+  local base_dir_with_slash="${base_dir}/"
   
   # Find all directories at the specified depth that are not git repositories
   find "$base_dir" -maxdepth "$max_depth" -type d 2>/dev/null | while read -r dir; do
     # Skip the base directory itself
-    if [[ "$dir" == "${base_dir%/}" ]]; then
+    if [[ "$dir" == "$base_dir" ]]; then
       continue
     fi
     
     # Check if it's not a git repository (no .git directory or file)
     if [[ ! -d "$dir/.git" && ! -f "$dir/.git" ]]; then
       # Get the relative path from base_dir
-      relative_path="${dir#$base_dir}"
+      relative_path="${dir#$base_dir_with_slash}"
       # Only include top-level directories (no subdirectories)
       if [[ "$relative_path" != */* ]]; then
         echo "$relative_path"
@@ -136,15 +139,16 @@ find_git_repos_and_worktrees() {
   local base_dir="$1"
   local max_depth="${2:-2}"
   
-  # Ensure base_dir has a trailing slash for proper path substitution
-  base_dir="${base_dir%/}/"
+  # Normalize base_dir to have no trailing slash, then add one for path substitution
+  base_dir="${base_dir%/}"
+  local base_dir_with_slash="${base_dir}/"
   
   # Find both regular git repositories (.git directories) and worktrees (.git files)
   {
     # Find git repositories (.git directories)
     find "$base_dir" -maxdepth "$max_depth" -name ".git" -type d 2>/dev/null | while read -r git_dir; do
       repo_path=$(dirname "$git_dir")
-      relative_path="${repo_path#$base_dir}"
+      relative_path="${repo_path#$base_dir_with_slash}"
       echo "$relative_path"
     done
     
@@ -152,7 +156,7 @@ find_git_repos_and_worktrees() {
     find "$base_dir" -maxdepth "$max_depth" -name ".git" -type f 2>/dev/null | while read -r git_file; do
       if grep -q "^gitdir:" "$git_file" 2>/dev/null; then
         worktree_path=$(dirname "$git_file")
-        relative_path="${worktree_path#$base_dir}"
+        relative_path="${worktree_path#$base_dir_with_slash}"
         echo "$relative_path"
       fi
     done
