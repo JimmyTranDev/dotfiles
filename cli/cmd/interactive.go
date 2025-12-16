@@ -93,12 +93,16 @@ func runInteractiveMenu(cfg *config.Config) error {
 		// Get user choice with Bubble Tea UI
 		choice, err := selectMainMenuWithBubbleTea(mainMenuItems)
 		if err != nil {
+			if ui.IsQuitError(err) {
+				color.Cyan("\n👋 Goodbye!")
+				return nil
+			}
 			return err
 		}
 
 		// Process choice
 		if err := processChoice(choice, cfg); err != nil {
-			if err.Error() == "quit" {
+			if err.Error() == "quit" || ui.IsQuitError(err) {
 				color.Cyan("\n👋 Goodbye!")
 				return nil
 			}
@@ -264,6 +268,9 @@ func showSubMenu(parentItem MenuItem, cfg *config.Config) error {
 
 		choice, err := selectSubMenuWithBubbleTea(parentItem)
 		if err != nil {
+			if ui.IsQuitError(err) {
+				return ui.QuitError{Message: "quit"}
+			}
 			return err
 		}
 
@@ -351,6 +358,10 @@ func executeInteractiveStorageSync(cfg *config.Config) error {
 
 	choice, err := ui.RunSelection("☁️ Storage Sync Options", options)
 	if err != nil {
+		if ui.IsQuitError(err) {
+			color.Cyan("👋 Storage sync cancelled")
+			return nil
+		}
 		return err
 	}
 
@@ -366,6 +377,13 @@ func executeInteractiveStorageSync(cfg *config.Config) error {
 }
 
 func waitForUser() {
-	color.Cyan("\nPress Enter to continue...")
-	bufio.NewReader(os.Stdin).ReadLine()
+	color.Cyan("\nPress Enter to continue (or 'q' to quit)...")
+	scanner := bufio.NewScanner(os.Stdin)
+	if scanner.Scan() {
+		input := strings.TrimSpace(strings.ToLower(scanner.Text()))
+		if input == "q" {
+			color.Cyan("👋 Goodbye!")
+			os.Exit(0)
+		}
+	}
 }

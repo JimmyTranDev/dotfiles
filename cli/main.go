@@ -126,6 +126,7 @@ Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
 Interactive Mode:
   Run 'dotfiles' with no arguments to enter interactive mode
   Most commands support interactive prompts when arguments are omitted
+  Press 'q', 'esc', or 'ctrl+c' to quit anytime during interactive mode
 
 Examples:
   dotfiles theme set           # Interactive theme selection

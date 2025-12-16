@@ -124,10 +124,14 @@ If no install type is provided, interactive selection is shown.`,
 				// Get available options
 				options := installManager.GetInstallOptions()
 
-				// Interactive selection using FZF or fallback
+				// Interactive selection using Bubble Tea
 				selectedOption, err := selectInstallOptionInteractively(options)
 				if err != nil {
-					return fmt.Errorf("install option selection cancelled: %w", err)
+					if ui.IsQuitError(err) {
+						color.Cyan("👋 Installation cancelled")
+						return nil
+					}
+					return fmt.Errorf("install option selection failed: %w", err)
 				}
 				installType = selectedOption.Type
 
@@ -135,12 +139,13 @@ If no install type is provided, interactive selection is shown.`,
 				fmt.Println()
 
 				// Confirmation prompt
-				fmt.Print("Continue with installation? [Y/n]: ")
+				fmt.Print("Continue with installation? [Y/n/q]: ")
 				var response string
 				fmt.Scanln(&response)
 
-				if strings.ToLower(strings.TrimSpace(response)) == "n" {
-					color.Yellow("Installation cancelled")
+				response = strings.ToLower(strings.TrimSpace(response))
+				if response == "n" || response == "q" {
+					color.Cyan("👋 Installation cancelled")
 					return nil
 				}
 			} else {

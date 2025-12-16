@@ -70,7 +70,7 @@ func NewSelectModel(title string, options []SelectOption) SelectModel {
 	return SelectModel{
 		title:   title,
 		options: options,
-		help:    "↑/↓: navigate • enter: select • q: quit",
+		help:    "↑/↓: navigate • enter: select • q/esc: quit anytime",
 	}
 }
 
@@ -164,6 +164,21 @@ func (m SelectModel) GetSelected() string {
 	return m.selected
 }
 
+// QuitError represents a user-initiated quit
+type QuitError struct {
+	Message string
+}
+
+func (e QuitError) Error() string {
+	return e.Message
+}
+
+// IsQuitError checks if an error is a quit error
+func IsQuitError(err error) bool {
+	_, ok := err.(QuitError)
+	return ok
+}
+
 // RunSelection runs the selection UI and returns the selected option
 func RunSelection(title string, options []SelectOption) (string, error) {
 	model := NewSelectModel(title, options)
@@ -176,7 +191,7 @@ func RunSelection(title string, options []SelectOption) (string, error) {
 
 	selectModel := finalModel.(SelectModel)
 	if selectModel.GetSelected() == "" {
-		return "", fmt.Errorf("selection cancelled")
+		return "", QuitError{Message: "quit"}
 	}
 
 	return selectModel.GetSelected(), nil

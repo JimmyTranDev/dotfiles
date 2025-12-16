@@ -61,10 +61,14 @@ func newThemeSetCmd(cfg *config.Config) *cobra.Command {
 				color.Yellow("Current theme: %s", cfg.Themes.Current)
 				fmt.Println()
 
-				// Interactive selection using FZF or fallback
+				// Interactive selection using Bubble Tea
 				selected, err := selectThemeInteractively(cfg.Themes.Available)
 				if err != nil {
-					return fmt.Errorf("theme selection cancelled: %w", err)
+					if ui.IsQuitError(err) {
+						color.Cyan("👋 Theme selection cancelled")
+						return nil
+					}
+					return err
 				}
 				themeName = selected
 			} else {
