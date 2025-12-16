@@ -109,12 +109,7 @@ func (m SelectModel) View() string {
 
 		b.WriteString(cursor + title)
 
-		// Description (only show for selected item for cleaner look)
-		if option.Description != "" {
-			if i == m.cursor {
-				b.WriteString("\n" + styles.Description.Render("    "+option.Description))
-			}
-		}
+		// No descriptions shown for cleaner selection interface
 		b.WriteString("\n")
 	}
 
