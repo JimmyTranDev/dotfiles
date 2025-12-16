@@ -30,8 +30,14 @@ yabai -m rule --add app="^Karabiner-Elements$" manage=off
 
 borders active_color=0xffb4befe inactive_color=0xff6c7086 width=12 &
 
-yabai -m config external_bar all:32:0
+# Disable external bar to eliminate unwanted top padding
+# yabai -m config external_bar all:32:0
+
+# Proper handling of macOS menu bar and system UI
+yabai -m config menubar_opacity 1.0
+# Ensure windows don't overlap with menu bar but don't add extra padding
+yabai -m config window_origin_display default-display
 
 yabai -m rule --add app="^qemu-system-aarch64$" manage=off sticky=on
 yabai -m rule --add app="^qemu-system-x86_64$" manage=off sticky=on
-yabai -m config window_topmost on
+# yabai -m config window_topmost on
