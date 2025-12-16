@@ -52,6 +52,10 @@ maintainable Go CLI with improved error handling and user experience.`,
 				color.NoColor = true
 			}
 		},
+		RunE: func(c *cobra.Command, args []string) error {
+			// If no subcommand provided, show interactive menu
+			return cmd.NewInteractiveMenuCmd(cfg).RunE(c, args)
+		},
 	}
 
 	// Add global flags
@@ -64,6 +68,43 @@ maintainable Go CLI with improved error handling and user experience.`,
 	rootCmd.AddCommand(cmd.NewProjectCmd(cfg))
 	rootCmd.AddCommand(cmd.NewStorageCmd(cfg))
 	rootCmd.AddCommand(cmd.NewUtilsCmd(cfg))
+	rootCmd.AddCommand(cmd.NewInteractiveMenuCmd(cfg))
+
+	// Add interactive examples to help
+	rootCmd.SetUsageTemplate(`Usage:{{if .Runnable}}
+  {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
+  {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
+
+Aliases:
+  {{.NameAndAliases}}{{end}}{{if .HasExample}}
+
+Examples:
+{{.Example}}{{end}}{{if .HasAvailableSubCommands}}
+
+Available Commands:{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
+  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
+
+Flags:
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
+
+Global Flags:
+{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
+
+Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
+  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}
+
+Interactive Mode:
+  Run 'dotfiles' with no arguments to enter interactive mode
+  Most commands support interactive prompts when arguments are omitted
+
+Examples:
+  dotfiles theme set           # Interactive theme selection
+  dotfiles project select      # Interactive project selection
+  dotfiles utils kill-port     # Interactive port selection
+  dotfiles storage sync        # Interactive sync options
+  
+{{if .HasAvailableSubCommands}}Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
+`)
 
 	// Execute command
 	if err := rootCmd.ExecuteContext(ctx); err != nil {

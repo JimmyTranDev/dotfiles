@@ -1,8 +1,13 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
+	"strconv"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -35,14 +40,113 @@ func getPackageIcon(packageType domain.PackageType) string {
 	}
 }
 
+// selectThemeInteractively provides interactive theme selection
+func selectThemeInteractively(themes []string) (string, error) {
+	// Try FZF first
+	selected, err := selectThemeWithFZF(themes)
+	if err == nil {
+		return selected, nil
+	}
+
+	// Fallback to numbered selection
+	return selectThemeWithNumbers(themes)
+}
+
+// selectThemeWithFZF uses FZF for theme selection
+func selectThemeWithFZF(themes []string) (string, error) {
+	// Check if fzf is available
+	if _, err := exec.LookPath("fzf"); err != nil {
+		return "", fmt.Errorf("fzf not available")
+	}
+
+	// Create preview for each theme
+	var buf bytes.Buffer
+	for _, theme := range themes {
+		buf.WriteString(theme + "\n")
+	}
+
+	// Run FZF with preview
+	cmd := exec.Command("fzf",
+		"--prompt=Select theme: ",
+		"--height=60%",
+		"--border",
+		"--reverse",
+		"--preview=echo 'Theme: {}'; echo; echo 'This theme will be applied to:'; echo '  • Ghostty terminal'; echo '  • Zellij multiplexer'; echo '  • btop system monitor'; echo '  • FZF colors'")
+	cmd.Stdin = strings.NewReader(buf.String())
+
+	var output bytes.Buffer
+	cmd.Stdout = &output
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("selection cancelled")
+	}
+
+	selected := strings.TrimSpace(output.String())
+	if selected == "" {
+		return "", fmt.Errorf("no theme selected")
+	}
+
+	return selected, nil
+}
+
+// selectThemeWithNumbers provides numbered theme selection
+func selectThemeWithNumbers(themes []string) (string, error) {
+	color.Yellow("Available themes:")
+	fmt.Println()
+
+	for i, theme := range themes {
+		color.White("[%d] %s", i+1, theme)
+	}
+	fmt.Println()
+
+	fmt.Print("Enter theme number (1-", len(themes), "): ")
+
+	var input string
+	if _, err := fmt.Scanln(&input); err != nil {
+		return "", fmt.Errorf("failed to read input: %w", err)
+	}
+
+	selection, err := strconv.Atoi(strings.TrimSpace(input))
+	if err != nil {
+		return "", fmt.Errorf("invalid number: %s", input)
+	}
+
+	if selection < 1 || selection > len(themes) {
+		return "", fmt.Errorf("selection out of range: %d (valid: 1-%d)", selection, len(themes))
+	}
+
+	return themes[selection-1], nil
+}
+
 // newThemeSetCmd creates the theme set command
 func newThemeSetCmd(cfg *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set [theme-name]",
 		Short: "Set the current theme",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			themeName := args[0]
+			var themeName string
+
+			// If no theme provided, show interactive selection
+			if len(args) == 0 {
+				color.Cyan("🎨 Interactive Theme Selection")
+				fmt.Println()
+
+				// Show current theme
+				color.Yellow("Current theme: %s", cfg.Themes.Current)
+				fmt.Println()
+
+				// Interactive selection using FZF or fallback
+				selected, err := selectThemeInteractively(cfg.Themes.Available)
+				if err != nil {
+					return fmt.Errorf("theme selection cancelled: %w", err)
+				}
+				themeName = selected
+			} else {
+				themeName = args[0]
+			}
+
 			color.Cyan("🎨 Setting theme to: %s", themeName)
 
 			// Create theme manager and apply theme
@@ -150,9 +254,10 @@ func newProjectSelectCmd(cfg *config.Config) *cobra.Command {
 			// Create project manager
 			projectManager := project.NewManager(cfg)
 
-			color.Cyan("🔍 Selecting project...")
+			color.Cyan("🔍 Interactive Project Selection")
+			fmt.Println()
 
-			// Use interactive project selection (unless --no-interactive flag is set)
+			// Always use interactive selection by default
 			project, err := projectManager.SelectProject(ctx, !nonInteractive)
 			if err != nil {
 				return fmt.Errorf("failed to select project: %w", err)
@@ -213,6 +318,29 @@ func newStorageInitCmd(cfg *config.Config) *cobra.Command {
 		Use:   "init",
 		Short: "Initialize secrets directory with template files",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			color.Cyan("🔧 Interactive Secrets Directory Initialization")
+			fmt.Println()
+
+			secretsPath := fmt.Sprintf("%s/Programming/secrets", cfg.Directories.Home)
+			color.Yellow("This will initialize the secrets directory at:")
+			color.White("  %s", secretsPath)
+			fmt.Println()
+
+			color.Yellow("Template files that will be created:")
+			color.White("  • technical_links.json - For technical bookmarks")
+			color.White("  • useful_links.json - For useful resource links")
+			fmt.Println()
+
+			// Confirmation prompt
+			fmt.Print("Continue with initialization? [Y/n]: ")
+			var response string
+			fmt.Scanln(&response)
+
+			if strings.ToLower(strings.TrimSpace(response)) == "n" {
+				color.Yellow("Initialization cancelled")
+				return nil
+			}
+
 			color.Cyan("🔧 Initializing secrets directory...")
 
 			// Create storage manager
@@ -223,7 +351,7 @@ func newStorageInitCmd(cfg *config.Config) *cobra.Command {
 			}
 
 			color.Green("✓ Secrets directory initialized successfully!")
-			color.Green("  Location: %s/Programming/secrets", cfg.Directories.Home)
+			color.Green("  Location: %s", secretsPath)
 			color.Green("  Template files: technical_links.json, useful_links.json")
 			return nil
 		},
@@ -248,10 +376,47 @@ Requires the following environment variables:
 Also requires the 'b2' CLI tool to be installed:
 pip install b2`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			color.Cyan("☁️ Interactive Cloud Storage Sync")
+			fmt.Println()
+
+			// Show sync details
+			secretsPath := fmt.Sprintf("%s/Programming/secrets", cfg.Directories.Home)
+			color.Yellow("Sync configuration:")
+			color.White("  • Source: %s", secretsPath)
+			color.White("  • Target: Backblaze B2 cloud storage")
+			color.White("  • Excludes: .m2/repository files")
+			fmt.Println()
+
+			// If no dry-run flag provided, ask user
+			if !cmd.Flags().Changed("dry-run") {
+				color.Yellow("Sync mode options:")
+				color.White("[1] Dry run - Preview changes without syncing")
+				color.White("[2] Full sync - Upload files to cloud storage")
+				fmt.Println()
+
+				fmt.Print("Select sync mode [1/2]: ")
+				var mode string
+				fmt.Scanln(&mode)
+
+				if strings.TrimSpace(mode) == "1" {
+					dryRun = true
+				}
+			}
+
 			if dryRun {
 				color.Cyan("🔍 Dry run: Checking what would be synced...")
 			} else {
 				color.Cyan("☁️ Syncing secrets to cloud storage...")
+
+				// Final confirmation for real sync
+				fmt.Print("This will upload your secrets to cloud storage. Continue? [y/N]: ")
+				var confirm string
+				fmt.Scanln(&confirm)
+
+				if strings.ToLower(strings.TrimSpace(confirm)) != "y" {
+					color.Yellow("Sync cancelled")
+					return nil
+				}
 			}
 
 			// Create storage manager
@@ -287,14 +452,52 @@ pip install b2`,
 // newUtilsKillPortCmd creates the utils kill-port command
 func newUtilsKillPortCmd(cfg *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "kill-port <port>",
+		Use:   "kill-port [port]",
 		Short: "Kill processes running on a specific port",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Parse port number
-			port := 0
-			if _, err := fmt.Sscanf(args[0], "%d", &port); err != nil {
-				return fmt.Errorf("invalid port number: %s", args[0])
+			var port int
+			var err error
+
+			if len(args) == 1 {
+				// Parse provided port number
+				if port, err = strconv.Atoi(args[0]); err != nil {
+					return fmt.Errorf("invalid port number: %s", args[0])
+				}
+			} else {
+				// Interactive port selection
+				color.Cyan("🔍 Interactive Port Killer")
+				fmt.Println()
+
+				// Show commonly used ports
+				color.Yellow("Common ports:")
+				commonPorts := map[string]int{
+					"HTTP (dev server)": 3000,
+					"HTTP alternative":  8000,
+					"HTTPS alternative": 8443,
+					"React dev server":  3000,
+					"Next.js dev":       3000,
+					"Vite dev server":   5173,
+					"Express default":   3000,
+					"Rails default":     3000,
+					"Django default":    8000,
+				}
+
+				for desc, p := range commonPorts {
+					color.White("  %d - %s", p, desc)
+				}
+				fmt.Println()
+
+				// Prompt for port
+				fmt.Print("Enter port number to kill: ")
+				var input string
+				if _, err := fmt.Scanln(&input); err != nil {
+					return fmt.Errorf("failed to read input: %w", err)
+				}
+
+				if port, err = strconv.Atoi(strings.TrimSpace(input)); err != nil {
+					return fmt.Errorf("invalid port number: %s", input)
+				}
 			}
 
 			if port <= 0 || port > 65535 {
@@ -330,14 +533,17 @@ The script expects CSV files with 'word' and 'commonness_score' columns.
 If no file path is provided, interactive selection is used.`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			color.Cyan("📊 CSV Commonness Score Sorter")
+			color.Cyan("📊 Interactive CSV Commonness Score Sorter")
+			fmt.Println()
 
 			var filePath string
 			if len(args) == 1 {
 				filePath = args[0]
 				interactive = false
 			} else {
+				// Always show interactive selection when no file provided
 				interactive = true
+				color.Yellow("🔍 Searching for CSV files in ranked words directories...")
 			}
 
 			// Create utils manager
@@ -348,6 +554,7 @@ If no file path is provided, interactive selection is used.`,
 			}
 
 			color.Green("✓ CSV file sorted successfully!")
+			color.Green("  Backup created with .backup extension")
 			return nil
 		},
 	}
