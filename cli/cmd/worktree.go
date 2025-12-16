@@ -359,8 +359,22 @@ The worktree will be created in the configured worktrees directory.`,
 				color.Yellow("Warning: Failed to install dependencies: %v", err)
 			}
 
-			color.Yellow("Now in worktree directory. Happy coding! 🚀")
-			color.Cyan("To navigate to the worktree: cd %s", worktreePath)
+			color.Green("🎉 Worktree setup complete! Happy coding! 🚀")
+			fmt.Println()
+			color.Cyan("📋 Worktree Summary:")
+			color.Cyan("  • Path: %s", worktreePath)
+			color.Cyan("  • Branch: %s", branchName)
+			color.Cyan("  • Repository: %s", filepath.Base(repoPath))
+			if ticket != nil {
+				color.Cyan("  • JIRA Ticket: %s", ticket.Key)
+			}
+			color.Cyan("  • Initial commit created with %s type", selectedCommitType.Name)
+			fmt.Println()
+			color.Yellow("💡 Next steps:")
+			color.Yellow("  1. Navigate to worktree: cd %s", worktreePath)
+			color.Yellow("  2. Start coding on your feature/fix")
+			color.Yellow("  3. Commit and push your changes")
+			fmt.Println()
 
 			return nil
 		},
@@ -422,11 +436,19 @@ Shows worktrees with their paths, branches, and associated repositories.`,
 				}
 			}
 
+			fmt.Println()
 			if totalWorktrees == 0 {
-				color.Yellow("No worktrees found.")
+				color.Yellow("📁 No worktrees found.")
+				color.Cyan("\n💡 Tip: Use 'dotfiles worktree create' to create your first worktree")
 			} else {
-				color.Green("\n✓ Found %d worktrees", totalWorktrees)
+				color.Green("✓ Found %d worktrees across %d repositories", totalWorktrees, len(repos))
+				fmt.Println()
+				color.Cyan("💡 Tips:")
+				color.Cyan("  • Use 'cd <path>' to navigate to a worktree")
+				color.Cyan("  • Use 'dotfiles worktree delete' to remove unused worktrees")
+				color.Cyan("  • Use 'dotfiles worktree clean' to cleanup stale references")
 			}
+			fmt.Println()
 
 			return nil
 		},
@@ -516,6 +538,14 @@ If no path is provided, you'll be prompted to select from existing worktrees.`,
 			}
 
 			color.Green("✓ Worktree deleted successfully!")
+			fmt.Println()
+			color.Cyan("📋 Deletion Summary:")
+			color.Cyan("  • Removed worktree: %s", filepath.Base(worktreePath))
+			color.Cyan("  • Directory cleaned up")
+			color.Cyan("  • Git references removed")
+			fmt.Println()
+			color.Yellow("💡 The main repository and other worktrees remain intact")
+			fmt.Println()
 			return nil
 		},
 	}
@@ -585,13 +615,30 @@ This command will:
 				}
 			}
 
+			fmt.Println()
 			if len(stalePaths) == 0 {
-				color.Green("✓ No stale worktrees found")
+				color.Green("✓ No stale worktrees found - your setup is clean!")
+				fmt.Println()
+				color.Cyan("📋 Cleanup Summary:")
+				color.Cyan("  • Scanned %d repositories", len(repos))
+				color.Cyan("  • All worktree references are valid")
+				color.Cyan("  • No cleanup required")
 			} else if dryRun {
 				color.Yellow("Found %d stale worktrees (use --dry-run=false to clean)", len(stalePaths))
+				fmt.Println()
+				color.Cyan("📋 Cleanup Preview:")
+				color.Cyan("  • Stale worktrees found: %d", len(stalePaths))
+				color.Cyan("  • Run without --dry-run to clean them up")
+				color.Cyan("  • This will only remove Git references, not files")
 			} else {
 				color.Green("✓ Cleaned %d stale worktrees", len(stalePaths))
+				fmt.Println()
+				color.Cyan("📋 Cleanup Summary:")
+				color.Cyan("  • Removed stale references: %d", len(stalePaths))
+				color.Cyan("  • Git worktree database updated")
+				color.Cyan("  • Your worktree setup is now clean")
 			}
+			fmt.Println()
 
 			return nil
 		},

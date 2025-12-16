@@ -165,6 +165,13 @@ If no install type is provided, interactive selection is shown.`,
 				return fmt.Errorf("installation failed: %w", err)
 			}
 
+			// Show completion message
+			fmt.Println()
+			fmt.Println(styles.Success.Render(ui.EmojiSuccess + " Installation completed successfully!"))
+			fmt.Println(styles.Success.Render("  Type: " + string(installType)))
+			fmt.Println(styles.Success.Render("  Check the output above for specific results"))
+			fmt.Println()
+
 			return nil
 		},
 	}

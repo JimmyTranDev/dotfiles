@@ -276,7 +276,9 @@ func processChoice(choice string, cfg *config.Config) error {
 			}
 
 			// Execute command directly
-			return executeCommand(item.Command, cfg)
+			result := executeCommandWithResult(item.Command, cfg)
+			ui.ShowTaskResult(result)
+			return nil
 		}
 	}
 
@@ -318,9 +320,8 @@ func showSubMenu(parentItem MenuItem, cfg *config.Config) error {
 		// Find matching sub item
 		for _, subItem := range parentItem.SubItems {
 			if subItem.Key == choice {
-				if err := executeCommand(subItem.Command, cfg); err != nil {
-					ui.Error("Error: " + err.Error())
-				}
+				result := executeCommandWithResult(subItem.Command, cfg)
+				ui.ShowTaskResult(result)
 				waitForUser()
 				return nil // Return to main menu after command
 			}
@@ -345,12 +346,41 @@ func executeCommand(commandStr string, cfg *config.Config) error {
 	return executeStandardCommand(commandStr)
 }
 
+// executeCommandWithResult executes a command and returns a structured result
+func executeCommandWithResult(commandStr string, cfg *config.Config) ui.TaskResult {
+	if commandStr == "" {
+		return ui.TaskResult{
+			Title:   "Command Execution",
+			Success: false,
+			Message: "Empty command provided",
+		}
+	}
+
+	// Handle special interactive commands with results
+	if handler := getInteractiveCommandResultHandler(commandStr, cfg); handler != nil {
+		return handler()
+	}
+
+	// Execute standard commands and capture result
+	return executeStandardCommandWithResult(commandStr)
+}
+
 // getInteractiveCommandHandler returns the appropriate handler for interactive commands
 func getInteractiveCommandHandler(commandStr string, cfg *config.Config) func() error {
 	handlers := map[string]func() error{
 		"theme set":    func() error { return executeInteractiveThemeSet(cfg) },
 		"storage sync": func() error { return executeInteractiveStorageSync(cfg) },
 		"ui set-theme": func() error { return executeInteractiveUIThemeSet(cfg) },
+	}
+	return handlers[commandStr]
+}
+
+// getInteractiveCommandResultHandler returns handlers that provide structured results
+func getInteractiveCommandResultHandler(commandStr string, cfg *config.Config) func() ui.TaskResult {
+	handlers := map[string]func() ui.TaskResult{
+		"theme set":    func() ui.TaskResult { return executeInteractiveThemeSetWithResult(cfg) },
+		"storage sync": func() ui.TaskResult { return executeInteractiveStorageSyncWithResult(cfg) },
+		"ui set-theme": func() ui.TaskResult { return executeInteractiveUIThemeSetWithResult(cfg) },
 	}
 	return handlers[commandStr]
 }
@@ -363,6 +393,38 @@ func executeStandardCommand(commandStr string) error {
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	return cmd.Run()
+}
+
+// executeStandardCommandWithResult executes standard CLI commands and returns structured result
+func executeStandardCommandWithResult(commandStr string) ui.TaskResult {
+	parts := strings.Fields(commandStr)
+
+	ui.TaskStart(fmt.Sprintf("Executing: %s", commandStr))
+
+	cmd := exec.Command(getExecutablePath(), parts...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	err := cmd.Run()
+
+	result := ui.TaskResult{
+		Title: fmt.Sprintf("%s Command", strings.Title(parts[0])),
+	}
+
+	if err != nil {
+		result.Success = false
+		result.Message = fmt.Sprintf("Command failed: %v", err)
+	} else {
+		result.Success = true
+		result.Message = "Command executed successfully"
+		result.Details = []string{
+			fmt.Sprintf("Executed: %s", commandStr),
+			"Check output above for specific results",
+		}
+	}
+
+	return result
 }
 
 func executeInteractiveThemeSet(cfg *config.Config) error {
@@ -486,4 +548,215 @@ func executeInteractiveUIThemeSet(cfg *config.Config) error {
 	ui.Success("CLI UI theme updated to " + string(selectedVariant))
 	ui.Info("Theme will take effect on next CLI startup")
 	return nil
+}
+
+// executeInteractiveThemeSetWithResult provides interactive theme selection with structured result
+func executeInteractiveThemeSetWithResult(cfg *config.Config) ui.TaskResult {
+	ui.TaskStart("Interactive Theme Selection")
+
+	selected, err := selectThemeInteractively(cfg.Themes.Available)
+	if err != nil {
+		if ui.IsQuitError(err) {
+			return ui.TaskResult{
+				Title:   "Theme Selection",
+				Success: false,
+				Message: "Theme selection cancelled by user",
+			}
+		}
+		return ui.TaskResult{
+			Title:   "Theme Selection",
+			Success: false,
+			Message: fmt.Sprintf("Theme selection failed: %v", err),
+		}
+	}
+
+	// Execute theme set command
+	cmd := exec.Command(getExecutablePath(), "theme", "set", selected)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+
+	if err != nil {
+		return ui.TaskResult{
+			Title:   "Theme Application",
+			Success: false,
+			Message: fmt.Sprintf("Failed to apply theme: %v", err),
+		}
+	}
+
+	return ui.TaskResult{
+		Title:   "Theme Management",
+		Success: true,
+		Message: fmt.Sprintf("Successfully applied theme: %s", selected),
+		Details: []string{
+			"Updated Ghostty terminal theme",
+			"Updated Zellij multiplexer theme",
+			"Updated btop system monitor theme",
+			"Updated FZF colors in .zshrc",
+			"Theme configuration saved",
+		},
+	}
+}
+
+// executeInteractiveStorageSyncWithResult provides interactive storage sync with structured result
+func executeInteractiveStorageSyncWithResult(cfg *config.Config) ui.TaskResult {
+	ui.TaskStart("Interactive Storage Sync")
+
+	// Create sync options for Bubble Tea
+	options := []ui.SelectOption{
+		{
+			Key:         "1",
+			Title:       "Dry Run",
+			Description: "Preview changes without actually syncing files",
+		},
+		{
+			Key:         "2",
+			Title:       "Full Sync",
+			Description: "Upload secrets to Backblaze B2 cloud storage",
+		},
+	}
+
+	choice, err := ui.RunSelection("☁️ Storage Sync Options", options)
+	if err != nil {
+		if ui.IsQuitError(err) {
+			return ui.TaskResult{
+				Title:   "Storage Sync",
+				Success: false,
+				Message: "Storage sync cancelled by user",
+			}
+		}
+		return ui.TaskResult{
+			Title:   "Storage Sync",
+			Success: false,
+			Message: fmt.Sprintf("Sync option selection failed: %v", err),
+		}
+	}
+
+	args := []string{"storage", "sync"}
+	isDryRun := choice == "1"
+	if isDryRun {
+		args = append(args, "--dry-run")
+	}
+
+	cmd := exec.Command(getExecutablePath(), args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+
+	if err != nil {
+		return ui.TaskResult{
+			Title:   "Storage Sync",
+			Success: false,
+			Message: fmt.Sprintf("Storage sync failed: %v", err),
+		}
+	}
+
+	var details []string
+	if isDryRun {
+		details = []string{
+			"Performed dry run - no files were actually synced",
+			"Showed preview of changes that would be made",
+			"Use full sync to upload files to cloud storage",
+		}
+	} else {
+		details = []string{
+			"Successfully synchronized secrets to Backblaze B2",
+			"Files uploaded to cloud storage",
+			"Backup completed successfully",
+		}
+	}
+
+	return ui.TaskResult{
+		Title:   "Cloud Storage Sync",
+		Success: true,
+		Message: fmt.Sprintf("Storage sync completed (%s)", map[bool]string{true: "dry run", false: "full sync"}[isDryRun]),
+		Details: details,
+	}
+}
+
+// executeInteractiveUIThemeSetWithResult provides interactive UI theme selection with structured result
+func executeInteractiveUIThemeSetWithResult(cfg *config.Config) ui.TaskResult {
+	ui.TaskStart("Interactive CLI UI Theme Selection")
+
+	// Create UI theme options
+	options := []ui.SelectOption{
+		{
+			Key:         "1",
+			Title:       "Mocha (Dark)",
+			Description: "Dark theme with warm, cozy colors - perfect for evening coding",
+		},
+		{
+			Key:         "2",
+			Title:       "Macchiato (Dark)",
+			Description: "Slightly lighter dark theme with softer contrast",
+		},
+		{
+			Key:         "3",
+			Title:       "Frappe (Dark)",
+			Description: "Cool-toned dark theme with blue undertones",
+		},
+		{
+			Key:         "4",
+			Title:       "Latte (Light)",
+			Description: "Light theme for daytime coding - easy on the eyes",
+		},
+	}
+
+	choice, err := ui.RunSelection(ui.EmojiArt+" CLI Theme Selection", options)
+	if err != nil {
+		if ui.IsQuitError(err) {
+			return ui.TaskResult{
+				Title:   "UI Theme Selection",
+				Success: false,
+				Message: "UI theme selection cancelled by user",
+			}
+		}
+		return ui.TaskResult{
+			Title:   "UI Theme Selection",
+			Success: false,
+			Message: fmt.Sprintf("UI theme selection failed: %v", err),
+		}
+	}
+
+	var selectedVariant ui.CatppuccinVariant
+	var themeName string
+	switch choice {
+	case "1":
+		selectedVariant = ui.CatppuccinMocha
+		themeName = "Mocha (Dark)"
+	case "2":
+		selectedVariant = ui.CatppuccinMacchiato
+		themeName = "Macchiato (Dark)"
+	case "3":
+		selectedVariant = ui.CatppuccinFrappe
+		themeName = "Frappe (Dark)"
+	case "4":
+		selectedVariant = ui.CatppuccinLatte
+		themeName = "Latte (Light)"
+	default:
+		return ui.TaskResult{
+			Title:   "UI Theme Selection",
+			Success: false,
+			Message: "Invalid theme selection",
+		}
+	}
+
+	if err := ui.SetCurrentTheme(selectedVariant); err != nil {
+		return ui.TaskResult{
+			Title:   "UI Theme Application",
+			Success: false,
+			Message: fmt.Sprintf("Failed to set UI theme: %v", err),
+		}
+	}
+
+	return ui.TaskResult{
+		Title:   "CLI UI Theme",
+		Success: true,
+		Message: fmt.Sprintf("CLI UI theme updated to %s", themeName),
+		Details: []string{
+			"Theme configuration saved",
+			"New theme will take effect on next CLI startup",
+			"CLI interface colors have been updated",
+		},
+	}
 }

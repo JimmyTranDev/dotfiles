@@ -89,6 +89,14 @@ func newThemeSetCmd(cfg *config.Config) *cobra.Command {
 
 			fmt.Println(styles.Success.Render(ui.EmojiSuccess + " Theme set successfully!"))
 			fmt.Println(styles.Success.Render("  Applied to: Ghostty, Zellij, btop, and FZF colors"))
+			fmt.Println()
+			fmt.Println(styles.AccentSecondary.Render("Configuration Details:"))
+			fmt.Println(styles.Value.Render("  • Theme: " + themeName))
+			fmt.Println(styles.Value.Render("  • Ghostty terminal updated"))
+			fmt.Println(styles.Value.Render("  • Zellij multiplexer updated"))
+			fmt.Println(styles.Value.Render("  • btop system monitor updated"))
+			fmt.Println(styles.Value.Render("  • FZF colors updated in .zshrc"))
+			fmt.Println()
 			return nil
 		},
 	}
@@ -177,8 +185,13 @@ func newStorageInitCmd(cfg *config.Config) *cobra.Command {
 			}
 
 			fmt.Println(styles.Success.Render(ui.EmojiSuccess + " Secrets directory initialized successfully!"))
-			fmt.Println(styles.Success.Render("  Location: " + secretsPath))
-			fmt.Println(styles.Success.Render("  Template files: technical_links.json, useful_links.json"))
+			fmt.Println()
+			fmt.Println(styles.AccentSecondary.Render("Configuration Details:"))
+			fmt.Println(styles.Value.Render("  • Location: " + secretsPath))
+			fmt.Println(styles.Value.Render("  • Template files created: technical_links.json, useful_links.json"))
+			fmt.Println(styles.Value.Render("  • Directory ready for secrets management"))
+			fmt.Println(styles.Value.Render("  • You can now add your secrets and sync to cloud"))
+			fmt.Println()
 			return nil
 		},
 	}
@@ -267,9 +280,20 @@ pip install b2`,
 
 			if dryRun {
 				fmt.Println(styles.Success.Render(ui.EmojiSuccess + " Dry run completed - no files were actually synced"))
+				fmt.Println()
+				fmt.Println(styles.AccentSecondary.Render("Summary:"))
+				fmt.Println(styles.Value.Render("  • Preview mode - no actual file transfers"))
+				fmt.Println(styles.Value.Render("  • Check output above for sync preview"))
+				fmt.Println(styles.Value.Render("  • Use full sync to upload files"))
 			} else {
 				fmt.Println(styles.Success.Render(ui.EmojiSuccess + " Secrets synchronized successfully!"))
+				fmt.Println()
+				fmt.Println(styles.AccentSecondary.Render("Summary:"))
+				fmt.Println(styles.Value.Render("  • Files uploaded to Backblaze B2"))
+				fmt.Println(styles.Value.Render("  • Backup completed successfully"))
+				fmt.Println(styles.Value.Render("  • Secrets are now stored in cloud"))
 			}
+			fmt.Println()
 			return nil
 		},
 	}

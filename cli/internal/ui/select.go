@@ -157,3 +157,26 @@ func RunSelection(title string, options []SelectOption) (string, error) {
 
 	return selectModel.GetSelected(), nil
 }
+
+// RunConfirmation is a convenience function for yes/no confirmations
+func RunConfirmation(title string, description string) (bool, error) {
+	options := []SelectOption{
+		{
+			Key:         "y",
+			Title:       "Yes",
+			Description: "Proceed with the action",
+		},
+		{
+			Key:         "n",
+			Title:       "No",
+			Description: "Cancel the action",
+		},
+	}
+
+	choice, err := RunSelection(title, options)
+	if err != nil {
+		return false, err
+	}
+
+	return choice == "y", nil
+}

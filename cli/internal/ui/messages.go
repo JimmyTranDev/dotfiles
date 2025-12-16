@@ -98,3 +98,65 @@ func Subtle(message string) {
 	styles := theme.Styles()
 	fmt.Println(styles.AccentSubtle.Render(message))
 }
+
+// CompletionSummary prints a task completion summary with results
+func CompletionSummary(title string, results []string) {
+	theme := GetCurrentTheme()
+	styles := theme.Styles()
+
+	fmt.Println()
+	fmt.Println(styles.Success.Render(EmojiSuccess + " Task Completed: " + title))
+
+	if len(results) > 0 {
+		fmt.Println()
+		fmt.Println(styles.AccentSecondary.Render("Results:"))
+		for _, result := range results {
+			fmt.Println(styles.Value.Render("  • " + result))
+		}
+	}
+	fmt.Println()
+}
+
+// TaskStart prints a task start message
+func TaskStart(title string) {
+	theme := GetCurrentTheme()
+	styles := theme.Styles()
+	fmt.Println(styles.Accent.Render(EmojiRocket + " Starting: " + title))
+}
+
+// TaskResult stores task execution results
+type TaskResult struct {
+	Title   string
+	Success bool
+	Message string
+	Details []string
+}
+
+// ShowTaskResult displays a formatted task result
+func ShowTaskResult(result TaskResult) {
+	theme := GetCurrentTheme()
+	styles := theme.Styles()
+
+	fmt.Println()
+
+	if result.Success {
+		fmt.Println(styles.Success.Render(EmojiSuccess + " " + result.Title + " - Completed Successfully"))
+		if result.Message != "" {
+			fmt.Println(styles.Success.Render("  " + result.Message))
+		}
+	} else {
+		fmt.Println(styles.Error.Render(EmojiError + " " + result.Title + " - Failed"))
+		if result.Message != "" {
+			fmt.Println(styles.Error.Render("  " + result.Message))
+		}
+	}
+
+	if len(result.Details) > 0 {
+		fmt.Println()
+		fmt.Println(styles.AccentSecondary.Render("Details:"))
+		for _, detail := range result.Details {
+			fmt.Println(styles.Value.Render("  • " + detail))
+		}
+	}
+	fmt.Println()
+}

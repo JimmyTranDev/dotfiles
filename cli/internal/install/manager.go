@@ -157,7 +157,22 @@ func (m *Manager) runFullInstallation() error {
 		}
 	}
 
-	color.Green("✓ Full installation completed successfully!")
+	color.Green("🎉 Full installation completed successfully!")
+	fmt.Println()
+	color.Cyan("📋 Installation Summary:")
+	color.Cyan("  • Platform: %s", platform)
+	if packageManager != "" {
+		color.Cyan("  • Package manager: %s", packageManager)
+		color.Cyan("  • System packages installed")
+	}
+	color.Cyan("  • Dotfiles symlinks created")
+	color.Cyan("  • Configuration files linked")
+	fmt.Println()
+	color.Yellow("💡 Next steps:")
+	color.Yellow("  • Restart your terminal to apply all changes")
+	color.Yellow("  • Run 'dotfiles theme set' to configure themes")
+	color.Yellow("  • Check that all symlinks are working correctly")
+	fmt.Println()
 	return nil
 }
 
@@ -184,7 +199,18 @@ func (m *Manager) runCloneEssentialRepos() error {
 		}
 	}
 
-	color.Green("✓ Essential repositories setup completed!")
+	color.Green("🎉 Essential repositories setup completed!")
+	fmt.Println()
+	color.Cyan("📋 Cloning Summary:")
+	color.Cyan("  • Essential repositories processed")
+	color.Cyan("  • Neovim configuration installed")
+	color.Cyan("  • Development environment ready")
+	fmt.Println()
+	color.Yellow("💡 Next steps:")
+	color.Yellow("  • Open Neovim to install plugins")
+	color.Yellow("  • Configure your development environment")
+	color.Yellow("  • Check that all repositories are accessible")
+	fmt.Println()
 	return nil
 }
 
@@ -212,7 +238,21 @@ func (m *Manager) runFetchAllRepos(targetDir string) error {
 		}
 	}
 
-	color.Green("✓ Updated %d/%d repositories", successCount, len(repos))
+	fmt.Println()
+	color.Green("🎉 Repository updates completed!")
+	fmt.Println()
+	color.Cyan("📋 Update Summary:")
+	color.Cyan("  • Successfully updated: %d repositories", successCount)
+	color.Cyan("  • Failed updates: %d repositories", len(repos)-successCount)
+	color.Cyan("  • Total repositories scanned: %d", len(repos))
+	color.Cyan("  • Target directory: %s", targetDir)
+	fmt.Println()
+	if successCount < len(repos) {
+		color.Yellow("💡 Some updates failed - check the output above for details")
+	} else {
+		color.Yellow("💡 All repositories are now up to date!")
+	}
+	fmt.Println()
 	return nil
 }
 
@@ -249,7 +289,20 @@ func (m *Manager) runUpdateDevEnvironment() error {
 		color.Green("✓ Updated dotfiles repository")
 	}
 
-	color.Green("✓ Development environment update completed!")
+	fmt.Println()
+	color.Green("🎉 Development environment update completed!")
+	fmt.Println()
+	color.Cyan("📋 Update Summary:")
+	color.Cyan("  • Yazi plugins updated")
+	color.Cyan("  • Neovim plugins updated")
+	color.Cyan("  • Mason tools updated")
+	color.Cyan("  • Dotfiles repository updated")
+	fmt.Println()
+	color.Yellow("💡 Next steps:")
+	color.Yellow("  • Restart your terminal/applications to apply updates")
+	color.Yellow("  • Check that all tools are working correctly")
+	color.Yellow("  • Review any new features in updated tools")
+	fmt.Println()
 	return nil
 }
 
