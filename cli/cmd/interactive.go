@@ -73,6 +73,13 @@ var mainMenuItems = []MenuItem{
 		Key:         "i",
 		Description: ui.EmojiPackage + " Installation & Updates",
 		Command:     "install",
+		SubItems: []MenuItem{
+			{Key: "f", Description: "Full dotfiles setup", Command: "install full"},
+			{Key: "c", Description: "Clone essential repositories", Command: "install clone-repos"},
+			{Key: "a", Description: "Fetch all repository updates", Command: "install fetch-all"},
+			{Key: "u", Description: "Update dev environment", Command: "install update"},
+			{Key: "i", Description: "Interactive installation", Command: "install"},
+		},
 	},
 	{
 		Key:         "s",
@@ -113,12 +120,13 @@ func runInteractiveMenu(cfg *config.Config) error {
 		}
 
 		// Process choice
-		if err := processChoice(choice, cfg); err != nil {
-			if err.Error() == "quit" || ui.IsQuitError(err) {
+		result := processChoiceWithResult(choice, cfg)
+		if result.err != nil {
+			if result.err.Error() == "quit" || ui.IsQuitError(result.err) {
 				color.Cyan("\n👋 Goodbye!")
 				return nil
 			}
-			color.Red("Error: %v", err)
+			color.Red("Error: %v", result.err)
 			if err := waitForUser(); err != nil {
 				if ui.IsQuitError(err) {
 					color.Cyan("\n👋 Goodbye!")
@@ -129,12 +137,15 @@ func runInteractiveMenu(cfg *config.Config) error {
 			continue
 		}
 
-		if err := waitForUser(); err != nil {
-			if ui.IsQuitError(err) {
-				color.Cyan("\n👋 Goodbye!")
-				return nil
+		// Only wait for user input if it wasn't a back navigation
+		if !result.wasBackNavigation {
+			if err := waitForUser(); err != nil {
+				if ui.IsQuitError(err) {
+					color.Cyan("\n👋 Goodbye!")
+					return nil
+				}
+				return err
 			}
-			return err
 		}
 	}
 }
@@ -262,30 +273,46 @@ func convertSubMenuItemsToUIOptions(parentItem MenuItem) []ui.SelectOption {
 	return options
 }
 
+// choiceResult holds the result of processing a menu choice
+type choiceResult struct {
+	err               error
+	wasBackNavigation bool
+}
+
 func processChoice(choice string, cfg *config.Config) error {
+	result := processChoiceWithResult(choice, cfg)
+	return result.err
+}
+
+func processChoiceWithResult(choice string, cfg *config.Config) choiceResult {
 	// Find matching menu item
 	for _, item := range mainMenuItems {
 		if item.Key == choice {
 			if item.Command == "quit" {
-				return fmt.Errorf("quit")
+				return choiceResult{err: fmt.Errorf("quit"), wasBackNavigation: false}
 			}
 
 			// If item has subitems, show submenu
 			if len(item.SubItems) > 0 {
-				return showSubMenu(item, cfg)
+				return showSubMenuWithResult(item, cfg)
 			}
 
 			// Execute command directly
 			result := executeCommandWithResult(item.Command, cfg)
 			ui.ShowTaskResult(result)
-			return nil
+			return choiceResult{err: nil, wasBackNavigation: false}
 		}
 	}
 
-	return fmt.Errorf("invalid choice: %s", choice)
+	return choiceResult{err: fmt.Errorf("invalid choice: %s", choice), wasBackNavigation: false}
 }
 
 func showSubMenu(parentItem MenuItem, cfg *config.Config) error {
+	result := showSubMenuWithResult(parentItem, cfg)
+	return result.err
+}
+
+func showSubMenuWithResult(parentItem MenuItem, cfg *config.Config) choiceResult {
 	for {
 		clearScreen()
 		showHeader()
@@ -308,13 +335,13 @@ func showSubMenu(parentItem MenuItem, cfg *config.Config) error {
 		choice, err := selectSubMenuWithBubbleTea(parentItem)
 		if err != nil {
 			if ui.IsQuitError(err) {
-				return ui.QuitError{Message: "quit"}
+				return choiceResult{err: ui.QuitError{Message: "quit"}, wasBackNavigation: false}
 			}
-			return err
+			return choiceResult{err: err, wasBackNavigation: false}
 		}
 
 		if choice == "b" {
-			return nil // Go back to main menu
+			return choiceResult{err: nil, wasBackNavigation: true} // Go back to main menu - this is back navigation
 		}
 
 		// Find matching sub item
@@ -323,7 +350,7 @@ func showSubMenu(parentItem MenuItem, cfg *config.Config) error {
 				result := executeCommandWithResult(subItem.Command, cfg)
 				ui.ShowTaskResult(result)
 				waitForUser()
-				return nil // Return to main menu after command
+				return choiceResult{err: nil, wasBackNavigation: true} // Return to main menu after command - treat as back navigation to avoid double prompt
 			}
 		}
 
