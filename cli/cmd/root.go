@@ -68,3 +68,43 @@ Find, select, and work with your development projects across multiple directorie
 
 	return cmd
 }
+
+// NewStorageCmd creates the storage command
+func NewStorageCmd(cfg *config.Config) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "storage",
+		Short: "Manage cloud storage and secrets",
+		Long: `Manage cloud storage operations and secrets backup.
+
+Provides functionality for:
+- Initializing secrets directory with template files
+- Syncing secrets to Backblaze B2 cloud storage
+- Managing backup operations`,
+	}
+
+	// Add subcommands
+	cmd.AddCommand(newStorageInitCmd(cfg))
+	cmd.AddCommand(newStorageSyncCmd(cfg))
+
+	return cmd
+}
+
+// NewUtilsCmd creates the utils command
+func NewUtilsCmd(cfg *config.Config) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "utils",
+		Short: "Utility commands and helpers",
+		Long: `Various utility commands for common development tasks.
+
+Provides functionality for:
+- Killing processes on specific ports
+- Sorting CSV files by commonness score
+- Other development utilities`,
+	}
+
+	// Add subcommands
+	cmd.AddCommand(newUtilsKillPortCmd(cfg))
+	cmd.AddCommand(newUtilsCSVSortCmd(cfg))
+
+	return cmd
+}

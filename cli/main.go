@@ -62,6 +62,8 @@ maintainable Go CLI with improved error handling and user experience.`,
 	rootCmd.AddCommand(cmd.NewWorktreeCmd(cfg))
 	rootCmd.AddCommand(cmd.NewThemeCmd(cfg))
 	rootCmd.AddCommand(cmd.NewProjectCmd(cfg))
+	rootCmd.AddCommand(cmd.NewStorageCmd(cfg))
+	rootCmd.AddCommand(cmd.NewUtilsCmd(cfg))
 
 	// Execute command
 	if err := rootCmd.ExecuteContext(ctx); err != nil {

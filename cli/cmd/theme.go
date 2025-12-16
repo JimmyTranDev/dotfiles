@@ -10,7 +10,9 @@ import (
 	"github.com/jimmy/dotfiles-cli/internal/config"
 	"github.com/jimmy/dotfiles-cli/internal/domain"
 	"github.com/jimmy/dotfiles-cli/internal/project"
+	"github.com/jimmy/dotfiles-cli/internal/storage"
 	"github.com/jimmy/dotfiles-cli/internal/theme"
+	"github.com/jimmy/dotfiles-cli/internal/utils"
 )
 
 // getPackageIcon returns an emoji icon for the given package type
@@ -202,5 +204,154 @@ func newProjectSyncCmd(cfg *config.Config) *cobra.Command {
 			return nil
 		},
 	}
+	return cmd
+}
+
+// newStorageInitCmd creates the storage init command
+func newStorageInitCmd(cfg *config.Config) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "init",
+		Short: "Initialize secrets directory with template files",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			color.Cyan("🔧 Initializing secrets directory...")
+
+			// Create storage manager
+			storageManager := storage.NewManager(cfg)
+
+			if err := storageManager.InitSecretsDirectory(); err != nil {
+				return fmt.Errorf("failed to initialize secrets directory: %w", err)
+			}
+
+			color.Green("✓ Secrets directory initialized successfully!")
+			color.Green("  Location: %s/Programming/secrets", cfg.Directories.Home)
+			color.Green("  Template files: technical_links.json, useful_links.json")
+			return nil
+		},
+	}
+	return cmd
+}
+
+// newStorageSyncCmd creates the storage sync command
+func newStorageSyncCmd(cfg *config.Config) *cobra.Command {
+	var dryRun bool
+
+	cmd := &cobra.Command{
+		Use:   "sync",
+		Short: "Sync secrets to cloud storage using B2",
+		Long: `Sync secrets directory to Backblaze B2 cloud storage.
+
+Requires the following environment variables:
+- B2_BUCKET_NAME: Backblaze B2 bucket name
+- B2_APPLICATION_KEY_ID: Backblaze B2 application key ID
+- B2_APPLICATION_KEY: Backblaze B2 application key
+
+Also requires the 'b2' CLI tool to be installed:
+pip install b2`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if dryRun {
+				color.Cyan("🔍 Dry run: Checking what would be synced...")
+			} else {
+				color.Cyan("☁️ Syncing secrets to cloud storage...")
+			}
+
+			// Create storage manager
+			storageManager := storage.NewManager(cfg)
+
+			// Validate credentials first
+			if err := storageManager.ValidateB2Credentials(); err != nil {
+				color.Red("❌ B2 credentials validation failed:")
+				color.Yellow("   Make sure these environment variables are set:")
+				color.Yellow("   - B2_BUCKET_NAME")
+				color.Yellow("   - B2_APPLICATION_KEY_ID")
+				color.Yellow("   - B2_APPLICATION_KEY")
+				return err
+			}
+
+			if err := storageManager.SyncSecrets(dryRun); err != nil {
+				return fmt.Errorf("failed to sync secrets: %w", err)
+			}
+
+			if dryRun {
+				color.Green("✓ Dry run completed - no files were actually synced")
+			} else {
+				color.Green("✓ Secrets synchronized successfully!")
+			}
+			return nil
+		},
+	}
+
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be synced without actually syncing")
+	return cmd
+}
+
+// newUtilsKillPortCmd creates the utils kill-port command
+func newUtilsKillPortCmd(cfg *config.Config) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "kill-port <port>",
+		Short: "Kill processes running on a specific port",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Parse port number
+			port := 0
+			if _, err := fmt.Sscanf(args[0], "%d", &port); err != nil {
+				return fmt.Errorf("invalid port number: %s", args[0])
+			}
+
+			if port <= 0 || port > 65535 {
+				return fmt.Errorf("port must be between 1 and 65535, got: %d", port)
+			}
+
+			color.Cyan("🔪 Killing processes on port %d...", port)
+
+			// Create utils manager
+			utilsManager := utils.NewManager(cfg)
+
+			if err := utilsManager.KillPort(port); err != nil {
+				return fmt.Errorf("failed to kill port %d: %w", port, err)
+			}
+
+			color.Green("✓ Successfully killed processes on port %d", port)
+			return nil
+		},
+	}
+	return cmd
+}
+
+// newUtilsCSVSortCmd creates the utils csv-sort command
+func newUtilsCSVSortCmd(cfg *config.Config) *cobra.Command {
+	var interactive bool
+
+	cmd := &cobra.Command{
+		Use:   "csv-sort [file-path]",
+		Short: "Sort CSV files by commonness score",
+		Long: `Sort CSV files by commonness score (highest first).
+
+The script expects CSV files with 'word' and 'commonness_score' columns.
+If no file path is provided, interactive selection is used.`,
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			color.Cyan("📊 CSV Commonness Score Sorter")
+
+			var filePath string
+			if len(args) == 1 {
+				filePath = args[0]
+				interactive = false
+			} else {
+				interactive = true
+			}
+
+			// Create utils manager
+			utilsManager := utils.NewManager(cfg)
+
+			if err := utilsManager.SortCSV(filePath, interactive); err != nil {
+				return fmt.Errorf("failed to sort CSV: %w", err)
+			}
+
+			color.Green("✓ CSV file sorted successfully!")
+			return nil
+		},
+	}
+
+	cmd.Flags().BoolVarP(&interactive, "interactive", "i", false, "Use interactive file selection")
 	return cmd
 }
