@@ -1,0 +1,464 @@
+package git
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
+
+	"github.com/jimmy/dotfiles-cli/internal/domain"
+	"github.com/jimmy/dotfiles-cli/pkg/errors"
+)
+
+// Client provides Git operations
+type Client interface {
+	// Repository operations
+	OpenRepository(path string) (*domain.Repository, error)
+	CloneRepository(ctx context.Context, url, path string) (*domain.Repository, error)
+	FindRepositories(ctx context.Context, baseDir string, maxDepth int) ([]*domain.Repository, error)
+
+	// Worktree operations
+	CreateWorktree(ctx context.Context, repoPath, branch, worktreePath string) (*domain.Worktree, error)
+	ListWorktrees(ctx context.Context, repoPath string) ([]*domain.Worktree, error)
+	DeleteWorktree(ctx context.Context, worktreePath string) error
+
+	// Branch operations
+	ListBranches(ctx context.Context, repoPath string) ([]string, error)
+	CreateBranch(ctx context.Context, repoPath, branchName, baseBranch string) error
+	CheckoutBranch(ctx context.Context, repoPath, branchName string) error
+
+	// Status operations
+	GetStatus(ctx context.Context, repoPath string) (*GitStatus, error)
+	IsClean(ctx context.Context, repoPath string) (bool, error)
+}
+
+// GitStatus represents the status of a git repository
+type GitStatus struct {
+	Branch    string   `json:"branch"`
+	Modified  []string `json:"modified"`
+	Added     []string `json:"added"`
+	Deleted   []string `json:"deleted"`
+	Untracked []string `json:"untracked"`
+	IsClean   bool     `json:"is_clean"`
+	AheadBy   int      `json:"ahead_by"`
+	BehindBy  int      `json:"behind_by"`
+}
+
+// client implements the Git Client interface
+type client struct {
+	mu sync.RWMutex
+}
+
+// NewClient creates a new Git client
+func NewClient() Client {
+	return &client{}
+}
+
+// OpenRepository opens an existing git repository
+func (c *client) OpenRepository(path string) (*domain.Repository, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	if !filepath.IsAbs(path) {
+		return nil, errors.NewError(errors.ErrInvalidInput, "repository path must be absolute")
+	}
+
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return nil, errors.NewGitError("failed to open repository", err)
+	}
+
+	head, err := repo.Head()
+	if err != nil {
+		return nil, errors.NewGitError("failed to get repository head", err)
+	}
+
+	// Get repository info
+
+	// Get remote URL if available
+	remotes, err := repo.Remotes()
+	var remoteURL string
+	if err == nil && len(remotes) > 0 {
+		if urls := remotes[0].Config().URLs; len(urls) > 0 {
+			remoteURL = urls[0]
+		}
+	}
+
+	// Get file info for last modified time
+	info, err := os.Stat(path)
+	var lastMod time.Time
+	if err == nil {
+		lastMod = info.ModTime()
+	} else {
+		// If we can't get file info, use current time
+		lastMod = time.Now()
+	}
+
+	return &domain.Repository{
+		Path:    path,
+		Name:    filepath.Base(path),
+		Remote:  remoteURL,
+		Branch:  head.Name().Short(),
+		LastMod: lastMod,
+	}, nil
+}
+
+// CloneRepository clones a repository to the specified path
+func (c *client) CloneRepository(ctx context.Context, url, path string) (*domain.Repository, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if !filepath.IsAbs(path) {
+		return nil, errors.NewError(errors.ErrInvalidInput, "clone path must be absolute")
+	}
+
+	// Check if directory already exists
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		return nil, errors.NewError(errors.ErrInvalidInput, "directory already exists")
+	}
+
+	// Clone repository
+	repo, err := git.PlainCloneContext(ctx, path, false, &git.CloneOptions{
+		URL:      url,
+		Progress: os.Stdout,
+	})
+	if err != nil {
+		return nil, errors.NewGitError("failed to clone repository", err)
+	}
+
+	head, err := repo.Head()
+	if err != nil {
+		return nil, errors.NewGitError("failed to get repository head after clone", err)
+	}
+
+	return &domain.Repository{
+		Path:   path,
+		Name:   filepath.Base(path),
+		Remote: url,
+		Branch: head.Name().Short(),
+	}, nil
+}
+
+// FindRepositories finds Git repositories in the given directory
+func (c *client) FindRepositories(ctx context.Context, baseDir string, maxDepth int) ([]*domain.Repository, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	if !filepath.IsAbs(baseDir) {
+		return nil, errors.NewError(errors.ErrInvalidInput, "base directory must be absolute")
+	}
+
+	var repositories []*domain.Repository
+
+	err := filepath.Walk(baseDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil // Skip directories we can't access
+		}
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		// Check depth limit
+		relPath, _ := filepath.Rel(baseDir, path)
+		depth := strings.Count(relPath, string(filepath.Separator))
+		if depth > maxDepth {
+			return filepath.SkipDir
+		}
+
+		// Check if this is a Git repository
+		if info.IsDir() && info.Name() == ".git" {
+			repoPath := filepath.Dir(path)
+
+			// Try to open repository
+			if repo, err := c.OpenRepository(repoPath); err == nil {
+				repositories = append(repositories, repo)
+			}
+
+			return filepath.SkipDir // Don't recurse into .git directories
+		}
+
+		return nil
+	})
+
+	if err != nil && err != context.Canceled {
+		return nil, errors.NewGitError("failed to search for repositories", err)
+	}
+
+	return repositories, nil
+}
+
+// CreateWorktree creates a new Git worktree
+func (c *client) CreateWorktree(ctx context.Context, repoPath, branch, worktreePath string) (*domain.Worktree, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if !filepath.IsAbs(repoPath) || !filepath.IsAbs(worktreePath) {
+		return nil, errors.NewError(errors.ErrInvalidInput, "paths must be absolute")
+	}
+
+	// Check if worktree already exists
+	if _, err := os.Stat(worktreePath); !os.IsNotExist(err) {
+		return nil, errors.NewWorktreeExistsError(worktreePath)
+	}
+
+	// We'll use command line git for worktree creation as go-git doesn't fully support worktrees yet
+	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "worktree", "add", worktreePath, branch)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return nil, errors.NewGitError(fmt.Sprintf("failed to create worktree: %s", string(output)), err)
+	}
+
+	// Open repository to get information
+	mainRepo, err := c.OpenRepository(repoPath)
+	if err != nil {
+		return nil, errors.NewGitError("failed to open main repository", err)
+	}
+
+	return &domain.Worktree{
+		Path:       worktreePath,
+		Branch:     branch,
+		Repository: mainRepo,
+	}, nil
+}
+
+// ListWorktrees lists all worktrees for a repository
+func (c *client) ListWorktrees(ctx context.Context, repoPath string) ([]*domain.Worktree, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	if !filepath.IsAbs(repoPath) {
+		return nil, errors.NewError(errors.ErrInvalidInput, "repository path must be absolute")
+	}
+
+	// Use git command to list worktrees
+	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "worktree", "list", "--porcelain")
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, errors.NewGitError("failed to list worktrees", err)
+	}
+
+	// Parse git worktree output
+	var worktrees []*domain.Worktree
+	lines := strings.Split(string(output), "\n")
+
+	var currentWorktree *domain.Worktree
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			if currentWorktree != nil {
+				worktrees = append(worktrees, currentWorktree)
+				currentWorktree = nil
+			}
+			continue
+		}
+
+		if strings.HasPrefix(line, "worktree ") {
+			path := strings.TrimPrefix(line, "worktree ")
+
+			// Get repository information
+			repo, err := c.OpenRepository(repoPath)
+			if err != nil {
+				continue // Skip if we can't open the repository
+			}
+
+			currentWorktree = &domain.Worktree{
+				Path:       path,
+				Repository: repo,
+			}
+		} else if strings.HasPrefix(line, "branch ") && currentWorktree != nil {
+			branch := strings.TrimPrefix(line, "branch ")
+			currentWorktree.Branch = strings.TrimPrefix(branch, "refs/heads/")
+		}
+	}
+
+	// Add the last worktree if exists
+	if currentWorktree != nil {
+		worktrees = append(worktrees, currentWorktree)
+	}
+
+	return worktrees, nil
+}
+
+// DeleteWorktree deletes a Git worktree
+func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if !filepath.IsAbs(worktreePath) {
+		return errors.NewError(errors.ErrInvalidInput, "worktree path must be absolute")
+	}
+
+	// Check if worktree exists
+	if _, err := os.Stat(worktreePath); os.IsNotExist(err) {
+		return errors.NewWorktreeNotFoundError(worktreePath)
+	}
+
+	// Use git command to remove worktree
+	cmd := exec.CommandContext(ctx, "git", "worktree", "remove", worktreePath)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return errors.NewGitError(fmt.Sprintf("failed to remove worktree: %s", string(output)), err)
+	}
+
+	return nil
+}
+
+// ListBranches lists all branches in a repository
+func (c *client) ListBranches(ctx context.Context, repoPath string) ([]string, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	repo, err := git.PlainOpen(repoPath)
+	if err != nil {
+		return nil, errors.NewGitError("failed to open repository", err)
+	}
+
+	refs, err := repo.References()
+	if err != nil {
+		return nil, errors.NewGitError("failed to get references", err)
+	}
+
+	var branches []string
+	err = refs.ForEach(func(ref *plumbing.Reference) error {
+		if ref.Name().IsBranch() {
+			branches = append(branches, ref.Name().Short())
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, errors.NewGitError("failed to iterate references", err)
+	}
+
+	return branches, nil
+}
+
+// CreateBranch creates a new branch
+func (c *client) CreateBranch(ctx context.Context, repoPath, branchName, baseBranch string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	repo, err := git.PlainOpen(repoPath)
+	if err != nil {
+		return errors.NewGitError("failed to open repository", err)
+	}
+
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return errors.NewGitError("failed to get worktree", err)
+	}
+
+	// Get base branch reference
+	baseBranchRef := plumbing.NewBranchReferenceName(baseBranch)
+	baseRef, err := repo.Reference(baseBranchRef, true)
+	if err != nil {
+		return errors.NewGitError("failed to find base branch", err)
+	}
+
+	// Create new branch
+	newBranchRef := plumbing.NewBranchReferenceName(branchName)
+	err = repo.Storer.SetReference(plumbing.NewHashReference(newBranchRef, baseRef.Hash()))
+	if err != nil {
+		return errors.NewGitError("failed to create branch", err)
+	}
+
+	// Checkout new branch
+	err = worktree.Checkout(&git.CheckoutOptions{
+		Branch: newBranchRef,
+	})
+	if err != nil {
+		return errors.NewGitError("failed to checkout new branch", err)
+	}
+
+	return nil
+}
+
+// CheckoutBranch checks out an existing branch
+func (c *client) CheckoutBranch(ctx context.Context, repoPath, branchName string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	repo, err := git.PlainOpen(repoPath)
+	if err != nil {
+		return errors.NewGitError("failed to open repository", err)
+	}
+
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return errors.NewGitError("failed to get worktree", err)
+	}
+
+	branchRef := plumbing.NewBranchReferenceName(branchName)
+	err = worktree.Checkout(&git.CheckoutOptions{
+		Branch: branchRef,
+	})
+	if err != nil {
+		return errors.NewGitError("failed to checkout branch", err)
+	}
+
+	return nil
+}
+
+// GetStatus gets the current status of a repository
+func (c *client) GetStatus(ctx context.Context, repoPath string) (*GitStatus, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	repo, err := git.PlainOpen(repoPath)
+	if err != nil {
+		return nil, errors.NewGitError("failed to open repository", err)
+	}
+
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return nil, errors.NewGitError("failed to get worktree", err)
+	}
+
+	status, err := worktree.Status()
+	if err != nil {
+		return nil, errors.NewGitError("failed to get status", err)
+	}
+
+	head, err := repo.Head()
+	if err != nil {
+		return nil, errors.NewGitError("failed to get head", err)
+	}
+
+	gitStatus := &GitStatus{
+		Branch:  head.Name().Short(),
+		IsClean: status.IsClean(),
+	}
+
+	// Process file status
+	for file, fileStatus := range status {
+		switch fileStatus.Staging {
+		case git.Added, git.Copied:
+			gitStatus.Added = append(gitStatus.Added, file)
+		case git.Modified:
+			gitStatus.Modified = append(gitStatus.Modified, file)
+		case git.Deleted:
+			gitStatus.Deleted = append(gitStatus.Deleted, file)
+		case git.Untracked:
+			gitStatus.Untracked = append(gitStatus.Untracked, file)
+		}
+	}
+
+	return gitStatus, nil
+}
+
+// IsClean checks if the repository working tree is clean
+func (c *client) IsClean(ctx context.Context, repoPath string) (bool, error) {
+	status, err := c.GetStatus(ctx, repoPath)
+	if err != nil {
+		return false, err
+	}
+	return status.IsClean, nil
+}
