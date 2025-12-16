@@ -13,6 +13,7 @@ import (
 	"github.com/jimmy/dotfiles-cli/internal/config"
 	"github.com/jimmy/dotfiles-cli/internal/domain"
 	"github.com/jimmy/dotfiles-cli/internal/git"
+	"github.com/jimmy/dotfiles-cli/internal/jira"
 )
 
 // newWorktreeCreateCmd creates the worktree create command
@@ -35,14 +36,40 @@ The worktree will be created in the configured worktrees directory.`,
 			ctx := context.Background()
 			gitClient := git.NewClient()
 
+			// Initialize JIRA client
+			jiraClient, err := jira.NewClient(cfg)
+			if err != nil {
+				return fmt.Errorf("failed to create JIRA client: %w", err)
+			}
+
+			// Handle JIRA ticket if provided
+			var ticket *domain.JiraTicket
+			if jiraTicket != "" {
+				color.Cyan("🎫 Validating JIRA ticket: %s", jiraTicket)
+
+				validatedTicket, err := jiraClient.ValidateTicket(jiraTicket)
+				if err != nil {
+					color.Yellow("⚠ JIRA validation failed: %v", err)
+					color.Yellow("Continuing without JIRA integration...")
+				} else {
+					ticket = validatedTicket
+					color.Green("✓ JIRA ticket validated: %s", ticket.Summary)
+
+					// Auto-generate branch name if not provided
+					if len(args) == 0 && branch == "" {
+						branch = jiraClient.GenerateBranchName(ticket.Key, ticket.Summary)
+						color.Cyan("📝 Auto-generated branch name: %s", branch)
+					}
+				}
+			}
+
 			// Get branch name
-			if len(args) > 0 {
+			if len(args) > 0 && branch == "" {
 				branch = args[0]
 			} else if branch == "" {
 				prompt := promptui.Prompt{
 					Label: "Branch name",
 				}
-				var err error
 				branch, err = prompt.Run()
 				if err != nil {
 					return fmt.Errorf("failed to get branch name: %w", err)
@@ -94,22 +121,31 @@ The worktree will be created in the configured worktrees directory.`,
 
 			// Create worktree path
 			worktreeName := branch
-			if jiraTicket != "" {
-				worktreeName = fmt.Sprintf("%s-%s", jiraTicket, branch)
+			if ticket != nil {
+				// Use the full branch name that was generated from JIRA
+				worktreeName = branch
 			}
 
 			worktreePath := filepath.Join(cfg.Directories.Worktrees, worktreeName)
 
 			// Create worktree
 			color.Cyan("🌳 Creating worktree...")
-			worktree, err := gitClient.CreateWorktree(ctx, repoPath, branch, worktreePath)
+			createdWorktree, err := gitClient.CreateWorktree(ctx, repoPath, branch, worktreePath)
 			if err != nil {
 				return fmt.Errorf("failed to create worktree: %w", err)
 			}
 
+			// Associate JIRA ticket with worktree if available
+			if ticket != nil {
+				createdWorktree.JiraTicket = ticket
+			}
+
 			color.Green("✓ Worktree created successfully!")
-			fmt.Printf("Path: %s\n", worktree.Path)
-			fmt.Printf("Branch: %s\n", worktree.Branch)
+			fmt.Printf("Path: %s\n", createdWorktree.Path)
+			fmt.Printf("Branch: %s\n", createdWorktree.Branch)
+			if ticket != nil {
+				fmt.Printf("JIRA Ticket: %s - %s\n", ticket.Key, ticket.Summary)
+			}
 
 			return nil
 		},
