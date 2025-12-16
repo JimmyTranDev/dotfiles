@@ -37,6 +37,7 @@ done
 
 alias a='eval "$(poetry env activate)"'
 alias c='clear'
+alias d='dotfiles'
 alias e='exit'
 alias o='opencode'
 alias g='grep -rnw . -e'
@@ -46,6 +47,7 @@ alias y='yazi'
 alias z='zellij'
 alias l='ls -la'
 alias k="$HOME/Programming/dotfiles/etc/scripts/kill_port.sh"
+alias l='$HOME/Programming/dotfiles/etc/scripts/select_git_folder_actx.sh'
 alias nvm='fnm'
 
 wn() {
