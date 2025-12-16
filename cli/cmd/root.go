@@ -70,3 +70,24 @@ Provides functionality for:
 
 	return cmd
 }
+
+// NewInstallCmd creates the install command
+func NewInstallCmd(cfg *config.Config) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "install",
+		Short: "Run installation and update scripts",
+		Long: `Run installation and update scripts for dotfiles setup.
+
+Provides functionality for:
+- Complete dotfiles installation for macOS/Linux
+- Cloning essential repositories  
+- Updating all repositories in Programming directory
+- Updating development environment (Neovim plugins, Mason tools)`,
+	}
+
+	// Add subcommands
+	cmd.AddCommand(newInstallRunCmd(cfg))
+	cmd.AddCommand(newInstallListCmd(cfg))
+
+	return cmd
+}

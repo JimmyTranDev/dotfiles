@@ -60,6 +60,15 @@ var mainMenuItems = []MenuItem{
 		},
 	},
 	{
+		Key:         "i",
+		Description: "📦 Installation & Updates",
+		Command:     "install",
+		SubItems: []MenuItem{
+			{Key: "r", Description: "Run installation script", Command: "install run"},
+			{Key: "l", Description: "List install options", Command: "install list"},
+		},
+	},
+	{
 		Key:         "s",
 		Description: "☁️ Storage Management",
 		Command:     "storage",
