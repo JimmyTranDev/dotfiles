@@ -14,6 +14,16 @@ import (
 	"github.com/jimmy/dotfiles-cli/internal/ui"
 )
 
+// getExecutablePath returns the path to the current executable
+// Falls back to "dotfiles" if os.Executable() fails (assuming it's in PATH)
+func getExecutablePath() string {
+	if execPath, err := os.Executable(); err == nil {
+		return execPath
+	}
+	// Fallback to assuming dotfiles is in PATH
+	return "dotfiles"
+}
+
 // NewInteractiveMenuCmd creates an interactive menu command
 func NewInteractiveMenuCmd(cfg *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
@@ -105,16 +115,27 @@ func runInteractiveMenu(cfg *config.Config) error {
 		// Process choice
 		if err := processChoice(choice, cfg); err != nil {
 			if err.Error() == "quit" || ui.IsQuitError(err) {
-				fmt.Println()
-				ui.Quit("Goodbye!")
+				color.Cyan("\n👋 Goodbye!")
 				return nil
 			}
-			ui.Error("Error: " + err.Error())
-			waitForUser()
+			color.Red("Error: %v", err)
+			if err := waitForUser(); err != nil {
+				if ui.IsQuitError(err) {
+					color.Cyan("\n👋 Goodbye!")
+					return nil
+				}
+				return err
+			}
 			continue
 		}
 
-		waitForUser()
+		if err := waitForUser(); err != nil {
+			if ui.IsQuitError(err) {
+				color.Cyan("\n👋 Goodbye!")
+				return nil
+			}
+			return err
+		}
 	}
 }
 
@@ -337,7 +358,7 @@ func getInteractiveCommandHandler(commandStr string, cfg *config.Config) func() 
 // executeStandardCommand executes standard CLI commands
 func executeStandardCommand(commandStr string) error {
 	parts := strings.Fields(commandStr)
-	cmd := exec.Command("./dotfiles", parts...)
+	cmd := exec.Command(getExecutablePath(), parts...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
@@ -352,7 +373,7 @@ func executeInteractiveThemeSet(cfg *config.Config) error {
 	}
 
 	// Execute theme set command
-	cmd := exec.Command("./dotfiles", "theme", "set", selected)
+	cmd := exec.Command(getExecutablePath(), "theme", "set", selected)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -387,13 +408,13 @@ func executeInteractiveStorageSync(cfg *config.Config) error {
 		args = append(args, "--dry-run")
 	}
 
-	cmd := exec.Command("./dotfiles", args...)
+	cmd := exec.Command(getExecutablePath(), args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
 
-func waitForUser() {
+func waitForUser() error {
 	fmt.Println()
 	ui.Help("Press Enter to continue (or 'q' to quit)...")
 	scanner := bufio.NewScanner(os.Stdin)
@@ -401,9 +422,13 @@ func waitForUser() {
 		input := strings.TrimSpace(strings.ToLower(scanner.Text()))
 		if input == "q" {
 			ui.Quit("Goodbye!")
-			os.Exit(0)
+			return ui.QuitError{Message: "user requested quit"}
 		}
 	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("failed to read input: %w", err)
+	}
+	return nil
 }
 
 func executeInteractiveUIThemeSet(cfg *config.Config) error {

@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/manifoldco/promptui"
@@ -15,6 +18,101 @@ import (
 	"github.com/jimmy/dotfiles-cli/internal/git"
 	"github.com/jimmy/dotfiles-cli/internal/jira"
 )
+
+// commitType represents available commit types
+type commitType struct {
+	Name  string
+	Emoji string
+	Desc  string
+}
+
+// getCommitTypes returns available commit types with emojis
+func getCommitTypes() []commitType {
+	return []commitType{
+		{"feat", "✨", "A new feature"},
+		{"fix", "🐛", "A bug fix"},
+		{"docs", "📚", "Documentation only changes"},
+		{"style", "💎", "Changes that do not affect the meaning of the code"},
+		{"refactor", "🔨", "A code change that neither fixes a bug nor adds a feature"},
+		{"test", "🧪", "Adding missing tests or correcting existing tests"},
+		{"chore", "🔧", "Changes to the build process or auxiliary tools"},
+		{"revert", "⏪", "Reverts a previous commit"},
+		{"build", "📦", "Changes that affect the build system or external dependencies"},
+		{"ci", "👷", "Changes to our CI configuration files and scripts"},
+		{"perf", "🚀", "A code change that improves performance"},
+	}
+}
+
+// detectPackageManager detects the package manager used in a directory
+func detectPackageManager(dir string) string {
+	lockFiles := map[string]string{
+		"pnpm-lock.yaml":    "pnpm",
+		"yarn.lock":         "yarn",
+		"package-lock.json": "npm",
+	}
+
+	for file, manager := range lockFiles {
+		if _, err := os.Stat(filepath.Join(dir, file)); err == nil {
+			return manager
+		}
+	}
+
+	// Check for package.json without lock files
+	if _, err := os.Stat(filepath.Join(dir, "package.json")); err == nil {
+		return "npm" // Default to npm
+	}
+
+	return ""
+}
+
+// installDependencies installs dependencies based on detected package manager
+func installDependencies(ctx context.Context, worktreePath string) error {
+	packageManager := detectPackageManager(worktreePath)
+	if packageManager == "" {
+		color.Cyan("No package.json found, skipping dependency installation")
+		return nil
+	}
+
+	color.Yellow("📦 Package.json found. Installing dependencies...")
+	color.Cyan("Using package manager: %s", packageManager)
+
+	var cmd *exec.Cmd
+	switch packageManager {
+	case "pnpm":
+		if _, err := exec.LookPath("pnpm"); err == nil {
+			cmd = exec.CommandContext(ctx, "pnpm", "install")
+		} else {
+			color.Yellow("pnpm not found, falling back to npm")
+			cmd = exec.CommandContext(ctx, "npm", "install")
+		}
+	case "yarn":
+		if _, err := exec.LookPath("yarn"); err == nil {
+			cmd = exec.CommandContext(ctx, "yarn", "install")
+		} else {
+			color.Yellow("yarn not found, falling back to npm")
+			cmd = exec.CommandContext(ctx, "npm", "install")
+		}
+	default:
+		cmd = exec.CommandContext(ctx, "npm", "install")
+	}
+
+	cmd.Dir = worktreePath
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
+// logCommitHistory logs commit to programming notes (placeholder for now)
+func logCommitHistory(commitMessage string) {
+	// This is a placeholder - in the full implementation this would:
+	// 1. Get current date and week information
+	// 2. Create/update weekly log files
+	// 3. Auto-commit to notes repository
+	// For now, we'll just log that it would happen
+	color.Yellow("📝 Logging commit to programming notes...")
+	color.Green("✅ Log entry would be added for: %s", commitMessage)
+}
 
 // newWorktreeCreateCmd creates the worktree create command
 func newWorktreeCreateCmd(cfg *config.Config) *cobra.Command {
@@ -36,52 +134,7 @@ The worktree will be created in the configured worktrees directory.`,
 			ctx := context.Background()
 			gitClient := git.NewClient()
 
-			// Initialize JIRA client
-			jiraClient, err := jira.NewClient(cfg)
-			if err != nil {
-				return fmt.Errorf("failed to create JIRA client: %w", err)
-			}
-
-			// Handle JIRA ticket if provided
-			var ticket *domain.JiraTicket
-			if jiraTicket != "" {
-				color.Cyan("🎫 Validating JIRA ticket: %s", jiraTicket)
-
-				validatedTicket, err := jiraClient.ValidateTicket(jiraTicket)
-				if err != nil {
-					color.Yellow("⚠ JIRA validation failed: %v", err)
-					color.Yellow("Continuing without JIRA integration...")
-				} else {
-					ticket = validatedTicket
-					color.Green("✓ JIRA ticket validated: %s", ticket.Summary)
-
-					// Auto-generate branch name if not provided
-					if len(args) == 0 && branch == "" {
-						branch = jiraClient.GenerateBranchName(ticket.Key, ticket.Summary)
-						color.Cyan("📝 Auto-generated branch name: %s", branch)
-					}
-				}
-			}
-
-			// Get branch name
-			if len(args) > 0 && branch == "" {
-				branch = args[0]
-			} else if branch == "" {
-				prompt := promptui.Prompt{
-					Label: "Branch name",
-				}
-				branch, err = prompt.Run()
-				if err != nil {
-					return fmt.Errorf("failed to get branch name: %w", err)
-				}
-			}
-
-			// Validate branch name
-			if branch == "" {
-				return fmt.Errorf("branch name cannot be empty")
-			}
-
-			// Get repository path
+			// Get repository first - either by name or interactive selection
 			var repoPath string
 			if repository != "" {
 				repoPath = repository
@@ -97,40 +150,160 @@ The worktree will be created in the configured worktrees directory.`,
 					return fmt.Errorf("no Git repositories found in %s", cfg.Directories.Programming)
 				}
 
-				// Create selection prompt
-				templates := &promptui.SelectTemplates{
-					Label:    "{{ . }}",
-					Active:   "→ {{ .Name | cyan }} ({{ .Path | faint }})",
-					Inactive: "  {{ .Name }} ({{ .Path | faint }})",
-					Selected: "✓ {{ .Name | green }}",
-				}
+				color.Yellow("Using repository: %s", filepath.Base(repos[0].Path))
+				if len(repos) > 1 {
+					// Create selection prompt
+					templates := &promptui.SelectTemplates{
+						Label:    "{{ . }}",
+						Active:   "→ {{ .Name | cyan }} ({{ .Path | faint }})",
+						Inactive: "  {{ .Name }} ({{ .Path | faint }})",
+						Selected: "✓ {{ .Name | green }}",
+					}
 
-				prompt := promptui.Select{
-					Label:     "Select repository",
-					Items:     repos,
-					Templates: templates,
-				}
+					prompt := promptui.Select{
+						Label:     "Select repository",
+						Items:     repos,
+						Templates: templates,
+					}
 
-				idx, _, err := prompt.Run()
+					idx, _, err := prompt.Run()
+					if err != nil {
+						return fmt.Errorf("failed to select repository: %w", err)
+					}
+
+					repoPath = repos[idx].Path
+				} else {
+					repoPath = repos[0].Path
+				}
+			}
+
+			color.Yellow("Repository path: %s", repoPath)
+
+			// Get the main branch for the selected repository
+			mainBranch, err := gitClient.FindMainBranch(ctx, repoPath)
+			if err != nil {
+				return fmt.Errorf("failed to find main branch in %s: %w", repoPath, err)
+			}
+			color.Yellow("Base branch: %s", mainBranch)
+
+			// Initialize JIRA client
+			jiraClient, err := jira.NewClient(cfg)
+			if err != nil {
+				return fmt.Errorf("failed to create JIRA client: %w", err)
+			}
+
+			// Now prompt for JIRA ticket if not provided
+			if jiraTicket == "" {
+				prompt := promptui.Prompt{
+					Label: "Enter JIRA ticket (e.g., ABC-123) or leave empty to skip JIRA integration",
+				}
+				jiraTicket, _ = prompt.Run() // Ignore error for optional input
+			}
+
+			// Handle JIRA ticket if provided
+			var ticket *domain.JiraTicket
+			var summary string
+			if jiraTicket != "" && jiraClient.IsValidTicketKey(jiraTicket) {
+				color.Yellow("Fetching JIRA ticket details...")
+				validatedTicket, err := jiraClient.ValidateTicket(jiraTicket)
 				if err != nil {
-					return fmt.Errorf("failed to select repository: %w", err)
+					color.Yellow("Could not fetch JIRA summary. Using ticket number as branch name.")
+				} else {
+					ticket = validatedTicket
+					summary = ticket.Summary
+					color.Green("✅ JIRA ticket found: %s", summary)
 				}
-
-				repoPath = repos[idx].Path
+			} else if jiraTicket != "" {
+				color.Yellow("Input doesn't match JIRA pattern. Using as branch name directly.")
 			}
 
-			// Create worktree path
-			worktreeName := branch
-			if ticket != nil {
-				// Use the full branch name that was generated from JIRA
-				worktreeName = branch
+			// Get branch name
+			var branchName string
+			if len(args) > 0 {
+				branchName = args[0]
+			} else if branch != "" {
+				branchName = branch
+			} else if ticket != nil {
+				// Auto-generate branch name from JIRA
+				branchName = jiraClient.GenerateBranchName(ticket.Key, ticket.Summary)
+				color.Cyan("📝 Auto-generated branch name: %s", branchName)
+			} else if jiraTicket != "" {
+				branchName = jiraTicket
+			} else {
+				prompt := promptui.Prompt{
+					Label: "Branch name",
+				}
+				branchName, err = prompt.Run()
+				if err != nil {
+					return fmt.Errorf("failed to get branch name: %w", err)
+				}
 			}
 
-			worktreePath := filepath.Join(cfg.Directories.Worktrees, worktreeName)
+			// Validate branch name
+			if branchName == "" {
+				return fmt.Errorf("branch name cannot be empty")
+			}
 
-			// Create worktree
-			color.Cyan("🌳 Creating worktree...")
-			createdWorktree, err := gitClient.CreateWorktree(ctx, repoPath, branch, worktreePath)
+			// Clean branch name (sanitize)
+			originalInput := branchName
+			// Basic sanitization - replace invalid characters with hyphens
+			invalidChars := regexp.MustCompile(`[^a-zA-Z0-9._/-]`)
+			branchName = invalidChars.ReplaceAllString(branchName, "-")
+			// Remove multiple consecutive hyphens
+			multipleHyphens := regexp.MustCompile(`-+`)
+			branchName = multipleHyphens.ReplaceAllString(branchName, "-")
+			// Trim hyphens from start and end
+			branchName = strings.Trim(branchName, "-")
+
+			if branchName == "" {
+				return fmt.Errorf("invalid branch name after sanitization")
+			}
+
+			color.Cyan("Creating worktree for branch: %s", branchName)
+
+			// Prompt for commit type selection
+			commitTypes := getCommitTypes()
+			color.Cyan("Select commit type:")
+
+			templates := &promptui.SelectTemplates{
+				Label:    "{{ . }}",
+				Active:   "→ {{ .Name | cyan }} ({{ .Emoji }} {{ .Desc | faint }})",
+				Inactive: "  {{ .Name }} ({{ .Emoji }} {{ .Desc | faint }})",
+				Selected: "✓ {{ .Name | green }}",
+			}
+
+			commitPrompt := promptui.Select{
+				Label:     "Select commit type",
+				Items:     commitTypes,
+				Templates: templates,
+			}
+
+			selectedIdx, _, err := commitPrompt.Run()
+			if err != nil {
+				// Default to feat if selection fails
+				selectedIdx = 0
+			}
+
+			selectedCommitType := commitTypes[selectedIdx]
+			color.Green("Selected commit type: %s", selectedCommitType.Name)
+
+			// Create worktree directory path
+			worktreePath := filepath.Join(cfg.Directories.Worktrees, branchName)
+
+			// Check if worktree directory already exists
+			if _, err := os.Stat(worktreePath); !os.IsNotExist(err) {
+				return fmt.Errorf("worktree directory already exists: %s", worktreePath)
+			}
+
+			// Ensure worktrees directory exists
+			if err := os.MkdirAll(cfg.Directories.Worktrees, 0755); err != nil {
+				return fmt.Errorf("failed to create worktrees directory: %w", err)
+			}
+
+			color.Yellow("Creating worktree at: %s", worktreePath)
+
+			// Create worktree using git client (this handles the git worktree add command)
+			createdWorktree, err := gitClient.CreateWorktreeFromBranch(ctx, repoPath, branchName, mainBranch, worktreePath)
 			if err != nil {
 				return fmt.Errorf("failed to create worktree: %w", err)
 			}
@@ -140,12 +313,54 @@ The worktree will be created in the configured worktrees directory.`,
 				createdWorktree.JiraTicket = ticket
 			}
 
-			color.Green("✓ Worktree created successfully!")
-			fmt.Printf("Path: %s\n", createdWorktree.Path)
-			fmt.Printf("Branch: %s\n", createdWorktree.Branch)
+			color.Green("✅ Worktree created successfully!")
+			color.Cyan("📁 Path: %s", createdWorktree.Path)
+			color.Cyan("🌿 Branch: %s", createdWorktree.Branch)
+
+			// Create an empty initial commit with the branch name and JIRA link if available
+			color.Yellow("Creating initial commit...")
+			var commitMessage string
+
+			// Format commit message based on whether we have JIRA info
 			if ticket != nil {
-				fmt.Printf("JIRA Ticket: %s - %s\n", ticket.Key, ticket.Summary)
+				if summary != "" {
+					// Use the JIRA summary for a descriptive commit message
+					commitMessage = fmt.Sprintf("%s: %s %s %s", selectedCommitType.Name, selectedCommitType.Emoji, ticket.Key, summary)
+				} else {
+					// Just use the ticket number
+					commitMessage = fmt.Sprintf("%s: %s %s", selectedCommitType.Name, selectedCommitType.Emoji, ticket.Key)
+				}
+
+				// Add JIRA link in the commit body using configured URL
+				jiraURL := cfg.JIRA.BaseURL
+				if jiraURL != "" {
+					jiraURL = strings.TrimSuffix(jiraURL, "/")
+					commitMessage = fmt.Sprintf("%s\n\nJira: %s/browse/%s", commitMessage, jiraURL, ticket.Key)
+				}
+			} else {
+				// No JIRA ticket, use the original input message
+				commitMessage = fmt.Sprintf("%s: %s %s", selectedCommitType.Name, selectedCommitType.Emoji, originalInput)
 			}
+
+			// Create empty commit
+			if err := gitClient.CreateEmptyCommit(ctx, worktreePath, commitMessage); err != nil {
+				color.Yellow("Warning: Could not create initial commit: %v", err)
+			} else {
+				// Log the commit to programming notes
+				logCommitHistory(commitMessage)
+			}
+
+			if ticket != nil {
+				color.Cyan("📋 JIRA: %s - %s", ticket.Key, ticket.Summary)
+			}
+
+			// Install dependencies if package.json exists
+			if err := installDependencies(ctx, worktreePath); err != nil {
+				color.Yellow("Warning: Failed to install dependencies: %v", err)
+			}
+
+			color.Yellow("Now in worktree directory. Happy coding! 🚀")
+			color.Cyan("To navigate to the worktree: cd %s", worktreePath)
 
 			return nil
 		},

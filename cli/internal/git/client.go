@@ -1,8 +1,10 @@
 package git
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -26,6 +28,7 @@ type Client interface {
 
 	// Worktree operations
 	CreateWorktree(ctx context.Context, repoPath, branch, worktreePath string) (*domain.Worktree, error)
+	CreateWorktreeFromBranch(ctx context.Context, repoPath, branch, baseBranch, worktreePath string) (*domain.Worktree, error)
 	ListWorktrees(ctx context.Context, repoPath string) ([]*domain.Worktree, error)
 	DeleteWorktree(ctx context.Context, worktreePath string) error
 
@@ -33,6 +36,10 @@ type Client interface {
 	ListBranches(ctx context.Context, repoPath string) ([]string, error)
 	CreateBranch(ctx context.Context, repoPath, branchName, baseBranch string) error
 	CheckoutBranch(ctx context.Context, repoPath, branchName string) error
+	FindMainBranch(ctx context.Context, repoPath string) (string, error)
+
+	// Commit operations
+	CreateEmptyCommit(ctx context.Context, repoPath, message string) error
 
 	// Status operations
 	GetStatus(ctx context.Context, repoPath string) (*GitStatus, error)
@@ -54,6 +61,46 @@ type GitStatus struct {
 // client implements the Git Client interface
 type client struct {
 	mu sync.RWMutex
+}
+
+// runGitCommandWithOutput executes a git command with proper output limiting and timeout handling
+func (c *client) runGitCommandWithOutput(ctx context.Context, cmd *exec.Cmd) (string, error) {
+	// Set up output capture with size limits (1MB max to prevent memory exhaustion)
+	const maxOutputSize = 1024 * 1024
+	var stdout, stderr bytes.Buffer
+
+	cmd.Stdout = &limitedWriter{Writer: &stdout, Limit: maxOutputSize}
+	cmd.Stderr = &limitedWriter{Writer: &stderr, Limit: maxOutputSize}
+
+	// Execute with proper cleanup on context cancellation
+	if err := cmd.Run(); err != nil {
+		output := fmt.Sprintf("stdout: %s, stderr: %s", stdout.String(), stderr.String())
+		return output, err
+	}
+
+	return stdout.String(), nil
+}
+
+// limitedWriter prevents unlimited memory consumption from command output
+type limitedWriter struct {
+	io.Writer
+	Limit   int
+	Written int
+}
+
+func (lw *limitedWriter) Write(data []byte) (int, error) {
+	if lw.Written >= lw.Limit {
+		return 0, fmt.Errorf("output size limit exceeded (%d bytes)", lw.Limit)
+	}
+
+	remaining := lw.Limit - lw.Written
+	if len(data) > remaining {
+		data = data[:remaining]
+	}
+
+	n, err := lw.Writer.Write(data)
+	lw.Written += n
+	return n, err
 }
 
 // NewClient creates a new Git client
@@ -212,9 +259,49 @@ func (c *client) CreateWorktree(ctx context.Context, repoPath, branch, worktreeP
 	}
 
 	// We'll use command line git for worktree creation as go-git doesn't fully support worktrees yet
-	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "worktree", "add", worktreePath, branch)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		return nil, errors.NewGitError(fmt.Sprintf("failed to create worktree: %s", string(output)), err)
+	// Use -b flag to create new branch from current main branch
+	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "worktree", "add", "-b", branch, worktreePath)
+
+	// Limit output size to prevent memory exhaustion and add proper error handling
+	output, err := c.runGitCommandWithOutput(ctx, cmd)
+	if err != nil {
+		return nil, errors.NewGitError(fmt.Sprintf("failed to create worktree: %s", output), err)
+	}
+
+	// Open repository to get information
+	mainRepo, err := c.OpenRepository(repoPath)
+	if err != nil {
+		return nil, errors.NewGitError("failed to open main repository", err)
+	}
+
+	return &domain.Worktree{
+		Path:       worktreePath,
+		Branch:     branch,
+		Repository: mainRepo,
+	}, nil
+}
+
+// CreateWorktreeFromBranch creates a new Git worktree from a specific base branch
+func (c *client) CreateWorktreeFromBranch(ctx context.Context, repoPath, branch, baseBranch, worktreePath string) (*domain.Worktree, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if !filepath.IsAbs(repoPath) || !filepath.IsAbs(worktreePath) {
+		return nil, errors.NewError(errors.ErrInvalidInput, "paths must be absolute")
+	}
+
+	// Check if worktree already exists
+	if _, err := os.Stat(worktreePath); !os.IsNotExist(err) {
+		return nil, errors.NewWorktreeExistsError(worktreePath)
+	}
+
+	// Create worktree with new branch from base branch, matching the shell script behavior
+	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "worktree", "add", "-b", branch, worktreePath, baseBranch)
+
+	// Limit output size to prevent memory exhaustion and add proper error handling
+	output, err := c.runGitCommandWithOutput(ctx, cmd)
+	if err != nil {
+		return nil, errors.NewGitError(fmt.Sprintf("failed to create worktree from branch %s: %s", baseBranch, output), err)
 	}
 
 	// Open repository to get information
@@ -461,4 +548,68 @@ func (c *client) IsClean(ctx context.Context, repoPath string) (bool, error) {
 		return false, err
 	}
 	return status.IsClean, nil
+}
+
+// FindMainBranch finds the main branch of a repository (main, master, etc.)
+func (c *client) FindMainBranch(ctx context.Context, repoPath string) (string, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	if !filepath.IsAbs(repoPath) {
+		return "", errors.NewError(errors.ErrInvalidInput, "repository path must be absolute")
+	}
+
+	// Common main branch names to check in order of preference
+	mainBranches := []string{"main", "master", "develop", "dev"}
+
+	// First, try to get the default branch from remote
+	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "symbolic-ref", "refs/remotes/origin/HEAD")
+	if output, err := cmd.Output(); err == nil {
+		// Parse output like "refs/remotes/origin/main"
+		parts := strings.Split(strings.TrimSpace(string(output)), "/")
+		if len(parts) > 0 {
+			remoteBranch := parts[len(parts)-1]
+			if remoteBranch != "" {
+				return remoteBranch, nil
+			}
+		}
+	}
+
+	// If that fails, check which of the common branches exist
+	for _, branch := range mainBranches {
+		cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "show-ref", "--verify", "--quiet", "refs/heads/"+branch)
+		if err := cmd.Run(); err == nil {
+			return branch, nil
+		}
+	}
+
+	// As a last resort, get the current branch
+	cmd = exec.CommandContext(ctx, "git", "-C", repoPath, "branch", "--show-current")
+	if output, err := cmd.Output(); err == nil {
+		currentBranch := strings.TrimSpace(string(output))
+		if currentBranch != "" {
+			return currentBranch, nil
+		}
+	}
+
+	// If all else fails, return the default from config or "main"
+	return "main", nil
+}
+
+// CreateEmptyCommit creates an empty commit with the given message
+func (c *client) CreateEmptyCommit(ctx context.Context, repoPath, message string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if !filepath.IsAbs(repoPath) {
+		return errors.NewError(errors.ErrInvalidInput, "repository path must be absolute")
+	}
+
+	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "commit", "--allow-empty", "-m", message)
+	output, err := c.runGitCommandWithOutput(ctx, cmd)
+	if err != nil {
+		return errors.NewGitError(fmt.Sprintf("failed to create empty commit: %s", output), err)
+	}
+
+	return nil
 }
