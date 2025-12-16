@@ -125,6 +125,14 @@ alias theme-set="zsh $HOME/Programming/dotfiles/etc/scripts/theme.sh set"
 alias theme-get="zsh $HOME/Programming/dotfiles/etc/scripts/theme.sh get"
 alias theme-list="zsh $HOME/Programming/dotfiles/etc/scripts/theme.sh list"
 
+# ===================================================================
+# STORAGE MANAGEMENT
+# ===================================================================
+
+# Storage management aliases
+alias storage-init="$HOME/Programming/dotfiles/etc/scripts/storage.sh init"
+alias storage-sync="$HOME/Programming/dotfiles/etc/scripts/storage.sh sync"
+
 # Zellij management aliases
 alias zellij-enable-auto="export ZELLIJ_AUTO_ATTACH=true"
 alias zellij-disable-auto="export ZELLIJ_AUTO_ATTACH=false"
