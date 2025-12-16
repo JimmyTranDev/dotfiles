@@ -99,7 +99,7 @@ Interactive Mode:
 Examples:
   dotfiles theme set           # Interactive theme selection
   dotfiles worktree create     # Interactive worktree creation
-  dotfiles install run         # Interactive installation selection
+  dotfiles install             # Interactive installation selection
   dotfiles storage sync        # Interactive sync options
   
 {{if .HasAvailableSubCommands}}Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}

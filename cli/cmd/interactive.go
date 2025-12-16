@@ -63,10 +63,6 @@ var mainMenuItems = []MenuItem{
 		Key:         "i",
 		Description: "📦 Installation & Updates",
 		Command:     "install",
-		SubItems: []MenuItem{
-			{Key: "r", Description: "Run installation script", Command: "install run"},
-			{Key: "l", Description: "List install options", Command: "install list"},
-		},
 	},
 	{
 		Key:         "s",
@@ -95,8 +91,8 @@ func runInteractiveMenu(cfg *config.Config) error {
 			return err
 		}
 
-		// Get user choice
-		choice, err := getUserInput("Select an option: ")
+		// Get user choice with arrow key support
+		choice, err := getUserInputWithArrows("Select an option: ", mainMenuItems)
 		if err != nil {
 			return err
 		}
@@ -154,6 +150,18 @@ func getUserInput(prompt string) (string, error) {
 	return strings.ToLower(strings.TrimSpace(scanner.Text())), nil
 }
 
+// getUserInputWithArrows provides arrow key navigation for menu selection
+func getUserInputWithArrows(prompt string, items []MenuItem) (string, error) {
+	// Try arrow key navigation first
+	selected, err := selectMenuItemWithArrows(items)
+	if err == nil {
+		return selected, nil
+	}
+
+	// Fallback to regular input
+	return getUserInput(prompt)
+}
+
 func processChoice(choice string, cfg *config.Config) error {
 	// Find matching menu item
 	for _, item := range mainMenuItems {
@@ -190,7 +198,10 @@ func showSubMenu(parentItem MenuItem, cfg *config.Config) error {
 		color.White("[b] ← Back to main menu")
 		fmt.Println()
 
-		choice, err := getUserInput("Select an option: ")
+		// Create sub items with back option
+		subItemsWithBack := append(parentItem.SubItems, MenuItem{Key: "b", Description: "← Back to main menu", Command: "back"})
+
+		choice, err := selectSubMenuWithArrows(parentItem, subItemsWithBack)
 		if err != nil {
 			return err
 		}
@@ -212,6 +223,167 @@ func showSubMenu(parentItem MenuItem, cfg *config.Config) error {
 
 		color.Red("Invalid choice: %s", choice)
 		waitForUser()
+	}
+}
+
+// selectMenuItemWithArrows provides arrow key navigation for menu items
+func selectMenuItemWithArrows(items []MenuItem) (string, error) {
+	// Disable input buffering to read single characters
+	if err := disableInputBuffering(); err != nil {
+		return "", fmt.Errorf("arrow navigation not available")
+	}
+	defer enableInputBuffering()
+
+	selectedIndex := 0
+
+	for {
+		// Clear screen and show menu
+		clearScreen()
+		showHeader()
+
+		color.Yellow("📋 Main Menu:")
+		color.Cyan("Use ↑/↓ arrow keys to navigate, Enter to select, q to quit")
+		fmt.Println()
+
+		// Display menu items with highlight
+		for i, item := range items {
+			if i == selectedIndex {
+				// Highlighted item
+				if item.Command == "quit" {
+					fmt.Println()
+					color.Green("→ [%s] %s", item.Key, item.Description)
+				} else {
+					color.Green("→ [%s] %s", item.Key, item.Description)
+				}
+			} else {
+				// Normal item
+				if item.Command == "quit" {
+					fmt.Println()
+					color.White("[%s] %s", item.Key, item.Description)
+				} else {
+					color.White("[%s] %s", item.Key, item.Description)
+				}
+			}
+		}
+		fmt.Println()
+
+		// Read single character
+		char, err := readChar()
+		if err != nil {
+			return "", fmt.Errorf("failed to read input: %w", err)
+		}
+
+		switch char {
+		case 27: // ESC sequence start
+			// Read the rest of the arrow key sequence
+			char2, _ := readChar()
+			if char2 == 91 { // '['
+				char3, _ := readChar()
+				switch char3 {
+				case 65: // Up arrow
+					if selectedIndex > 0 {
+						selectedIndex--
+					}
+				case 66: // Down arrow
+					if selectedIndex < len(items)-1 {
+						selectedIndex++
+					}
+				}
+			}
+		case 13, 10: // Enter
+			return items[selectedIndex].Key, nil
+		case 'q', 'Q':
+			return "q", nil
+		default:
+			// Check if the character matches any menu key
+			char_str := strings.ToLower(string(char))
+			for _, item := range items {
+				if item.Key == char_str {
+					return item.Key, nil
+				}
+			}
+		}
+	}
+}
+
+// selectSubMenuWithArrows provides arrow key navigation for submenu items
+func selectSubMenuWithArrows(parentItem MenuItem, items []MenuItem) (string, error) {
+	// Try arrow key navigation first
+	if err := disableInputBuffering(); err != nil {
+		// Fallback to regular input
+		choice, err := getUserInput("Select an option: ")
+		return choice, err
+	}
+	defer enableInputBuffering()
+
+	selectedIndex := 0
+
+	for {
+		clearScreen()
+		showHeader()
+
+		color.Yellow("📋 %s", parentItem.Description)
+		color.Cyan("Use ↑/↓ arrow keys to navigate, Enter to select, q to quit")
+		fmt.Println()
+
+		// Display submenu items with highlight
+		for i, item := range items {
+			if i == selectedIndex {
+				// Highlighted item
+				if item.Command == "back" {
+					fmt.Println()
+					color.Green("→ [%s] %s", item.Key, item.Description)
+				} else {
+					color.Green("→ [%s] %s", item.Key, item.Description)
+				}
+			} else {
+				// Normal item
+				if item.Command == "back" {
+					fmt.Println()
+					color.White("[%s] %s", item.Key, item.Description)
+				} else {
+					color.White("[%s] %s", item.Key, item.Description)
+				}
+			}
+		}
+		fmt.Println()
+
+		// Read single character
+		char, err := readChar()
+		if err != nil {
+			return "", fmt.Errorf("failed to read input: %w", err)
+		}
+
+		switch char {
+		case 27: // ESC sequence start
+			// Read the rest of the arrow key sequence
+			char2, _ := readChar()
+			if char2 == 91 { // '['
+				char3, _ := readChar()
+				switch char3 {
+				case 65: // Up arrow
+					if selectedIndex > 0 {
+						selectedIndex--
+					}
+				case 66: // Down arrow
+					if selectedIndex < len(items)-1 {
+						selectedIndex++
+					}
+				}
+			}
+		case 13, 10: // Enter
+			return items[selectedIndex].Key, nil
+		case 'q', 'Q':
+			return "b", nil // Go back on 'q'
+		default:
+			// Check if the character matches any menu key
+			char_str := strings.ToLower(string(char))
+			for _, item := range items {
+				if item.Key == char_str {
+					return item.Key, nil
+				}
+			}
+		}
 	}
 }
 
@@ -240,16 +412,10 @@ func executeCommand(commandStr string, cfg *config.Config) error {
 }
 
 func executeInteractiveThemeSet(cfg *config.Config) error {
-	// Get available themes using fzf or numbered selection
-	themes := []string{"catppuccin-mocha", "catppuccin-frappe", "catppuccin-latte", "catppuccin-macchiato"}
-
-	selected, err := selectWithFZF(themes, "Select theme: ")
+	// Use the interactive theme selection from theme.go which includes arrow keys
+	selected, err := selectThemeInteractively(cfg.Themes.Available)
 	if err != nil {
-		// Fallback to numbered selection
-		selected, err = selectWithNumbers(themes, "Select theme")
-		if err != nil {
-			return err
-		}
+		return err
 	}
 
 	// Execute theme set command
