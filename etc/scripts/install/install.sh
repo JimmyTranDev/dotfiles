@@ -14,8 +14,11 @@ if [ "$(uname)" == "Darwin" ]; then
   if command -v brew >/dev/null 2>&1; then
     echo "📦 Installing Homebrew packages..."
     brew bundle --file="$HOME/Brewfile" check ||
-    brew bundle --file="$HOME/Brewfile" install ||
-    brew bundle --file="$HOME/Brewfile" cleanup --force
+      brew bundle --file="$HOME/Brewfile" install ||
+      brew bundle --file="$HOME/Brewfile" cleanup --force
+  else
+    echo "⚠️ Homebrew not found. Please install Homebrew first."
+  fi
 
 elif [ "$(uname)" == "Linux" ]; then
   echo "🚀 Detected Linux. Running Linux/WSL setup..."
