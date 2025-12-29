@@ -8,51 +8,42 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Detect platform and handle Android/Termux first
 if [[ -d "$PREFIX" ]]; then
   echo "🚀 Detected Android/Termux. Running Termux setup..."
-  
+
   # Update package lists
   echo "📦 Updating package lists..."
   pkg update -y
-  
+
   # Essential packages - comprehensive development environment
   packages=(
     # Core development tools
     git
     neovim
     zsh
-    nodejs
-    python
     curl
-    
-    # Shell and terminal enhancements
+    tree
+
+    # Yazi
     fzf
     zoxide
     starship
-    
-    # File management and utilities
     fd
     ripgrep
-    tree
     unzip
     wget
-    
-    # Text processing
     jq
-    
-    # Development utilities
-    openssh
-    rsync
-    
-    # Optional but useful
-    htop
-    tmux
+
+    # Languages
+    clang
+    python
+    nodejs
   )
-  
+
   echo "📦 Installing essential packages..."
   for pkg_name in "${packages[@]}"; do
     echo "Installing $pkg_name..."
     pkg install -y "$pkg_name" || echo "⚠️ Failed to install $pkg_name, continuing..."
   done
-  
+
   # Setup storage access for Termux
   echo "📂 Setting up storage access..."
   if [[ ! -d "$HOME/storage" ]]; then
@@ -61,22 +52,22 @@ if [[ -d "$PREFIX" ]]; then
   else
     echo "📂 Storage access already configured"
   fi
-  
+
   # Install pnpm if nodejs was installed successfully
   if command -v npm >/dev/null 2>&1; then
     echo "📦 Installing pnpm..."
     npm install -g pnpm || echo "⚠️ Failed to install pnpm"
   fi
-  
+
   # Create essential Android-specific configurations
   echo "📱 Setting up Android-specific configurations..."
-  
+
   # Create a termux config directory if it doesn't exist
   mkdir -p "$HOME/.termux"
-  
+
   # Basic termux configuration for better developer experience
   if [[ ! -f "$HOME/.termux/termux.properties" ]]; then
-    cat > "$HOME/.termux/termux.properties" << 'EOF'
+    cat >"$HOME/.termux/termux.properties" <<'EOF'
 # Termux properties file
 # Enable extra keys row for better coding experience
 extra-keys = [['ESC','/','-','HOME','UP','END','PGUP'],['TAB','CTRL','ALT','LEFT','DOWN','RIGHT','PGDN']]
@@ -89,23 +80,23 @@ allow-external-apps = true
 EOF
     echo "📱 Created enhanced Termux configuration"
   fi
-  
+
   # Setup shared storage directories for better file access
   echo "📂 Setting up development directories..."
   mkdir -p "$HOME/Programming"
-  
+
   # Create symlinks to shared storage if available
   if [[ -d "$HOME/storage/shared" ]]; then
     # Link common development directories to shared storage
     if [[ ! -L "$HOME/Desktop" ]] && [[ -d "$HOME/storage/shared/Desktop" ]]; then
       ln -sf "$HOME/storage/shared/Desktop" "$HOME/Desktop" 2>/dev/null || true
     fi
-    
+
     if [[ ! -L "$HOME/Downloads" ]] && [[ -d "$HOME/storage/shared/Download" ]]; then
       ln -sf "$HOME/storage/shared/Download" "$HOME/Downloads" 2>/dev/null || true
     fi
   fi
-  
+
   # Setup shell to zsh if installed
   if command -v zsh >/dev/null 2>&1; then
     echo "🐚 Setting up Zsh as default shell..."
@@ -113,7 +104,7 @@ EOF
   else
     echo "⚠️ Zsh not installed, keeping current shell"
   fi
-  
+
   # Comprehensive Git configuration for Android development
   echo "🔧 Git configuration setup..."
   if command -v git >/dev/null 2>&1; then
@@ -125,21 +116,21 @@ EOF
     else
       echo "✅ Git user configuration already set"
     fi
-    
+
     # Set up Git aliases and configurations useful for mobile development
     echo "🔧 Setting up Git enhancements..."
     git config --global init.defaultBranch main 2>/dev/null || true
     git config --global pull.rebase false 2>/dev/null || true
     git config --global core.editor "nvim" 2>/dev/null || true
     git config --global color.ui auto 2>/dev/null || true
-    
+
     # Useful Git aliases
     git config --global alias.st status 2>/dev/null || true
     git config --global alias.co checkout 2>/dev/null || true
     git config --global alias.br branch 2>/dev/null || true
     git config --global alias.cm commit 2>/dev/null || true
     git config --global alias.lg "log --oneline --decorate --all --graph" 2>/dev/null || true
-    
+
     echo "✅ Git configuration enhanced"
   fi
 
@@ -220,7 +211,7 @@ fi
 # Setup dotfiles for all platforms
 if [[ -d "$HOME/Programming/dotfiles" ]]; then
   echo "🔗 Setting up dotfiles..."
-  
+
   # Run the link script if it exists
   if [[ -f "$SCRIPT_DIR/sync_links.sh" ]]; then
     "$SCRIPT_DIR/sync_links.sh" create
@@ -243,6 +234,7 @@ if [[ -d "$PREFIX" ]]; then
   echo "   • Shell enhancements (fzf, zoxide, starship)"
   echo "   • File utilities (fd, ripgrep, tree, jq)"
   echo "   • Development utilities (openssh, rsync, htop, tmux)"
+  echo "   • C/C++ compiler (clang)"
   echo "   • Enhanced Termux configuration with extra keys"
   echo "   • Git aliases and configuration"
   echo "   • Shared storage directory links"
