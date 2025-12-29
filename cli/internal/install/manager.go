@@ -10,6 +10,7 @@ import (
 	"github.com/fatih/color"
 
 	"github.com/jimmy/dotfiles-cli/internal/config"
+	"github.com/jimmy/dotfiles-cli/internal/linking"
 )
 
 // Manager handles install operations
@@ -145,7 +146,8 @@ func (m *Manager) runFullInstallation() error {
 	}
 
 	// 2. Create symlinks for dotfiles
-	if err := m.createSymlinks(); err != nil {
+	linkManager := linking.NewManager(m.cfg)
+	if err := linkManager.CreateDefaultLinks(); err != nil {
 		return fmt.Errorf("symlink creation failed: %w", err)
 	}
 
@@ -344,55 +346,6 @@ func (m *Manager) detectPackageManager() (string, error) {
 	}
 
 	return "", fmt.Errorf("no supported package manager found")
-}
-
-// createSymlinks creates symlinks for dotfiles
-func (m *Manager) createSymlinks() error {
-	dotfilesDir := filepath.Join(m.cfg.Directories.Home, "Programming", "dotfiles", "src")
-
-	symlinkMap := map[string]string{
-		filepath.Join(dotfilesDir, ".zshrc"):            filepath.Join(m.cfg.Directories.Home, ".zshrc"),
-		filepath.Join(dotfilesDir, ".ideavimrc"):        filepath.Join(m.cfg.Directories.Home, ".ideavimrc"),
-		filepath.Join(dotfilesDir, ".gitignore_global"): filepath.Join(m.cfg.Directories.Home, ".gitignore_global"),
-		filepath.Join(dotfilesDir, "starship.toml"):     filepath.Join(m.cfg.Directories.Home, ".config", "starship.toml"),
-		filepath.Join(dotfilesDir, "ghostty"):           filepath.Join(m.cfg.Directories.Home, ".config", "ghostty"),
-		filepath.Join(dotfilesDir, "yazi"):              filepath.Join(m.cfg.Directories.Home, ".config", "yazi"),
-		filepath.Join(dotfilesDir, "zellij"):            filepath.Join(m.cfg.Directories.Home, ".config", "zellij"),
-		filepath.Join(dotfilesDir, "lazygit"):           filepath.Join(m.cfg.Directories.Home, ".config", "lazygit"),
-		filepath.Join(dotfilesDir, "btop"):              filepath.Join(m.cfg.Directories.Home, ".config", "btop"),
-		filepath.Join(dotfilesDir, "skhd"):              filepath.Join(m.cfg.Directories.Home, ".config", "skhd"),
-		filepath.Join(dotfilesDir, "yabai"):             filepath.Join(m.cfg.Directories.Home, ".config", "yabai"),
-	}
-
-	for source, target := range symlinkMap {
-		// Check if source exists
-		if _, err := os.Stat(source); os.IsNotExist(err) {
-			color.Yellow("⚠ Skipping %s (source not found)", filepath.Base(source))
-			continue
-		}
-
-		// Create target directory if needed
-		if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
-			return fmt.Errorf("failed to create directory %s: %w", filepath.Dir(target), err)
-		}
-
-		// Remove existing target if it exists
-		if _, err := os.Lstat(target); err == nil {
-			if err := os.Remove(target); err != nil {
-				color.Yellow("⚠ Failed to remove existing %s: %v", target, err)
-				continue
-			}
-		}
-
-		// Create symlink
-		if err := os.Symlink(source, target); err != nil {
-			color.Yellow("⚠ Failed to create symlink %s -> %s: %v", source, target, err)
-		} else {
-			color.Green("✓ Created symlink: %s", filepath.Base(target))
-		}
-	}
-
-	return nil
 }
 
 // installPackages installs packages using the detected package manager

@@ -92,9 +92,9 @@ func setupRootCommand(rootCmd *cobra.Command, cfg *config.Config) {
 
 	// Add subcommands
 	rootCmd.AddCommand(cmd.NewWorktreeCmd(cfg))
-	rootCmd.AddCommand(cmd.NewThemeCmd(cfg))
 	rootCmd.AddCommand(cmd.NewStorageCmd(cfg))
 	rootCmd.AddCommand(cmd.NewInstallCmd(cfg))
+	rootCmd.AddCommand(cmd.NewLinkCmd(cfg))
 	rootCmd.AddCommand(cmd.NewInteractiveMenuCmd(cfg))
 
 	// Set custom usage template
@@ -131,9 +131,10 @@ Interactive Mode:
   Press 'q', 'esc', or 'ctrl+c' to quit anytime during interactive mode
 
 Examples:
-  dotfiles theme set           # Interactive theme selection
   dotfiles worktree create     # Interactive worktree creation
   dotfiles install             # Interactive installation selection
+  dotfiles link create         # Create dotfiles symlinks
+  dotfiles link validate       # Validate existing symlinks
   dotfiles storage sync        # Interactive sync options
   
 {{if .HasAvailableSubCommands}}Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
