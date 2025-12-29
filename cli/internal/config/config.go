@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 
-	"github.com/jimmy/dotfiles-cli/pkg/errors"
+	"github.com/jimmy/worktree-cli/pkg/errors"
 )
 
 // Config represents the application configuration
@@ -24,23 +24,6 @@ type Config struct {
 		Remotes       []string `yaml:"remotes" mapstructure:"remotes"`
 		MaxDepth      int      `yaml:"max_depth" mapstructure:"max_depth"`
 	} `yaml:"git" mapstructure:"git"`
-
-	JIRA struct {
-		BaseURL  string `yaml:"base_url" mapstructure:"base_url"`
-		Pattern  string `yaml:"pattern" mapstructure:"pattern"`
-		Enabled  bool   `yaml:"enabled" mapstructure:"enabled"`
-		Username string `yaml:"username" mapstructure:"username"`
-		Token    string `yaml:"token" mapstructure:"token"`
-	} `yaml:"jira" mapstructure:"jira"`
-
-	Storage struct {
-		Provider   string            `yaml:"provider" mapstructure:"provider"`
-		Endpoint   string            `yaml:"endpoint" mapstructure:"endpoint"`
-		Bucket     string            `yaml:"bucket" mapstructure:"bucket"`
-		KeyID      string            `yaml:"key_id" mapstructure:"key_id"`
-		AppKey     string            `yaml:"app_key" mapstructure:"app_key"`
-		LocalPaths map[string]string `yaml:"local_paths" mapstructure:"local_paths"`
-	} `yaml:"storage" mapstructure:"storage"`
 
 	UI struct {
 		ColorEnabled bool `yaml:"color_enabled" mapstructure:"color_enabled"`
@@ -67,16 +50,6 @@ var (
 			DefaultBranch: "main",
 			Remotes:       []string{"origin"},
 			MaxDepth:      3,
-		},
-		JIRA: struct {
-			BaseURL  string `yaml:"base_url" mapstructure:"base_url"`
-			Pattern  string `yaml:"pattern" mapstructure:"pattern"`
-			Enabled  bool   `yaml:"enabled" mapstructure:"enabled"`
-			Username string `yaml:"username" mapstructure:"username"`
-			Token    string `yaml:"token" mapstructure:"token"`
-		}{
-			Pattern: "^[A-Z]{2,10}-\\d{1,6}$",
-			Enabled: false,
 		},
 		UI: struct {
 			ColorEnabled bool `yaml:"color_enabled" mapstructure:"color_enabled"`
@@ -133,12 +106,6 @@ func Load() (*Config, error) {
 	if progDir := os.Getenv("DOTFILES_PROGRAMMING_DIR"); progDir != "" {
 		config.Directories.Programming = progDir
 	}
-	if jiraURL := os.Getenv("DOTFILES_JIRA_BASE_URL"); jiraURL != "" {
-		config.JIRA.BaseURL = jiraURL
-	}
-	if jiraToken := os.Getenv("DOTFILES_JIRA_TOKEN"); jiraToken != "" {
-		config.JIRA.Token = jiraToken
-	}
 
 	return &config, nil
 }
@@ -184,16 +151,6 @@ func (c *Config) Validate() error {
 		return errors.NewError(errors.ErrConfigInvalid, "git max depth must be between 1 and 10")
 	}
 
-	// Validate JIRA configuration if enabled
-	if c.JIRA.Enabled {
-		if c.JIRA.BaseURL == "" {
-			return errors.NewError(errors.ErrConfigInvalid, "JIRA base URL required when JIRA is enabled")
-		}
-		if c.JIRA.Pattern == "" {
-			return errors.NewError(errors.ErrConfigInvalid, "JIRA pattern required when JIRA is enabled")
-		}
-	}
-
 	return nil
 }
 
@@ -207,5 +164,5 @@ func getConfigDir() (string, error) {
 		}
 		configDir = filepath.Join(home, ".config")
 	}
-	return filepath.Join(configDir, "dotfiles-cli"), nil
+	return filepath.Join(configDir, "worktree-cli"), nil
 }

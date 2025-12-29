@@ -3,28 +3,25 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/jimmy/dotfiles-cli/internal/config"
+	"github.com/jimmy/worktree-cli/internal/config"
 )
 
-// NewWorktreeCmd creates the worktree command
-func NewWorktreeCmd(cfg *config.Config) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "worktree",
-		Short: "Manage Git worktrees",
-		Long: `Manage Git worktrees for your repositories.
+// NewWorktreeCreateCmd creates the worktree create command
+func NewWorktreeCreateCmd(cfg *config.Config) *cobra.Command {
+	return newWorktreeCreateCmd(cfg)
+}
 
-Worktrees allow you to have multiple working directories for a single Git repository,
-each with different branches checked out. This is useful for:
-- Working on multiple features simultaneously
-- Testing different branches
-- Code review workflows`,
-	}
+// NewWorktreeListCmd creates the worktree list command
+func NewWorktreeListCmd(cfg *config.Config) *cobra.Command {
+	return newWorktreeListCmd(cfg)
+}
 
-	// Add subcommands
-	cmd.AddCommand(newWorktreeCreateCmd(cfg))
-	cmd.AddCommand(newWorktreeListCmd(cfg))
-	cmd.AddCommand(newWorktreeDeleteCmd(cfg))
-	cmd.AddCommand(newWorktreeCleanCmd(cfg))
+// NewWorktreeDeleteCmd creates the worktree delete command
+func NewWorktreeDeleteCmd(cfg *config.Config) *cobra.Command {
+	return newWorktreeDeleteCmd(cfg)
+}
 
-	return cmd
+// NewWorktreeCleanCmd creates the worktree clean command
+func NewWorktreeCleanCmd(cfg *config.Config) *cobra.Command {
+	return newWorktreeCleanCmd(cfg)
 }

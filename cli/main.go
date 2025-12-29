@@ -10,8 +10,9 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
-	"github.com/jimmy/dotfiles-cli/cmd"
-	"github.com/jimmy/dotfiles-cli/internal/config"
+	"github.com/jimmy/worktree-cli/cmd"
+	"github.com/jimmy/worktree-cli/internal/config"
+	"github.com/jimmy/worktree-cli/internal/ui"
 )
 
 var (
@@ -62,12 +63,15 @@ func loadConfig() (*config.Config, error) {
 // createRootCommand creates the root cobra command with all subcommands
 func createRootCommand(cfg *config.Config) *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:   "dotfiles",
-		Short: "Dotfiles management CLI",
-		Long: `A unified CLI tool for managing dotfiles, Git worktrees, and development workflow.
+		Use:   "worktree",
+		Short: "Git worktree management CLI",
+		Long: `A CLI tool for managing Git worktrees.
 
-This tool consolidates the functionality from various shell scripts into a single,
-maintainable Go CLI with improved error handling and user experience.`,
+Worktrees allow you to have multiple working directories for a single Git repository,
+each with different branches checked out. This is useful for:
+- Working on multiple features simultaneously
+- Testing different branches
+- Code review workflows`,
 		Version: fmt.Sprintf("%s (commit: %s, built: %s)", version, commit, date),
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			if !cfg.UI.ColorEnabled {
@@ -75,7 +79,8 @@ maintainable Go CLI with improved error handling and user experience.`,
 			}
 		},
 		RunE: func(c *cobra.Command, args []string) error {
-			return cmd.NewInteractiveMenuCmd(cfg).RunE(c, args)
+			// Show interactive menu when run with no arguments
+			return runInteractiveMode(c, cfg)
 		},
 	}
 
@@ -91,10 +96,10 @@ func setupRootCommand(rootCmd *cobra.Command, cfg *config.Config) {
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Verbose output")
 
 	// Add subcommands
-	rootCmd.AddCommand(cmd.NewWorktreeCmd(cfg))
-	rootCmd.AddCommand(cmd.NewStorageCmd(cfg))
-	rootCmd.AddCommand(cmd.NewLinkCmd(cfg))
-	rootCmd.AddCommand(cmd.NewInteractiveMenuCmd(cfg))
+	rootCmd.AddCommand(cmd.NewWorktreeCreateCmd(cfg))
+	rootCmd.AddCommand(cmd.NewWorktreeListCmd(cfg))
+	rootCmd.AddCommand(cmd.NewWorktreeDeleteCmd(cfg))
+	rootCmd.AddCommand(cmd.NewWorktreeCleanCmd(cfg))
 
 	// Set custom usage template
 	rootCmd.SetUsageTemplate(getUsageTemplate())
@@ -125,16 +130,77 @@ Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
   {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}
 
 Interactive Mode:
-  Run 'dotfiles' with no arguments to enter interactive mode
+  Run 'worktree' with no arguments to see available commands
   Most commands support interactive prompts when arguments are omitted
   Press 'q', 'esc', or 'ctrl+c' to quit anytime during interactive mode
 
 Examples:
-  dotfiles worktree create     # Interactive worktree creation
-  dotfiles link create         # Create dotfiles symlinks
-  dotfiles link validate       # Validate existing symlinks
-  dotfiles storage sync        # Interactive sync options
+  worktree create                  # Interactive worktree creation
+  worktree create my-feature       # Create worktree for 'my-feature' branch
+  worktree list                    # List all existing worktrees
+  worktree delete                  # Interactively delete a worktree
+  worktree clean                   # Clean up stale worktree references
   
 {{if .HasAvailableSubCommands}}Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
 `
+}
+
+// runInteractiveMode displays an interactive menu for command selection
+func runInteractiveMode(rootCmd *cobra.Command, cfg *config.Config) error {
+	options := []ui.SelectOption{
+		{
+			Key:         "c",
+			Title:       "Create worktree",
+			Description: "Create a new worktree for development",
+		},
+		{
+			Key:         "l",
+			Title:       "List worktrees",
+			Description: "Show all existing worktrees",
+		},
+		{
+			Key:         "d",
+			Title:       "Delete worktree",
+			Description: "Remove a worktree",
+		},
+		{
+			Key:         "k",
+			Title:       "Clean worktrees",
+			Description: "Clean up stale worktree references",
+		},
+		{
+			Key:         "h",
+			Title:       "Help",
+			Description: "Show help information",
+		},
+	}
+
+	selected, err := ui.RunSelection("Select a command:", options)
+	if err != nil {
+		if ui.IsQuitError(err) {
+			// User quit the selection, just exit gracefully
+			return nil
+		}
+		return err
+	}
+
+	// Execute the selected command
+	switch selected {
+	case "c":
+		createCmd := cmd.NewWorktreeCreateCmd(cfg)
+		return createCmd.Execute()
+	case "l":
+		listCmd := cmd.NewWorktreeListCmd(cfg)
+		return listCmd.Execute()
+	case "d":
+		deleteCmd := cmd.NewWorktreeDeleteCmd(cfg)
+		return deleteCmd.Execute()
+	case "k":
+		cleanCmd := cmd.NewWorktreeCleanCmd(cfg)
+		return cleanCmd.Execute()
+	case "h":
+		return rootCmd.Help()
+	default:
+		return fmt.Errorf("unknown selection: %s", selected)
+	}
 }

@@ -20,11 +20,6 @@ const (
 	ErrWorktreeNotFound
 	ErrInvalidRepository
 
-	// JIRA errors
-	ErrJIRAConnection
-	ErrJIRATicketNotFound
-	ErrInvalidJIRAKey
-
 	// Configuration errors
 	ErrConfigNotFound
 	ErrConfigInvalid
@@ -84,15 +79,6 @@ func NewWorktreeExistsError(path string) *CLIError {
 
 func NewWorktreeNotFoundError(path string) *CLIError {
 	return NewError(ErrWorktreeNotFound, fmt.Sprintf("worktree not found at %s", path))
-}
-
-// JIRA-specific errors
-func NewJIRAError(message string, cause error) *CLIError {
-	return WrapError(ErrJIRAConnection, message, cause)
-}
-
-func NewInvalidJIRAKeyError(key string) *CLIError {
-	return NewError(ErrInvalidJIRAKey, fmt.Sprintf("invalid JIRA key format: %s", key))
 }
 
 // Configuration errors

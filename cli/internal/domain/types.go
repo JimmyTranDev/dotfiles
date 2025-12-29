@@ -19,20 +19,7 @@ type Worktree struct {
 	Path       string      `json:"path"`
 	Branch     string      `json:"branch"`
 	Repository *Repository `json:"repository"`
-	JiraTicket *JiraTicket `json:"jira_ticket,omitempty"`
 	CreatedAt  time.Time   `json:"created_at"`
-}
-
-// JiraTicket represents a JIRA ticket
-type JiraTicket struct {
-	Key          string            `json:"key"`
-	Summary      string            `json:"summary"`
-	Description  string            `json:"description"`
-	Status       string            `json:"status"`
-	Type         string            `json:"type"`
-	Labels       []string          `json:"labels"`
-	Components   []string          `json:"components"`
-	CustomFields map[string]string `json:"custom_fields"`
 }
 
 // Project represents a development project

@@ -15,8 +15,8 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 
-	"github.com/jimmy/dotfiles-cli/internal/domain"
-	"github.com/jimmy/dotfiles-cli/pkg/errors"
+	"github.com/jimmy/worktree-cli/internal/domain"
+	"github.com/jimmy/worktree-cli/pkg/errors"
 )
 
 // Client provides Git operations

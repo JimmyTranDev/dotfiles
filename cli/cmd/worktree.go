@@ -13,10 +13,9 @@ import (
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 
-	"github.com/jimmy/dotfiles-cli/internal/config"
-	"github.com/jimmy/dotfiles-cli/internal/domain"
-	"github.com/jimmy/dotfiles-cli/internal/git"
-	"github.com/jimmy/dotfiles-cli/internal/jira"
+	"github.com/jimmy/worktree-cli/internal/config"
+	"github.com/jimmy/worktree-cli/internal/domain"
+	"github.com/jimmy/worktree-cli/internal/git"
 )
 
 // commitType represents available commit types
@@ -118,7 +117,6 @@ func logCommitHistory(commitMessage string) {
 func newWorktreeCreateCmd(cfg *config.Config) *cobra.Command {
 	var (
 		branch     string
-		jiraTicket string
 		repository string
 	)
 
@@ -186,49 +184,12 @@ The worktree will be created in the configured worktrees directory.`,
 			}
 			color.Yellow("Base branch: %s", mainBranch)
 
-			// Initialize JIRA client
-			jiraClient, err := jira.NewClient(cfg)
-			if err != nil {
-				return fmt.Errorf("failed to create JIRA client: %w", err)
-			}
-
-			// Now prompt for JIRA ticket if not provided
-			if jiraTicket == "" {
-				prompt := promptui.Prompt{
-					Label: "Enter JIRA ticket (e.g., ABC-123) or leave empty to skip JIRA integration",
-				}
-				jiraTicket, _ = prompt.Run() // Ignore error for optional input
-			}
-
-			// Handle JIRA ticket if provided
-			var ticket *domain.JiraTicket
-			var summary string
-			if jiraTicket != "" && jiraClient.IsValidTicketKey(jiraTicket) {
-				color.Yellow("Fetching JIRA ticket details...")
-				validatedTicket, err := jiraClient.ValidateTicket(jiraTicket)
-				if err != nil {
-					color.Yellow("Could not fetch JIRA summary. Using ticket number as branch name.")
-				} else {
-					ticket = validatedTicket
-					summary = ticket.Summary
-					color.Green("✅ JIRA ticket found: %s", summary)
-				}
-			} else if jiraTicket != "" {
-				color.Yellow("Input doesn't match JIRA pattern. Using as branch name directly.")
-			}
-
 			// Get branch name
 			var branchName string
 			if len(args) > 0 {
 				branchName = args[0]
 			} else if branch != "" {
 				branchName = branch
-			} else if ticket != nil {
-				// Auto-generate branch name from JIRA
-				branchName = jiraClient.GenerateBranchName(ticket.Key, ticket.Summary)
-				color.Cyan("📝 Auto-generated branch name: %s", branchName)
-			} else if jiraTicket != "" {
-				branchName = jiraTicket
 			} else {
 				prompt := promptui.Prompt{
 					Label: "Branch name",
@@ -245,7 +206,6 @@ The worktree will be created in the configured worktrees directory.`,
 			}
 
 			// Clean branch name (sanitize)
-			originalInput := branchName
 			// Basic sanitization - replace invalid characters with hyphens
 			invalidChars := regexp.MustCompile(`[^a-zA-Z0-9._/-]`)
 			branchName = invalidChars.ReplaceAllString(branchName, "-")
@@ -308,39 +268,13 @@ The worktree will be created in the configured worktrees directory.`,
 				return fmt.Errorf("failed to create worktree: %w", err)
 			}
 
-			// Associate JIRA ticket with worktree if available
-			if ticket != nil {
-				createdWorktree.JiraTicket = ticket
-			}
-
 			color.Green("✅ Worktree created successfully!")
 			color.Cyan("📁 Path: %s", createdWorktree.Path)
 			color.Cyan("🌿 Branch: %s", createdWorktree.Branch)
 
-			// Create an empty initial commit with the branch name and JIRA link if available
+			// Create an empty initial commit with the branch name
 			color.Yellow("Creating initial commit...")
-			var commitMessage string
-
-			// Format commit message based on whether we have JIRA info
-			if ticket != nil {
-				if summary != "" {
-					// Use the JIRA summary for a descriptive commit message
-					commitMessage = fmt.Sprintf("%s: %s %s %s", selectedCommitType.Name, selectedCommitType.Emoji, ticket.Key, summary)
-				} else {
-					// Just use the ticket number
-					commitMessage = fmt.Sprintf("%s: %s %s", selectedCommitType.Name, selectedCommitType.Emoji, ticket.Key)
-				}
-
-				// Add JIRA link in the commit body using configured URL
-				jiraURL := cfg.JIRA.BaseURL
-				if jiraURL != "" {
-					jiraURL = strings.TrimSuffix(jiraURL, "/")
-					commitMessage = fmt.Sprintf("%s\n\nJira: %s/browse/%s", commitMessage, jiraURL, ticket.Key)
-				}
-			} else {
-				// No JIRA ticket, use the original input message
-				commitMessage = fmt.Sprintf("%s: %s %s", selectedCommitType.Name, selectedCommitType.Emoji, originalInput)
-			}
+			commitMessage := fmt.Sprintf("%s: %s %s", selectedCommitType.Name, selectedCommitType.Emoji, branchName)
 
 			// Create empty commit
 			if err := gitClient.CreateEmptyCommit(ctx, worktreePath, commitMessage); err != nil {
@@ -348,10 +282,6 @@ The worktree will be created in the configured worktrees directory.`,
 			} else {
 				// Log the commit to programming notes
 				logCommitHistory(commitMessage)
-			}
-
-			if ticket != nil {
-				color.Cyan("📋 JIRA: %s - %s", ticket.Key, ticket.Summary)
 			}
 
 			// Install dependencies if package.json exists
@@ -365,9 +295,6 @@ The worktree will be created in the configured worktrees directory.`,
 			color.Cyan("  • Path: %s", worktreePath)
 			color.Cyan("  • Branch: %s", branchName)
 			color.Cyan("  • Repository: %s", filepath.Base(repoPath))
-			if ticket != nil {
-				color.Cyan("  • JIRA Ticket: %s", ticket.Key)
-			}
 			color.Cyan("  • Initial commit created with %s type", selectedCommitType.Name)
 			fmt.Println()
 			color.Yellow("💡 Next steps:")
@@ -381,7 +308,6 @@ The worktree will be created in the configured worktrees directory.`,
 	}
 
 	cmd.Flags().StringVarP(&branch, "branch", "b", "", "Branch name for the worktree")
-	cmd.Flags().StringVarP(&jiraTicket, "jira", "j", "", "JIRA ticket number")
 	cmd.Flags().StringVarP(&repository, "repo", "r", "", "Repository path")
 
 	return cmd
@@ -439,14 +365,14 @@ Shows worktrees with their paths, branches, and associated repositories.`,
 			fmt.Println()
 			if totalWorktrees == 0 {
 				color.Yellow("📁 No worktrees found.")
-				color.Cyan("\n💡 Tip: Use 'dotfiles worktree create' to create your first worktree")
+				color.Cyan("\n💡 Tip: Use 'worktree create' to create your first worktree")
 			} else {
 				color.Green("✓ Found %d worktrees across %d repositories", totalWorktrees, len(repos))
 				fmt.Println()
 				color.Cyan("💡 Tips:")
 				color.Cyan("  • Use 'cd <path>' to navigate to a worktree")
-				color.Cyan("  • Use 'dotfiles worktree delete' to remove unused worktrees")
-				color.Cyan("  • Use 'dotfiles worktree clean' to cleanup stale references")
+				color.Cyan("  • Use 'worktree delete' to remove unused worktrees")
+				color.Cyan("  • Use 'worktree clean' to cleanup stale references")
 			}
 			fmt.Println()
 

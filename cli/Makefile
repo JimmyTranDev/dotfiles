@@ -1,8 +1,8 @@
-# Dotfiles CLI Makefile
-# Build and install the dotfiles management CLI
+# Worktree CLI Makefile
+# Build and install the worktree management CLI
 
 # Binary name
-BINARY_NAME = dotfiles
+BINARY_NAME = worktree
 
 # Version information
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
@@ -28,13 +28,13 @@ RESET = \033[0m
 all: build
 
 help: ## Show this help message
-	@echo "$(BLUE)Dotfiles CLI Build System$(RESET)"
+	@echo "$(BLUE)Worktree CLI Build System$(RESET)"
 	@echo ""
 	@echo "$(YELLOW)Available targets:$(RESET)"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-12s$(RESET) %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 build: ## Build the CLI binary locally
-	@echo "$(BLUE)Building dotfiles CLI...$(RESET)"
+	@echo "$(BLUE)Building worktree CLI...$(RESET)"
 	@echo "  Version: $(VERSION)"
 	@echo "  Commit:  $(COMMIT)"
 	@echo "  Date:    $(DATE)"
@@ -42,17 +42,17 @@ build: ## Build the CLI binary locally
 	@echo "$(GREEN)✓ Build complete: ./$(BINARY_NAME)$(RESET)"
 
 install: build ## Build and install globally to /usr/local/bin
-	@echo "$(BLUE)Installing dotfiles CLI globally...$(RESET)"
+	@echo "$(BLUE)Installing worktree CLI globally...$(RESET)"
 	@sudo mkdir -p $(INSTALL_PATH)
 	@sudo cp $(BINARY_NAME) $(INSTALL_PATH)/$(BINARY_NAME)
 	@sudo chmod +x $(INSTALL_PATH)/$(BINARY_NAME)
 	@echo "$(GREEN)✓ Installed to $(INSTALL_PATH)/$(BINARY_NAME)$(RESET)"
 	@echo ""
-	@echo "$(YELLOW)You can now run 'dotfiles' from anywhere!$(RESET)"
-	@echo "Try: $(GREEN)dotfiles --help$(RESET)"
+	@echo "$(YELLOW)You can now run 'worktree' from anywhere!$(RESET)"
+	@echo "Try: $(GREEN)worktree --help$(RESET)"
 
 uninstall: ## Remove the CLI from global installation
-	@echo "$(BLUE)Uninstalling dotfiles CLI...$(RESET)"
+	@echo "$(BLUE)Uninstalling worktree CLI...$(RESET)"
 	@sudo rm -f $(INSTALL_PATH)/$(BINARY_NAME)
 	@sudo rm -f $(COMPLETION_PATH)/$(BINARY_NAME)
 	@echo "$(GREEN)✓ Uninstalled $(BINARY_NAME)$(RESET)"
@@ -134,14 +134,14 @@ dev-watch: ## Development mode with file watching (requires entr)
 	@find . -name "*.go" | entr -c make dev
 
 # Check installation
-check: ## Check if dotfiles CLI is properly installed
+check: ## Check if worktree CLI is properly installed
 	@echo "$(BLUE)Checking installation...$(RESET)"
-	@if command -v dotfiles >/dev/null 2>&1; then \
-		echo "$(GREEN)✓ dotfiles CLI is installed$(RESET)"; \
-		echo "  Location: $$(which dotfiles)"; \
-		echo "  Version:  $$(dotfiles --version)"; \
+	@if command -v worktree >/dev/null 2>&1; then \
+		echo "$(GREEN)✓ worktree CLI is installed$(RESET)"; \
+		echo "  Location: $$(which worktree)"; \
+		echo "  Version:  $$(worktree --version)"; \
 	else \
-		echo "$(YELLOW)⚠ dotfiles CLI is not installed globally$(RESET)"; \
+		echo "$(YELLOW)⚠ worktree CLI is not installed globally$(RESET)"; \
 		echo "Run: $(GREEN)make install$(RESET)"; \
 	fi
 

@@ -1,4 +1,4 @@
-module github.com/jimmy/dotfiles-cli
+module github.com/jimmy/worktree-cli
 
 go 1.24.0
 
