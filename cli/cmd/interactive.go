@@ -59,26 +59,13 @@ var mainMenuItems = []MenuItem{
 		},
 	},
 	{
-		Key:         "t",
-		Description: ui.EmojiArt + " Theme Management",
-		Command:     "theme",
+		Key:         "l",
+		Description: ui.EmojiTool + " Link Management",
+		Command:     "link",
 		SubItems: []MenuItem{
-			{Key: "s", Description: "Set application theme", Command: "theme set"},
-			{Key: "l", Description: "List available themes", Command: "theme list"},
-			{Key: "c", Description: "Show current theme", Command: "theme current"},
-			{Key: "u", Description: "Set CLI UI theme", Command: "ui set-theme"},
-		},
-	},
-	{
-		Key:         "i",
-		Description: ui.EmojiPackage + " Installation & Updates",
-		Command:     "install",
-		SubItems: []MenuItem{
-			{Key: "f", Description: "Full dotfiles setup", Command: "install full"},
-			{Key: "c", Description: "Clone essential repositories", Command: "install clone-repos"},
-			{Key: "a", Description: "Fetch all repository updates", Command: "install fetch-all"},
-			{Key: "u", Description: "Update dev environment", Command: "install update"},
-			{Key: "i", Description: "Interactive installation", Command: "install"},
+			{Key: "c", Description: "Create dotfiles symlinks", Command: "link create"},
+			{Key: "r", Description: "Remove dotfiles symlinks", Command: "link remove"},
+			{Key: "v", Description: "Validate existing symlinks", Command: "link validate"},
 		},
 	},
 	{
@@ -395,7 +382,6 @@ func executeCommandWithResult(commandStr string, cfg *config.Config) ui.TaskResu
 // getInteractiveCommandHandler returns the appropriate handler for interactive commands
 func getInteractiveCommandHandler(commandStr string, cfg *config.Config) func() error {
 	handlers := map[string]func() error{
-		"theme set":    func() error { return executeInteractiveThemeSet(cfg) },
 		"storage sync": func() error { return executeInteractiveStorageSync(cfg) },
 		"ui set-theme": func() error { return executeInteractiveUIThemeSet(cfg) },
 	}
@@ -405,7 +391,6 @@ func getInteractiveCommandHandler(commandStr string, cfg *config.Config) func() 
 // getInteractiveCommandResultHandler returns handlers that provide structured results
 func getInteractiveCommandResultHandler(commandStr string, cfg *config.Config) func() ui.TaskResult {
 	handlers := map[string]func() ui.TaskResult{
-		"theme set":    func() ui.TaskResult { return executeInteractiveThemeSetWithResult(cfg) },
 		"storage sync": func() ui.TaskResult { return executeInteractiveStorageSyncWithResult(cfg) },
 		"ui set-theme": func() ui.TaskResult { return executeInteractiveUIThemeSetWithResult(cfg) },
 	}
@@ -452,20 +437,6 @@ func executeStandardCommandWithResult(commandStr string) ui.TaskResult {
 	}
 
 	return result
-}
-
-func executeInteractiveThemeSet(cfg *config.Config) error {
-	// Use the interactive theme selection from theme.go which includes arrow keys
-	selected, err := selectThemeInteractively(cfg.Themes.Available)
-	if err != nil {
-		return err
-	}
-
-	// Execute theme set command
-	cmd := exec.Command(getExecutablePath(), "theme", "set", selected)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
 }
 
 func executeInteractiveStorageSync(cfg *config.Config) error {
@@ -521,108 +492,9 @@ func waitForUser() error {
 }
 
 func executeInteractiveUIThemeSet(cfg *config.Config) error {
-	// Create UI theme options
-	options := []ui.SelectOption{
-		{
-			Key:         "1",
-			Title:       "Mocha (Dark)",
-			Description: "Dark theme with warm, cozy colors - perfect for evening coding",
-		},
-		{
-			Key:         "2",
-			Title:       "Macchiato (Dark)",
-			Description: "Slightly lighter dark theme with softer contrast",
-		},
-		{
-			Key:         "3",
-			Title:       "Frappe (Dark)",
-			Description: "Cool-toned dark theme with blue undertones",
-		},
-		{
-			Key:         "4",
-			Title:       "Latte (Light)",
-			Description: "Light theme for daytime coding - easy on the eyes",
-		},
-	}
-
-	choice, err := ui.RunSelection(ui.EmojiArt+" CLI Theme Selection", options)
-	if err != nil {
-		if ui.IsQuitError(err) {
-			ui.Info("UI theme selection cancelled")
-			return nil
-		}
-		return err
-	}
-
-	var selectedVariant ui.CatppuccinVariant
-	switch choice {
-	case "1":
-		selectedVariant = ui.CatppuccinMocha
-	case "2":
-		selectedVariant = ui.CatppuccinMacchiato
-	case "3":
-		selectedVariant = ui.CatppuccinFrappe
-	case "4":
-		selectedVariant = ui.CatppuccinLatte
-	default:
-		return fmt.Errorf("invalid theme selection")
-	}
-
-	if err := ui.SetCurrentTheme(selectedVariant); err != nil {
-		return fmt.Errorf("failed to set UI theme: %w", err)
-	}
-
-	ui.Success("CLI UI theme updated to " + string(selectedVariant))
-	ui.Info("Theme will take effect on next CLI startup")
+	ui.Info("CLI theme is fixed to Catppuccin Mocha")
+	ui.Success("Theme: Catppuccin Mocha (Dark)")
 	return nil
-}
-
-// executeInteractiveThemeSetWithResult provides interactive theme selection with structured result
-func executeInteractiveThemeSetWithResult(cfg *config.Config) ui.TaskResult {
-	ui.TaskStart("Interactive Theme Selection")
-
-	selected, err := selectThemeInteractively(cfg.Themes.Available)
-	if err != nil {
-		if ui.IsQuitError(err) {
-			return ui.TaskResult{
-				Title:   "Theme Selection",
-				Success: false,
-				Message: "Theme selection cancelled by user",
-			}
-		}
-		return ui.TaskResult{
-			Title:   "Theme Selection",
-			Success: false,
-			Message: fmt.Sprintf("Theme selection failed: %v", err),
-		}
-	}
-
-	// Execute theme set command
-	cmd := exec.Command(getExecutablePath(), "theme", "set", selected)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-
-	if err != nil {
-		return ui.TaskResult{
-			Title:   "Theme Application",
-			Success: false,
-			Message: fmt.Sprintf("Failed to apply theme: %v", err),
-		}
-	}
-
-	return ui.TaskResult{
-		Title:   "Theme Management",
-		Success: true,
-		Message: fmt.Sprintf("Successfully applied theme: %s", selected),
-		Details: []string{
-			"Updated Ghostty terminal theme",
-			"Updated Zellij multiplexer theme",
-			"Updated btop system monitor theme",
-			"Updated FZF colors in .zshrc",
-			"Theme configuration saved",
-		},
-	}
 }
 
 // executeInteractiveStorageSyncWithResult provides interactive storage sync with structured result
@@ -703,87 +575,14 @@ func executeInteractiveStorageSyncWithResult(cfg *config.Config) ui.TaskResult {
 
 // executeInteractiveUIThemeSetWithResult provides interactive UI theme selection with structured result
 func executeInteractiveUIThemeSetWithResult(cfg *config.Config) ui.TaskResult {
-	ui.TaskStart("Interactive CLI UI Theme Selection")
-
-	// Create UI theme options
-	options := []ui.SelectOption{
-		{
-			Key:         "1",
-			Title:       "Mocha (Dark)",
-			Description: "Dark theme with warm, cozy colors - perfect for evening coding",
-		},
-		{
-			Key:         "2",
-			Title:       "Macchiato (Dark)",
-			Description: "Slightly lighter dark theme with softer contrast",
-		},
-		{
-			Key:         "3",
-			Title:       "Frappe (Dark)",
-			Description: "Cool-toned dark theme with blue undertones",
-		},
-		{
-			Key:         "4",
-			Title:       "Latte (Light)",
-			Description: "Light theme for daytime coding - easy on the eyes",
-		},
-	}
-
-	choice, err := ui.RunSelection(ui.EmojiArt+" CLI Theme Selection", options)
-	if err != nil {
-		if ui.IsQuitError(err) {
-			return ui.TaskResult{
-				Title:   "UI Theme Selection",
-				Success: false,
-				Message: "UI theme selection cancelled by user",
-			}
-		}
-		return ui.TaskResult{
-			Title:   "UI Theme Selection",
-			Success: false,
-			Message: fmt.Sprintf("UI theme selection failed: %v", err),
-		}
-	}
-
-	var selectedVariant ui.CatppuccinVariant
-	var themeName string
-	switch choice {
-	case "1":
-		selectedVariant = ui.CatppuccinMocha
-		themeName = "Mocha (Dark)"
-	case "2":
-		selectedVariant = ui.CatppuccinMacchiato
-		themeName = "Macchiato (Dark)"
-	case "3":
-		selectedVariant = ui.CatppuccinFrappe
-		themeName = "Frappe (Dark)"
-	case "4":
-		selectedVariant = ui.CatppuccinLatte
-		themeName = "Latte (Light)"
-	default:
-		return ui.TaskResult{
-			Title:   "UI Theme Selection",
-			Success: false,
-			Message: "Invalid theme selection",
-		}
-	}
-
-	if err := ui.SetCurrentTheme(selectedVariant); err != nil {
-		return ui.TaskResult{
-			Title:   "UI Theme Application",
-			Success: false,
-			Message: fmt.Sprintf("Failed to set UI theme: %v", err),
-		}
-	}
-
 	return ui.TaskResult{
 		Title:   "CLI UI Theme",
 		Success: true,
-		Message: fmt.Sprintf("CLI UI theme updated to %s", themeName),
+		Message: "CLI theme is fixed to Catppuccin Mocha",
 		Details: []string{
-			"Theme configuration saved",
-			"New theme will take effect on next CLI startup",
-			"CLI interface colors have been updated",
+			"Theme: Catppuccin Mocha (Dark)",
+			"Warm, cozy colors perfect for coding",
+			"No configuration needed - always uses Mocha",
 		},
 	}
 }

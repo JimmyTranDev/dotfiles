@@ -33,12 +33,6 @@ type Config struct {
 		Token    string `yaml:"token" mapstructure:"token"`
 	} `yaml:"jira" mapstructure:"jira"`
 
-	Themes struct {
-		Current   string            `yaml:"current" mapstructure:"current"`
-		Available []string          `yaml:"available" mapstructure:"available"`
-		Paths     map[string]string `yaml:"paths" mapstructure:"paths"`
-	} `yaml:"themes" mapstructure:"themes"`
-
 	Storage struct {
 		Provider   string            `yaml:"provider" mapstructure:"provider"`
 		Endpoint   string            `yaml:"endpoint" mapstructure:"endpoint"`
@@ -83,19 +77,6 @@ var (
 		}{
 			Pattern: "^[A-Z]{2,10}-\\d{1,6}$",
 			Enabled: false,
-		},
-		Themes: struct {
-			Current   string            `yaml:"current" mapstructure:"current"`
-			Available []string          `yaml:"available" mapstructure:"available"`
-			Paths     map[string]string `yaml:"paths" mapstructure:"paths"`
-		}{
-			Current:   "catppuccin-mocha",
-			Available: []string{"catppuccin-mocha", "catppuccin-frappe", "catppuccin-latte", "catppuccin-macchiato"},
-			Paths: map[string]string{
-				"ghostty": filepath.Join(os.Getenv("HOME"), ".config", "ghostty", "config"),
-				"zellij":  filepath.Join(os.Getenv("HOME"), ".config", "zellij", "config.kdl"),
-				"btop":    filepath.Join(os.Getenv("HOME"), ".config", "btop", "btop.conf"),
-			},
 		},
 		UI: struct {
 			ColorEnabled bool `yaml:"color_enabled" mapstructure:"color_enabled"`

@@ -64,7 +64,7 @@ func createRootCommand(cfg *config.Config) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "dotfiles",
 		Short: "Dotfiles management CLI",
-		Long: `A unified CLI tool for managing dotfiles, Git worktrees, themes, and development workflow.
+		Long: `A unified CLI tool for managing dotfiles, Git worktrees, and development workflow.
 
 This tool consolidates the functionality from various shell scripts into a single,
 maintainable Go CLI with improved error handling and user experience.`,
@@ -93,7 +93,6 @@ func setupRootCommand(rootCmd *cobra.Command, cfg *config.Config) {
 	// Add subcommands
 	rootCmd.AddCommand(cmd.NewWorktreeCmd(cfg))
 	rootCmd.AddCommand(cmd.NewStorageCmd(cfg))
-	rootCmd.AddCommand(cmd.NewInstallCmd(cfg))
 	rootCmd.AddCommand(cmd.NewLinkCmd(cfg))
 	rootCmd.AddCommand(cmd.NewInteractiveMenuCmd(cfg))
 
@@ -132,7 +131,6 @@ Interactive Mode:
 
 Examples:
   dotfiles worktree create     # Interactive worktree creation
-  dotfiles install             # Interactive installation selection
   dotfiles link create         # Create dotfiles symlinks
   dotfiles link validate       # Validate existing symlinks
   dotfiles storage sync        # Interactive sync options

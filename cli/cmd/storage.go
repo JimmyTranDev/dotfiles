@@ -2,146 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/jimmy/dotfiles-cli/internal/config"
 	"github.com/jimmy/dotfiles-cli/internal/storage"
-	"github.com/jimmy/dotfiles-cli/internal/theme"
 	"github.com/jimmy/dotfiles-cli/internal/ui"
 )
-
-// selectThemeInteractively provides interactive theme selection
-func selectThemeInteractively(themes []string) (string, error) {
-	// Convert themes to UI options
-	var options []ui.SelectOption
-	for i, theme := range themes {
-		description := fmt.Sprintf("Apply %s theme to Ghostty, Zellij, btop, and FZF", theme)
-
-		options = append(options, ui.SelectOption{
-			Key:         fmt.Sprintf("%d", i+1),
-			Title:       theme,
-			Description: description,
-		})
-	}
-
-	// Use Bubble Tea selection
-	selected, err := ui.RunSelection("🎨 Theme Selection", options)
-	if err != nil {
-		return "", err
-	}
-
-	// Convert back to theme name
-	selectedIndex, err := strconv.Atoi(selected)
-	if err != nil || selectedIndex < 1 || selectedIndex > len(themes) {
-		return "", fmt.Errorf("invalid selection")
-	}
-
-	return themes[selectedIndex-1], nil
-}
-
-// newThemeSetCmd creates the theme set command
-func newThemeSetCmd(cfg *config.Config) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "set [theme-name]",
-		Short: "Set the current theme",
-		Args:  cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			var themeName string
-
-			// Initialize theme for consistent styling
-			thm := ui.DefaultTheme
-			styles := thm.Styles()
-
-			// If no theme provided, show interactive selection
-			if len(args) == 0 {
-				fmt.Println(styles.Accent.Render(ui.EmojiArt + " Interactive Theme Selection"))
-				fmt.Println()
-
-				// Show current theme
-				currentText := styles.AccentSecondary.Render("Current theme: ") + styles.Value.Render(cfg.Themes.Current)
-				fmt.Println(currentText)
-				fmt.Println()
-
-				// Interactive selection using Bubble Tea
-				selected, err := selectThemeInteractively(cfg.Themes.Available)
-				if err != nil {
-					if ui.IsQuitError(err) {
-						fmt.Println(styles.Info.Render(ui.EmojiWave + " Theme selection cancelled"))
-						return nil
-					}
-					return err
-				}
-				themeName = selected
-			} else {
-				themeName = args[0]
-			}
-
-			fmt.Println(styles.Accent.Render(ui.EmojiArt + " Setting theme to: " + themeName))
-
-			// Create theme manager and apply theme
-			themeManager := theme.NewManager(cfg)
-			if err := themeManager.SetTheme(themeName); err != nil {
-				return fmt.Errorf("failed to set theme: %w", err)
-			}
-
-			fmt.Println(styles.Success.Render(ui.EmojiSuccess + " Theme set successfully!"))
-			fmt.Println(styles.Success.Render("  Applied to: Ghostty, Zellij, btop, and FZF colors"))
-			fmt.Println()
-			fmt.Println(styles.AccentSecondary.Render("Configuration Details:"))
-			fmt.Println(styles.Value.Render("  • Theme: " + themeName))
-			fmt.Println(styles.Value.Render("  • Ghostty terminal updated"))
-			fmt.Println(styles.Value.Render("  • Zellij multiplexer updated"))
-			fmt.Println(styles.Value.Render("  • btop system monitor updated"))
-			fmt.Println(styles.Value.Render("  • FZF colors updated in .zshrc"))
-			fmt.Println()
-			return nil
-		},
-	}
-	return cmd
-}
-
-// newThemeListCmd creates the theme list command
-func newThemeListCmd(cfg *config.Config) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List available themes",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			thm := ui.DefaultTheme
-			styles := thm.Styles()
-
-			fmt.Println(styles.AccentSecondary.Render(ui.EmojiMenu + " Available themes:"))
-			for _, themeName := range cfg.Themes.Available {
-				if themeName == cfg.Themes.Current {
-					fmt.Println(styles.Success.Render(ui.EmojiArrow + " " + themeName + " (current)"))
-				} else {
-					fmt.Println(styles.Value.Render("  " + themeName))
-				}
-			}
-			return nil
-		},
-	}
-	return cmd
-}
-
-// newThemeCurrentCmd creates the theme current command
-func newThemeCurrentCmd(cfg *config.Config) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "current",
-		Short: "Show current theme",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			thm := ui.DefaultTheme
-			styles := thm.Styles()
-
-			currentText := styles.AccentSecondary.Render("Current theme: ") + styles.Value.Render(cfg.Themes.Current)
-			fmt.Println(currentText)
-			return nil
-		},
-	}
-	return cmd
-}
 
 // newStorageInitCmd creates the storage init command
 func newStorageInitCmd(cfg *config.Config) *cobra.Command {
