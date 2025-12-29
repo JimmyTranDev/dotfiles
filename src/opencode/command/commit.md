@@ -20,4 +20,6 @@ Common emoji mappings:
 - 📦 build: build system changes
 - ⏪ revert: reverting changes
 
+Important: When staging files for commit, ignore any files with `-actx` suffix (these are temporary symlinks).
+
 Analyze the git diff to understand the changes, then create the commit.
