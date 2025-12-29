@@ -9,7 +9,7 @@ if [ "$(uname)" == "Darwin" ]; then
   echo "🚀 Detected macOS. Running macOS setup..."
 
   # Create symlinks using dedicated link script
-  "$SCRIPT_DIR/manage_links.sh" create
+  "$SCRIPT_DIR/sync_links.sh" create
 
   if command -v brew >/dev/null 2>&1; then
     echo "📦 Installing Homebrew packages..."
@@ -81,7 +81,7 @@ elif [ "$(uname)" == "Linux" ]; then
   done
 
   # Create symlinks using dedicated link script
-  "$SCRIPT_DIR/manage_links.sh" create
+  "$SCRIPT_DIR/sync_links.sh" create
 
 fi
 
