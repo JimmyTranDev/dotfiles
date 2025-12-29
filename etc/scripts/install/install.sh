@@ -7,23 +7,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ "$(uname)" == "Darwin" ]; then
   echo "🚀 Detected macOS. Running macOS setup..."
-  
+
   # Create symlinks using dedicated link script
   "$SCRIPT_DIR/link.sh" create
-  
-  # Install Homebrew packages
+
   if command -v brew >/dev/null 2>&1; then
     echo "📦 Installing Homebrew packages..."
     brew bundle --file="$HOME/Brewfile" check ||
-      brew bundle --file="$HOME/Brewfile" install ||
-      brew bundle --file="$HOME/Brewfile" cleanup --force
-  else
-    echo "⚠️ Homebrew not found. Please install Homebrew first."
-  fi
-  
+    brew bundle --file="$HOME/Brewfile" install ||
+    brew bundle --file="$HOME/Brewfile" cleanup --force
+
 elif [ "$(uname)" == "Linux" ]; then
   echo "🚀 Detected Linux. Running Linux/WSL setup..."
-  
+
   # Install packages (Arch/WSL example)
   packages=(
     # --- Containers & DevOps ---
@@ -67,23 +63,23 @@ elif [ "$(uname)" == "Linux" ]; then
     clang
     gopls
   )
-  
+
   echo "📦 Updating system and installing packages..."
   sudo pacman -Syu --noconfirm
   for pkg in "${packages[@]}"; do
     sudo pacman -S --needed --noconfirm "$pkg"
   done
-  
+
   aurs=(fnm)
   echo "📦 Updating AUR and installing AUR packages..."
   paru -Syu --noconfirm
   for aur in "${aurs[@]}"; do
     paru -S --needed --noconfirm "$aur"
   done
-  
+
   # Create symlinks using dedicated link script
   "$SCRIPT_DIR/link.sh" create
-  
+
 fi
 
 echo "✅ Setup completed successfully!"

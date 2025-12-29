@@ -35,6 +35,7 @@ done
 [[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 [[ -f "$HOME/Programming/secrets/env.sh" ]] && source "$HOME/Programming/secrets/env.sh"
 
+alias nvm='fnm'
 alias a='eval "$(poetry env activate)"'
 alias c='clear'
 alias w='worktree'
@@ -47,8 +48,12 @@ alias y='yazi'
 alias z='zellij'
 alias l='ls -la'
 alias k="$HOME/Programming/dotfiles/etc/scripts/kill_port.sh"
-alias l='$HOME/Programming/dotfiles/etc/scripts/select_git_folder_actx.sh'
-alias nvm='fnm'
+alias l="$HOME/Programming/dotfiles/etc/scripts/select_git_folder_actx.sh"
+
+alias F="$HOME/Programming/dotfiles/etc/scripts/install/fetch_all_folders.sh"
+alias C="$HOME/Programming/dotfiles/etc/scripts/install/clone_essential_repos.sh"
+alias I="$HOME/Programming/dotfiles/etc/scripts/install/install.sh"
+alias L="$HOME/Programming/dotfiles/etc/scripts/install/link.sh"
 
 wn() {
   # Source the worktree configuration and libraries
