@@ -149,7 +149,7 @@ EXAMPLES:
 
 NEXT STEPS:
     1. Add your secrets and configuration files
-    2. Use sync.sh to backup to cloud storage
+    2. Use sync_secrets.sh to backup to cloud storage
     3. Set B2 environment variables for cloud sync
 
 EOF

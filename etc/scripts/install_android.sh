@@ -98,8 +98,8 @@ if [[ -d "$HOME/Programming/dotfiles" ]]; then
   echo "🔗 Setting up dotfiles..."
   
   # Run the link script if it exists
-  if [[ -f "$SCRIPT_DIR/install/link.sh" ]]; then
-    "$SCRIPT_DIR/install/link.sh" create
+  if [[ -f "$SCRIPT_DIR/manage_links.sh" ]]; then
+    "$SCRIPT_DIR/manage_links.sh" create
     echo "🔗 Dotfiles linked successfully"
   else
     echo "⚠️ Link script not found, skipping dotfiles setup"

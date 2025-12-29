@@ -104,7 +104,7 @@ check_b2_cli() {
 check_secrets_directory() {
     if [ ! -d "$SECRETS_PATH" ]; then
         log_error "Secrets directory does not exist: $SECRETS_PATH"
-        log_info "Run init.sh first to create the secrets directory"
+        log_info "Run init_secrets.sh first to create the secrets directory"
         return 1
     fi
     
