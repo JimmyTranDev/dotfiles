@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Storage Sync Script
+# Secrets Sync Script
 # Sync secrets to Backblaze B2 cloud storage
-# Usage: ./sync.sh [options]
 
 source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
 set -e
@@ -25,10 +24,6 @@ EMOJI_WARNING="⚠️"
 EMOJI_INFO="ℹ️"
 EMOJI_CLOUD="☁️"
 EMOJI_EYE="👁"
-
-# Default options
-DRY_RUN=false
-INTERACTIVE=true
 
 # Required B2 environment variables
 B2_REQUIRED_VARS=(
@@ -184,57 +179,6 @@ perform_sync() {
     fi
 }
 
-# Interactive mode selection
-interactive_sync() {
-    log_header "Interactive Cloud Storage Sync"
-    echo
-    
-    log_info "Sync configuration:"
-    log_info "  • Source: $SECRETS_PATH"
-    log_info "  • Target: b2://$B2_BUCKET_NAME"
-    log_info "  • Excludes: .m2/repository files"
-    echo
-    
-    echo -e "${CYAN}Sync mode options:${NC}"
-    echo -e "${YELLOW}[1]${NC} Dry run - Preview changes without syncing"
-    echo -e "${YELLOW}[2]${NC} Full sync - Upload files to cloud storage"
-    echo
-    
-    echo -e "${YELLOW}Select sync mode [1/2]:${NC} "
-    read -r mode
-    
-    case "$mode" in
-        1)
-            DRY_RUN=true
-            ;;
-        2)
-            DRY_RUN=false
-            ;;
-        *)
-            log_error "Invalid selection: $mode"
-            return 1
-            ;;
-    esac
-    
-    if [ "$DRY_RUN" = true ]; then
-        echo
-        log_info "${EMOJI_EYE} Dry run: Checking what would be synced..."
-    else
-        echo
-        log_warning "This will upload your secrets to cloud storage."
-        echo -e "${YELLOW}Continue? [y/N]:${NC} "
-        read -r confirm
-        
-        confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
-        if [[ "$confirm" != "y" && "$confirm" != "yes" ]]; then
-            log_info "Sync cancelled"
-            return 0
-        fi
-    fi
-    
-    return 0
-}
-
 # Main sync function
 sync_secrets() {
     # Validation checks
@@ -250,113 +194,28 @@ sync_secrets() {
         return 1
     fi
     
-    # Interactive mode if enabled
-    if [ "$INTERACTIVE" = true ]; then
-        if ! interactive_sync; then
-            return 1
-        fi
-    fi
-    
     # Authorize with B2
     if ! authorize_b2; then
         return 1
     fi
     
-    # Perform sync
-    if ! perform_sync "$DRY_RUN"; then
+    # Perform sync (always full sync, never dry run)
+    if ! perform_sync false; then
         return 1
     fi
     
     echo
     log_info "${EMOJI_CLOUD} Sync Summary:"
-    if [ "$DRY_RUN" = true ]; then
-        log_info "  • Mode: Dry run (preview only)"
-        log_info "  • Files were not actually uploaded"
-        log_info "  • Check output above for sync preview"
-    else
-        log_info "  • Mode: Full sync"
-        log_info "  • Files uploaded to Backblaze B2"
-        log_info "  • Backup completed successfully"
-    fi
+    log_info "  • Mode: Full sync"
+    log_info "  • Files uploaded to Backblaze B2"
+    log_info "  • Backup completed successfully"
     echo
     
     return 0
 }
 
-# Show help
-show_help() {
-    cat << EOF
-☁️ Storage Sync Script
-
-Sync secrets directory to Backblaze B2 cloud storage.
-
-USAGE:
-    $0 [options]
-
-OPTIONS:
-    --dry-run         Preview changes without actually syncing
-    --non-interactive Run without interactive prompts
-    -h, --help        Show this help message
-
-ENVIRONMENT VARIABLES (Required):
-    B2_BUCKET_NAME         Backblaze B2 bucket name
-    B2_APPLICATION_KEY_ID  Backblaze B2 application key ID
-    B2_APPLICATION_KEY     Backblaze B2 application key
-
-DIRECTORY:
-    Secrets synced from: $SECRETS_PATH
-
-FEATURES:
-    • Excludes .m2/repository files (Maven cache)
-    • Replaces newer files on conflict
-    • Interactive mode for safety
-    • Dry run support for preview
-
-EXAMPLES:
-    $0                      # Interactive sync
-    $0 --dry-run            # Preview what would be synced
-    $0 --non-interactive    # Sync without prompts (full sync)
-    $0 --help               # Show this help
-
-REQUIREMENTS:
-    • b2 CLI tool (pip install b2)
-    • B2 environment variables set
-    • Secrets directory initialized
-
-EOF
-}
-
-# Parse command line arguments
-parse_args() {
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            --dry-run)
-                DRY_RUN=true
-                INTERACTIVE=false
-                shift
-                ;;
-            --non-interactive)
-                INTERACTIVE=false
-                shift
-                ;;
-            -h|--help|help)
-                show_help
-                exit 0
-                ;;
-            *)
-                log_error "Unknown option: $1"
-                echo
-                show_help
-                exit 1
-                ;;
-        esac
-    done
-}
-
 # Main function
 main() {
-    parse_args "$@"
-    
     if ! sync_secrets; then
         exit 1
     fi

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Link management script for dotfiles
-# Usage: ./link.sh [create|remove|validate]
+# Creates symlinks for dotfiles configuration
 
 source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
 set -e
@@ -156,148 +156,9 @@ create_links() {
     fi
 }
 
-# Remove symlinks
-remove_links() {
-    log_header "Removing dotfiles symlinks..."
-    
-    local success_count=0
-    local total_count=0
-    
-    while IFS= read -r entry; do
-        [ -z "$entry" ] && continue
-        
-        local dest=$(echo "$entry" | awk '{print $2}')
-        
-        total_count=$((total_count + 1))
-        
-        # Check if destination exists and is a symlink
-        if [ -L "$dest" ]; then
-            if rm "$dest"; then
-                log_success "Removed link: $(basename "$dest")"
-                success_count=$((success_count + 1))
-            else
-                log_error "Failed to remove link: $dest"
-            fi
-        elif [ -e "$dest" ]; then
-            log_warning "Skipping $(basename "$dest") (not a symlink)"
-        else
-            log_warning "Skipping $(basename "$dest") (not found)"
-        fi
-    done <<< "$(get_platform_links)"
-    
-    echo
-    log_info "${EMOJI_TRASH} Removal Summary:"
-    log_info "  • Successfully removed: $success_count links"
-    log_info "  • Failed removals: $((total_count - success_count)) links"
-    log_info "  • Total links processed: $total_count"
-}
-
-# Validate symlinks
-validate_links() {
-    log_header "Validating dotfiles symlinks..."
-    
-    local valid_count=0
-    local broken_count=0
-    local total_count=0
-    local valid_links=()
-    local broken_links=()
-    
-    while IFS= read -r entry; do
-        [ -z "$entry" ] && continue
-        
-        local src=$(echo "$entry" | awk '{print $1}')
-        local dest=$(echo "$entry" | awk '{print $2}')
-        
-        total_count=$((total_count + 1))
-        
-        if [ -L "$dest" ]; then
-            local link_target=$(readlink "$dest")
-            if [ "$link_target" == "$src" ] && [ -e "$src" ]; then
-                valid_links+=("$dest")
-                valid_count=$((valid_count + 1))
-            else
-                broken_links+=("$dest")
-                broken_count=$((broken_count + 1))
-            fi
-        else
-            broken_links+=("$dest")
-            broken_count=$((broken_count + 1))
-        fi
-    done <<< "$(get_platform_links)"
-    
-    echo
-    log_info "${EMOJI_EYE} Validation Results:"
-    log_success "Valid links: $valid_count"
-    log_error "Broken/Missing links: $broken_count"
-    echo
-    
-    if [ ${#valid_links[@]} -gt 0 ]; then
-        log_success "Valid Links:"
-        for link in "${valid_links[@]}"; do
-            echo -e "  ${GREEN}${EMOJI_SUCCESS}${NC} $link"
-        done
-        echo
-    fi
-    
-    if [ ${#broken_links[@]} -gt 0 ]; then
-        log_error "Broken/Missing Links:"
-        for link in "${broken_links[@]}"; do
-            echo -e "  ${RED}${EMOJI_ERROR}${NC} $link"
-        done
-        echo
-        log_warning "To fix broken links, run: $0 create"
-        return 1
-    fi
-    
-    log_success "All symlinks are valid!"
-}
-
-# Show help
-show_help() {
-    echo "Dotfiles Link Manager"
-    echo
-    echo "Usage: $0 [command]"
-    echo
-    echo "Commands:"
-    echo "  create     Create symlinks for dotfiles"
-    echo "  remove     Remove symlinks for dotfiles"
-    echo "  validate   Validate existing symlinks"
-    echo "  help       Show this help message"
-    echo
-    echo "Examples:"
-    echo "  $0 create    # Create all dotfiles symlinks"
-    echo "  $0 remove    # Remove all dotfiles symlinks"
-    echo "  $0 validate  # Check status of existing symlinks"
-}
-
 # Main function
 main() {
-    case "${1:-help}" in
-        create)
-            create_links
-            ;;
-        remove)
-            echo -e "${YELLOW}${EMOJI_WARNING} This will remove all dotfiles symlinks. Continue? [y/N]${NC}"
-            read -r response
-            if [[ "$response" =~ ^[Yy]$ ]]; then
-                remove_links
-            else
-                log_info "Operation cancelled"
-            fi
-            ;;
-        validate)
-            validate_links
-            ;;
-        help|--help|-h)
-            show_help
-            ;;
-        *)
-            log_error "Unknown command: $1"
-            echo
-            show_help
-            exit 1
-            ;;
-    esac
+    create_links
 }
 
 # Run main function with all arguments
