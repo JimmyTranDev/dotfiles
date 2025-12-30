@@ -38,7 +38,7 @@ var (
 			Programming string `yaml:"programming" mapstructure:"programming"`
 			Home        string `yaml:"home" mapstructure:"home"`
 		}{
-			Worktrees:   filepath.Join(os.Getenv("HOME"), "Worktrees"),
+			Worktrees:   filepath.Join(os.Getenv("HOME"), "Programming", "Worktrees"),
 			Programming: filepath.Join(os.Getenv("HOME"), "Programming"),
 			Home:        os.Getenv("HOME"),
 		},

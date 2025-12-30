@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/manifoldco/promptui"
@@ -75,29 +78,40 @@ func installDependencies(ctx context.Context, worktreePath string) error {
 	color.Yellow("📦 Package.json found. Installing dependencies...")
 	color.Cyan("Using package manager: %s", packageManager)
 
+	// Create a timeout context for dependency installation (max 5 minutes)
+	installCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
 	var cmd *exec.Cmd
 	switch packageManager {
 	case "pnpm":
 		if _, err := exec.LookPath("pnpm"); err == nil {
-			cmd = exec.CommandContext(ctx, "pnpm", "install")
+			cmd = exec.CommandContext(installCtx, "pnpm", "install")
 		} else {
 			color.Yellow("pnpm not found, falling back to npm")
-			cmd = exec.CommandContext(ctx, "npm", "install")
+			cmd = exec.CommandContext(installCtx, "npm", "install")
 		}
 	case "yarn":
 		if _, err := exec.LookPath("yarn"); err == nil {
-			cmd = exec.CommandContext(ctx, "yarn", "install")
+			cmd = exec.CommandContext(installCtx, "yarn", "install")
 		} else {
 			color.Yellow("yarn not found, falling back to npm")
-			cmd = exec.CommandContext(ctx, "npm", "install")
+			cmd = exec.CommandContext(installCtx, "npm", "install")
 		}
 	default:
-		cmd = exec.CommandContext(ctx, "npm", "install")
+		cmd = exec.CommandContext(installCtx, "npm", "install")
 	}
 
 	cmd.Dir = worktreePath
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
+	// Prevent interactive prompts during dependency installation
+	cmd.Env = append(os.Environ(),
+		"CI=true",                // Prevent interactive prompts
+		"npm_config_audit=false", // Skip security audits for faster install
+		"npm_config_fund=false",  // Skip funding messages
+	)
 
 	return cmd.Run()
 }
@@ -129,7 +143,23 @@ If no branch name is provided, you'll be prompted to enter one.
 The worktree will be created in the configured worktrees directory.`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := context.Background()
+			// Create a timeout context to prevent hanging - shorter timeout since we removed the fetch
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+			defer cancel()
+
+			// Also listen for interrupt signals
+			go func() {
+				sigChan := make(chan os.Signal, 1)
+				signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+				select {
+				case <-sigChan:
+					color.Yellow("\n⚠️  Received interrupt signal, cancelling operation...")
+					cancel()
+				case <-ctx.Done():
+					// Context finished normally
+				}
+			}()
+
 			gitClient := git.NewClient()
 
 			// Get repository first - either by name or interactive selection
@@ -265,6 +295,10 @@ The worktree will be created in the configured worktrees directory.`,
 			// Create worktree using git client (this handles the git worktree add command)
 			createdWorktree, err := gitClient.CreateWorktreeFromBranch(ctx, repoPath, branchName, mainBranch, worktreePath)
 			if err != nil {
+				// Check if error is due to timeout or cancellation
+				if ctx.Err() != nil {
+					return fmt.Errorf("operation timed out or was cancelled: %w", err)
+				}
 				return fmt.Errorf("failed to create worktree: %w", err)
 			}
 

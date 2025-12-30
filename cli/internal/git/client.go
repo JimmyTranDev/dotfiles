@@ -72,9 +72,64 @@ func (c *client) runGitCommandWithOutput(ctx context.Context, cmd *exec.Cmd) (st
 	cmd.Stdout = &limitedWriter{Writer: &stdout, Limit: maxOutputSize}
 	cmd.Stderr = &limitedWriter{Writer: &stderr, Limit: maxOutputSize}
 
+	// Prevent git from prompting for user input by setting stdin to null
+	cmd.Stdin = nil
+
+	// Set environment variables to prevent interactive prompts
+	if cmd.Env == nil {
+		cmd.Env = os.Environ()
+	}
+	cmd.Env = append(cmd.Env,
+		"GIT_TERMINAL_PROMPT=0", // Disable terminal prompts
+		"GIT_ASKPASS=true",      // Use true as askpass to fail fast on auth
+		"SSH_ASKPASS=true",      // Disable SSH password prompts
+	)
+
+	// Create a timeout context if none exists or if the context has no timeout
+	if ctx == nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+	} else {
+		// Check if context already has a deadline, if not add one
+		if _, hasDeadline := ctx.Deadline(); !hasDeadline {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+			defer cancel()
+		}
+	}
+
+	// Update command context
+	cmd = exec.CommandContext(ctx, cmd.Args[0], cmd.Args[1:]...)
+	cmd.Stdout = &limitedWriter{Writer: &stdout, Limit: maxOutputSize}
+	cmd.Stderr = &limitedWriter{Writer: &stderr, Limit: maxOutputSize}
+	cmd.Stdin = nil
+	cmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_ASKPASS=true",
+		"SSH_ASKPASS=true",
+	)
+	if cmd.Dir == "" {
+		// Preserve the working directory from the original command
+		for i, arg := range cmd.Args {
+			if arg == "-C" && i+1 < len(cmd.Args) {
+				cmd.Dir = cmd.Args[i+1]
+				// Remove -C and path from args since we set Dir
+				cmd.Args = append(cmd.Args[:i], cmd.Args[i+2:]...)
+				break
+			}
+		}
+	}
+
 	// Execute with proper cleanup on context cancellation
 	if err := cmd.Run(); err != nil {
 		output := fmt.Sprintf("stdout: %s, stderr: %s", stdout.String(), stderr.String())
+
+		// Check if context was cancelled (timeout or user interruption)
+		if ctx.Err() != nil {
+			return output, fmt.Errorf("git command timed out or was cancelled: %w", ctx.Err())
+		}
+
 		return output, err
 	}
 
@@ -274,11 +329,15 @@ func (c *client) CreateWorktree(ctx context.Context, repoPath, branch, worktreeP
 		return nil, errors.NewGitError("failed to open main repository", err)
 	}
 
-	return &domain.Worktree{
+	fmt.Printf("DEBUG: Creating worktree domain object\n")
+	worktreeObj := &domain.Worktree{
 		Path:       worktreePath,
 		Branch:     branch,
 		Repository: mainRepo,
-	}, nil
+	}
+	fmt.Printf("DEBUG: Returning worktree object: Path=%s, Branch=%s\n", worktreeObj.Path, worktreeObj.Branch)
+
+	return worktreeObj, nil
 }
 
 // CreateWorktreeFromBranch creates a new Git worktree from a specific base branch
@@ -295,19 +354,44 @@ func (c *client) CreateWorktreeFromBranch(ctx context.Context, repoPath, branch,
 		return nil, errors.NewWorktreeExistsError(worktreePath)
 	}
 
-	// Create worktree with new branch from base branch, matching the shell script behavior
-	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "worktree", "add", "-b", branch, worktreePath, baseBranch)
-
-	// Limit output size to prevent memory exhaustion and add proper error handling
-	output, err := c.runGitCommandWithOutput(ctx, cmd)
-	if err != nil {
-		return nil, errors.NewGitError(fmt.Sprintf("failed to create worktree from branch %s: %s", baseBranch, output), err)
+	// Ensure we have a timeout context
+	if ctx == nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+	} else if _, hasDeadline := ctx.Deadline(); !hasDeadline {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+		defer cancel()
 	}
 
-	// Open repository to get information
-	mainRepo, err := c.OpenRepository(repoPath)
+	// Create worktree with new branch from base branch, matching the shell script behavior exactly
+	// Note: We skip the fetch operation to avoid hanging on authentication/network issues
+	// The bash script works without explicit fetch, so we follow the same pattern
+	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "worktree", "add", "-b", branch, worktreePath, baseBranch)
+
+	// Set environment to prevent interactive prompts
+	cmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_ASKPASS=true",
+		"SSH_ASKPASS=true",
+	)
+	cmd.Stdin = nil // Prevent waiting for stdin input
+
+	// Use simple execution instead of runGitCommandWithOutput to avoid complexity
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, errors.NewGitError("failed to open main repository", err)
+		// Provide more detailed error information
+		return nil, errors.NewGitError(fmt.Sprintf("failed to create worktree from branch %s: %s", baseBranch, string(output)), err)
+	}
+
+	// Simplified repository creation to avoid potential hangs with go-git library
+	// We only need basic info for the worktree creation, similar to the bash script approach
+	mainRepo := &domain.Repository{
+		Path:    repoPath,
+		Name:    filepath.Base(repoPath),
+		Branch:  baseBranch,
+		LastMod: time.Now(),
 	}
 
 	return &domain.Worktree{
@@ -559,11 +643,29 @@ func (c *client) FindMainBranch(ctx context.Context, repoPath string) (string, e
 		return "", errors.NewError(errors.ErrInvalidInput, "repository path must be absolute")
 	}
 
+	// Ensure we have a timeout context
+	if ctx == nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+	} else if _, hasDeadline := ctx.Deadline(); !hasDeadline {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
+		defer cancel()
+	}
+
 	// Common main branch names to check in order of preference
 	mainBranches := []string{"main", "master", "develop", "dev"}
 
 	// First, try to get the default branch from remote
 	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "symbolic-ref", "refs/remotes/origin/HEAD")
+	cmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_ASKPASS=true",
+		"SSH_ASKPASS=true",
+	)
+	cmd.Stdin = nil
+
 	if output, err := cmd.Output(); err == nil {
 		// Parse output like "refs/remotes/origin/main"
 		parts := strings.Split(strings.TrimSpace(string(output)), "/")
@@ -578,6 +680,13 @@ func (c *client) FindMainBranch(ctx context.Context, repoPath string) (string, e
 	// If that fails, check which of the common branches exist
 	for _, branch := range mainBranches {
 		cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "show-ref", "--verify", "--quiet", "refs/heads/"+branch)
+		cmd.Env = append(os.Environ(),
+			"GIT_TERMINAL_PROMPT=0",
+			"GIT_ASKPASS=true",
+			"SSH_ASKPASS=true",
+		)
+		cmd.Stdin = nil
+
 		if err := cmd.Run(); err == nil {
 			return branch, nil
 		}
@@ -585,6 +694,13 @@ func (c *client) FindMainBranch(ctx context.Context, repoPath string) (string, e
 
 	// As a last resort, get the current branch
 	cmd = exec.CommandContext(ctx, "git", "-C", repoPath, "branch", "--show-current")
+	cmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_ASKPASS=true",
+		"SSH_ASKPASS=true",
+	)
+	cmd.Stdin = nil
+
 	if output, err := cmd.Output(); err == nil {
 		currentBranch := strings.TrimSpace(string(output))
 		if currentBranch != "" {
@@ -605,10 +721,30 @@ func (c *client) CreateEmptyCommit(ctx context.Context, repoPath, message string
 		return errors.NewError(errors.ErrInvalidInput, "repository path must be absolute")
 	}
 
+	// Ensure we have a timeout context
+	if ctx == nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+	} else if _, hasDeadline := ctx.Deadline(); !hasDeadline {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
+		defer cancel()
+	}
+
 	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "commit", "--allow-empty", "-m", message)
-	output, err := c.runGitCommandWithOutput(ctx, cmd)
+
+	// Set environment to prevent interactive prompts
+	cmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_ASKPASS=true",
+		"SSH_ASKPASS=true",
+	)
+	cmd.Stdin = nil // Prevent waiting for stdin input
+
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return errors.NewGitError(fmt.Sprintf("failed to create empty commit: %s", output), err)
+		return errors.NewGitError(fmt.Sprintf("failed to create empty commit: %s", string(output)), err)
 	}
 
 	return nil
