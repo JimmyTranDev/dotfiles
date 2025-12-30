@@ -21,20 +21,48 @@ type SelectOption struct {
 
 // SelectModel represents the Bubble Tea model for selection
 type SelectModel struct {
-	title    string
-	options  []SelectOption
-	cursor   int
-	selected string
-	quitting bool
-	help     string
+	title           string
+	options         []SelectOption
+	filteredOptions []SelectOption
+	cursor          int
+	selected        string
+	quitting        bool
+	help            string
+	searchMode      bool
+	searchQuery     string
 }
 
 // NewSelectModel creates a new selection model
 func NewSelectModel(title string, options []SelectOption) SelectModel {
 	return SelectModel{
-		title:   title,
-		options: options,
-		help:    "↑/↓: navigate • enter: select • q/esc: quit anytime",
+		title:           title,
+		options:         options,
+		filteredOptions: options,
+		help:            "↑/↓: navigate • enter: select • /: search • esc: clear search/quit",
+	}
+}
+
+// filterOptions filters options based on search query
+func (m *SelectModel) filterOptions() {
+	if m.searchQuery == "" {
+		m.filteredOptions = m.options
+		return
+	}
+
+	query := strings.ToLower(m.searchQuery)
+	m.filteredOptions = make([]SelectOption, 0)
+
+	for _, option := range m.options {
+		if strings.Contains(strings.ToLower(option.Title), query) ||
+			strings.Contains(strings.ToLower(option.Description), query) ||
+			strings.Contains(strings.ToLower(option.Key), query) {
+			m.filteredOptions = append(m.filteredOptions, option)
+		}
+	}
+
+	// Reset cursor if it's out of bounds
+	if m.cursor >= len(m.filteredOptions) {
+		m.cursor = 0
 	}
 }
 
@@ -47,25 +75,72 @@ func (m SelectModel) Init() tea.Cmd {
 func (m SelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		// Handle search mode
+		if m.searchMode {
+			switch msg.String() {
+			case "esc":
+				// Exit search mode and clear search
+				m.searchMode = false
+				m.searchQuery = ""
+				m.filterOptions()
+				return m, nil
+			case "enter":
+				// Exit search mode but keep the search
+				m.searchMode = false
+				return m, nil
+			case "backspace":
+				if len(m.searchQuery) > 0 {
+					m.searchQuery = m.searchQuery[:len(m.searchQuery)-1]
+					m.filterOptions()
+				}
+				return m, nil
+			default:
+				// Add character to search query
+				if len(msg.String()) == 1 && msg.String() >= " " && msg.String() <= "~" {
+					m.searchQuery += msg.String()
+					m.filterOptions()
+				}
+				return m, nil
+			}
+		}
+
+		// Handle normal mode
 		switch msg.String() {
-		case "q", "ctrl+c", "esc":
+		case "q", "ctrl+c":
 			m.quitting = true
 			return m, tea.Quit
+		case "esc":
+			if m.searchQuery != "" {
+				// Clear search if there's a query
+				m.searchQuery = ""
+				m.filterOptions()
+				return m, nil
+			} else {
+				// Quit if no search query
+				m.quitting = true
+				return m, tea.Quit
+			}
+		case "/":
+			// Enter search mode
+			m.searchMode = true
+			return m, nil
 		case "up", "k":
 			if m.cursor > 0 {
 				m.cursor--
 			}
 		case "down", "j":
-			if m.cursor < len(m.options)-1 {
+			if m.cursor < len(m.filteredOptions)-1 {
 				m.cursor++
 			}
 		case "enter", " ":
-			m.selected = m.options[m.cursor].Key
-			m.quitting = true
-			return m, tea.Quit
+			if len(m.filteredOptions) > 0 {
+				m.selected = m.filteredOptions[m.cursor].Key
+				m.quitting = true
+				return m, tea.Quit
+			}
 		default:
 			// Check for direct key selection
-			for i, option := range m.options {
+			for i, option := range m.filteredOptions {
 				if option.Key == msg.String() {
 					m.cursor = i
 					m.selected = option.Key
@@ -92,8 +167,20 @@ func (m SelectModel) View() string {
 	b.WriteString(styles.Header.Render(EmojiTool + "  " + m.title))
 	b.WriteString("\n\n")
 
+	// Search bar
+	if m.searchMode || m.searchQuery != "" {
+		searchPrompt := "Search: "
+		if m.searchMode {
+			searchPrompt += m.searchQuery + "█" // cursor
+		} else {
+			searchPrompt += m.searchQuery
+		}
+		b.WriteString(styles.Help.Render(searchPrompt))
+		b.WriteString("\n\n")
+	}
+
 	// Options
-	for i, option := range m.options {
+	for i, option := range m.filteredOptions {
 		cursor := "  "
 		if i == m.cursor {
 			cursor = styles.Cursor.Render(EmojiArrow + " ")
@@ -113,9 +200,20 @@ func (m SelectModel) View() string {
 		b.WriteString("\n")
 	}
 
+	// Show message if no results
+	if len(m.filteredOptions) == 0 && m.searchQuery != "" {
+		b.WriteString("\n")
+		b.WriteString(styles.Help.Render("No matches found for \"" + m.searchQuery + "\""))
+		b.WriteString("\n")
+	}
+
 	// Help text with subtle styling
 	b.WriteString("\n")
-	b.WriteString(styles.Help.Render(m.help))
+	if m.searchMode {
+		b.WriteString(styles.Help.Render("enter: confirm search • esc: cancel search • backspace: delete"))
+	} else {
+		b.WriteString(styles.Help.Render(m.help))
+	}
 
 	return b.String()
 }

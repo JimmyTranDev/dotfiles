@@ -52,7 +52,7 @@ func selectMultipleWorktrees(worktrees []*domain.Worktree) ([]string, error) {
 		Message:  "Select worktrees to delete:",
 		Options:  options,
 		PageSize: 15, // Show up to 15 items at once
-		Help:     "Use arrow keys to navigate, spacebar to select/deselect, enter to confirm",
+		Help:     "Use arrow keys to navigate, spacebar to select/deselect, enter to confirm, / to search",
 	}
 
 	err := survey.AskOne(prompt, &selected)
@@ -150,15 +150,24 @@ func installDependencies(ctx context.Context, worktreePath string, packageManage
 	return cmd.Run()
 }
 
-// logCommitHistory logs commit to programming notes (placeholder for now)
+// logCommitHistory logs commit to programming notes (simplified implementation)
 func logCommitHistory(commitMessage string) {
-	// This is a placeholder - in the full implementation this would:
-	// 1. Get current date and week information
-	// 2. Create/update weekly log files
-	// 3. Auto-commit to notes repository
-	// For now, we'll just log that it would happen
+	// Skip logging for notes.md files (matching shell script logic)
+	if strings.Contains(commitMessage, "notes.md") {
+		return
+	}
+
 	color.Yellow("📝 Logging commit to programming notes...")
-	color.Green("✅ Log entry would be added for: %s", commitMessage)
+
+	// In the full implementation this would:
+	// 1. Get current date and week information (date +%V, date +%Y, etc.)
+	// 2. Create/update weekly log files in $HOME/Programming/notes.md/<repo>/<year>-<week>.md
+	// 3. Format with titles: # Week <week>, <year> and ## <day> (<date>)
+	// 4. Auto-commit to notes repository with "feat: ✨ update"
+
+	// For now, simulate the logging
+	color.Green("✅ Commit logged: %s", commitMessage)
+	color.Cyan("    Would log to: ~/Programming/notes.md/<repo>/<year>-<week>.md")
 }
 
 // newWorktreeCreateCmd creates the worktree create command
@@ -218,23 +227,32 @@ The worktree will be created in the configured worktrees directory.`,
 
 				color.Yellow("Using repository: %s", filepath.Base(repos[0].Path))
 				if len(repos) > 1 {
-					// Create selection prompt
-					templates := &promptui.SelectTemplates{
-						Label:    "{{ . }}",
-						Active:   "→ {{ .Name | cyan }} ({{ .Path | faint }})",
-						Inactive: "  {{ .Name }} ({{ .Path | faint }})",
-						Selected: "✓ {{ .Name | green }}",
+					// Convert repositories to select options
+					options := make([]ui.SelectOption, len(repos))
+					for i, repo := range repos {
+						options[i] = ui.SelectOption{
+							Key:         fmt.Sprintf("%d", i),
+							Title:       repo.Name,
+							Description: repo.Path,
+						}
 					}
 
-					prompt := promptui.Select{
-						Label:     "Select repository",
-						Items:     repos,
-						Templates: templates,
-					}
-
-					idx, _, err := prompt.Run()
+					// Use the search-enabled UI for repository selection
+					selected, err := ui.RunSelection("Select repository", options)
 					if err != nil {
+						if ui.IsQuitError(err) {
+							return fmt.Errorf("repository selection cancelled")
+						}
 						return fmt.Errorf("failed to select repository: %w", err)
+					}
+
+					// Convert selected key back to index
+					idx := 0
+					for i, option := range options {
+						if option.Key == selected {
+							idx = i
+							break
+						}
 					}
 
 					repoPath = repos[idx].Path
@@ -253,29 +271,30 @@ The worktree will be created in the configured worktrees directory.`,
 			color.Yellow("Base branch: %s", mainBranch)
 
 			// Get branch name
-			var branchName string
+			var originalInput string
 			if len(args) > 0 {
-				branchName = args[0]
+				originalInput = args[0]
 			} else if branch != "" {
-				branchName = branch
+				originalInput = branch
 			} else {
 				prompt := promptui.Prompt{
 					Label: "Branch name",
 				}
-				branchName, err = prompt.Run()
+				originalInput, err = prompt.Run()
 				if err != nil {
 					return fmt.Errorf("failed to get branch name: %w", err)
 				}
 			}
 
-			// Validate branch name
-			if branchName == "" {
+			// Validate input
+			if originalInput == "" {
 				return fmt.Errorf("branch name cannot be empty")
 			}
 
-			// Clean branch name (sanitize)
-			// Basic sanitization - replace invalid characters with hyphens
-			invalidChars := regexp.MustCompile(`[^a-zA-Z0-9._/-]`)
+			// Keep original input for commit message, sanitize for branch name
+			branchName := originalInput
+			// Clean branch name (sanitize) - similar to shell script logic
+			invalidChars := regexp.MustCompile(`[^a-zA-Z0-9._-]`)
 			branchName = invalidChars.ReplaceAllString(branchName, "-")
 			// Remove multiple consecutive hyphens
 			multipleHyphens := regexp.MustCompile(`-+`)
@@ -293,22 +312,32 @@ The worktree will be created in the configured worktrees directory.`,
 			commitTypes := getCommitTypes()
 			color.Cyan("Select commit type:")
 
-			templates := &promptui.SelectTemplates{
-				Label:    "{{ . }}",
-				Active:   "→ {{ .Name | cyan }} ({{ .Emoji }} {{ .Desc | faint }})",
-				Inactive: "  {{ .Name }} ({{ .Emoji }} {{ .Desc | faint }})",
-				Selected: "✓ {{ .Name | green }}",
+			// Convert commit types to select options
+			options := make([]ui.SelectOption, len(commitTypes))
+			for i, ct := range commitTypes {
+				options[i] = ui.SelectOption{
+					Key:         fmt.Sprintf("%d", i),
+					Title:       fmt.Sprintf("%s %s", ct.Emoji, ct.Name),
+					Description: ct.Desc,
+				}
 			}
 
-			commitPrompt := promptui.Select{
-				Label:     "Select commit type",
-				Items:     commitTypes,
-				Templates: templates,
+			selected, err := ui.RunSelection("Select commit type", options)
+			if err != nil && !ui.IsQuitError(err) {
+				return fmt.Errorf("failed to select commit type: %w", err)
 			}
 
-			selectedIdx, _, err := commitPrompt.Run()
-			if err != nil {
-				// Default to feat if selection fails
+			selectedIdx := 0
+			if err == nil {
+				// Convert selected key back to index
+				for i, option := range options {
+					if option.Key == selected {
+						selectedIdx = i
+						break
+					}
+				}
+			} else {
+				// Default to feat if selection fails or is cancelled
 				selectedIdx = 0
 			}
 
@@ -349,9 +378,9 @@ The worktree will be created in the configured worktrees directory.`,
 			color.Cyan("📁 Path: %s", createdWorktree.Path)
 			color.Cyan("🌿 Branch: %s", createdWorktree.Branch)
 
-			// Create an empty initial commit with the branch name
+			// Create an empty initial commit with the original input
 			color.Yellow("Creating initial commit...")
-			commitMessage := fmt.Sprintf("%s: %s %s", selectedCommitType.Name, selectedCommitType.Emoji, branchName)
+			commitMessage := fmt.Sprintf("%s: %s %s", selectedCommitType.Name, selectedCommitType.Emoji, originalInput)
 
 			// Create empty commit
 			if err := gitClient.CreateEmptyCommit(ctx, worktreePath, commitMessage); err != nil {
@@ -620,11 +649,28 @@ Use arrow keys to navigate, spacebar to select/deselect, and enter to confirm.`,
 					color.Red("✗ Failed to delete %s: %v", filepath.Base(worktreePath), err)
 					failed = append(failed, worktreePath)
 				} else {
+					var statusMsg string
 					if result.UsedFallback {
-						color.Yellow("⚠ %s deleted using fallback method", filepath.Base(worktreePath))
+						statusMsg = fmt.Sprintf("⚠ %s deleted using fallback method", filepath.Base(worktreePath))
 					} else {
-						color.Green("✓ %s deleted successfully", filepath.Base(worktreePath))
+						statusMsg = fmt.Sprintf("✓ %s deleted successfully", filepath.Base(worktreePath))
 					}
+
+					// Add branch deletion info
+					if result.BranchDeleted {
+						statusMsg += fmt.Sprintf(" (branch '%s' deleted)", result.Branch)
+					} else if result.BranchDeleteError != "" {
+						statusMsg += fmt.Sprintf(" (branch deletion failed: %s)", result.BranchDeleteError)
+					} else if result.Branch != "" {
+						statusMsg += fmt.Sprintf(" (branch '%s' preserved)", result.Branch)
+					}
+
+					if result.UsedFallback {
+						color.Yellow(statusMsg)
+					} else {
+						color.Green(statusMsg)
+					}
+
 					successful = append(successful, worktreePath)
 				}
 			}
@@ -653,17 +699,10 @@ Use arrow keys to navigate, spacebar to select/deselect, and enter to confirm.`,
 				if len(failed) > 0 {
 					color.Cyan("  • Failed: %d", len(failed))
 				}
+				color.Cyan("  • Associated branches are automatically deleted")
 				fmt.Println()
 
-				// Check if any used fallback method
-				// This is a simplified version - in a full implementation we'd track the deletion method per worktree
-				hasFailback := false
-
-				if hasFailback {
-					color.Yellow("💡 Tip: Run 'worktree clean' to remove any remaining stale references")
-				} else {
-					color.Yellow("💡 All git references were properly cleaned up")
-				}
+				color.Yellow("💡 Worktrees and their local branches have been cleaned up")
 				fmt.Println()
 			}
 

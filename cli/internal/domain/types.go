@@ -80,9 +80,12 @@ func (w *Worktree) IsValid() bool {
 
 // DeletionResult represents the result of a worktree deletion
 type DeletionResult struct {
-	Path         string `json:"path"`
-	UsedFallback bool   `json:"used_fallback"`
-	Method       string `json:"method"` // "git" or "directory"
+	Path              string `json:"path"`
+	Branch            string `json:"branch,omitempty"` // Branch that was deleted
+	UsedFallback      bool   `json:"used_fallback"`
+	Method            string `json:"method"`                        // "git" or "directory"
+	BranchDeleted     bool   `json:"branch_deleted"`                // Whether the branch was deleted
+	BranchDeleteError string `json:"branch_delete_error,omitempty"` // Error if branch deletion failed
 }
 
 // DetectPackageType detects package type from project path

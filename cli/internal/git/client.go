@@ -36,6 +36,7 @@ type Client interface {
 	// Branch operations
 	ListBranches(ctx context.Context, repoPath string) ([]string, error)
 	CreateBranch(ctx context.Context, repoPath, branchName, baseBranch string) error
+	DeleteBranch(ctx context.Context, repoPath, branchName string, force bool) error
 	CheckoutBranch(ctx context.Context, repoPath, branchName string) error
 	FindMainBranch(ctx context.Context, repoPath string) (string, error)
 
@@ -456,7 +457,7 @@ func (c *client) ListWorktrees(ctx context.Context, repoPath string) ([]*domain.
 	return worktrees, nil
 }
 
-// DeleteWorktree deletes a Git worktree
+// DeleteWorktree deletes a Git worktree and its associated branch
 func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*domain.DeletionResult, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -471,13 +472,65 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 	}
 
 	result := &domain.DeletionResult{
-		Path:         worktreePath,
-		UsedFallback: false,
-		Method:       "git",
+		Path:          worktreePath,
+		UsedFallback:  false,
+		Method:        "git",
+		BranchDeleted: false,
+	}
+
+	// Get branch name and repository path before deletion
+	var branchName string
+	var repoPath string
+
+	// First, try to get the branch from git status in the worktree
+	cmd := exec.CommandContext(ctx, "git", "-C", worktreePath, "branch", "--show-current")
+	if output, err := cmd.Output(); err == nil {
+		branchName = strings.TrimSpace(string(output))
+		result.Branch = branchName
+	}
+
+	// Try to get the repository path from the worktree
+	cmd = exec.CommandContext(ctx, "git", "-C", worktreePath, "rev-parse", "--git-common-dir")
+	if output, err := cmd.Output(); err == nil {
+		gitCommonDir := strings.TrimSpace(string(output))
+		if filepath.IsAbs(gitCommonDir) {
+			repoPath = filepath.Dir(gitCommonDir)
+		} else {
+			// Relative path, resolve it
+			absPath, err := filepath.Abs(filepath.Join(worktreePath, gitCommonDir))
+			if err == nil {
+				repoPath = filepath.Dir(absPath)
+			}
+		}
+	}
+
+	// If we can't get repo path from the worktree, try to find it through worktree list
+	if repoPath == "" {
+		// This is more complex - we need to find which repository owns this worktree
+		// We'll try common parent directories to find a .git folder
+		parentDir := filepath.Dir(worktreePath)
+		for i := 0; i < 5; i++ { // Limit search depth
+			testRepoPath := filepath.Join(parentDir, "..")
+			if testRepoPath == parentDir {
+				break // Reached root
+			}
+			parentDir = testRepoPath
+
+			if _, err := os.Stat(filepath.Join(parentDir, ".git")); err == nil {
+				// Found a potential repository
+				cmd := exec.CommandContext(ctx, "git", "-C", parentDir, "worktree", "list")
+				if output, err := cmd.Output(); err == nil {
+					if strings.Contains(string(output), worktreePath) {
+						repoPath = parentDir
+						break
+					}
+				}
+			}
+		}
 	}
 
 	// First try to use git command to remove worktree (the proper way)
-	cmd := exec.CommandContext(ctx, "git", "worktree", "remove", worktreePath)
+	cmd = exec.CommandContext(ctx, "git", "worktree", "remove", worktreePath)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		// Check if the error is due to missing git repository context or worktree corruption
 		outputStr := string(output)
@@ -496,11 +549,29 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 			// Successfully removed directory as fallback
 			result.UsedFallback = true
 			result.Method = "directory"
-			return result, nil
+		} else {
+			// For other git errors, return the original git error
+			return nil, errors.NewGitError(fmt.Sprintf("failed to remove worktree: %s", outputStr), err)
 		}
+	}
 
-		// For other git errors, return the original git error
-		return nil, errors.NewGitError(fmt.Sprintf("failed to remove worktree: %s", outputStr), err)
+	// Now try to delete the associated branch if we have the information
+	if branchName != "" && repoPath != "" && branchName != "main" && branchName != "master" && branchName != "develop" {
+		// Don't delete main branches
+		if err := c.DeleteBranch(ctx, repoPath, branchName, false); err != nil {
+			// If regular delete fails, try force delete
+			if strings.Contains(err.Error(), "not fully merged") {
+				if forceErr := c.DeleteBranch(ctx, repoPath, branchName, true); forceErr != nil {
+					result.BranchDeleteError = fmt.Sprintf("failed to delete branch '%s': %v", branchName, forceErr)
+				} else {
+					result.BranchDeleted = true
+				}
+			} else {
+				result.BranchDeleteError = fmt.Sprintf("failed to delete branch '%s': %v", branchName, err)
+			}
+		} else {
+			result.BranchDeleted = true
+		}
 	}
 
 	return result, nil
@@ -602,6 +673,58 @@ func (c *client) CreateBranch(ctx context.Context, repoPath, branchName, baseBra
 	})
 	if err != nil {
 		return errors.NewGitError("failed to checkout new branch", err)
+	}
+
+	return nil
+}
+
+// DeleteBranch deletes a branch from the repository
+func (c *client) DeleteBranch(ctx context.Context, repoPath, branchName string, force bool) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if !filepath.IsAbs(repoPath) {
+		return errors.NewError(errors.ErrInvalidInput, "repository path must be absolute")
+	}
+
+	// Ensure we have a timeout context
+	if ctx == nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+	} else if _, hasDeadline := ctx.Deadline(); !hasDeadline {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
+		defer cancel()
+	}
+
+	// Choose the appropriate flag for deletion
+	flag := "-d" // Regular delete (safe)
+	if force {
+		flag = "-D" // Force delete (ignores merge status)
+	}
+
+	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "branch", flag, branchName)
+
+	// Set environment to prevent interactive prompts
+	cmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_ASKPASS=true",
+		"SSH_ASKPASS=true",
+	)
+	cmd.Stdin = nil
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		outputStr := string(output)
+		// Check for common errors and provide better messages
+		if strings.Contains(outputStr, "not found") || strings.Contains(outputStr, "not a valid branch name") {
+			return errors.NewError(errors.ErrInvalidInput, fmt.Sprintf("branch '%s' not found", branchName))
+		}
+		if strings.Contains(outputStr, "not fully merged") {
+			return errors.NewError(errors.ErrGitOperation, fmt.Sprintf("branch '%s' is not fully merged; use force delete if you're sure", branchName))
+		}
+		return errors.NewGitError(fmt.Sprintf("failed to delete branch '%s': %s", branchName, outputStr), err)
 	}
 
 	return nil
