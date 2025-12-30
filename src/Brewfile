@@ -49,12 +49,10 @@ brew "stylua"
 # Casks
 cask "font-fira-code-nerd-font"
 cask "postman"
-cask "qbittorrent"
 cask "raycast"
 cask "ghostty"
 cask "android-studio"
 cask "google-chrome"
-cask "capcut"
 cask "figma"
 cask "db-browser-for-sqlite"
 
