@@ -1,4 +1,4 @@
-theme = catppuccin-mocha
+theme = catppuccin-mocha.conf
 shell-integration = zsh
 shell-integration-features = cursor,sudo,title
 initial-command = /Users/jimmy/Programming/dotfiles/etc/scripts/ghostty_zellij_startup.sh
@@ -9,6 +9,6 @@ keybind = ctrl+shift+equal=increase_font_size:1
 keybind = ctrl+shift+minus=decrease_font_size:1
 clipboard-read = allow
 clipboard-write = allow
-font-size = 32
+font-size = 16
 confirm-close-surface = false
 keybind = shift+enter=text:\x1b\r

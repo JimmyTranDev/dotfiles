@@ -98,8 +98,15 @@ select_worktree() {
 zle -N select_worktree
 bindkey '^g' select_worktree
 
-eval "$(starship init zsh)"
-eval "$(fnm env --use-on-cd --shell zsh)"
+# Initialize starship if installed
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+fi
+
+# Initialize fnm if installed
+if command -v fnm >/dev/null 2>&1; then
+  eval "$(fnm env --use-on-cd --shell zsh)"
+fi
 
 zellij_tab_name_update() {
   if [[ -n $ZELLIJ ]]; then
