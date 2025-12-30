@@ -78,6 +78,13 @@ func (w *Worktree) IsValid() bool {
 	return w.Path != "" && filepath.IsAbs(w.Path) && w.Repository != nil
 }
 
+// DeletionResult represents the result of a worktree deletion
+type DeletionResult struct {
+	Path         string `json:"path"`
+	UsedFallback bool   `json:"used_fallback"`
+	Method       string `json:"method"` // "git" or "directory"
+}
+
 // DetectPackageType detects package type from project path
 func (p *Project) DetectPackageType() PackageType {
 	// This will be implemented to check for package.json, go.mod, Cargo.toml, etc.

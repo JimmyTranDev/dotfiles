@@ -30,7 +30,8 @@ type Client interface {
 	CreateWorktree(ctx context.Context, repoPath, branch, worktreePath string) (*domain.Worktree, error)
 	CreateWorktreeFromBranch(ctx context.Context, repoPath, branch, baseBranch, worktreePath string) (*domain.Worktree, error)
 	ListWorktrees(ctx context.Context, repoPath string) ([]*domain.Worktree, error)
-	DeleteWorktree(ctx context.Context, worktreePath string) error
+	DeleteWorktree(ctx context.Context, worktreePath string) (*domain.DeletionResult, error)
+	PruneWorktrees(ctx context.Context, repoPath string) error
 
 	// Branch operations
 	ListBranches(ctx context.Context, repoPath string) ([]string, error)
@@ -329,15 +330,11 @@ func (c *client) CreateWorktree(ctx context.Context, repoPath, branch, worktreeP
 		return nil, errors.NewGitError("failed to open main repository", err)
 	}
 
-	fmt.Printf("DEBUG: Creating worktree domain object\n")
-	worktreeObj := &domain.Worktree{
+	return &domain.Worktree{
 		Path:       worktreePath,
 		Branch:     branch,
 		Repository: mainRepo,
-	}
-	fmt.Printf("DEBUG: Returning worktree object: Path=%s, Branch=%s\n", worktreeObj.Path, worktreeObj.Branch)
-
-	return worktreeObj, nil
+	}, nil
 }
 
 // CreateWorktreeFromBranch creates a new Git worktree from a specific base branch
@@ -460,23 +457,81 @@ func (c *client) ListWorktrees(ctx context.Context, repoPath string) ([]*domain.
 }
 
 // DeleteWorktree deletes a Git worktree
-func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) error {
+func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*domain.DeletionResult, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	if !filepath.IsAbs(worktreePath) {
-		return errors.NewError(errors.ErrInvalidInput, "worktree path must be absolute")
+		return nil, errors.NewError(errors.ErrInvalidInput, "worktree path must be absolute")
 	}
 
 	// Check if worktree exists
 	if _, err := os.Stat(worktreePath); os.IsNotExist(err) {
-		return errors.NewWorktreeNotFoundError(worktreePath)
+		return nil, errors.NewWorktreeNotFoundError(worktreePath)
 	}
 
-	// Use git command to remove worktree
+	result := &domain.DeletionResult{
+		Path:         worktreePath,
+		UsedFallback: false,
+		Method:       "git",
+	}
+
+	// First try to use git command to remove worktree (the proper way)
 	cmd := exec.CommandContext(ctx, "git", "worktree", "remove", worktreePath)
 	if output, err := cmd.CombinedOutput(); err != nil {
-		return errors.NewGitError(fmt.Sprintf("failed to remove worktree: %s", string(output)), err)
+		// Check if the error is due to missing git repository context or worktree corruption
+		outputStr := string(output)
+		if strings.Contains(outputStr, "not a git repository") ||
+			strings.Contains(outputStr, "fatal: not a git repository") ||
+			strings.Contains(outputStr, "not in a git directory") ||
+			strings.Contains(outputStr, ".git' does not exist") ||
+			strings.Contains(outputStr, "validation failed, cannot remove working tree") {
+
+			// Fallback: remove the directory directly since git context is lost
+			if removeErr := os.RemoveAll(worktreePath); removeErr != nil {
+				return nil, errors.NewError(errors.ErrGitOperation,
+					fmt.Sprintf("git worktree remove failed and directory removal also failed: git error: %s, remove error: %v",
+						outputStr, removeErr))
+			}
+			// Successfully removed directory as fallback
+			result.UsedFallback = true
+			result.Method = "directory"
+			return result, nil
+		}
+
+		// For other git errors, return the original git error
+		return nil, errors.NewGitError(fmt.Sprintf("failed to remove worktree: %s", outputStr), err)
+	}
+
+	return result, nil
+}
+
+// PruneWorktrees removes references to worktrees that no longer exist
+func (c *client) PruneWorktrees(ctx context.Context, repoPath string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if !filepath.IsAbs(repoPath) {
+		return errors.NewError(errors.ErrInvalidInput, "repository path must be absolute")
+	}
+
+	// Check if repository exists
+	if _, err := os.Stat(repoPath); os.IsNotExist(err) {
+		return errors.NewError(errors.ErrInvalidRepository, fmt.Sprintf("repository not found at %s", repoPath))
+	}
+
+	// Use git worktree prune command to clean up stale references
+	cmd := exec.CommandContext(ctx, "git", "worktree", "prune")
+	cmd.Dir = repoPath
+
+	// Set up environment to prevent interactive prompts
+	cmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GCM_INTERACTIVE=never",
+	)
+
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return errors.NewGitError(fmt.Sprintf("failed to prune worktrees: %s", string(output)), err)
 	}
 
 	return nil

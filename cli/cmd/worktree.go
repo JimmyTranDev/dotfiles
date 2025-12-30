@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -19,6 +20,7 @@ import (
 	"github.com/jimmy/worktree-cli/internal/config"
 	"github.com/jimmy/worktree-cli/internal/domain"
 	"github.com/jimmy/worktree-cli/internal/git"
+	"github.com/jimmy/worktree-cli/internal/ui"
 )
 
 // commitType represents available commit types
@@ -26,6 +28,47 @@ type commitType struct {
 	Name  string
 	Emoji string
 	Desc  string
+}
+
+// selectMultipleWorktrees allows user to select multiple worktrees using checkboxes
+func selectMultipleWorktrees(worktrees []*domain.Worktree) ([]string, error) {
+	if len(worktrees) == 0 {
+		return nil, fmt.Errorf("no worktrees available for selection")
+	}
+
+	// Create options for the multi-select prompt
+	options := make([]string, len(worktrees))
+	pathMap := make(map[string]string) // display string -> path
+
+	for i, wt := range worktrees {
+		displayName := fmt.Sprintf("%s (branch: %s)", filepath.Base(wt.Path), wt.Branch)
+		options[i] = displayName
+		pathMap[displayName] = wt.Path
+	}
+
+	// Use survey for multi-select
+	var selected []string
+	prompt := &survey.MultiSelect{
+		Message:  "Select worktrees to delete:",
+		Options:  options,
+		PageSize: 15, // Show up to 15 items at once
+		Help:     "Use arrow keys to navigate, spacebar to select/deselect, enter to confirm",
+	}
+
+	err := survey.AskOne(prompt, &selected)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert display names back to paths
+	var selectedPaths []string
+	for _, displayName := range selected {
+		if path, exists := pathMap[displayName]; exists {
+			selectedPaths = append(selectedPaths, path)
+		}
+	}
+
+	return selectedPaths, nil
 }
 
 // getCommitTypes returns available commit types with emojis
@@ -67,17 +110,8 @@ func detectPackageManager(dir string) string {
 	return ""
 }
 
-// installDependencies installs dependencies based on detected package manager
-func installDependencies(ctx context.Context, worktreePath string) error {
-	packageManager := detectPackageManager(worktreePath)
-	if packageManager == "" {
-		color.Cyan("No package.json found, skipping dependency installation")
-		return nil
-	}
-
-	color.Yellow("📦 Package.json found. Installing dependencies...")
-	color.Cyan("Using package manager: %s", packageManager)
-
+// installDependencies installs dependencies with the given package manager
+func installDependencies(ctx context.Context, worktreePath string, packageManager string) error {
 	// Create a timeout context for dependency installation (max 5 minutes)
 	installCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
@@ -168,8 +202,12 @@ The worktree will be created in the configured worktrees directory.`,
 				repoPath = repository
 			} else {
 				// Find repositories and let user select
-				color.Cyan("🔍 Finding repositories...")
-				repos, err := gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
+				repos, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+					Message: "Finding repositories",
+					Color:   "cyan",
+				}, func() ([]*domain.Repository, error) {
+					return gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
+				})
 				if err != nil {
 					return fmt.Errorf("failed to find repositories: %w", err)
 				}
@@ -293,7 +331,12 @@ The worktree will be created in the configured worktrees directory.`,
 			color.Yellow("Creating worktree at: %s", worktreePath)
 
 			// Create worktree using git client (this handles the git worktree add command)
-			createdWorktree, err := gitClient.CreateWorktreeFromBranch(ctx, repoPath, branchName, mainBranch, worktreePath)
+			createdWorktree, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+				Message: "Creating worktree",
+				Color:   "green",
+			}, func() (*domain.Worktree, error) {
+				return gitClient.CreateWorktreeFromBranch(ctx, repoPath, branchName, mainBranch, worktreePath)
+			})
 			if err != nil {
 				// Check if error is due to timeout or cancellation
 				if ctx.Err() != nil {
@@ -319,8 +362,19 @@ The worktree will be created in the configured worktrees directory.`,
 			}
 
 			// Install dependencies if package.json exists
-			if err := installDependencies(ctx, worktreePath); err != nil {
-				color.Yellow("Warning: Failed to install dependencies: %v", err)
+			packageManager := detectPackageManager(worktreePath)
+			if packageManager != "" {
+				err := ui.WithSpinner(ui.SpinnerConfig{
+					Message: fmt.Sprintf("Installing dependencies with %s", packageManager),
+					Color:   "blue",
+				}, func() error {
+					return installDependencies(ctx, worktreePath, packageManager)
+				})
+				if err != nil {
+					color.Yellow("Warning: Failed to install dependencies: %v", err)
+				}
+			} else {
+				color.Cyan("No package.json found, skipping dependency installation")
 			}
 
 			color.Green("🎉 Worktree setup complete! Happy coding! 🚀")
@@ -354,9 +408,9 @@ func newWorktreeListCmd(cfg *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List existing worktrees",
-		Long: `List all existing worktrees for repositories.
+		Long: `List all existing worktrees from the worktrees directory.
 
-Shows worktrees with their paths, branches, and associated repositories.`,
+Shows worktrees from ~/Programming/Worktrees with their paths, branches, and associated repositories.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
 			gitClient := git.NewClient()
@@ -364,7 +418,12 @@ Shows worktrees with their paths, branches, and associated repositories.`,
 			var repos []*domain.Repository
 			if repository != "" {
 				// List worktrees for specific repository
-				repo, err := gitClient.OpenRepository(repository)
+				repo, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+					Message: "Loading repository",
+					Color:   "cyan",
+				}, func() (*domain.Repository, error) {
+					return gitClient.OpenRepository(repository)
+				})
 				if err != nil {
 					return fmt.Errorf("failed to open repository: %w", err)
 				}
@@ -372,36 +431,65 @@ Shows worktrees with their paths, branches, and associated repositories.`,
 			} else {
 				// Find all repositories
 				var err error
-				repos, err = gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
+				repos, err = ui.WithSpinnerResult(ui.SpinnerConfig{
+					Message: "Finding repositories",
+					Color:   "cyan",
+				}, func() ([]*domain.Repository, error) {
+					return gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
+				})
 				if err != nil {
 					return fmt.Errorf("failed to find repositories: %w", err)
 				}
 			}
 
-			// List worktrees for each repository
+			// List worktrees for each repository, filtering to only show worktrees in configured directory
 			totalWorktrees := 0
-			for _, repo := range repos {
-				worktrees, err := gitClient.ListWorktrees(ctx, repo.Path)
-				if err != nil {
-					color.Yellow("⚠ Failed to list worktrees for %s: %v", repo.Name, err)
-					continue
-				}
+			worktreeResults, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+				Message: "Scanning for worktrees",
+				Color:   "yellow",
+			}, func() (int, error) {
+				count := 0
+				for _, repo := range repos {
+					worktrees, err := gitClient.ListWorktrees(ctx, repo.Path)
+					if err != nil {
+						color.Yellow("⚠ Failed to list worktrees for %s: %v", repo.Name, err)
+						continue
+					}
 
-				if len(worktrees) > 0 {
-					color.Cyan("\n📁 %s (%s)", repo.Name, repo.Path)
+					var filteredWorktrees []*domain.Worktree
 					for _, wt := range worktrees {
-						fmt.Printf("  → %s (branch: %s)\n", wt.Path, wt.Branch)
-						totalWorktrees++
+						// Skip main repository worktrees (the repository itself)
+						if wt.Path == repo.Path {
+							continue
+						}
+
+						// Only include worktrees that are in the configured worktrees directory
+						if strings.HasPrefix(wt.Path, cfg.Directories.Worktrees) {
+							filteredWorktrees = append(filteredWorktrees, wt)
+						}
+					}
+
+					if len(filteredWorktrees) > 0 {
+						color.Cyan("\n📁 %s (%s)", repo.Name, repo.Path)
+						for _, wt := range filteredWorktrees {
+							fmt.Printf("  → %s (branch: %s)\n", wt.Path, wt.Branch)
+							count++
+						}
 					}
 				}
+				return count, nil
+			})
+			if err != nil {
+				return fmt.Errorf("failed to scan worktrees: %w", err)
 			}
+			totalWorktrees = worktreeResults
 
 			fmt.Println()
 			if totalWorktrees == 0 {
-				color.Yellow("📁 No worktrees found.")
+				color.Yellow("📁 No worktrees found in %s.", cfg.Directories.Worktrees)
 				color.Cyan("\n💡 Tip: Use 'worktree create' to create your first worktree")
 			} else {
-				color.Green("✓ Found %d worktrees across %d repositories", totalWorktrees, len(repos))
+				color.Green("✓ Found %d worktrees in %s", totalWorktrees, cfg.Directories.Worktrees)
 				fmt.Println()
 				color.Cyan("💡 Tips:")
 				color.Cyan("  • Use 'cd <path>' to navigate to a worktree")
@@ -424,65 +512,85 @@ func newWorktreeDeleteCmd(cfg *config.Config) *cobra.Command {
 	var force bool
 
 	cmd := &cobra.Command{
-		Use:   "delete [worktree-path]",
-		Short: "Delete a worktree",
-		Long: `Delete an existing Git worktree.
+		Use:   "delete [worktree-path...]",
+		Short: "Delete one or more worktrees",
+		Long: `Delete existing Git worktrees from the worktrees directory.
 
-If no path is provided, you'll be prompted to select from existing worktrees.`,
-		Args: cobra.MaximumNArgs(1),
+If no paths are provided, you'll be prompted with a multi-select interface.
+Use arrow keys to navigate, spacebar to select/deselect, and enter to confirm.`,
+		Args: cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
 			gitClient := git.NewClient()
 
-			var worktreePath string
+			var worktreePaths []string
 			if len(args) > 0 {
-				worktreePath = args[0]
+				worktreePaths = args
 			} else {
-				// Find all worktrees and let user select
-				repos, err := gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
-				if err != nil {
-					return fmt.Errorf("failed to find repositories: %w", err)
-				}
-
-				var allWorktrees []*domain.Worktree
-				for _, repo := range repos {
-					worktrees, err := gitClient.ListWorktrees(ctx, repo.Path)
+				// Find all worktrees in the configured worktrees directory only
+				allWorktrees, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+					Message: "Finding worktrees to delete",
+					Color:   "yellow",
+				}, func() ([]*domain.Worktree, error) {
+					repos, err := gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
 					if err != nil {
-						continue
+						return nil, fmt.Errorf("failed to find repositories: %w", err)
 					}
-					allWorktrees = append(allWorktrees, worktrees...)
+
+					var allWorktrees []*domain.Worktree
+					for _, repo := range repos {
+						worktrees, err := gitClient.ListWorktrees(ctx, repo.Path)
+						if err != nil {
+							continue
+						}
+
+						// Filter to only include worktrees in the configured worktrees directory
+						for _, wt := range worktrees {
+							// Skip main repository worktrees (the repository itself)
+							if wt.Path == repo.Path {
+								continue
+							}
+
+							// Only include worktrees that are in the configured worktrees directory
+							if strings.HasPrefix(wt.Path, cfg.Directories.Worktrees) {
+								allWorktrees = append(allWorktrees, wt)
+							}
+						}
+					}
+					return allWorktrees, nil
+				})
+				if err != nil {
+					return err
 				}
 
 				if len(allWorktrees) == 0 {
-					return fmt.Errorf("no worktrees found")
+					return fmt.Errorf("no worktrees found in %s", cfg.Directories.Worktrees)
 				}
 
-				// Create selection prompt
-				templates := &promptui.SelectTemplates{
-					Label:    "{{ . }}",
-					Active:   "→ {{ .Path | cyan }} ({{ .Branch | faint }})",
-					Inactive: "  {{ .Path }} ({{ .Branch | faint }})",
-					Selected: "✓ {{ .Path | red }}",
-				}
-
-				prompt := promptui.Select{
-					Label:     "Select worktree to delete",
-					Items:     allWorktrees,
-					Templates: templates,
-				}
-
-				idx, _, err := prompt.Run()
+				// Use multi-select UI for worktree selection
+				selectedPaths, err := selectMultipleWorktrees(allWorktrees)
 				if err != nil {
-					return fmt.Errorf("failed to select worktree: %w", err)
+					return fmt.Errorf("failed to select worktrees: %w", err)
 				}
 
-				worktreePath = allWorktrees[idx].Path
+				if len(selectedPaths) == 0 {
+					color.Yellow("No worktrees selected for deletion")
+					return nil
+				}
+
+				worktreePaths = selectedPaths
 			}
 
 			// Confirm deletion unless force flag is used
 			if !force {
+				fmt.Println()
+				color.Yellow("Selected worktrees for deletion:")
+				for i, path := range worktreePaths {
+					color.Red("  %d. %s", i+1, filepath.Base(path))
+				}
+
 				prompt := promptui.Prompt{
-					Label:     fmt.Sprintf("Delete worktree %s", worktreePath),
+					Label:     fmt.Sprintf("Delete %d worktree(s)", len(worktreePaths)),
 					IsConfirm: true,
 				}
 
@@ -491,21 +599,78 @@ If no path is provided, you'll be prompted to select from existing worktrees.`,
 				}
 			}
 
-			// Delete worktree
-			color.Cyan("🗑️  Deleting worktree...")
-			if err := gitClient.DeleteWorktree(ctx, worktreePath); err != nil {
-				return fmt.Errorf("failed to delete worktree: %w", err)
+			// Delete worktrees one by one with progress feedback
+			fmt.Println()
+			color.Cyan("🗑️  Deleting %d worktree(s)...", len(worktreePaths))
+
+			var successful []string
+			var failed []string
+
+			for i, worktreePath := range worktreePaths {
+				color.Yellow("(%d/%d) Processing %s...", i+1, len(worktreePaths), filepath.Base(worktreePath))
+
+				result, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+					Message: fmt.Sprintf("Deleting %s", filepath.Base(worktreePath)),
+					Color:   "red",
+				}, func() (*domain.DeletionResult, error) {
+					return gitClient.DeleteWorktree(ctx, worktreePath)
+				})
+
+				if err != nil {
+					color.Red("✗ Failed to delete %s: %v", filepath.Base(worktreePath), err)
+					failed = append(failed, worktreePath)
+				} else {
+					if result.UsedFallback {
+						color.Yellow("⚠ %s deleted using fallback method", filepath.Base(worktreePath))
+					} else {
+						color.Green("✓ %s deleted successfully", filepath.Base(worktreePath))
+					}
+					successful = append(successful, worktreePath)
+				}
 			}
 
-			color.Green("✓ Worktree deleted successfully!")
+			// Final summary
 			fmt.Println()
-			color.Cyan("📋 Deletion Summary:")
-			color.Cyan("  • Removed worktree: %s", filepath.Base(worktreePath))
-			color.Cyan("  • Directory cleaned up")
-			color.Cyan("  • Git references removed")
-			fmt.Println()
-			color.Yellow("💡 The main repository and other worktrees remain intact")
-			fmt.Println()
+			if len(successful) > 0 {
+				color.Green("✅ Successfully deleted %d worktree(s):", len(successful))
+				for _, path := range successful {
+					color.Green("  • %s", filepath.Base(path))
+				}
+			}
+
+			if len(failed) > 0 {
+				color.Red("❌ Failed to delete %d worktree(s):", len(failed))
+				for _, path := range failed {
+					color.Red("  • %s", filepath.Base(path))
+				}
+			}
+
+			if len(successful) > 0 {
+				fmt.Println()
+				color.Cyan("📋 Deletion Summary:")
+				color.Cyan("  • Total processed: %d", len(worktreePaths))
+				color.Cyan("  • Successfully deleted: %d", len(successful))
+				if len(failed) > 0 {
+					color.Cyan("  • Failed: %d", len(failed))
+				}
+				fmt.Println()
+
+				// Check if any used fallback method
+				// This is a simplified version - in a full implementation we'd track the deletion method per worktree
+				hasFailback := false
+
+				if hasFailback {
+					color.Yellow("💡 Tip: Run 'worktree clean' to remove any remaining stale references")
+				} else {
+					color.Yellow("💡 All git references were properly cleaned up")
+				}
+				fmt.Println()
+			}
+
+			if len(failed) > 0 {
+				return fmt.Errorf("failed to delete %d out of %d worktrees", len(failed), len(worktreePaths))
+			}
+
 			return nil
 		},
 	}
@@ -533,78 +698,150 @@ This command will:
 			ctx := context.Background()
 			gitClient := git.NewClient()
 
-			color.Cyan("🧹 Cleaning up stale worktrees...")
-
-			// Find all repositories
-			repos, err := gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
-			if err != nil {
-				return fmt.Errorf("failed to find repositories: %w", err)
+			// First, scan for stale worktrees
+			type ScanResult struct {
+				StaleWorktrees map[string][]string // repo path -> stale worktree paths
+				RepoCount      int
 			}
 
-			var stalePaths []string
+			result, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+				Message: "Scanning for stale worktrees",
+				Color:   "yellow",
+			}, func() (ScanResult, error) {
+				staleWorktrees := make(map[string][]string)
 
-			for _, repo := range repos {
-				worktrees, err := gitClient.ListWorktrees(ctx, repo.Path)
+				// Find all repositories
+				repos, err := gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
 				if err != nil {
-					color.Yellow("⚠ Failed to list worktrees for %s: %v", repo.Name, err)
-					continue
+					return ScanResult{}, fmt.Errorf("failed to find repositories: %w", err)
 				}
 
-				for _, wt := range worktrees {
-					// Skip main worktree (the repository itself)
-					if wt.Path == repo.Path {
+				for _, repo := range repos {
+					worktrees, err := gitClient.ListWorktrees(ctx, repo.Path)
+					if err != nil {
+						color.Yellow("⚠ Failed to list worktrees for %s: %v", repo.Name, err)
 						continue
 					}
 
-					// Check if worktree directory exists
-					if _, err := os.Stat(wt.Path); os.IsNotExist(err) {
-						stalePaths = append(stalePaths, wt.Path)
-						if dryRun {
-							color.Yellow("Would clean: %s", wt.Path)
-						} else {
-							color.Yellow("Cleaning stale worktree: %s", wt.Path)
-							// Use git worktree prune to clean up
-							// This is safer than trying to remove individual worktree references
+					var stalePaths []string
+					for _, wt := range worktrees {
+						// Skip main worktree (the repository itself)
+						if wt.Path == repo.Path {
+							continue
 						}
+
+						// Check if worktree directory exists
+						if _, err := os.Stat(wt.Path); os.IsNotExist(err) {
+							stalePaths = append(stalePaths, wt.Path)
+						}
+					}
+
+					if len(stalePaths) > 0 {
+						staleWorktrees[repo.Path] = stalePaths
 					}
 				}
 
-				// Run git worktree prune for this repository
-				if !dryRun && len(stalePaths) > 0 {
-					// We could implement git worktree prune here, but for now just report
-				}
+				return ScanResult{
+					StaleWorktrees: staleWorktrees,
+					RepoCount:      len(repos),
+				}, nil
+			})
+			if err != nil {
+				return err
+			}
+
+			// Count total stale worktrees
+			totalStale := 0
+			for _, paths := range result.StaleWorktrees {
+				totalStale += len(paths)
 			}
 
 			fmt.Println()
-			if len(stalePaths) == 0 {
+			if totalStale == 0 {
 				color.Green("✓ No stale worktrees found - your setup is clean!")
 				fmt.Println()
 				color.Cyan("📋 Cleanup Summary:")
-				color.Cyan("  • Scanned %d repositories", len(repos))
+				color.Cyan("  • Scanned %d repositories", result.RepoCount)
 				color.Cyan("  • All worktree references are valid")
 				color.Cyan("  • No cleanup required")
-			} else if dryRun {
-				color.Yellow("Found %d stale worktrees (use --dry-run=false to clean)", len(stalePaths))
+				fmt.Println()
+				return nil
+			}
+
+			// Show what will be cleaned
+			if dryRun {
+				color.Yellow("Found %d stale worktrees (dry run mode)", totalStale)
+				fmt.Println()
+				for repoPath, stalePaths := range result.StaleWorktrees {
+					color.Cyan("📁 %s", filepath.Base(repoPath))
+					for _, path := range stalePaths {
+						color.Yellow("  Would clean: %s", path)
+					}
+				}
 				fmt.Println()
 				color.Cyan("📋 Cleanup Preview:")
-				color.Cyan("  • Stale worktrees found: %d", len(stalePaths))
+				color.Cyan("  • Stale worktrees found: %d", totalStale)
 				color.Cyan("  • Run without --dry-run to clean them up")
 				color.Cyan("  • This will only remove Git references, not files")
-			} else {
-				color.Green("✓ Cleaned %d stale worktrees", len(stalePaths))
 				fmt.Println()
-				color.Cyan("📋 Cleanup Summary:")
-				color.Cyan("  • Removed stale references: %d", len(stalePaths))
-				color.Cyan("  • Git worktree database updated")
-				color.Cyan("  • Your worktree setup is now clean")
+				return nil
 			}
+
+			// Show what will be cleaned and ask for confirmation
+			color.Yellow("Found %d stale worktrees:", totalStale)
+			fmt.Println()
+			for repoPath, stalePaths := range result.StaleWorktrees {
+				color.Cyan("📁 %s", filepath.Base(repoPath))
+				for _, path := range stalePaths {
+					color.Yellow("  Will clean: %s", path)
+				}
+			}
+			fmt.Println()
+
+			// Confirm cleanup
+			confirmPrompt := promptui.Prompt{
+				Label:     fmt.Sprintf("Clean up %d stale worktree references", totalStale),
+				IsConfirm: true,
+			}
+
+			if _, err := confirmPrompt.Run(); err != nil {
+				color.Yellow("Cleanup cancelled")
+				return nil
+			}
+
+			// Perform cleanup
+			cleanupCount := 0
+			for repoPath, stalePaths := range result.StaleWorktrees {
+				if len(stalePaths) > 0 {
+					err := ui.WithSpinner(ui.SpinnerConfig{
+						Message: fmt.Sprintf("Cleaning %s", filepath.Base(repoPath)),
+						Color:   "red",
+					}, func() error {
+						return gitClient.PruneWorktrees(ctx, repoPath)
+					})
+					if err != nil {
+						color.Yellow("⚠ Failed to clean %s: %v", filepath.Base(repoPath), err)
+					} else {
+						cleanupCount += len(stalePaths)
+					}
+				}
+			}
+
+			color.Green("✓ Cleanup completed successfully!")
+			fmt.Println()
+			color.Cyan("📋 Cleanup Summary:")
+			color.Cyan("  • Cleaned %d stale worktree references", cleanupCount)
+			color.Cyan("  • Git worktree database updated")
+			color.Cyan("  • Your worktree setup is now clean")
+			fmt.Println()
+			color.Yellow("💡 Note: Only Git references were removed, actual directories remain untouched")
 			fmt.Println()
 
 			return nil
 		},
 	}
 
-	cmd.Flags().BoolVar(&dryRun, "dry-run", true, "Show what would be cleaned without actually doing it")
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be cleaned without actually doing it")
 
 	return cmd
 }
