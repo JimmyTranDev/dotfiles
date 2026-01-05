@@ -258,6 +258,16 @@ load_plugins {
 //   - false (Default)
 // 
 // simplified_ui true
+
+// Configure UI settings including tab numbering  
+ui {
+    pane_frames {
+        rounded_corners true
+    }
+    tab_bar {
+        display_tab_index true
+    }
+}
  
 // Choose the theme that is specified in the themes section.
 // Default: default

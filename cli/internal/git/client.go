@@ -466,10 +466,9 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 		return nil, errors.NewError(errors.ErrInvalidInput, "worktree path must be absolute")
 	}
 
-	// Check if worktree exists
-	if _, err := os.Stat(worktreePath); os.IsNotExist(err) {
-		return nil, errors.NewWorktreeNotFoundError(worktreePath)
-	}
+	// Note: We don't check if the directory exists because the worktree might be
+	// referenced in Git but the directory might have been manually deleted.
+	// This is common when directories are cleaned up but Git references remain.
 
 	result := &domain.DeletionResult{
 		Path:          worktreePath,
@@ -548,23 +547,40 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 		}
 	}
 
+	// Check if the directory exists
+	dirExists := true
+	if _, err := os.Stat(worktreePath); os.IsNotExist(err) {
+		dirExists = false
+	}
+
 	// First try to use git command to remove worktree (the proper way)
 	cmd = exec.CommandContext(gitCtx, "git", "worktree", "remove", worktreePath)
+	if !dirExists {
+		// If directory doesn't exist, use --force flag to remove the reference anyway
+		cmd = exec.CommandContext(gitCtx, "git", "worktree", "remove", "--force", worktreePath)
+	}
 	cmd.Env = append(os.Environ(),
 		"GIT_TERMINAL_PROMPT=0",
 		"GIT_ASKPASS=true",
 		"SSH_ASKPASS=true",
 	)
+
 	if output, err := cmd.CombinedOutput(); err != nil {
 		// Check if this is a timeout error first
 		if gitCtx.Err() == context.DeadlineExceeded {
 			// Git command timed out, use fallback method
-			if removeErr := os.RemoveAll(worktreePath); removeErr != nil {
-				return nil, errors.NewError(errors.ErrGitOperation,
-					fmt.Sprintf("git worktree remove timed out and directory removal failed: %v", removeErr))
+			if dirExists {
+				if removeErr := os.RemoveAll(worktreePath); removeErr != nil {
+					return nil, errors.NewError(errors.ErrGitOperation,
+						fmt.Sprintf("git worktree remove timed out and directory removal failed: %v", removeErr))
+				}
+				result.UsedFallback = true
+				result.Method = "directory"
+			} else {
+				// Directory doesn't exist, but git reference cleanup failed
+				result.UsedFallback = true
+				result.Method = "reference-cleanup-failed"
 			}
-			result.UsedFallback = true
-			result.Method = "directory"
 		} else {
 			// Check if the error is due to missing git repository context or worktree corruption
 			outputStr := string(output)
@@ -572,17 +588,21 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 				strings.Contains(outputStr, "fatal: not a git repository") ||
 				strings.Contains(outputStr, "not in a git directory") ||
 				strings.Contains(outputStr, ".git' does not exist") ||
-				strings.Contains(outputStr, "validation failed, cannot remove working tree") {
+				strings.Contains(outputStr, "validation failed, cannot remove working tree") ||
+				strings.Contains(outputStr, "is not a working tree") ||
+				strings.Contains(outputStr, "not a working tree") {
 
 				// Fallback: remove the directory directly since git context is lost
-				if removeErr := os.RemoveAll(worktreePath); removeErr != nil {
-					return nil, errors.NewError(errors.ErrGitOperation,
-						fmt.Sprintf("git worktree remove failed and directory removal also failed: git error: %s, remove error: %v",
-							outputStr, removeErr))
+				if dirExists {
+					if removeErr := os.RemoveAll(worktreePath); removeErr != nil {
+						return nil, errors.NewError(errors.ErrGitOperation,
+							fmt.Sprintf("git worktree remove failed and directory removal also failed: git error: %s, remove error: %v",
+								outputStr, removeErr))
+					}
 				}
-				// Successfully removed directory as fallback
+				// Successfully cleaned up (either removed directory or directory didn't exist)
 				result.UsedFallback = true
-				result.Method = "directory"
+				result.Method = "reference-cleanup"
 			} else {
 				// For other git errors, return the original git error
 				return nil, errors.NewGitError(fmt.Sprintf("failed to remove worktree: %s", outputStr), err)
