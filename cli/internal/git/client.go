@@ -478,19 +478,33 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 		BranchDeleted: false,
 	}
 
+	// Create a timeout context for git operations (10 seconds max)
+	gitCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
 	// Get branch name and repository path before deletion
 	var branchName string
 	var repoPath string
 
 	// First, try to get the branch from git status in the worktree
-	cmd := exec.CommandContext(ctx, "git", "-C", worktreePath, "branch", "--show-current")
+	cmd := exec.CommandContext(gitCtx, "git", "-C", worktreePath, "branch", "--show-current")
+	cmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_ASKPASS=true",
+		"SSH_ASKPASS=true",
+	)
 	if output, err := cmd.Output(); err == nil {
 		branchName = strings.TrimSpace(string(output))
 		result.Branch = branchName
 	}
 
 	// Try to get the repository path from the worktree
-	cmd = exec.CommandContext(ctx, "git", "-C", worktreePath, "rev-parse", "--git-common-dir")
+	cmd = exec.CommandContext(gitCtx, "git", "-C", worktreePath, "rev-parse", "--git-common-dir")
+	cmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_ASKPASS=true",
+		"SSH_ASKPASS=true",
+	)
 	if output, err := cmd.Output(); err == nil {
 		gitCommonDir := strings.TrimSpace(string(output))
 		if filepath.IsAbs(gitCommonDir) {
@@ -518,7 +532,12 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 
 			if _, err := os.Stat(filepath.Join(parentDir, ".git")); err == nil {
 				// Found a potential repository
-				cmd := exec.CommandContext(ctx, "git", "-C", parentDir, "worktree", "list")
+				cmd := exec.CommandContext(gitCtx, "git", "-C", parentDir, "worktree", "list")
+				cmd.Env = append(os.Environ(),
+					"GIT_TERMINAL_PROMPT=0",
+					"GIT_ASKPASS=true",
+					"SSH_ASKPASS=true",
+				)
 				if output, err := cmd.Output(); err == nil {
 					if strings.Contains(string(output), worktreePath) {
 						repoPath = parentDir
@@ -530,28 +549,44 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 	}
 
 	// First try to use git command to remove worktree (the proper way)
-	cmd = exec.CommandContext(ctx, "git", "worktree", "remove", worktreePath)
+	cmd = exec.CommandContext(gitCtx, "git", "worktree", "remove", worktreePath)
+	cmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_ASKPASS=true",
+		"SSH_ASKPASS=true",
+	)
 	if output, err := cmd.CombinedOutput(); err != nil {
-		// Check if the error is due to missing git repository context or worktree corruption
-		outputStr := string(output)
-		if strings.Contains(outputStr, "not a git repository") ||
-			strings.Contains(outputStr, "fatal: not a git repository") ||
-			strings.Contains(outputStr, "not in a git directory") ||
-			strings.Contains(outputStr, ".git' does not exist") ||
-			strings.Contains(outputStr, "validation failed, cannot remove working tree") {
-
-			// Fallback: remove the directory directly since git context is lost
+		// Check if this is a timeout error first
+		if gitCtx.Err() == context.DeadlineExceeded {
+			// Git command timed out, use fallback method
 			if removeErr := os.RemoveAll(worktreePath); removeErr != nil {
 				return nil, errors.NewError(errors.ErrGitOperation,
-					fmt.Sprintf("git worktree remove failed and directory removal also failed: git error: %s, remove error: %v",
-						outputStr, removeErr))
+					fmt.Sprintf("git worktree remove timed out and directory removal failed: %v", removeErr))
 			}
-			// Successfully removed directory as fallback
 			result.UsedFallback = true
 			result.Method = "directory"
 		} else {
-			// For other git errors, return the original git error
-			return nil, errors.NewGitError(fmt.Sprintf("failed to remove worktree: %s", outputStr), err)
+			// Check if the error is due to missing git repository context or worktree corruption
+			outputStr := string(output)
+			if strings.Contains(outputStr, "not a git repository") ||
+				strings.Contains(outputStr, "fatal: not a git repository") ||
+				strings.Contains(outputStr, "not in a git directory") ||
+				strings.Contains(outputStr, ".git' does not exist") ||
+				strings.Contains(outputStr, "validation failed, cannot remove working tree") {
+
+				// Fallback: remove the directory directly since git context is lost
+				if removeErr := os.RemoveAll(worktreePath); removeErr != nil {
+					return nil, errors.NewError(errors.ErrGitOperation,
+						fmt.Sprintf("git worktree remove failed and directory removal also failed: git error: %s, remove error: %v",
+							outputStr, removeErr))
+				}
+				// Successfully removed directory as fallback
+				result.UsedFallback = true
+				result.Method = "directory"
+			} else {
+				// For other git errors, return the original git error
+				return nil, errors.NewGitError(fmt.Sprintf("failed to remove worktree: %s", outputStr), err)
+			}
 		}
 	}
 

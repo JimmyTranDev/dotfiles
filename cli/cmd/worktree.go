@@ -669,22 +669,56 @@ Use arrow keys to navigate, spacebar to select/deselect, and enter to confirm.`,
 			fmt.Println()
 			color.Cyan("🗑️  Deleting %d worktree(s)...", len(worktreePaths))
 
+			// Create a cancelable context for the entire deletion process
+			deleteCtx, cancel := context.WithCancel(ctx)
+
+			// Set up signal handling to allow user to interrupt
+			sigChan := make(chan os.Signal, 1)
+			signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+			go func() {
+				select {
+				case <-sigChan:
+					color.Yellow("\n⚠️  Interruption received, canceling remaining deletions...")
+					cancel()
+				case <-deleteCtx.Done():
+				}
+			}()
+			defer signal.Stop(sigChan)
+
 			var successful []string
 			var failed []string
 
 			for i, worktreePath := range worktreePaths {
+				// Check if context was cancelled
+				select {
+				case <-deleteCtx.Done():
+					color.Yellow("Deletion process cancelled. Remaining worktrees were not processed.")
+					break
+				default:
+				}
+
 				color.Yellow("(%d/%d) Processing %s...", i+1, len(worktreePaths), filepath.Base(worktreePath))
+
+				// Create a timeout context for each deletion (20 seconds max)
+				timeoutCtx, timeoutCancel := context.WithTimeout(deleteCtx, 20*time.Second)
 
 				result, err := ui.WithSpinnerResult(ui.SpinnerConfig{
 					Message: fmt.Sprintf("Deleting %s", filepath.Base(worktreePath)),
 					Color:   "red",
 				}, func() (*domain.DeletionResult, error) {
-					return gitClient.DeleteWorktree(ctx, worktreePath)
+					defer timeoutCancel() // Ensure context is canceled when done
+					return gitClient.DeleteWorktree(timeoutCtx, worktreePath)
 				})
 
 				if err != nil {
-					color.Red("✗ Failed to delete %s: %v", filepath.Base(worktreePath), err)
-					failed = append(failed, worktreePath)
+					if deleteCtx.Err() == context.Canceled {
+						color.Yellow("✗ Cancelled deletion of %s", filepath.Base(worktreePath))
+						failed = append(failed, worktreePath)
+						break // Stop processing remaining worktrees
+					} else {
+						color.Red("✗ Failed to delete %s: %v", filepath.Base(worktreePath), err)
+						failed = append(failed, worktreePath)
+					}
 				} else {
 					var statusMsg string
 					if result.UsedFallback {
