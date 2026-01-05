@@ -52,10 +52,10 @@ alias knip='pnpm dlx knip'
 alias knipw='pnpm dlx knip --watch'
 alias l="$HOME/Programming/dotfiles/etc/scripts/select_git_folder_actx.sh"
 
-alias F="$HOME/Programming/dotfiles/etc/scripts/install/fetch_all_folders.sh"
-alias C="$HOME/Programming/dotfiles/etc/scripts/install/clone_essential_repos.sh"
-alias I="$HOME/Programming/dotfiles/etc/scripts/install/install.sh"
-alias L="$HOME/Programming/dotfiles/etc/scripts/install/link.sh"
+alias F="$HOME/Programming/dotfiles/etc/scripts/pull_repos.sh"
+alias S="$HOME/Programming/dotfiles/etc/scripts/setup.sh"
+alias I="$HOME/Programming/dotfiles/etc/scripts/sync_packages.sh"
+alias L="$HOME/Programming/dotfiles/etc/scripts/sync_link.sh"
 
 wn() {
   # Source the worktree configuration and libraries

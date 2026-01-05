@@ -46,6 +46,7 @@ brew "go"
 brew "eslint"
 brew "stylua"
 brew "cocoapods"
+brew "rust"
 
 # Casks
 cask "font-fira-code-nerd-font"
