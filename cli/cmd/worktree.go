@@ -12,9 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 
 	"github.com/jimmy/worktree-cli/internal/config"
@@ -32,41 +30,31 @@ type commitType struct {
 }
 
 // selectMultipleWorktrees allows user to select multiple worktrees using checkboxes
-func selectMultipleWorktrees(worktrees []*domain.Worktree) ([]string, error) {
+func selectMultipleWorktrees(ctx context.Context, worktrees []*domain.Worktree) ([]string, error) {
 	if len(worktrees) == 0 {
 		return nil, fmt.Errorf("no worktrees available for selection")
 	}
 
-	// Create options for the multi-select prompt
-	options := make([]string, len(worktrees))
-	pathMap := make(map[string]string) // display string -> path
-
-	for i, wt := range worktrees {
+	// Create display options for fzf
+	var options []ui.FzfOption
+	for _, wt := range worktrees {
 		displayName := fmt.Sprintf("%s (branch: %s)", filepath.Base(wt.Path), wt.Branch)
-		options[i] = displayName
-		pathMap[displayName] = wt.Path
+		options = append(options, ui.FzfOption{
+			Value:   wt.Path,
+			Display: displayName,
+		})
 	}
 
-	// Use survey for multi-select
-	var selected []string
-	prompt := &survey.MultiSelect{
-		Message:  "Select worktrees to delete:",
-		Options:  options,
-		PageSize: 15, // Show up to 15 items at once
-		Help:     "Use arrow keys to navigate, spacebar to select/deselect, enter to confirm, / to search",
+	config := ui.FzfConfig{
+		Prompt: "Select worktrees to delete",
+		Header: "Use TAB to select multiple, ENTER to confirm, ESC to cancel",
+		Multi:  true,
+		Height: "60%",
 	}
 
-	err := survey.AskOne(prompt, &selected)
+	selectedPaths, err := ui.RunFzfMulti(ctx, options, config)
 	if err != nil {
-		return nil, err
-	}
-
-	// Convert display names back to paths
-	var selectedPaths []string
-	for _, displayName := range selected {
-		if path, exists := pathMap[displayName]; exists {
-			selectedPaths = append(selectedPaths, path)
-		}
+		return nil, fmt.Errorf("worktree selection failed: %w", err)
 	}
 
 	return selectedPaths, nil
@@ -239,35 +227,32 @@ The worktree will be created in the configured worktrees directory.`,
 
 				color.Yellow("Using repository: %s", filepath.Base(repos[0].Path))
 				if len(repos) > 1 {
-					// Convert repositories to select options
-					options := make([]ui.SelectOption, len(repos))
-					for i, repo := range repos {
-						options[i] = ui.SelectOption{
-							Key:         fmt.Sprintf("%d", i),
-							Title:       repo.Name,
-							Description: repo.Path,
-						}
+					// Convert repositories to fzf options
+					var fzfOptions []ui.FzfOption
+					for _, repo := range repos {
+						display := fmt.Sprintf("%-25s %s", repo.Name, color.New(color.FgHiBlack).Sprint(repo.Path))
+						fzfOptions = append(fzfOptions, ui.FzfOption{
+							Value:   repo.Path,
+							Display: display,
+						})
 					}
 
-					// Use the search-enabled UI for repository selection
-					selected, err := ui.RunSelection("Select repository", options)
+					config := ui.FzfConfig{
+						Prompt: "Select repository",
+						Height: "40%",
+					}
+
+					// Use fzf for repository selection
+					selected, err := ui.RunFzfSingle(ctx, fzfOptions, config)
 					if err != nil {
-						if ui.IsQuitError(err) {
-							return fmt.Errorf("repository selection cancelled")
-						}
 						return fmt.Errorf("failed to select repository: %w", err)
 					}
 
-					// Convert selected key back to index
-					idx := 0
-					for i, option := range options {
-						if option.Key == selected {
-							idx = i
-							break
-						}
+					if selected == "" {
+						return fmt.Errorf("repository selection cancelled")
 					}
 
-					repoPath = repos[idx].Path
+					repoPath = selected
 				} else {
 					repoPath = repos[0].Path
 				}
@@ -291,13 +276,16 @@ The worktree will be created in the configured worktrees directory.`,
 			} else if branch != "" {
 				input = branch
 			} else {
-				// Prompt for JIRA ticket or branch name
-				prompt := promptui.Prompt{
-					Label: "JIRA ticket (e.g., ABC-123) or branch name",
+				// Prompt for JIRA ticket or branch name using fzf
+				config := ui.FzfConfig{
+					Prompt: "JIRA ticket (e.g., ABC-123) or branch name",
 				}
-				input, err = prompt.Run()
+				input, err = ui.RunFzfInput(ctx, config)
 				if err != nil {
 					return fmt.Errorf("failed to get input: %w", err)
+				}
+				if input == "" {
+					return fmt.Errorf("input cancelled")
 				}
 			}
 
@@ -333,33 +321,36 @@ The worktree will be created in the configured worktrees directory.`,
 			commitTypes := getCommitTypes()
 			color.Cyan("Select commit type:")
 
-			// Convert commit types to select options
-			options := make([]ui.SelectOption, len(commitTypes))
+			// Convert commit types to fzf options
+			var fzfOptions []ui.FzfOption
 			for i, ct := range commitTypes {
-				options[i] = ui.SelectOption{
-					Key:         fmt.Sprintf("%d", i),
-					Title:       fmt.Sprintf("%s %s", ct.Emoji, ct.Name),
-					Description: ct.Desc,
-				}
+				display := fmt.Sprintf("%-15s %s %s", ct.Name, ct.Emoji, color.New(color.FgHiBlack).Sprint(ct.Desc))
+				fzfOptions = append(fzfOptions, ui.FzfOption{
+					Value:   fmt.Sprintf("%d", i),
+					Display: display,
+				})
 			}
 
-			selected, err := ui.RunSelection("Select commit type", options)
-			if err != nil && !ui.IsQuitError(err) {
+			config := ui.FzfConfig{
+				Prompt: "Select commit type",
+				Height: "40%",
+				NoSort: true, // Keep the order we defined
+			}
+
+			selected, err := ui.RunFzfSingle(ctx, fzfOptions, config)
+			if err != nil {
 				return fmt.Errorf("failed to select commit type: %w", err)
 			}
 
 			selectedIdx := 0
-			if err == nil {
-				// Convert selected key back to index
-				for i, option := range options {
-					if option.Key == selected {
+			if selected != "" {
+				// Convert selected value back to index
+				for i, option := range fzfOptions {
+					if option.Value == selected {
 						selectedIdx = i
 						break
 					}
 				}
-			} else {
-				// Default to feat if selection fails or is cancelled
-				selectedIdx = 0
 			}
 
 			selectedCommitType := commitTypes[selectedIdx]
@@ -634,7 +625,7 @@ Use arrow keys to navigate, spacebar to select/deselect, and enter to confirm.`,
 				}
 
 				// Use multi-select UI for worktree selection
-				selectedPaths, err := selectMultipleWorktrees(allWorktrees)
+				selectedPaths, err := selectMultipleWorktrees(ctx, allWorktrees)
 				if err != nil {
 					return fmt.Errorf("failed to select worktrees: %w", err)
 				}
@@ -655,12 +646,12 @@ Use arrow keys to navigate, spacebar to select/deselect, and enter to confirm.`,
 					color.Red("  %d. %s", i+1, filepath.Base(path))
 				}
 
-				prompt := promptui.Prompt{
-					Label:     fmt.Sprintf("Delete %d worktree(s)", len(worktreePaths)),
-					IsConfirm: true,
+				confirmed, err := ui.RunFzfConfirmation(ctx, fmt.Sprintf("Delete %d worktree(s)?", len(worktreePaths)))
+				if err != nil {
+					return fmt.Errorf("confirmation failed: %w", err)
 				}
 
-				if _, err := prompt.Run(); err != nil {
+				if !confirmed {
 					return fmt.Errorf("deletion cancelled")
 				}
 			}
@@ -908,13 +899,13 @@ This command will:
 			}
 			fmt.Println()
 
-			// Confirm cleanup
-			confirmPrompt := promptui.Prompt{
-				Label:     fmt.Sprintf("Clean up %d stale worktree references", totalStale),
-				IsConfirm: true,
+			// Confirm cleanup using fzf
+			confirmed, err := ui.RunFzfConfirmation(ctx, fmt.Sprintf("Clean up %d stale worktree references?", totalStale))
+			if err != nil {
+				return fmt.Errorf("confirmation failed: %w", err)
 			}
 
-			if _, err := confirmPrompt.Run(); err != nil {
+			if !confirmed {
 				color.Yellow("Cleanup cancelled")
 				return nil
 			}

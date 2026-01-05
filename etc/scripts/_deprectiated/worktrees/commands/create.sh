@@ -295,7 +295,7 @@ cmd_create() {
     # Add JIRA link in the commit body
     commit_message="$commit_message
 
-Jira: ${ORG_JIRA_TICKET_LINK}${jira_ticket}"
+Jira: $jira_ticket"
   else
     # No JIRA ticket, use the original input message
     commit_message="$commit_type: $emoji $original_input"

@@ -347,12 +347,9 @@ cmd_create() {
     slug=$(slugify "$summary")
     folder_name="${jira_key_up}_${slug}"
     
-    # Set description with JIRA link if available
-    if [[ -n "$ORG_JIRA_TICKET_LINK" ]]; then
-      description="Jira: ${ORG_JIRA_TICKET_LINK}${jira_key}"
-    else
-      print_color yellow "Warning: ORG_JIRA_TICKET_LINK environment variable is not set."
-      description=""
+    # Set description without JIRA link since ORG_JIRA_TICKET_LINK is no longer available
+    print_color yellow "Note: JIRA ticket link functionality removed."
+    description=""
     fi
   else
     # Manual flow

@@ -147,41 +147,44 @@ Examples:
 
 // runInteractiveMode displays an interactive menu for command selection
 func runInteractiveMode(rootCmd *cobra.Command, cfg *config.Config) error {
-	options := []ui.SelectOption{
+	fzfOptions := []ui.FzfOption{
 		{
-			Key:         "c",
-			Title:       "Create worktree",
-			Description: "Create a new worktree for development",
+			Value:   "c",
+			Display: "create      Create a new worktree for development",
 		},
 		{
-			Key:         "l",
-			Title:       "List worktrees",
-			Description: "Show all existing worktrees",
+			Value:   "l",
+			Display: "list        Show all existing worktrees",
 		},
 		{
-			Key:         "d",
-			Title:       "Delete worktree",
-			Description: "Remove a worktree",
+			Value:   "d",
+			Display: "delete      Remove a worktree",
 		},
 		{
-			Key:         "k",
-			Title:       "Clean worktrees",
-			Description: "Clean up stale worktree references",
+			Value:   "k",
+			Display: "clean       Clean up stale worktree references",
 		},
 		{
-			Key:         "h",
-			Title:       "Help",
-			Description: "Show help information",
+			Value:   "h",
+			Display: "help        Show help information",
 		},
 	}
 
-	selected, err := ui.RunSelection("Select a command:", options)
+	config := ui.FzfConfig{
+		Prompt: "Select a command",
+		Header: "Worktree Management Tool",
+		Height: "40%",
+		NoSort: true,
+	}
+
+	ctx := context.Background()
+	selected, err := ui.RunFzfSingle(ctx, fzfOptions, config)
 	if err != nil {
-		if ui.IsQuitError(err) {
-			// User quit the selection, just exit gracefully
-			return nil
-		}
-		return err
+		return fmt.Errorf("command selection failed: %w", err)
+	}
+
+	if selected == "" {
+		return nil // User cancelled
 	}
 
 	// Execute the selected command

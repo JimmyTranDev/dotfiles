@@ -42,7 +42,7 @@ print_warning() {
 
 # Get B2 environment variables
 get_b2_credentials() {
-  if [[ -z "$B2_BUCKET_NAME" || -z "$B2_APPLICATION_KEY_ID" || -z "$B2_APPLICATION_KEY" ]]; then
+  if [[ -z "$PRI_B2_BUCKET_NAME" || -z "$PRI_B2_APPLICATION_KEY_ID" || -z "$PRI_B2_APPLICATION_KEY" ]]; then
     return 1
   fi
   return 0
@@ -85,7 +85,7 @@ ensure_directory() {
 build_sync_command() {
   local local_path="$1"
   
-  echo "b2 account authorize \"$B2_APPLICATION_KEY_ID\" \"$B2_APPLICATION_KEY\" && b2 sync \"$local_path\" \"b2://$B2_BUCKET_NAME\" --excludeRegex \".*\\.m2/repository/.*\""
+  echo "b2 account authorize \"$PRI_B2_APPLICATION_KEY_ID\" \"$PRI_B2_APPLICATION_KEY\" && b2 sync \"$local_path\" \"b2://$PRI_B2_BUCKET_NAME\" --excludeRegex \".*\\.m2/repository/.*\""
 }
 
 # =============================================================================
@@ -126,7 +126,7 @@ sync_secrets() {
   print_info "Syncing secrets to cloud storage..."
   
   if ! get_b2_credentials; then
-    print_error "B2 environment variables not set (B2_BUCKET_NAME, B2_APPLICATION_KEY_ID, B2_APPLICATION_KEY)"
+    print_error "B2 environment variables not set (PRI_B2_BUCKET_NAME, PRI_B2_APPLICATION_KEY_ID, PRI_B2_APPLICATION_KEY)"
     return 1
   fi
   
@@ -162,9 +162,9 @@ COMMANDS:
   help       Show this help message
 
 ENVIRONMENT VARIABLES:
-  B2_BUCKET_NAME         - Backblaze B2 bucket name
-  B2_APPLICATION_KEY_ID  - Backblaze B2 application key ID  
-  B2_APPLICATION_KEY     - Backblaze B2 application key
+  PRI_B2_BUCKET_NAME         - Backblaze B2 bucket name
+  PRI_B2_APPLICATION_KEY_ID  - Backblaze B2 application key ID  
+  PRI_B2_APPLICATION_KEY     - Backblaze B2 application key
 
 EXAMPLES:
   $(basename "$0") init    # Create secrets directory and template files

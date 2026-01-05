@@ -27,9 +27,9 @@ EMOJI_EYE="👁"
 
 # Required B2 environment variables
 B2_REQUIRED_VARS=(
-    "B2_BUCKET_NAME"
-    "B2_APPLICATION_KEY_ID"
-    "B2_APPLICATION_KEY"
+    "PRI_B2_BUCKET_NAME"
+    "PRI_B2_APPLICATION_KEY_ID"
+    "PRI_B2_APPLICATION_KEY"
 )
 
 # Function to log messages
@@ -72,9 +72,9 @@ validate_b2_credentials() {
         done
         echo
         log_info "Please set these environment variables:"
-        echo -e "${CYAN}  export B2_BUCKET_NAME=\"your-bucket-name\"${NC}"
-        echo -e "${CYAN}  export B2_APPLICATION_KEY_ID=\"your-key-id\"${NC}"
-        echo -e "${CYAN}  export B2_APPLICATION_KEY=\"your-application-key\"${NC}"
+        echo -e "${CYAN}  export PRI_B2_BUCKET_NAME=\"your-bucket-name\"${NC}"
+        echo -e "${CYAN}  export PRI_B2_APPLICATION_KEY_ID=\"your-key-id\"${NC}"
+        echo -e "${CYAN}  export PRI_B2_APPLICATION_KEY=\"your-application-key\"${NC}"
         echo
         return 1
     fi
@@ -121,7 +121,7 @@ authorize_b2() {
     
     setup_b2_env
     
-    if b2 account authorize "$B2_APPLICATION_KEY_ID" "$B2_APPLICATION_KEY" >/dev/null 2>&1; then
+    if b2 account authorize "$PRI_B2_APPLICATION_KEY_ID" "$PRI_B2_APPLICATION_KEY" >/dev/null 2>&1; then
         log_success "B2 authorization successful"
         return 0
     else
@@ -141,7 +141,7 @@ perform_sync() {
     local args=(
         "sync"
         "$SECRETS_PATH"
-        "b2://$B2_BUCKET_NAME"
+        "b2://$PRI_B2_BUCKET_NAME"
         "--exclude-regex"
         ".*\\.m2/repository/.*"
         "--replace-newer"
@@ -155,7 +155,7 @@ perform_sync() {
     fi
     
     log_info "Source: $SECRETS_PATH"
-    log_info "Target: b2://$B2_BUCKET_NAME"
+    log_info "Target: b2://$PRI_B2_BUCKET_NAME"
     log_info "Excludes: .m2/repository files"
     echo
     

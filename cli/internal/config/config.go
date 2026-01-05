@@ -118,9 +118,6 @@ func Load() (*Config, error) {
 	if progDir := os.Getenv("DOTFILES_PROGRAMMING_DIR"); progDir != "" {
 		config.Directories.Programming = progDir
 	}
-	if jiraTicketLink := os.Getenv("ORG_JIRA_TICKET_LINK"); jiraTicketLink != "" {
-		config.JIRA.TicketLink = jiraTicketLink
-	}
 	if jiraPattern := os.Getenv("JIRA_PATTERN"); jiraPattern != "" {
 		config.JIRA.Pattern = jiraPattern
 	}
