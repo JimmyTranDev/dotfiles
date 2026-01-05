@@ -45,6 +45,7 @@ brew "zoxide"
 brew "go"
 brew "eslint"
 brew "stylua"
+brew "cocoapods"
 
 # Casks
 cask "font-fira-code-nerd-font"
@@ -55,4 +56,5 @@ cask "android-studio"
 cask "google-chrome"
 cask "figma"
 cask "db-browser-for-sqlite"
+cask "discord"
 

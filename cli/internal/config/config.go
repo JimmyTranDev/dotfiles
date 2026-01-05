@@ -29,6 +29,11 @@ type Config struct {
 		ColorEnabled bool `yaml:"color_enabled" mapstructure:"color_enabled"`
 		Interactive  bool `yaml:"interactive" mapstructure:"interactive"`
 	} `yaml:"ui" mapstructure:"ui"`
+
+	JIRA struct {
+		Pattern    string `yaml:"pattern" mapstructure:"pattern"`
+		TicketLink string `yaml:"ticket_link" mapstructure:"ticket_link"`
+	} `yaml:"jira" mapstructure:"jira"`
 }
 
 var (
@@ -57,6 +62,13 @@ var (
 		}{
 			ColorEnabled: true,
 			Interactive:  true,
+		},
+		JIRA: struct {
+			Pattern    string `yaml:"pattern" mapstructure:"pattern"`
+			TicketLink string `yaml:"ticket_link" mapstructure:"ticket_link"`
+		}{
+			Pattern:    `^[A-Z]+-[0-9]+$`,
+			TicketLink: "",
 		},
 	}
 )
@@ -105,6 +117,12 @@ func Load() (*Config, error) {
 	}
 	if progDir := os.Getenv("DOTFILES_PROGRAMMING_DIR"); progDir != "" {
 		config.Directories.Programming = progDir
+	}
+	if jiraTicketLink := os.Getenv("ORG_JIRA_TICKET_LINK"); jiraTicketLink != "" {
+		config.JIRA.TicketLink = jiraTicketLink
+	}
+	if jiraPattern := os.Getenv("JIRA_PATTERN"); jiraPattern != "" {
+		config.JIRA.Pattern = jiraPattern
 	}
 
 	return &config, nil

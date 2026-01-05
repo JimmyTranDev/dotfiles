@@ -6,6 +6,13 @@
     "command/*.md",
     "AGENTS.md"
   ],
+  "tui": {
+    "scroll_speed": 3,
+    "scroll_acceleration": {
+      "enabled": true
+    },
+    "diff_style": "auto"
+  },
   "permission": {
     "edit": "allow",
     "bash": "allow",

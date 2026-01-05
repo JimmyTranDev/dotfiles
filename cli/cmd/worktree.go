@@ -20,6 +20,7 @@ import (
 	"github.com/jimmy/worktree-cli/internal/config"
 	"github.com/jimmy/worktree-cli/internal/domain"
 	"github.com/jimmy/worktree-cli/internal/git"
+	"github.com/jimmy/worktree-cli/internal/jira"
 	"github.com/jimmy/worktree-cli/internal/ui"
 )
 
@@ -175,14 +176,19 @@ func newWorktreeCreateCmd(cfg *config.Config) *cobra.Command {
 	var (
 		branch     string
 		repository string
+		jiraTicket string
 	)
 
 	cmd := &cobra.Command{
-		Use:   "create [branch-name]",
+		Use:   "create [jira-ticket-or-branch-name]",
 		Short: "Create a new worktree",
 		Long: `Create a new Git worktree for development.
 
-If no branch name is provided, you'll be prompted to enter one.
+You can provide either:
+- A JIRA ticket (e.g., ABC-123) - will fetch summary and create branch name
+- A custom branch name - will be used directly
+
+If no argument is provided, you'll be prompted to enter one.
 The worktree will be created in the configured worktrees directory.`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -204,6 +210,12 @@ The worktree will be created in the configured worktrees directory.`,
 			}()
 
 			gitClient := git.NewClient()
+
+			// Initialize JIRA service
+			jiraService, err := jira.NewJIRAService(cfg.JIRA.Pattern, cfg.JIRA.TicketLink)
+			if err != nil {
+				return fmt.Errorf("failed to initialize JIRA service: %w", err)
+			}
 
 			// Get repository first - either by name or interactive selection
 			var repoPath string
@@ -270,29 +282,38 @@ The worktree will be created in the configured worktrees directory.`,
 			}
 			color.Yellow("Base branch: %s", mainBranch)
 
-			// Get branch name
-			var originalInput string
+			// Get input - JIRA ticket or branch name
+			var input string
 			if len(args) > 0 {
-				originalInput = args[0]
+				input = args[0]
+			} else if jiraTicket != "" {
+				input = jiraTicket
 			} else if branch != "" {
-				originalInput = branch
+				input = branch
 			} else {
+				// Prompt for JIRA ticket or branch name
 				prompt := promptui.Prompt{
-					Label: "Branch name",
+					Label: "JIRA ticket (e.g., ABC-123) or branch name",
 				}
-				originalInput, err = prompt.Run()
+				input, err = prompt.Run()
 				if err != nil {
-					return fmt.Errorf("failed to get branch name: %w", err)
+					return fmt.Errorf("failed to get input: %w", err)
 				}
 			}
 
 			// Validate input
-			if originalInput == "" {
-				return fmt.Errorf("branch name cannot be empty")
+			if input == "" {
+				return fmt.Errorf("JIRA ticket or branch name cannot be empty")
 			}
 
-			// Keep original input for commit message, sanitize for branch name
-			branchName := originalInput
+			// Process input through JIRA service
+			ticket, summary, branchName := jiraService.GetTicketWithFallback(ctx, input)
+
+			// Additional sanitization for branch name (similar to shell script logic)
+			if branchName == "" {
+				branchName = input
+			}
+
 			// Clean branch name (sanitize) - similar to shell script logic
 			invalidChars := regexp.MustCompile(`[^a-zA-Z0-9._-]`)
 			branchName = invalidChars.ReplaceAllString(branchName, "-")
@@ -378,9 +399,16 @@ The worktree will be created in the configured worktrees directory.`,
 			color.Cyan("📁 Path: %s", createdWorktree.Path)
 			color.Cyan("🌿 Branch: %s", createdWorktree.Branch)
 
-			// Create an empty initial commit with the original input
+			// Create an empty initial commit with JIRA information
 			color.Yellow("Creating initial commit...")
-			commitMessage := fmt.Sprintf("%s: %s %s", selectedCommitType.Name, selectedCommitType.Emoji, originalInput)
+
+			// Use JIRA service to create commit message
+			var commitMessage string
+			if ticket != "" || summary != "" {
+				commitMessage = jiraService.CreateCommitMessage(selectedCommitType.Name, selectedCommitType.Emoji, ticket, summary)
+			} else {
+				commitMessage = fmt.Sprintf("%s: %s %s", selectedCommitType.Name, selectedCommitType.Emoji, input)
+			}
 
 			// Create empty commit
 			if err := gitClient.CreateEmptyCommit(ctx, worktreePath, commitMessage); err != nil {
@@ -388,6 +416,11 @@ The worktree will be created in the configured worktrees directory.`,
 			} else {
 				// Log the commit to programming notes
 				logCommitHistory(commitMessage)
+			}
+
+			// Display JIRA information if available
+			if ticket != "" && summary != "" {
+				color.Cyan("📋 JIRA: %s - %s", ticket, summary)
 			}
 
 			// Install dependencies if package.json exists
@@ -413,6 +446,9 @@ The worktree will be created in the configured worktrees directory.`,
 			color.Cyan("  • Branch: %s", branchName)
 			color.Cyan("  • Repository: %s", filepath.Base(repoPath))
 			color.Cyan("  • Initial commit created with %s type", selectedCommitType.Name)
+			if ticket != "" {
+				color.Cyan("  • JIRA ticket: %s", ticket)
+			}
 			fmt.Println()
 			color.Yellow("💡 Next steps:")
 			color.Yellow("  1. Navigate to worktree: cd %s", worktreePath)
@@ -426,6 +462,7 @@ The worktree will be created in the configured worktrees directory.`,
 
 	cmd.Flags().StringVarP(&branch, "branch", "b", "", "Branch name for the worktree")
 	cmd.Flags().StringVarP(&repository, "repo", "r", "", "Repository path")
+	cmd.Flags().StringVarP(&jiraTicket, "jira", "j", "", "JIRA ticket (e.g., ABC-123)")
 
 	return cmd
 }
