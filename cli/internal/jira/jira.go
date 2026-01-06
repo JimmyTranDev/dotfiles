@@ -128,12 +128,13 @@ func (j *JIRAService) CreateCommitMessage(commitType, emoji, ticket, summary str
 	if ticket != "" {
 		if summary != "" {
 			baseMessage = fmt.Sprintf("%s %s %s", baseMessage, ticket, strings.ToLower(summary))
+			// Only add Jira link when we have both ticket and summary (meaning it was successfully fetched)
+			if j.ticketLink != "" {
+				baseMessage = fmt.Sprintf("%s\n\nJira: %s%s", baseMessage, j.ticketLink, ticket)
+			}
 		} else {
 			baseMessage = fmt.Sprintf("%s %s", baseMessage, ticket)
-		}
-
-		if j.ticketLink != "" {
-			baseMessage = fmt.Sprintf("%s\n\nJira: %s%s", baseMessage, j.ticketLink, ticket)
+			// No Jira link when we only have ticket but no summary (not a valid Jira ticket)
 		}
 	} else {
 		baseMessage = fmt.Sprintf("%s %s", baseMessage, summary)

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -276,16 +277,17 @@ The worktree will be created in the configured worktrees directory.`,
 			} else if branch != "" {
 				input = branch
 			} else {
-				// Prompt for JIRA ticket or branch name using fzf
-				config := ui.FzfConfig{
-					Prompt: "JIRA ticket (e.g., ABC-123) or branch name",
+				// Prompt for JIRA ticket or branch name using standard input
+				fmt.Print("JIRA ticket (e.g., ABC-123) or branch name: ")
+				scanner := bufio.NewScanner(os.Stdin)
+				if scanner.Scan() {
+					input = strings.TrimSpace(scanner.Text())
 				}
-				input, err = ui.RunFzfInput(ctx, config)
-				if err != nil {
-					return fmt.Errorf("failed to get input: %w", err)
+				if err := scanner.Err(); err != nil {
+					return fmt.Errorf("failed to read input: %w", err)
 				}
 				if input == "" {
-					return fmt.Errorf("input cancelled")
+					return fmt.Errorf("input cannot be empty")
 				}
 			}
 

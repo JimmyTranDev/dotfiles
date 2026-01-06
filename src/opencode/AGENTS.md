@@ -1,5 +1,9 @@
 
 
+# Available Agents
+
+- **pragmatic**: Expert in pragmatic programming principles, code simplification, and systematic refactoring for maintainable software
+
 # Copilot Coding Conventions
 
 1. Write the mininum amount of readable code necessary to satisfy the request.
