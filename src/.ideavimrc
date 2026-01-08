@@ -151,8 +151,8 @@ vnoremap <leader>hh <Action>(QuickJavaDoc)
 " Link Operations (Leader + l)
 " =============================================================================
 " GitHub and external links (using generic browser actions)
-nnoremap <Leader>lg <Action>(Vcs.OpenRepositoryInBrowser)
-nnoremap <Leader>lp <Action>(OpenInBrowser)
+nnoremap <Leader>lg <Action>(OpenInBrowser)
+nnoremap <Leader>lp <Action>(Vcs.OpenRepositoryInBrowser)
 nnoremap <Leader>ls <Action>(OpenInBrowser)
 nnoremap <Leader>lt <Action>(OpenInBrowser)
 

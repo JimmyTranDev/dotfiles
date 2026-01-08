@@ -97,6 +97,7 @@ func setupRootCommand(rootCmd *cobra.Command, cfg *config.Config) {
 
 	// Add subcommands
 	rootCmd.AddCommand(cmd.NewWorktreeCreateCmd(cfg))
+	rootCmd.AddCommand(cmd.NewWorktreeCheckoutCmd(cfg))
 	rootCmd.AddCommand(cmd.NewWorktreeListCmd(cfg))
 	rootCmd.AddCommand(cmd.NewWorktreeDeleteCmd(cfg))
 	rootCmd.AddCommand(cmd.NewWorktreeCleanCmd(cfg))
@@ -137,6 +138,8 @@ Interactive Mode:
 Examples:
   worktree create                  # Interactive worktree creation
   worktree create my-feature       # Create worktree for 'my-feature' branch
+  worktree checkout                # Interactive checkout of remote branch
+  worktree checkout feature-branch # Checkout 'feature-branch' as worktree
   worktree list                    # List all existing worktrees
   worktree delete                  # Interactively delete a worktree
   worktree clean                   # Clean up stale worktree references
@@ -151,6 +154,10 @@ func runInteractiveMode(rootCmd *cobra.Command, cfg *config.Config) error {
 		{
 			Value:   "c",
 			Display: "create      Create a new worktree for development",
+		},
+		{
+			Value:   "o",
+			Display: "checkout    Checkout existing remote branch as worktree",
 		},
 		{
 			Value:   "l",
@@ -192,6 +199,9 @@ func runInteractiveMode(rootCmd *cobra.Command, cfg *config.Config) error {
 	case "c":
 		createCmd := cmd.NewWorktreeCreateCmd(cfg)
 		return createCmd.Execute()
+	case "o":
+		checkoutCmd := cmd.NewWorktreeCheckoutCmd(cfg)
+		return checkoutCmd.Execute()
 	case "l":
 		listCmd := cmd.NewWorktreeListCmd(cfg)
 		return listCmd.Execute()

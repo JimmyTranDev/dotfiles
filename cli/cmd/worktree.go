@@ -783,7 +783,277 @@ Use arrow keys to navigate, spacebar to select/deselect, and enter to confirm.`,
 	return cmd
 }
 
-// newWorktreeCleanCmd creates the worktree clean command
+// newWorktreeCheckoutCmd creates the worktree checkout command
+func newWorktreeCheckoutCmd(cfg *config.Config) *cobra.Command {
+	var repository string
+
+	cmd := &cobra.Command{
+		Use:   "checkout [branch-name]",
+		Short: "Checkout existing remote branch as worktree",
+		Long: `Checkout an existing remote branch as a new Git worktree.
+
+This command will:
+1. Fetch the latest changes from origin
+2. Show available remote branches for selection (if no branch specified)
+3. Create a new worktree from the selected remote branch
+4. Install dependencies if package.json exists
+
+The worktree will be created in the configured worktrees directory.`,
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Create a timeout context
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+			defer cancel()
+
+			// Also listen for interrupt signals
+			go func() {
+				sigChan := make(chan os.Signal, 1)
+				signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+				select {
+				case <-sigChan:
+					color.Yellow("\n⚠️  Received interrupt signal, cancelling operation...")
+					cancel()
+				case <-ctx.Done():
+					// Context finished normally
+				}
+			}()
+
+			gitClient := git.NewClient()
+
+			// Get repository first - either by name or interactive selection
+			var repoPath string
+			if repository != "" {
+				repoPath = repository
+			} else {
+				// Find repositories and let user select
+				repos, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+					Message: "Finding repositories",
+					Color:   "cyan",
+				}, func() ([]*domain.Repository, error) {
+					return gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
+				})
+				if err != nil {
+					return fmt.Errorf("failed to find repositories: %w", err)
+				}
+
+				if len(repos) == 0 {
+					return fmt.Errorf("no Git repositories found in %s", cfg.Directories.Programming)
+				}
+
+				if len(repos) > 1 {
+					// Convert repositories to fzf options
+					var fzfOptions []ui.FzfOption
+					for _, repo := range repos {
+						display := fmt.Sprintf("%-25s %s", repo.Name, color.New(color.FgHiBlack).Sprint(repo.Path))
+						fzfOptions = append(fzfOptions, ui.FzfOption{
+							Value:   repo.Path,
+							Display: display,
+						})
+					}
+
+					config := ui.FzfConfig{
+						Prompt: "Select repository",
+						Height: "40%",
+					}
+
+					// Use fzf for repository selection
+					selected, err := ui.RunFzfSingle(ctx, fzfOptions, config)
+					if err != nil {
+						return fmt.Errorf("failed to select repository: %w", err)
+					}
+
+					if selected == "" {
+						return fmt.Errorf("repository selection cancelled")
+					}
+
+					repoPath = selected
+				} else {
+					repoPath = repos[0].Path
+				}
+			}
+
+			color.Yellow("Repository path: %s", repoPath)
+
+			// Fetch latest remote branches
+			err := ui.WithSpinner(ui.SpinnerConfig{
+				Message: "Fetching latest changes from origin",
+				Color:   "blue",
+			}, func() error {
+				return gitClient.FetchOrigin(ctx, repoPath)
+			})
+			if err != nil {
+				color.Yellow("Warning: Failed to fetch from origin: %v", err)
+				color.Yellow("Proceeding with existing remote branch information...")
+			}
+
+			// Get branch name - either from args or interactive selection
+			var branchName string
+			if len(args) > 0 {
+				branchName = args[0]
+			} else {
+				// Get all remote branches
+				remoteBranches, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+					Message: "Loading remote branches",
+					Color:   "cyan",
+				}, func() ([]string, error) {
+					return gitClient.ListRemoteBranches(ctx, repoPath)
+				})
+				if err != nil {
+					return fmt.Errorf("failed to list remote branches: %w", err)
+				}
+
+				if len(remoteBranches) == 0 {
+					return fmt.Errorf("no remote branches found")
+				}
+
+				// Convert branches to fzf options
+				var fzfOptions []ui.FzfOption
+				for _, branch := range remoteBranches {
+					fzfOptions = append(fzfOptions, ui.FzfOption{
+						Value:   branch,
+						Display: branch,
+					})
+				}
+
+				config := ui.FzfConfig{
+					Prompt: "Select remote branch to checkout",
+					Height: "60%",
+				}
+
+				// Use fzf for branch selection
+				selected, err := ui.RunFzfSingle(ctx, fzfOptions, config)
+				if err != nil {
+					return fmt.Errorf("failed to select branch: %w", err)
+				}
+
+				if selected == "" {
+					return fmt.Errorf("branch selection cancelled")
+				}
+
+				branchName = selected
+			}
+
+			// Validate branch name
+			if branchName == "" {
+				return fmt.Errorf("branch name cannot be empty")
+			}
+
+			color.Cyan("Checking out remote branch: %s", branchName)
+
+			// Create worktree directory path based on branch name
+			// Clean branch name for directory (similar to shell script logic)
+			invalidChars := regexp.MustCompile(`[^a-zA-Z0-9._-]`)
+			folderName := invalidChars.ReplaceAllString(branchName, "-")
+			// Remove multiple consecutive hyphens
+			multipleHyphens := regexp.MustCompile(`-+`)
+			folderName = multipleHyphens.ReplaceAllString(folderName, "-")
+			// Trim hyphens from start and end
+			folderName = strings.Trim(folderName, "-")
+
+			if folderName == "" {
+				folderName = "checkout-" + fmt.Sprintf("%d", time.Now().Unix())
+			}
+
+			worktreePath := filepath.Join(cfg.Directories.Worktrees, folderName)
+
+			// Check if worktree directory already exists
+			if _, err := os.Stat(worktreePath); !os.IsNotExist(err) {
+				color.Yellow("Worktree directory already exists: %s", worktreePath)
+
+				// Check if it's a valid git worktree
+				worktrees, err := gitClient.ListWorktrees(ctx, repoPath)
+				if err == nil {
+					for _, wt := range worktrees {
+						if wt.Path == worktreePath {
+							color.Green("Switching to existing worktree: %s", worktreePath)
+							color.Cyan("📁 Path: %s", worktreePath)
+							color.Cyan("🌿 Branch: %s", wt.Branch)
+							return nil
+						}
+					}
+				}
+
+				// Directory exists but not a valid worktree, ask user what to do
+				confirmed, err := ui.RunFzfConfirmation(ctx, fmt.Sprintf("Directory exists but is not a valid git worktree. Remove and recreate?"))
+				if err != nil {
+					return fmt.Errorf("confirmation failed: %w", err)
+				}
+
+				if !confirmed {
+					return fmt.Errorf("operation cancelled")
+				}
+
+				if err := os.RemoveAll(worktreePath); err != nil {
+					return fmt.Errorf("failed to remove existing directory: %w", err)
+				}
+			}
+
+			// Ensure worktrees directory exists
+			if err := os.MkdirAll(cfg.Directories.Worktrees, 0755); err != nil {
+				return fmt.Errorf("failed to create worktrees directory: %w", err)
+			}
+
+			color.Yellow("Creating worktree at: %s", worktreePath)
+
+			// Create worktree from remote branch
+			createdWorktree, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+				Message: "Creating worktree from remote branch",
+				Color:   "green",
+			}, func() (*domain.Worktree, error) {
+				return gitClient.CheckoutRemoteBranch(ctx, repoPath, branchName, worktreePath)
+			})
+			if err != nil {
+				// Check if error is due to timeout or cancellation
+				if ctx.Err() != nil {
+					return fmt.Errorf("operation timed out or was cancelled: %w", err)
+				}
+				return fmt.Errorf("failed to create worktree: %w", err)
+			}
+
+			color.Green("✅ Worktree checked out successfully!")
+			color.Cyan("📁 Path: %s", createdWorktree.Path)
+			color.Cyan("🌿 Branch: %s", createdWorktree.Branch)
+
+			// Install dependencies if package.json exists
+			packageManager := detectPackageManager(worktreePath)
+			if packageManager != "" {
+				err := ui.WithSpinner(ui.SpinnerConfig{
+					Message: fmt.Sprintf("Installing dependencies with %s", packageManager),
+					Color:   "blue",
+				}, func() error {
+					return installDependencies(ctx, worktreePath, packageManager)
+				})
+				if err != nil {
+					color.Yellow("Warning: Failed to install dependencies: %v", err)
+				} else {
+					color.Green("✅ Dependencies installed successfully!")
+				}
+			} else {
+				color.Cyan("No package.json found, skipping dependency installation")
+			}
+
+			color.Green("🎉 Checkout complete! Happy coding! 🚀")
+			fmt.Println()
+			color.Cyan("📋 Worktree Summary:")
+			color.Cyan("  • Path: %s", worktreePath)
+			color.Cyan("  • Branch: %s", branchName)
+			color.Cyan("  • Repository: %s", filepath.Base(repoPath))
+			color.Cyan("  • Checked out from remote branch")
+			fmt.Println()
+			color.Yellow("💡 Next steps:")
+			color.Yellow("  1. Navigate to worktree: cd %s", worktreePath)
+			color.Yellow("  2. Start working on your changes")
+			color.Yellow("  3. Commit and push your changes")
+			fmt.Println()
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVarP(&repository, "repo", "r", "", "Repository path")
+
+	return cmd
+}
 func newWorktreeCleanCmd(cfg *config.Config) *cobra.Command {
 	var dryRun bool
 

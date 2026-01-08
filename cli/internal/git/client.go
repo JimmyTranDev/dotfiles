@@ -35,10 +35,13 @@ type Client interface {
 
 	// Branch operations
 	ListBranches(ctx context.Context, repoPath string) ([]string, error)
+	ListRemoteBranches(ctx context.Context, repoPath string) ([]string, error)
 	CreateBranch(ctx context.Context, repoPath, branchName, baseBranch string) error
 	DeleteBranch(ctx context.Context, repoPath, branchName string, force bool) error
 	CheckoutBranch(ctx context.Context, repoPath, branchName string) error
+	CheckoutRemoteBranch(ctx context.Context, repoPath, remoteBranch, worktreePath string) (*domain.Worktree, error)
 	FindMainBranch(ctx context.Context, repoPath string) (string, error)
+	FetchOrigin(ctx context.Context, repoPath string) error
 
 	// Commit operations
 	CreateEmptyCommit(ctx context.Context, repoPath, message string) error
@@ -663,7 +666,176 @@ func (c *client) PruneWorktrees(ctx context.Context, repoPath string) error {
 	return nil
 }
 
-// ListBranches lists all branches in a repository
+// ListRemoteBranches lists all remote branches for a repository
+func (c *client) ListRemoteBranches(ctx context.Context, repoPath string) ([]string, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	if !filepath.IsAbs(repoPath) {
+		return nil, errors.NewError(errors.ErrInvalidInput, "repository path must be absolute")
+	}
+
+	// Ensure we have a timeout context
+	if ctx == nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+	} else if _, hasDeadline := ctx.Deadline(); !hasDeadline {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+		defer cancel()
+	}
+
+	// Use git command to list remote branches
+	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "branch", "-r")
+	cmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_ASKPASS=true",
+		"SSH_ASKPASS=true",
+	)
+	cmd.Stdin = nil
+
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, errors.NewGitError("failed to list remote branches", err)
+	}
+
+	var branches []string
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.Contains(line, "HEAD ->") {
+			continue
+		}
+
+		// Remove "origin/" prefix if present
+		if strings.HasPrefix(line, "origin/") {
+			branch := strings.TrimPrefix(line, "origin/")
+			if branch != "" {
+				branches = append(branches, branch)
+			}
+		} else if !strings.Contains(line, "/") {
+			// Local tracking branches without remote prefix
+			branches = append(branches, line)
+		}
+	}
+
+	return branches, nil
+}
+
+// CheckoutRemoteBranch creates a worktree from a remote branch
+func (c *client) CheckoutRemoteBranch(ctx context.Context, repoPath, remoteBranch, worktreePath string) (*domain.Worktree, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if !filepath.IsAbs(repoPath) || !filepath.IsAbs(worktreePath) {
+		return nil, errors.NewError(errors.ErrInvalidInput, "paths must be absolute")
+	}
+
+	// Check if worktree directory already exists
+	if _, err := os.Stat(worktreePath); !os.IsNotExist(err) {
+		return nil, errors.NewWorktreeExistsError(worktreePath)
+	}
+
+	// Ensure we have a timeout context
+	if ctx == nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), 2*time.Minute)
+		defer cancel()
+	} else if _, hasDeadline := ctx.Deadline(); !hasDeadline {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 2*time.Minute)
+		defer cancel()
+	}
+
+	// First fetch to ensure we have the latest remote refs
+	if err := c.FetchOrigin(ctx, repoPath); err != nil {
+		// Don't fail if fetch fails - proceed with what we have
+		// This matches the shell script behavior
+	}
+
+	// Check if local branch already exists for this remote branch
+	localBranch := remoteBranch
+	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "show-ref", "--verify", "--quiet", "refs/heads/"+localBranch)
+	cmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_ASKPASS=true",
+		"SSH_ASKPASS=true",
+	)
+
+	var worktreeCmd *exec.Cmd
+	if cmd.Run() == nil {
+		// Local branch exists, create worktree from it
+		worktreeCmd = exec.CommandContext(ctx, "git", "-C", repoPath, "worktree", "add", worktreePath, localBranch)
+	} else {
+		// Local branch doesn't exist, create it from remote
+		worktreeCmd = exec.CommandContext(ctx, "git", "-C", repoPath, "worktree", "add", "-b", localBranch, worktreePath, "origin/"+remoteBranch)
+	}
+
+	worktreeCmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_ASKPASS=true",
+		"SSH_ASKPASS=true",
+	)
+	worktreeCmd.Stdin = nil
+
+	output, err := worktreeCmd.CombinedOutput()
+	if err != nil {
+		return nil, errors.NewGitError(fmt.Sprintf("failed to create worktree from remote branch %s: %s", remoteBranch, string(output)), err)
+	}
+
+	// Create repository info
+	mainRepo := &domain.Repository{
+		Path:    repoPath,
+		Name:    filepath.Base(repoPath),
+		Branch:  localBranch,
+		LastMod: time.Now(),
+	}
+
+	return &domain.Worktree{
+		Path:       worktreePath,
+		Branch:     localBranch,
+		Repository: mainRepo,
+		CreatedAt:  time.Now(),
+	}, nil
+}
+
+// FetchOrigin fetches the latest changes from origin
+func (c *client) FetchOrigin(ctx context.Context, repoPath string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if !filepath.IsAbs(repoPath) {
+		return errors.NewError(errors.ErrInvalidInput, "repository path must be absolute")
+	}
+
+	// Ensure we have a timeout context
+	if ctx == nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), 1*time.Minute)
+		defer cancel()
+	} else if _, hasDeadline := ctx.Deadline(); !hasDeadline {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 1*time.Minute)
+		defer cancel()
+	}
+
+	cmd := exec.CommandContext(ctx, "git", "-C", repoPath, "fetch", "origin")
+	cmd.Env = append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_ASKPASS=true",
+		"SSH_ASKPASS=true",
+	)
+	cmd.Stdin = nil
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return errors.NewGitError(fmt.Sprintf("failed to fetch from origin: %s", string(output)), err)
+	}
+
+	return nil
+}
+
 func (c *client) ListBranches(ctx context.Context, repoPath string) ([]string, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
