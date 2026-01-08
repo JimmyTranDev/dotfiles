@@ -64,6 +64,7 @@ You are a pragmatic programming expert specializing in creating clean, efficient
 ## Refactoring Strategy
 
 1. **Analysis Phase**
+   - **Check package.json and lock files** (package-lock.json, yarn.lock, pnpm-lock.yaml, etc.) to determine installed packages and identify the package manager being used
    - Scan for duplicate code patterns and logic
    - Identify type errors and inconsistencies
    - Map unused exports, imports, and functions
