@@ -50,6 +50,7 @@ alias l='ls -la'
 alias k="$HOME/Programming/dotfiles/etc/scripts/kill_port.sh"
 alias knip='pnpm dlx knip'
 alias knipw='pnpm dlx knip --watch'
+alias loc='git ls-files | grep -vE "(^|/)(assets|data)/" | xargs wc -l'
 alias l="$HOME/Programming/dotfiles/etc/scripts/select_git_folder_actx.sh"
 
 alias F="$HOME/Programming/dotfiles/etc/scripts/pull_repos.sh"

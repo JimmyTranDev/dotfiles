@@ -432,6 +432,14 @@ The worktree will be created in the configured worktrees directory.`,
 				color.Cyan("No package.json found, skipping dependency installation")
 			}
 
+			// Change directory to the new worktree
+			if err := os.Chdir(worktreePath); err != nil {
+				color.Yellow("Warning: Could not change directory to worktree: %v", err)
+				color.Yellow("You can manually navigate with: cd %s", worktreePath)
+			} else {
+				color.Green("📂 Changed directory to: %s", worktreePath)
+			}
+
 			color.Green("🎉 Worktree setup complete! Happy coding! 🚀")
 			fmt.Println()
 			color.Cyan("📋 Worktree Summary:")
@@ -442,9 +450,10 @@ The worktree will be created in the configured worktrees directory.`,
 			if ticket != "" {
 				color.Cyan("  • JIRA ticket: %s", ticket)
 			}
+			color.Cyan("  • Current directory changed to worktree")
 			fmt.Println()
 			color.Yellow("💡 Next steps:")
-			color.Yellow("  1. Navigate to worktree: cd %s", worktreePath)
+			color.Yellow("  1. You're already in the worktree directory!")
 			color.Yellow("  2. Start coding on your feature/fix")
 			color.Yellow("  3. Commit and push your changes")
 			fmt.Println()
@@ -1032,6 +1041,14 @@ The worktree will be created in the configured worktrees directory.`,
 				color.Cyan("No package.json found, skipping dependency installation")
 			}
 
+			// Change directory to the new worktree
+			if err := os.Chdir(worktreePath); err != nil {
+				color.Yellow("Warning: Could not change directory to worktree: %v", err)
+				color.Yellow("You can manually navigate with: cd %s", worktreePath)
+			} else {
+				color.Green("📂 Changed directory to: %s", worktreePath)
+			}
+
 			color.Green("🎉 Checkout complete! Happy coding! 🚀")
 			fmt.Println()
 			color.Cyan("📋 Worktree Summary:")
@@ -1039,9 +1056,10 @@ The worktree will be created in the configured worktrees directory.`,
 			color.Cyan("  • Branch: %s", branchName)
 			color.Cyan("  • Repository: %s", filepath.Base(repoPath))
 			color.Cyan("  • Checked out from remote branch")
+			color.Cyan("  • Current directory changed to worktree")
 			fmt.Println()
 			color.Yellow("💡 Next steps:")
-			color.Yellow("  1. Navigate to worktree: cd %s", worktreePath)
+			color.Yellow("  1. You're already in the worktree directory!")
 			color.Yellow("  2. Start working on your changes")
 			color.Yellow("  3. Commit and push your changes")
 			fmt.Println()
