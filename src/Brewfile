@@ -1,8 +1,7 @@
 # Taps
 tap "FelixKratz/formulae"
 tap "koekeishiya/formulae"
-tap "supabase/tap"
-tap "tursodatabase/tap"
+tap "atlassian/homebrew-acli"
 
 brew "vercel-cli"
 brew "btop"
@@ -24,11 +23,11 @@ brew "yazi"
 brew "zellij"
 brew "pnpm"
 brew "fnm"
-brew "tursodatabase/tap/turso"
 brew "maven"
 brew "b2-tools"
 brew "jira-cli"
-brew "supabase/tap/supabase"
+brew "acli"
+brew "supabase"
 
 # Yazi dependencies
 brew "fd"

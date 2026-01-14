@@ -21,6 +21,7 @@ export MANPAGER='nvim +Man!'
 export MANWIDTH=999
 export ANDROID_HOME="$HOME/Library/Android/sdk"
 export MANPATH="/usr/local/man:$MANPATH"
+export ZELLIJ_TAB_NAME_MAX_LENGTH=20
 
 path_additions=(
   "$ANDROID_HOME/emulator"
@@ -116,7 +117,8 @@ zellij_tab_name_update() {
   if [[ -n $ZELLIJ ]]; then
     local current_dir="${PWD/#$HOME/~}"
     current_dir="${current_dir##*/}"
-    local tab_name="${current_dir:0:20}"
+    local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
+    local tab_name="${current_dir:0:$max_length}"
     command nohup zellij action rename-tab "$tab_name" >/dev/null 2>&1
   fi
 }
