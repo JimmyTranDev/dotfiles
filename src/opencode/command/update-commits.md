@@ -3,7 +3,7 @@ name: update-commits
 description: Update all commits in current branch with conventional commit format and emoji prefixes
 ---
 
-Update all commits in the current branch to follow conventional commit format with emoji prefixes:
+Search for all commits with the text "update". Update them to have a better description while follow conventional commit format with emoji prefixes:
 
 - Review the commit history from the current branch back to main/master
 - For each commit, analyze the changes and rewrite the commit message with:
