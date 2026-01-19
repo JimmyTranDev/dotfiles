@@ -701,8 +701,8 @@ Use arrow keys to navigate, spacebar to select/deselect, and enter to confirm.`,
 
 				color.Yellow("(%d/%d) Processing %s...", i+1, len(worktreePaths), filepath.Base(worktreePath))
 
-				// Create a timeout context for each deletion (20 seconds max)
-				timeoutCtx, timeoutCancel := context.WithTimeout(deleteCtx, 20*time.Second)
+				// Create a timeout context for each deletion (45 seconds max to handle slow systems)
+				timeoutCtx, timeoutCancel := context.WithTimeout(deleteCtx, 45*time.Second)
 
 				result, err := ui.WithSpinnerResult(ui.SpinnerConfig{
 					Message: fmt.Sprintf("Deleting %s", filepath.Base(worktreePath)),

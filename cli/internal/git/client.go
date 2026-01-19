@@ -465,6 +465,11 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	// Safety check: ensure worktreePath is not empty or root
+	if worktreePath == "" || worktreePath == "/" {
+		return nil, errors.NewError(errors.ErrInvalidInput, "invalid worktree path: cannot be empty or root directory")
+	}
+
 	if !filepath.IsAbs(worktreePath) {
 		return nil, errors.NewError(errors.ErrInvalidInput, "worktree path must be absolute")
 	}
@@ -480,8 +485,8 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 		BranchDeleted: false,
 	}
 
-	// Create a timeout context for git operations (10 seconds max)
-	gitCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	// Create a timeout context for git operations (30 seconds max to handle slow systems)
+	gitCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	// Get branch name and repository path before deletion
@@ -489,25 +494,31 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 	var repoPath string
 
 	// First, try to get the branch from git status in the worktree
-	cmd := exec.CommandContext(gitCtx, "git", "-C", worktreePath, "branch", "--show-current")
+	branchCtx, branchCancel := context.WithTimeout(gitCtx, 5*time.Second)
+	defer branchCancel()
+
+	cmd := exec.CommandContext(branchCtx, "git", "-C", worktreePath, "branch", "--show-current")
 	cmd.Env = append(os.Environ(),
 		"GIT_TERMINAL_PROMPT=0",
 		"GIT_ASKPASS=true",
 		"SSH_ASKPASS=true",
 	)
-	if output, err := cmd.Output(); err == nil {
+	if output, err := cmd.Output(); err == nil && branchCtx.Err() == nil {
 		branchName = strings.TrimSpace(string(output))
 		result.Branch = branchName
 	}
 
 	// Try to get the repository path from the worktree
-	cmd = exec.CommandContext(gitCtx, "git", "-C", worktreePath, "rev-parse", "--git-common-dir")
+	repoCtx, repoCancel := context.WithTimeout(gitCtx, 5*time.Second)
+	defer repoCancel()
+
+	cmd = exec.CommandContext(repoCtx, "git", "-C", worktreePath, "rev-parse", "--git-common-dir")
 	cmd.Env = append(os.Environ(),
 		"GIT_TERMINAL_PROMPT=0",
 		"GIT_ASKPASS=true",
 		"SSH_ASKPASS=true",
 	)
-	if output, err := cmd.Output(); err == nil {
+	if output, err := cmd.Output(); err == nil && repoCtx.Err() == nil {
 		gitCommonDir := strings.TrimSpace(string(output))
 		if filepath.IsAbs(gitCommonDir) {
 			repoPath = filepath.Dir(gitCommonDir)
@@ -523,30 +534,54 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 	// If we can't get repo path from the worktree, try to find it through worktree list
 	if repoPath == "" {
 		// This is more complex - we need to find which repository owns this worktree
-		// We'll try common parent directories to find a .git folder
-		parentDir := filepath.Dir(worktreePath)
-		for i := 0; i < 5; i++ { // Limit search depth
-			testRepoPath := filepath.Join(parentDir, "..")
-			if testRepoPath == parentDir {
-				break // Reached root
-			}
-			parentDir = testRepoPath
+		// We'll try parent directories to find a .git folder with proper safeguards
+		currentDir := filepath.Dir(worktreePath)
 
-			if _, err := os.Stat(filepath.Join(parentDir, ".git")); err == nil {
-				// Found a potential repository
-				cmd := exec.CommandContext(gitCtx, "git", "-C", parentDir, "worktree", "list")
+		// Create a separate timeout context for the repository discovery
+		discoveryCtx, discoveryCancel := context.WithTimeout(gitCtx, 10*time.Second)
+		defer discoveryCancel()
+
+		// Limit search depth and add safety checks
+		for depth := 0; depth < 5 && currentDir != "/" && currentDir != "." && len(currentDir) > 1; depth++ {
+			// Check if context was cancelled or timed out
+			select {
+			case <-discoveryCtx.Done():
+				// Context cancelled or timed out, break out of the loop
+				break
+			default:
+			}
+
+			// Check if this directory has a .git folder
+			gitPath := filepath.Join(currentDir, ".git")
+			if _, err := os.Stat(gitPath); err == nil {
+				// Found a potential repository, check if it manages our worktree
+				listCtx, listCancel := context.WithTimeout(discoveryCtx, 3*time.Second)
+				cmd := exec.CommandContext(listCtx, "git", "-C", currentDir, "worktree", "list", "--porcelain")
 				cmd.Env = append(os.Environ(),
 					"GIT_TERMINAL_PROMPT=0",
 					"GIT_ASKPASS=true",
 					"SSH_ASKPASS=true",
 				)
-				if output, err := cmd.Output(); err == nil {
-					if strings.Contains(string(output), worktreePath) {
-						repoPath = parentDir
+
+				if output, err := cmd.Output(); err == nil && listCtx.Err() == nil {
+					outputStr := string(output)
+					// Use more precise matching to avoid false positives
+					if strings.Contains(outputStr, fmt.Sprintf("worktree %s", worktreePath)) {
+						repoPath = currentDir
+						listCancel()
 						break
 					}
 				}
+				listCancel()
 			}
+
+			// Move up one directory level safely
+			parentDir := filepath.Dir(currentDir)
+			if parentDir == currentDir {
+				// Reached filesystem root, break to prevent infinite loop
+				break
+			}
+			currentDir = parentDir
 		}
 	}
 
@@ -557,10 +592,14 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 	}
 
 	// First try to use git command to remove worktree (the proper way)
-	cmd = exec.CommandContext(gitCtx, "git", "worktree", "remove", worktreePath)
+	// Create a separate timeout for the worktree removal command
+	removeCtx, removeCancel := context.WithTimeout(gitCtx, 15*time.Second)
+	defer removeCancel()
+
+	cmd = exec.CommandContext(removeCtx, "git", "worktree", "remove", worktreePath)
 	if !dirExists {
 		// If directory doesn't exist, use --force flag to remove the reference anyway
-		cmd = exec.CommandContext(gitCtx, "git", "worktree", "remove", "--force", worktreePath)
+		cmd = exec.CommandContext(removeCtx, "git", "worktree", "remove", "--force", worktreePath)
 	}
 	cmd.Env = append(os.Environ(),
 		"GIT_TERMINAL_PROMPT=0",
@@ -570,7 +609,7 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 
 	if output, err := cmd.CombinedOutput(); err != nil {
 		// Check if this is a timeout error first
-		if gitCtx.Err() == context.DeadlineExceeded {
+		if removeCtx.Err() == context.DeadlineExceeded {
 			// Git command timed out, use fallback method
 			if dirExists {
 				if removeErr := os.RemoveAll(worktreePath); removeErr != nil {
@@ -580,10 +619,14 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 				result.UsedFallback = true
 				result.Method = "directory"
 			} else {
-				// Directory doesn't exist, but git reference cleanup failed
+				// Directory doesn't exist, but git reference cleanup failed due to timeout
 				result.UsedFallback = true
-				result.Method = "reference-cleanup-failed"
+				result.Method = "reference-cleanup-timeout"
 			}
+		} else if gitCtx.Err() == context.DeadlineExceeded {
+			// Parent context timed out
+			return nil, errors.NewError(errors.ErrGitOperation,
+				"worktree deletion operation timed out")
 		} else {
 			// Check if the error is due to missing git repository context or worktree corruption
 			outputStr := string(output)
@@ -616,19 +659,30 @@ func (c *client) DeleteWorktree(ctx context.Context, worktreePath string) (*doma
 	// Now try to delete the associated branch if we have the information
 	if branchName != "" && repoPath != "" && branchName != "main" && branchName != "master" && branchName != "develop" {
 		// Don't delete main branches
-		if err := c.DeleteBranch(ctx, repoPath, branchName, false); err != nil {
-			// If regular delete fails, try force delete
-			if strings.Contains(err.Error(), "not fully merged") {
-				if forceErr := c.DeleteBranch(ctx, repoPath, branchName, true); forceErr != nil {
-					result.BranchDeleteError = fmt.Sprintf("failed to delete branch '%s': %v", branchName, forceErr)
+		// Check if the main context is still valid before proceeding with branch deletion
+		select {
+		case <-ctx.Done():
+			// Context was cancelled, skip branch deletion but don't fail the operation
+			result.BranchDeleteError = "branch deletion skipped due to context cancellation"
+		default:
+			// Create a separate timeout context for branch deletion
+			branchDeleteCtx, branchDeleteCancel := context.WithTimeout(ctx, 10*time.Second)
+			defer branchDeleteCancel()
+
+			if err := c.DeleteBranch(branchDeleteCtx, repoPath, branchName, false); err != nil {
+				// If regular delete fails, try force delete
+				if strings.Contains(err.Error(), "not fully merged") {
+					if forceErr := c.DeleteBranch(branchDeleteCtx, repoPath, branchName, true); forceErr != nil {
+						result.BranchDeleteError = fmt.Sprintf("failed to delete branch '%s': %v", branchName, forceErr)
+					} else {
+						result.BranchDeleted = true
+					}
 				} else {
-					result.BranchDeleted = true
+					result.BranchDeleteError = fmt.Sprintf("failed to delete branch '%s': %v", branchName, err)
 				}
 			} else {
-				result.BranchDeleteError = fmt.Sprintf("failed to delete branch '%s': %v", branchName, err)
+				result.BranchDeleted = true
 			}
-		} else {
-			result.BranchDeleted = true
 		}
 	}
 

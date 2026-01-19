@@ -28,6 +28,8 @@ brew "b2-tools"
 brew "jira-cli"
 brew "acli"
 brew "supabase"
+brew "trufflehog"
+brew "ruby@3"
 
 # Yazi dependencies
 brew "fd"
@@ -39,6 +41,7 @@ brew "p7zip"
 brew "poppler"
 brew "ripgrep"
 brew "zoxide"
+brew "expo"
 
 # Languages
 brew "go"

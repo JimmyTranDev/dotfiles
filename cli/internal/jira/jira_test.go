@@ -1,6 +1,7 @@
 package jira
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -54,6 +55,8 @@ func TestJIRAService_CleanSummary(t *testing.T) {
 		{"mixed case", "Fix User Login", "fix-user-login"},
 		{"numbers", "Fix bug 123", "fix-bug-123"},
 		{"already clean", "fix-user-login", "fix-user-login"},
+		{"add user authentication", "Add User Authentication", "add-user-authentication"},
+		{"implement payment system", "Implement Payment System", "implement-payment-system"},
 	}
 
 	for _, tt := range tests {
@@ -152,6 +155,44 @@ func TestJIRAService_CreateCommitMessage(t *testing.T) {
 			result := service.CreateCommitMessage(tt.commitType, tt.emoji, tt.ticket, tt.summary)
 			if result != tt.expected {
 				t.Errorf("CreateCommitMessage() = %q, expected %q", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestJIRAService_CreateBranchNameWithDescription(t *testing.T) {
+	service, err := NewJIRAService(`^[A-Z]+-[0-9]+$`, "")
+	if err != nil {
+		t.Fatalf("Failed to create JIRA service: %v", err)
+	}
+
+	tests := []struct {
+		name        string
+		ticket      string
+		description string
+		expected    string
+	}{
+		{"simple description", "BW-10050", "Add User Authentication", "BW-10050-add-user-authentication"},
+		{"complex description", "ABC-123", "Implement Payment System & Validation", "ABC-123-implement-payment-system-validation"},
+		{"description with numbers", "XYZ-456", "Fix Bug 123 in Login", "XYZ-456-fix-bug-123-in-login"},
+		{"description with special chars", "TEST-789", "Update User's Profile & Settings", "TEST-789-update-user-s-profile-settings"},
+		{"empty description", "BW-10050", "", "BW-10050"},
+		{"whitespace description", "BW-10050", "   ", "BW-10050"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Simulate the scenario where JIRA fetch fails and we use manual description
+			cleanDescription := service.CleanSummary(tt.description)
+			var branchName string
+			if cleanDescription != "" {
+				branchName = fmt.Sprintf("%s-%s", tt.ticket, cleanDescription)
+			} else {
+				branchName = tt.ticket
+			}
+
+			if branchName != tt.expected {
+				t.Errorf("CreateBranchName with description %q = %q, expected %q", tt.description, branchName, tt.expected)
 			}
 		})
 	}
