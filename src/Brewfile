@@ -30,6 +30,7 @@ brew "acli"
 brew "supabase"
 brew "trufflehog"
 brew "ruby@3"
+brew "yarn"
 
 # Yazi dependencies
 brew "fd"
@@ -41,7 +42,6 @@ brew "p7zip"
 brew "poppler"
 brew "ripgrep"
 brew "zoxide"
-brew "expo"
 
 # Languages
 brew "go"
@@ -62,4 +62,4 @@ cask "google-chrome"
 cask "figma"
 cask "db-browser-for-sqlite"
 cask "discord"
-
+cask "minisim"
