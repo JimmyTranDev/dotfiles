@@ -44,28 +44,23 @@ func (j *JIRAService) ValidateTicket(ticket string) bool {
 	return j.pattern.MatchString(ticket)
 }
 
-// GetSummary fetches the JIRA ticket summary using the JIRA CLI
+// GetSummary fetches the JIRA ticket summary using the acli CLI
 func (j *JIRAService) GetSummary(ctx context.Context, ticket string) (string, error) {
 	if !j.ValidateTicket(ticket) {
 		return "", fmt.Errorf("invalid JIRA ticket format: %s", ticket)
 	}
 
-	// Check if JIRA CLI is available
-	if _, err := exec.LookPath("jira"); err != nil {
-		return "", fmt.Errorf("JIRA CLI not found. Please install it first: %w", err)
-	}
-
-	// Check if jq is available
-	if _, err := exec.LookPath("jq"); err != nil {
-		return "", fmt.Errorf("jq not found. Please install it first: %w", err)
+	// Check if acli is available
+	if _, err := exec.LookPath("acli"); err != nil {
+		return "", fmt.Errorf("acli not found. Please install it first: %w", err)
 	}
 
 	// Create a timeout context for JIRA call (max 30 seconds)
 	jiraCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	// Execute JIRA CLI command
-	cmd := exec.CommandContext(jiraCtx, "jira", "issue", "view", ticket, "--raw")
+	// Execute acli command to get only the summary field
+	cmd := exec.CommandContext(jiraCtx, "acli", "jira", "workitem", "view", ticket, "--json", "--fields", "summary")
 	output, err := cmd.Output()
 	if err != nil {
 		if jiraCtx.Err() == context.DeadlineExceeded {
@@ -75,7 +70,7 @@ func (j *JIRAService) GetSummary(ctx context.Context, ticket string) (string, er
 	}
 
 	if len(output) == 0 {
-		return "", fmt.Errorf("empty response from JIRA CLI for ticket: %s", ticket)
+		return "", fmt.Errorf("empty response from acli for ticket: %s", ticket)
 	}
 
 	// Parse JSON response
@@ -135,7 +130,10 @@ func (j *JIRAService) CreateCommitMessage(commitType, emoji, ticket, summary str
 			}
 		} else {
 			baseMessage = fmt.Sprintf("%s %s", baseMessage, ticket)
-			// No Jira link when we only have ticket but no summary (not a valid Jira ticket)
+			// Add Jira link even when we only have ticket (if configured)
+			if j.ticketLink != "" {
+				baseMessage = fmt.Sprintf("%s\n\nJira: %s%s", baseMessage, j.ticketLink, ticket)
+			}
 		}
 	} else {
 		baseMessage = fmt.Sprintf("%s %s", baseMessage, summary)

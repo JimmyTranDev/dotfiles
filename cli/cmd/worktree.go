@@ -174,11 +174,13 @@ func newWorktreeCreateCmd(cfg *config.Config) *cobra.Command {
 		Long: `Create a new Git worktree for development.
 
 You can provide either:
-- A JIRA ticket (e.g., ABC-123) - will fetch summary and create branch name
+- A JIRA ticket (e.g., ABC-123) - will fetch summary using acli and create branch name
 - A custom branch name - will be used directly
 
 If no argument is provided, you'll be prompted to enter one.
-The worktree will be created in the configured worktrees directory.`,
+The worktree will be created in the configured worktrees directory.
+
+JIRA integration requires acli (Atlassian CLI) to be installed and authenticated.`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Create a timeout context to prevent hanging - shorter timeout since we removed the fetch
