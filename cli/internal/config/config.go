@@ -33,6 +33,7 @@ type Config struct {
 	JIRA struct {
 		Pattern    string `yaml:"pattern" mapstructure:"pattern"`
 		TicketLink string `yaml:"ticket_link" mapstructure:"ticket_link"`
+		OrgName    string `yaml:"org_name" mapstructure:"org_name"`
 	} `yaml:"jira" mapstructure:"jira"`
 }
 
@@ -66,9 +67,11 @@ var (
 		JIRA: struct {
 			Pattern    string `yaml:"pattern" mapstructure:"pattern"`
 			TicketLink string `yaml:"ticket_link" mapstructure:"ticket_link"`
+			OrgName    string `yaml:"org_name" mapstructure:"org_name"`
 		}{
 			Pattern:    `^[A-Z]+-[0-9]+$`,
 			TicketLink: "",
+			OrgName:    "",
 		},
 	}
 )
@@ -120,6 +123,16 @@ func Load() (*Config, error) {
 	}
 	if jiraPattern := os.Getenv("JIRA_PATTERN"); jiraPattern != "" {
 		config.JIRA.Pattern = jiraPattern
+	}
+	if orgName := os.Getenv("ORG_NAME"); orgName != "" {
+		config.JIRA.OrgName = orgName
+		// Auto-generate ticket link if org name is provided and ticket link is not explicitly set
+		if config.JIRA.TicketLink == "" {
+			config.JIRA.TicketLink = fmt.Sprintf("https://%s.atlassian.net/browse/", orgName)
+		}
+	}
+	if jiraTicketLink := os.Getenv("JIRA_TICKET_LINK"); jiraTicketLink != "" {
+		config.JIRA.TicketLink = jiraTicketLink
 	}
 
 	return &config, nil

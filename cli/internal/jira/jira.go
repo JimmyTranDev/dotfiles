@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/jimmy/worktree-cli/internal/ui"
 )
 
 // JIRAIssue represents a JIRA issue response
@@ -142,21 +141,6 @@ func (j *JIRAService) CreateCommitMessage(commitType, emoji, ticket, summary str
 	return baseMessage
 }
 
-// PromptForDescription prompts the user to enter a description for the branch
-func (j *JIRAService) PromptForDescription(ctx context.Context, ticket string) (string, error) {
-	config := ui.FzfConfig{
-		Prompt: fmt.Sprintf("Enter description for %s", ticket),
-		Height: "3",
-	}
-
-	description, err := ui.RunFzfInput(ctx, config)
-	if err != nil {
-		return "", fmt.Errorf("failed to get description input: %w", err)
-	}
-
-	return strings.TrimSpace(description), nil
-}
-
 // GetTicketWithFallback attempts to get JIRA ticket info with fallback to manual input
 func (j *JIRAService) GetTicketWithFallback(ctx context.Context, input string) (ticket, summary, branchName string) {
 	if j.ValidateTicket(input) {
@@ -167,26 +151,8 @@ func (j *JIRAService) GetTicketWithFallback(ctx context.Context, input string) (
 		fetchedSummary, err := j.GetSummary(ctx, ticket)
 		if err != nil {
 			color.Yellow("Could not fetch JIRA summary: %v", err)
-			// Prompt user for description instead of using just ticket number
-			description, promptErr := j.PromptForDescription(ctx, ticket)
-			if promptErr != nil {
-				color.Yellow("Warning: Could not get description input: %v", promptErr)
-				color.Yellow("Using ticket number as branch name.")
-				branchName = ticket
-			} else if description != "" {
-				// Clean and format the description like a summary
-				cleanDescription := j.CleanSummary(description)
-				if cleanDescription != "" {
-					branchName = fmt.Sprintf("%s-%s", ticket, cleanDescription)
-					color.Green("✅ Created branch name: %s", branchName)
-				} else {
-					color.Yellow("Description could not be formatted, using ticket number as branch name.")
-					branchName = ticket
-				}
-			} else {
-				color.Yellow("No description provided, using ticket number as branch name.")
-				branchName = ticket
-			}
+			color.Yellow("Using ticket number as branch name.")
+			branchName = ticket
 		} else {
 			summary = fetchedSummary
 			color.Green("✅ JIRA ticket found: %s", summary)

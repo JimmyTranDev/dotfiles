@@ -71,3 +71,5 @@ tmp/
 # Local development scripts
 dev.sh
 local.sh
+
+worktrees*.sh

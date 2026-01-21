@@ -213,55 +213,71 @@ JIRA integration requires acli (Atlassian CLI) to be installed and authenticated
 			if repository != "" {
 				repoPath = repository
 			} else {
-				// Find repositories and let user select
-				repos, err := ui.WithSpinnerResult(ui.SpinnerConfig{
-					Message: "Finding repositories",
+				// List folders in Programming directory (fast approach)
+				folders, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+					Message: "Finding folders",
 					Color:   "cyan",
-				}, func() ([]*domain.Repository, error) {
-					return gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
+				}, func() ([]string, error) {
+					entries, err := os.ReadDir(cfg.Directories.Programming)
+					if err != nil {
+						return nil, fmt.Errorf("failed to read programming directory: %w", err)
+					}
+
+					var folders []string
+					for _, entry := range entries {
+						if entry.IsDir() && !strings.HasPrefix(entry.Name(), ".") {
+							folderPath := filepath.Join(cfg.Directories.Programming, entry.Name())
+							folders = append(folders, folderPath)
+						}
+					}
+					return folders, nil
 				})
 				if err != nil {
-					return fmt.Errorf("failed to find repositories: %w", err)
+					return fmt.Errorf("failed to find folders: %w", err)
 				}
 
-				if len(repos) == 0 {
-					return fmt.Errorf("no Git repositories found in %s", cfg.Directories.Programming)
+				if len(folders) == 0 {
+					return fmt.Errorf("no folders found in %s", cfg.Directories.Programming)
 				}
 
-				color.Yellow("Using repository: %s", filepath.Base(repos[0].Path))
-				if len(repos) > 1 {
-					// Convert repositories to fzf options
+				if len(folders) > 1 {
+					// Convert folders to fzf options
 					var fzfOptions []ui.FzfOption
-					for _, repo := range repos {
-						display := fmt.Sprintf("%-25s %s", repo.Name, color.New(color.FgHiBlack).Sprint(repo.Path))
+					for _, folder := range folders {
+						display := fmt.Sprintf("%-25s %s", filepath.Base(folder), color.New(color.FgHiBlack).Sprint(folder))
 						fzfOptions = append(fzfOptions, ui.FzfOption{
-							Value:   repo.Path,
+							Value:   folder,
 							Display: display,
 						})
 					}
 
 					config := ui.FzfConfig{
-						Prompt: "Select repository",
+						Prompt: "Select folder",
 						Height: "40%",
 					}
 
-					// Use fzf for repository selection
+					// Use fzf for folder selection
 					selected, err := ui.RunFzfSingle(ctx, fzfOptions, config)
 					if err != nil {
-						return fmt.Errorf("failed to select repository: %w", err)
+						return fmt.Errorf("failed to select folder: %w", err)
 					}
 
 					if selected == "" {
-						return fmt.Errorf("repository selection cancelled")
+						return fmt.Errorf("folder selection cancelled")
 					}
 
 					repoPath = selected
 				} else {
-					repoPath = repos[0].Path
+					repoPath = folders[0]
 				}
 			}
 
 			color.Yellow("Repository path: %s", repoPath)
+
+			// Validate that the selected folder is a Git repository
+			if _, err := os.Stat(filepath.Join(repoPath, ".git")); os.IsNotExist(err) {
+				return fmt.Errorf("selected folder %s is not a Git repository", filepath.Base(repoPath))
+			}
 
 			// Get the main branch for the selected repository
 			mainBranch, err := gitClient.FindMainBranch(ctx, repoPath)
