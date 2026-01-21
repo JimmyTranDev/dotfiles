@@ -11,8 +11,12 @@
 # Get script directory for imports
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# Source core configuration and libraries
-source "$SCRIPT_DIR/config.sh"
+# Configuration
+export WORKTREES_DIR="${WORKTREES_DIR:-$HOME/Programming/Worktrees}"
+export PROGRAMMING_DIR="${PROGRAMMING_DIR:-$HOME/Programming}"
+export JIRA_PATTERN='^[A-Z]+-[0-9]+'
+
+# Source core libraries
 source "$SCRIPT_DIR/lib/core.sh"
 source "$SCRIPT_DIR/lib/jira.sh"
 
