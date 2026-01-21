@@ -142,9 +142,9 @@ func (j *JIRAService) CreateCommitMessage(commitType, emoji, ticket, summary str
 }
 
 // GetTicketWithFallback attempts to get JIRA ticket info with fallback to manual input
-func (j *JIRAService) GetTicketWithFallback(ctx context.Context, input string) (ticket, summary, branchName string) {
-	if j.ValidateTicket(input) {
-		// Input looks like a JIRA ticket
+func (j *JIRAService) GetTicketWithFallback(ctx context.Context, input string, skipJira bool) (ticket, summary, branchName string) {
+	if !skipJira && j.ValidateTicket(input) {
+		// Input looks like a JIRA ticket and we're not skipping JIRA
 		ticket = input
 		color.Yellow("Fetching JIRA ticket details...")
 
@@ -159,13 +159,13 @@ func (j *JIRAService) GetTicketWithFallback(ctx context.Context, input string) (
 			branchName = j.CreateBranchName(ticket, summary)
 		}
 	} else {
-		// Input doesn't match JIRA pattern, use as branch name directly
-		if input != "" {
+		// Input doesn't match JIRA pattern or we're skipping JIRA, use as branch name directly
+		if skipJira && j.ValidateTicket(input) {
+			color.Yellow("JIRA fetching skipped. Using input as branch name directly.")
+		} else if input != "" {
 			color.Yellow("Input doesn't match JIRA pattern. Using as branch name directly.")
-			branchName = input
-		} else {
-			branchName = input
 		}
+		branchName = input
 	}
 
 	return ticket, summary, branchName

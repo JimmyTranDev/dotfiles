@@ -162,26 +162,20 @@ func logCommitHistory(commitMessage string) {
 
 // newWorktreeCreateCmd creates the worktree create command
 func newWorktreeCreateCmd(cfg *config.Config) *cobra.Command {
-	var (
-		branch     string
-		repository string
-		jiraTicket string
-	)
-
 	cmd := &cobra.Command{
-		Use:   "create [jira-ticket-or-branch-name]",
-		Short: "Create a new worktree",
+		Use:   "create",
+		Short: "Create a new worktree interactively",
 		Long: `Create a new Git worktree for development.
 
-You can provide either:
-- A JIRA ticket (e.g., ABC-123) - will fetch summary using acli and create branch name
-- A custom branch name - will be used directly
+This command will interactively prompt you for:
+- Repository selection (if multiple repositories found)
+- JIRA ticket or custom branch name
+- Commit type selection
 
-If no argument is provided, you'll be prompted to enter one.
 The worktree will be created in the configured worktrees directory.
 
 JIRA integration requires acli (Atlassian CLI) to be installed and authenticated.`,
-		Args: cobra.MaximumNArgs(1),
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Create a timeout context to prevent hanging - shorter timeout since we removed the fetch
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
@@ -208,68 +202,63 @@ JIRA integration requires acli (Atlassian CLI) to be installed and authenticated
 				return fmt.Errorf("failed to initialize JIRA service: %w", err)
 			}
 
-			// Get repository first - either by name or interactive selection
-			var repoPath string
-			if repository != "" {
-				repoPath = repository
-			} else {
-				// List folders in Programming directory (fast approach)
-				folders, err := ui.WithSpinnerResult(ui.SpinnerConfig{
-					Message: "Finding folders",
-					Color:   "cyan",
-				}, func() ([]string, error) {
-					entries, err := os.ReadDir(cfg.Directories.Programming)
-					if err != nil {
-						return nil, fmt.Errorf("failed to read programming directory: %w", err)
-					}
-
-					var folders []string
-					for _, entry := range entries {
-						if entry.IsDir() && !strings.HasPrefix(entry.Name(), ".") {
-							folderPath := filepath.Join(cfg.Directories.Programming, entry.Name())
-							folders = append(folders, folderPath)
-						}
-					}
-					return folders, nil
-				})
+			// Get repository interactively
+			folders, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+				Message: "Finding folders",
+				Color:   "cyan",
+			}, func() ([]string, error) {
+				entries, err := os.ReadDir(cfg.Directories.Programming)
 				if err != nil {
-					return fmt.Errorf("failed to find folders: %w", err)
+					return nil, fmt.Errorf("failed to read programming directory: %w", err)
 				}
 
-				if len(folders) == 0 {
-					return fmt.Errorf("no folders found in %s", cfg.Directories.Programming)
+				var folders []string
+				for _, entry := range entries {
+					if entry.IsDir() && !strings.HasPrefix(entry.Name(), ".") {
+						folderPath := filepath.Join(cfg.Directories.Programming, entry.Name())
+						folders = append(folders, folderPath)
+					}
+				}
+				return folders, nil
+			})
+			if err != nil {
+				return fmt.Errorf("failed to find folders: %w", err)
+			}
+
+			var repoPath string
+			if len(folders) == 0 {
+				return fmt.Errorf("no folders found in programming directory: %s", cfg.Directories.Programming)
+			}
+
+			if len(folders) > 1 {
+				// Convert folders to fzf options
+				var fzfOptions []ui.FzfOption
+				for _, folder := range folders {
+					display := fmt.Sprintf("%-25s %s", filepath.Base(folder), color.New(color.FgHiBlack).Sprint(folder))
+					fzfOptions = append(fzfOptions, ui.FzfOption{
+						Value:   folder,
+						Display: display,
+					})
 				}
 
-				if len(folders) > 1 {
-					// Convert folders to fzf options
-					var fzfOptions []ui.FzfOption
-					for _, folder := range folders {
-						display := fmt.Sprintf("%-25s %s", filepath.Base(folder), color.New(color.FgHiBlack).Sprint(folder))
-						fzfOptions = append(fzfOptions, ui.FzfOption{
-							Value:   folder,
-							Display: display,
-						})
-					}
-
-					config := ui.FzfConfig{
-						Prompt: "Select folder",
-						Height: "40%",
-					}
-
-					// Use fzf for folder selection
-					selected, err := ui.RunFzfSingle(ctx, fzfOptions, config)
-					if err != nil {
-						return fmt.Errorf("failed to select folder: %w", err)
-					}
-
-					if selected == "" {
-						return fmt.Errorf("folder selection cancelled")
-					}
-
-					repoPath = selected
-				} else {
-					repoPath = folders[0]
+				config := ui.FzfConfig{
+					Prompt: "Select folder",
+					Height: "40%",
 				}
+
+				// Use fzf for folder selection
+				selected, err := ui.RunFzfSingle(ctx, fzfOptions, config)
+				if err != nil {
+					return fmt.Errorf("failed to select folder: %w", err)
+				}
+
+				if selected == "" {
+					return fmt.Errorf("folder selection cancelled")
+				}
+
+				repoPath = selected
+			} else {
+				repoPath = folders[0]
 			}
 
 			color.Yellow("Repository path: %s", repoPath)
@@ -286,27 +275,18 @@ JIRA integration requires acli (Atlassian CLI) to be installed and authenticated
 			}
 			color.Yellow("Base branch: %s", mainBranch)
 
-			// Get input - JIRA ticket or branch name
+			// Always prompt for JIRA ticket or branch name interactively
 			var input string
-			if len(args) > 0 {
-				input = args[0]
-			} else if jiraTicket != "" {
-				input = jiraTicket
-			} else if branch != "" {
-				input = branch
-			} else {
-				// Prompt for JIRA ticket or branch name using standard input
-				fmt.Print("JIRA ticket (e.g., ABC-123) or branch name: ")
-				scanner := bufio.NewScanner(os.Stdin)
-				if scanner.Scan() {
-					input = strings.TrimSpace(scanner.Text())
-				}
-				if err := scanner.Err(); err != nil {
-					return fmt.Errorf("failed to read input: %w", err)
-				}
-				if input == "" {
-					return fmt.Errorf("input cannot be empty")
-				}
+			fmt.Print("JIRA ticket (e.g., ABC-123) or branch name: ")
+			scanner := bufio.NewScanner(os.Stdin)
+			if scanner.Scan() {
+				input = strings.TrimSpace(scanner.Text())
+			}
+			if err := scanner.Err(); err != nil {
+				return fmt.Errorf("failed to read input: %w", err)
+			}
+			if input == "" {
+				return fmt.Errorf("input cannot be empty")
 			}
 
 			// Validate input
@@ -314,8 +294,8 @@ JIRA integration requires acli (Atlassian CLI) to be installed and authenticated
 				return fmt.Errorf("JIRA ticket or branch name cannot be empty")
 			}
 
-			// Process input through JIRA service
-			ticket, summary, branchName := jiraService.GetTicketWithFallback(ctx, input)
+			// Process input through JIRA service (always try JIRA first)
+			ticket, summary, branchName := jiraService.GetTicketWithFallback(ctx, input, false)
 
 			// Additional sanitization for branch name (similar to shell script logic)
 			if branchName == "" {
@@ -480,52 +460,31 @@ JIRA integration requires acli (Atlassian CLI) to be installed and authenticated
 		},
 	}
 
-	cmd.Flags().StringVarP(&branch, "branch", "b", "", "Branch name for the worktree")
-	cmd.Flags().StringVarP(&repository, "repo", "r", "", "Repository path")
-	cmd.Flags().StringVarP(&jiraTicket, "jira", "j", "", "JIRA ticket (e.g., ABC-123)")
-
 	return cmd
 }
 
 // newWorktreeListCmd creates the worktree list command
 func newWorktreeListCmd(cfg *config.Config) *cobra.Command {
-	var repository string
-
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List existing worktrees",
+		Short: "List existing worktrees interactively",
 		Long: `List all existing worktrees from the worktrees directory.
 
-Shows worktrees from ~/Programming/Worktrees with their paths, branches, and associated repositories.`,
+Shows worktrees from ~/Programming/Worktrees with their paths, branches, and associated repositories.
+This command will interactively show all worktrees from all repositories.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
 			gitClient := git.NewClient()
 
-			var repos []*domain.Repository
-			if repository != "" {
-				// List worktrees for specific repository
-				repo, err := ui.WithSpinnerResult(ui.SpinnerConfig{
-					Message: "Loading repository",
-					Color:   "cyan",
-				}, func() (*domain.Repository, error) {
-					return gitClient.OpenRepository(repository)
-				})
-				if err != nil {
-					return fmt.Errorf("failed to open repository: %w", err)
-				}
-				repos = []*domain.Repository{repo}
-			} else {
-				// Find all repositories
-				var err error
-				repos, err = ui.WithSpinnerResult(ui.SpinnerConfig{
-					Message: "Finding repositories",
-					Color:   "cyan",
-				}, func() ([]*domain.Repository, error) {
-					return gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
-				})
-				if err != nil {
-					return fmt.Errorf("failed to find repositories: %w", err)
-				}
+			// Always list all worktrees interactively
+			repos, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+				Message: "Finding repositories",
+				Color:   "cyan",
+			}, func() ([]*domain.Repository, error) {
+				return gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
+			})
+			if err != nil {
+				return fmt.Errorf("failed to find repositories: %w", err)
 			}
 
 			// List worktrees for each repository, filtering to only show worktrees in configured directory
@@ -588,106 +547,94 @@ Shows worktrees from ~/Programming/Worktrees with their paths, branches, and ass
 		},
 	}
 
-	cmd.Flags().StringVarP(&repository, "repo", "r", "", "Repository path to list worktrees for")
-
 	return cmd
 }
 
 // newWorktreeDeleteCmd creates the worktree delete command
 func newWorktreeDeleteCmd(cfg *config.Config) *cobra.Command {
-	var force bool
-
 	cmd := &cobra.Command{
-		Use:   "delete [worktree-path...]",
-		Short: "Delete one or more worktrees",
+		Use:   "delete",
+		Short: "Delete one or more worktrees interactively",
 		Long: `Delete existing Git worktrees from the worktrees directory.
 
-If no paths are provided, you'll be prompted with a multi-select interface.
+This command will present you with a multi-select interface to choose which worktrees to delete.
 Use arrow keys to navigate, spacebar to select/deselect, and enter to confirm.`,
-		Args: cobra.ArbitraryArgs,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
 			gitClient := git.NewClient()
 
-			var worktreePaths []string
-			if len(args) > 0 {
-				worktreePaths = args
-			} else {
-				// Find all worktrees in the configured worktrees directory only
-				allWorktrees, err := ui.WithSpinnerResult(ui.SpinnerConfig{
-					Message: "Finding worktrees to delete",
-					Color:   "yellow",
-				}, func() ([]*domain.Worktree, error) {
-					repos, err := gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
+			// Always use interactive selection
+			allWorktrees, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+				Message: "Finding worktrees to delete",
+				Color:   "yellow",
+			}, func() ([]*domain.Worktree, error) {
+				repos, err := gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
+				if err != nil {
+					return nil, fmt.Errorf("failed to find repositories: %w", err)
+				}
+
+				var allWorktrees []*domain.Worktree
+				for _, repo := range repos {
+					worktrees, err := gitClient.ListWorktrees(ctx, repo.Path)
 					if err != nil {
-						return nil, fmt.Errorf("failed to find repositories: %w", err)
+						// Skip repositories that can't be read
+						continue
 					}
 
-					var allWorktrees []*domain.Worktree
-					for _, repo := range repos {
-						worktrees, err := gitClient.ListWorktrees(ctx, repo.Path)
-						if err != nil {
+					// Filter to only include worktrees in the configured worktrees directory
+					for _, wt := range worktrees {
+						// Skip main repository worktrees (the repository itself)
+						if wt.Path == repo.Path {
 							continue
 						}
 
-						// Filter to only include worktrees in the configured worktrees directory
-						for _, wt := range worktrees {
-							// Skip main repository worktrees (the repository itself)
-							if wt.Path == repo.Path {
-								continue
-							}
-
-							// Only include worktrees that are in the configured worktrees directory
-							if strings.HasPrefix(wt.Path, cfg.Directories.Worktrees) {
-								allWorktrees = append(allWorktrees, wt)
-							}
+						// Only include worktrees that are in the configured worktrees directory
+						if strings.HasPrefix(wt.Path, cfg.Directories.Worktrees) {
+							allWorktrees = append(allWorktrees, wt)
 						}
 					}
-					return allWorktrees, nil
-				})
-				if err != nil {
-					return err
 				}
-
-				if len(allWorktrees) == 0 {
-					return fmt.Errorf("no worktrees found in %s", cfg.Directories.Worktrees)
-				}
-
-				// Use multi-select UI for worktree selection
-				selectedPaths, err := selectMultipleWorktrees(ctx, allWorktrees)
-				if err != nil {
-					return fmt.Errorf("failed to select worktrees: %w", err)
-				}
-
-				if len(selectedPaths) == 0 {
-					color.Yellow("No worktrees selected for deletion")
-					return nil
-				}
-
-				worktreePaths = selectedPaths
+				return allWorktrees, nil
+			})
+			if err != nil {
+				return err
 			}
 
-			// Confirm deletion unless force flag is used
-			if !force {
-				fmt.Println()
-				color.Yellow("Selected worktrees for deletion:")
-				for i, path := range worktreePaths {
-					color.Red("  %d. %s", i+1, filepath.Base(path))
-				}
+			if len(allWorktrees) == 0 {
+				return fmt.Errorf("no worktrees found in %s", cfg.Directories.Worktrees)
+			}
 
-				confirmed, err := ui.RunFzfConfirmation(ctx, fmt.Sprintf("Delete %d worktree(s)?", len(worktreePaths)))
-				if err != nil {
-					return fmt.Errorf("confirmation failed: %w", err)
-				}
+			// Use multi-select UI for worktree selection
+			selectedPaths, err := selectMultipleWorktrees(ctx, allWorktrees)
+			if err != nil {
+				return fmt.Errorf("failed to select worktrees: %w", err)
+			}
 
-				if !confirmed {
-					return fmt.Errorf("deletion cancelled")
-				}
+			if len(selectedPaths) == 0 {
+				color.Yellow("No worktrees selected for deletion")
+				return nil
+			}
+
+			// Always show confirmation for interactive CLI
+			fmt.Println()
+			color.Yellow("Selected worktrees for deletion:")
+			for i, path := range selectedPaths {
+				color.Red("  %d. %s", i+1, filepath.Base(path))
+			}
+
+			confirmed, err := ui.RunFzfConfirmation(ctx, fmt.Sprintf("Delete %d worktree(s)?", len(selectedPaths)))
+			if err != nil {
+				return fmt.Errorf("confirmation failed: %w", err)
+			}
+
+			if !confirmed {
+				return fmt.Errorf("deletion cancelled")
 			}
 
 			// Delete worktrees one by one with progress feedback
 			fmt.Println()
-			color.Cyan("🗑️  Deleting %d worktree(s)...", len(worktreePaths))
+			color.Cyan("🗑️  Deleting %d worktree(s)...", len(selectedPaths))
 
 			// Create a cancelable context for the entire deletion process
 			deleteCtx, cancel := context.WithCancel(ctx)
@@ -708,7 +655,7 @@ Use arrow keys to navigate, spacebar to select/deselect, and enter to confirm.`,
 			var successful []string
 			var failed []string
 
-			for i, worktreePath := range worktreePaths {
+			for i, worktreePath := range selectedPaths {
 				// Check if context was cancelled
 				select {
 				case <-deleteCtx.Done():
@@ -717,7 +664,7 @@ Use arrow keys to navigate, spacebar to select/deselect, and enter to confirm.`,
 				default:
 				}
 
-				color.Yellow("(%d/%d) Processing %s...", i+1, len(worktreePaths), filepath.Base(worktreePath))
+				color.Yellow("(%d/%d) Processing %s...", i+1, len(selectedPaths), filepath.Base(worktreePath))
 
 				// Create a timeout context for each deletion (45 seconds max to handle slow systems)
 				timeoutCtx, timeoutCancel := context.WithTimeout(deleteCtx, 45*time.Second)
@@ -785,7 +732,7 @@ Use arrow keys to navigate, spacebar to select/deselect, and enter to confirm.`,
 			if len(successful) > 0 {
 				fmt.Println()
 				color.Cyan("📋 Deletion Summary:")
-				color.Cyan("  • Total processed: %d", len(worktreePaths))
+				color.Cyan("  • Total processed: %d", len(selectedPaths))
 				color.Cyan("  • Successfully deleted: %d", len(successful))
 				if len(failed) > 0 {
 					color.Cyan("  • Failed: %d", len(failed))
@@ -798,35 +745,32 @@ Use arrow keys to navigate, spacebar to select/deselect, and enter to confirm.`,
 			}
 
 			if len(failed) > 0 {
-				return fmt.Errorf("failed to delete %d out of %d worktrees", len(failed), len(worktreePaths))
+				return fmt.Errorf("failed to delete %d out of %d worktrees", len(failed), len(selectedPaths))
 			}
 
 			return nil
 		},
 	}
 
-	cmd.Flags().BoolVarP(&force, "force", "f", false, "Force deletion without confirmation")
-
 	return cmd
 }
 
 // newWorktreeCheckoutCmd creates the worktree checkout command
 func newWorktreeCheckoutCmd(cfg *config.Config) *cobra.Command {
-	var repository string
-
 	cmd := &cobra.Command{
-		Use:   "checkout [branch-name]",
-		Short: "Checkout existing remote branch as worktree",
+		Use:   "checkout",
+		Short: "Checkout existing remote branch as worktree interactively",
 		Long: `Checkout an existing remote branch as a new Git worktree.
 
-This command will:
-1. Fetch the latest changes from origin
-2. Show available remote branches for selection (if no branch specified)
-3. Create a new worktree from the selected remote branch
-4. Install dependencies if package.json exists
+This command will interactively:
+1. Select a repository (if multiple available)
+2. Fetch the latest changes from origin
+3. Show available remote branches for selection
+4. Create a new worktree from the selected remote branch
+5. Install dependencies if package.json exists
 
 The worktree will be created in the configured worktrees directory.`,
-		Args: cobra.MaximumNArgs(1),
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Create a timeout context
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
@@ -847,62 +791,57 @@ The worktree will be created in the configured worktrees directory.`,
 
 			gitClient := git.NewClient()
 
-			// Get repository first - either by name or interactive selection
+			// Find repositories and let user select interactively
 			var repoPath string
-			if repository != "" {
-				repoPath = repository
-			} else {
-				// Find repositories and let user select
-				repos, err := ui.WithSpinnerResult(ui.SpinnerConfig{
-					Message: "Finding repositories",
-					Color:   "cyan",
-				}, func() ([]*domain.Repository, error) {
-					return gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
-				})
+			repos, err := ui.WithSpinnerResult(ui.SpinnerConfig{
+				Message: "Finding repositories",
+				Color:   "cyan",
+			}, func() ([]*domain.Repository, error) {
+				return gitClient.FindRepositories(ctx, cfg.Directories.Programming, cfg.Git.MaxDepth)
+			})
+			if err != nil {
+				return fmt.Errorf("failed to find repositories: %w", err)
+			}
+
+			if len(repos) == 0 {
+				return fmt.Errorf("no Git repositories found in %s", cfg.Directories.Programming)
+			}
+
+			if len(repos) > 1 {
+				// Convert repositories to fzf options
+				var fzfOptions []ui.FzfOption
+				for _, repo := range repos {
+					display := fmt.Sprintf("%-25s %s", repo.Name, color.New(color.FgHiBlack).Sprint(repo.Path))
+					fzfOptions = append(fzfOptions, ui.FzfOption{
+						Value:   repo.Path,
+						Display: display,
+					})
+				}
+
+				config := ui.FzfConfig{
+					Prompt: "Select repository",
+					Height: "40%",
+				}
+
+				// Use fzf for repository selection
+				selected, err := ui.RunFzfSingle(ctx, fzfOptions, config)
 				if err != nil {
-					return fmt.Errorf("failed to find repositories: %w", err)
+					return fmt.Errorf("failed to select repository: %w", err)
 				}
 
-				if len(repos) == 0 {
-					return fmt.Errorf("no Git repositories found in %s", cfg.Directories.Programming)
+				if selected == "" {
+					return fmt.Errorf("repository selection cancelled")
 				}
 
-				if len(repos) > 1 {
-					// Convert repositories to fzf options
-					var fzfOptions []ui.FzfOption
-					for _, repo := range repos {
-						display := fmt.Sprintf("%-25s %s", repo.Name, color.New(color.FgHiBlack).Sprint(repo.Path))
-						fzfOptions = append(fzfOptions, ui.FzfOption{
-							Value:   repo.Path,
-							Display: display,
-						})
-					}
-
-					config := ui.FzfConfig{
-						Prompt: "Select repository",
-						Height: "40%",
-					}
-
-					// Use fzf for repository selection
-					selected, err := ui.RunFzfSingle(ctx, fzfOptions, config)
-					if err != nil {
-						return fmt.Errorf("failed to select repository: %w", err)
-					}
-
-					if selected == "" {
-						return fmt.Errorf("repository selection cancelled")
-					}
-
-					repoPath = selected
-				} else {
-					repoPath = repos[0].Path
-				}
+				repoPath = selected
+			} else {
+				repoPath = repos[0].Path
 			}
 
 			color.Yellow("Repository path: %s", repoPath)
 
 			// Fetch latest remote branches
-			err := ui.WithSpinner(ui.SpinnerConfig{
+			err = ui.WithSpinner(ui.SpinnerConfig{
 				Message: "Fetching latest changes from origin",
 				Color:   "blue",
 			}, func() error {
@@ -1086,23 +1025,21 @@ The worktree will be created in the configured worktrees directory.`,
 		},
 	}
 
-	cmd.Flags().StringVarP(&repository, "repo", "r", "", "Repository path")
-
 	return cmd
 }
 func newWorktreeCleanCmd(cfg *config.Config) *cobra.Command {
-	var dryRun bool
-
 	cmd := &cobra.Command{
 		Use:   "clean",
-		Short: "Clean up stale worktrees",
+		Short: "Clean up stale worktrees interactively",
 		Long: `Clean up worktrees that no longer exist or are corrupted.
 
-This command will:
+This command will interactively:
 1. Find all repositories
 2. List their worktrees
 3. Check if worktree directories still exist
-4. Remove references to missing worktrees`,
+4. Show a preview of what will be cleaned
+5. Ask for confirmation before cleaning
+6. Remove references to missing worktrees`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
 			gitClient := git.NewClient()
@@ -1177,26 +1114,7 @@ This command will:
 				return nil
 			}
 
-			// Show what will be cleaned
-			if dryRun {
-				color.Yellow("Found %d stale worktrees (dry run mode)", totalStale)
-				fmt.Println()
-				for repoPath, stalePaths := range result.StaleWorktrees {
-					color.Cyan("📁 %s", filepath.Base(repoPath))
-					for _, path := range stalePaths {
-						color.Yellow("  Would clean: %s", path)
-					}
-				}
-				fmt.Println()
-				color.Cyan("📋 Cleanup Preview:")
-				color.Cyan("  • Stale worktrees found: %d", totalStale)
-				color.Cyan("  • Run without --dry-run to clean them up")
-				color.Cyan("  • This will only remove Git references, not files")
-				fmt.Println()
-				return nil
-			}
-
-			// Show what will be cleaned and ask for confirmation
+			// Show preview and ask for confirmation
 			color.Yellow("Found %d stale worktrees:", totalStale)
 			fmt.Println()
 			for repoPath, stalePaths := range result.StaleWorktrees {
@@ -1205,6 +1123,10 @@ This command will:
 					color.Yellow("  Will clean: %s", path)
 				}
 			}
+			fmt.Println()
+			color.Cyan("📋 Cleanup Preview:")
+			color.Cyan("  • Stale worktrees found: %d", totalStale)
+			color.Cyan("  • This will only remove Git references, not files")
 			fmt.Println()
 
 			// Confirm cleanup using fzf
@@ -1249,8 +1171,6 @@ This command will:
 			return nil
 		},
 	}
-
-	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be cleaned without actually doing it")
 
 	return cmd
 }

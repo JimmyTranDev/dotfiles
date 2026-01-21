@@ -89,12 +89,8 @@ each with different branches checked out. This is useful for:
 	return rootCmd
 }
 
-// setupRootCommand adds flags, subcommands, and usage template to the root command
+// setupRootCommand adds subcommands and usage template to the root command
 func setupRootCommand(rootCmd *cobra.Command, cfg *config.Config) {
-	// Add global flags
-	rootCmd.PersistentFlags().Bool("no-color", false, "Disable colored output")
-	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Verbose output")
-
 	// Add subcommands
 	rootCmd.AddCommand(cmd.NewWorktreeCreateCmd(cfg))
 	rootCmd.AddCommand(cmd.NewWorktreeCheckoutCmd(cfg))
@@ -132,14 +128,12 @@ Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
 
 Interactive Mode:
   Run 'worktree' with no arguments to see available commands
-  Most commands support interactive prompts when arguments are omitted
+  All commands are fully interactive with guided prompts and selections
   Press 'q', 'esc', or 'ctrl+c' to quit anytime during interactive mode
 
 Examples:
   worktree create                  # Interactive worktree creation
-  worktree create my-feature       # Create worktree for 'my-feature' branch
-  worktree checkout                # Interactive checkout of remote branch
-  worktree checkout feature-branch # Checkout 'feature-branch' as worktree
+  worktree checkout                # Interactive checkout of remote branch  
   worktree list                    # List all existing worktrees
   worktree delete                  # Interactively delete a worktree
   worktree clean                   # Clean up stale worktree references
