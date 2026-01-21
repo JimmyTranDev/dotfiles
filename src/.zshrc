@@ -36,10 +36,14 @@ done
 [[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 [[ -f "$HOME/Programming/secrets/env.sh" ]] && source "$HOME/Programming/secrets/env.sh"
 
+alias wD='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree delete'
+alias wC='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree clean'
+alias wr='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree rename'
+alias wu='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree update'
+
 alias nvm='fnm'
 alias a='eval "$(poetry env activate)"'
 alias c='clear'
-alias w='worktree-cli'
 alias e='exit'
 alias o='opencode'
 alias g='grep -rnw . -e'
@@ -83,11 +87,6 @@ wo() {
   # Call the checkout command function directly
   cmd_checkout "$@"
 }
-alias wD='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree delete'
-alias wC='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree clean'
-alias wr='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree rename'
-alias wu='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree update'
-alias vsc='cd ~/Library/Application\ Support/Code/User/'
 
 source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
 
@@ -195,4 +194,3 @@ fi
 
 # Uncomment the line below to enable auto-start in .zshrc
 # zellij_auto_start
-
