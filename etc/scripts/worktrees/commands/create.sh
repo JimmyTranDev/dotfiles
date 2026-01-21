@@ -54,8 +54,8 @@ cmd_create() {
 
 	# Try to get JIRA summary if ticket provided
 	if [[ -n "$jira_ticket" && "$jira_ticket" =~ $JIRA_PATTERN ]]; then
-		if ! check_tool jira; then
-			print_color yellow "JIRA CLI not available. Proceeding without JIRA integration."
+		if ! check_tool acli; then
+			print_color yellow "acli not available. Proceeding without JIRA integration."
 			branch_name="$jira_ticket"
 		else
 			print_color yellow "Fetching JIRA ticket details..."
