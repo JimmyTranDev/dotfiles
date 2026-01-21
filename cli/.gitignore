@@ -72,4 +72,4 @@ tmp/
 dev.sh
 local.sh
 
-worktrees*.sh
+./worktrees*

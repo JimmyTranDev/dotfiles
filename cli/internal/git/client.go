@@ -253,7 +253,7 @@ func (c *client) CloneRepository(ctx context.Context, url, path string) (*domain
 	}, nil
 }
 
-// FindRepositories finds Git repositories in the given directory
+// FindRepositories finds Git repositories in the given directory (top-level only)
 func (c *client) FindRepositories(ctx context.Context, baseDir string, maxDepth int) ([]*domain.Repository, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -264,41 +264,34 @@ func (c *client) FindRepositories(ctx context.Context, baseDir string, maxDepth 
 
 	var repositories []*domain.Repository
 
-	err := filepath.Walk(baseDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return nil // Skip directories we can't access
-		}
+	// Read entries in the base directory only (no recursion)
+	entries, err := os.ReadDir(baseDir)
+	if err != nil {
+		return nil, errors.NewGitError("failed to read base directory", err)
+	}
 
+	for _, entry := range entries {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return nil, ctx.Err()
 		default:
 		}
 
-		// Check depth limit
-		relPath, _ := filepath.Rel(baseDir, path)
-		depth := strings.Count(relPath, string(filepath.Separator))
-		if depth > maxDepth {
-			return filepath.SkipDir
+		// Skip hidden directories and non-directories
+		if !entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
+			continue
 		}
 
-		// Check if this is a Git repository
-		if info.IsDir() && info.Name() == ".git" {
-			repoPath := filepath.Dir(path)
+		repoPath := filepath.Join(baseDir, entry.Name())
 
+		// Check if this directory contains a .git folder
+		gitPath := filepath.Join(repoPath, ".git")
+		if _, err := os.Stat(gitPath); err == nil {
 			// Try to open repository
 			if repo, err := c.OpenRepository(repoPath); err == nil {
 				repositories = append(repositories, repo)
 			}
-
-			return filepath.SkipDir // Don't recurse into .git directories
 		}
-
-		return nil
-	})
-
-	if err != nil && err != context.Canceled {
-		return nil, errors.NewGitError("failed to search for repositories", err)
 	}
 
 	return repositories, nil
