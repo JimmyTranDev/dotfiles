@@ -39,7 +39,7 @@ done
 alias nvm='fnm'
 alias a='eval "$(poetry env activate)"'
 alias c='clear'
-alias w='worktree'
+alias w='worktree-cli'
 alias e='exit'
 alias o='opencode'
 alias g='grep -rnw . -e'
