@@ -125,7 +125,7 @@ delete_single_worktree() {
 		print_color yellow "Method 4: Extracting from directory name"
 		local dir_name=$(basename "$worktree_path")
 		# Common patterns: BW-1234_description, feature/BW-1234, etc.
-		if [[ "$dir_name" =~ ^(BW-[0-9]{1,5}) ]]; then
+		if [[ "$dir_name" =~ ^(BW-[0-9]+) ]]; then
 			branch_name="$match[1]"
 			print_color yellow "Extracted branch from directory name: $branch_name"
 		elif [[ "$dir_name" =~ _(.+)$ ]]; then

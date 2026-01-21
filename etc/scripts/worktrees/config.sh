@@ -9,4 +9,4 @@ setopt RE_MATCH_PCRE
 # Configuration
 export WORKTREES_DIR="${WORKTREES_DIR:-$HOME/Programming/Worktrees}"
 export PROGRAMMING_DIR="${PROGRAMMING_DIR:-$HOME/Programming}"
-export JIRA_PATTERN='^[A-Z]+-[0-9]{1,5}$'
+export JIRA_PATTERN='^[A-Z]+-[0-9]+$'
