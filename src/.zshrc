@@ -194,3 +194,4 @@ fi
 
 # Uncomment the line below to enable auto-start in .zshrc
 # zellij_auto_start
+export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"
