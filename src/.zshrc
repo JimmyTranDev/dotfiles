@@ -16,6 +16,7 @@ plugins=(
   history
 )
 
+export BROWSER=firefox
 export ARCHFLAGS="-arch x86_64"
 export MANPAGER='nvim +Man!'
 export MANWIDTH=999
@@ -43,6 +44,7 @@ alias wu='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree update'
 
 alias nvm='fnm'
 alias a='eval "$(poetry env activate)"'
+alias d="$HOME/Programming/dotfiles/etc/scripts/common/git_diff_commits.sh"
 alias c='clear'
 alias e='exit'
 alias o='opencode'
@@ -57,7 +59,6 @@ alias knip='pnpm dlx knip'
 alias knipw='pnpm dlx knip --watch'
 alias loc='git ls-files | grep -vE "(^|/)(assets|data)/" | xargs wc -l'
 alias l="$HOME/Programming/dotfiles/etc/scripts/select_git_folder_actx.sh"
-alias gdc="$HOME/Programming/dotfiles/etc/scripts/common/git_diff_commits.sh"
 
 alias F="$HOME/Programming/dotfiles/etc/scripts/pull_repos.sh"
 alias S="$HOME/Programming/dotfiles/etc/scripts/setup.sh"
