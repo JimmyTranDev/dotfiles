@@ -23,15 +23,17 @@ cmd_rename() {
 
 	print_color cyan "Current branch: $current_branch"
 
+	local JIRA_PATTERN_UNANCHORED='[A-Z]+-[0-9]+'
+
 	# Check if branch already contains JIRA ticket
-	if [[ "$current_branch" =~ $JIRA_PATTERN ]]; then
+	if [[ "$current_branch" =~ $JIRA_PATTERN_UNANCHORED ]]; then
 		if ! check_tool acli; then
 			print_color red "acli not available. Cannot fetch ticket details."
 			return 1
 		fi
 
 		local jira_ticket
-		jira_ticket=$(echo "$current_branch" | grep -oE "$JIRA_PATTERN")
+		jira_ticket="$MATCH"
 		print_color yellow "Branch already contains JIRA ticket: $jira_ticket"
 		print_color yellow "Fetching summary via acli..."
 
@@ -72,7 +74,7 @@ cmd_rename() {
 	local new_branch="$input"
 
 	# Check if input is a JIRA ticket
-	if [[ "$input" =~ $JIRA_PATTERN ]]; then
+	if [[ "$input" =~ $JIRA_PATTERN_UNANCHORED ]]; then
 		if ! check_tool acli; then
 			print_color yellow "acli not available. Using input as branch name without JIRA integration."
 			new_branch="$input"
