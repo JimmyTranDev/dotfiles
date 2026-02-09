@@ -31,6 +31,7 @@ brew "supabase"
 brew "trufflehog"
 brew "ruby@3"
 brew "yarn"
+brew "fastlane"
 
 # Yazi dependencies
 brew "fd"
