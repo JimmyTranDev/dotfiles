@@ -114,6 +114,12 @@ if command -v fnm >/dev/null 2>&1; then
   eval "$(fnm env --use-on-cd --shell zsh)"
 fi
 
+# Initialize gcloud CLI if installed
+if [[ -f "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc" ]]; then
+  source "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc"
+  source "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"
+fi
+
 zellij_tab_name_update() {
   if [[ -n $ZELLIJ ]]; then
     local current_dir="${PWD/#$HOME/~}"
