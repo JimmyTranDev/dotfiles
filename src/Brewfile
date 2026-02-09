@@ -32,6 +32,8 @@ brew "trufflehog"
 brew "ruby@3"
 brew "yarn"
 brew "fastlane"
+brew "colima"
+brew "git-delta"
 
 # Yazi dependencies
 brew "fd"
