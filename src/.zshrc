@@ -124,15 +124,15 @@ fi
 
 zellij_tab_name_update() {
   if [[ -n $ZELLIJ ]]; then
-    local current_dir="${PWD/#$HOME/~}"
-    current_dir="${current_dir##*/}"
+    local current_dir="${PWD##*/}"
+    [[ "$PWD" == "$HOME" ]] && current_dir="~"
     local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
     local tab_name="${current_dir:0:$max_length}"
-    command nohup zellij action rename-tab "$tab_name" >/dev/null 2>&1
+    zellij action rename-tab "$tab_name" 2>/dev/null
   fi
 }
 zellij_tab_name_update
-chpwd_functions+=(zellij_tab_name_update)
+chpwd_functions=(${chpwd_functions:#zellij_tab_name_update} zellij_tab_name_update)
 
 # ===================================================================
 # THEME MANAGEMENT
