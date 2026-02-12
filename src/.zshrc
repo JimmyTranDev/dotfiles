@@ -128,6 +128,8 @@ zellij_tab_name_update() {
     [[ "$PWD" == "$HOME" ]] && current_dir="~"
     local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
     local tab_name="${current_dir:0:$max_length}"
+    local tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]]/ {count++; if (/focus=true/) {print count; exit}}')
+    [[ -n $tab_index ]] && tab_name="${tab_index}. ${tab_name}"
     zellij action rename-tab "$tab_name" 2>/dev/null
   fi
 }
