@@ -1,41 +1,51 @@
 # Jimmy's Dotfiles
 
+[![Shell](https://img.shields.io/badge/Shell-Zsh-blue.svg?style=flat-square&logo=gnu-bash)](https://www.zsh.org)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat-square)](LICENSE)
+
 Cross-platform dotfiles for macOS, Linux, and WSL.
 
 ## Features
 
-- Automated setup with OS detection
-- Homebrew and pacman/paru package management
-- SDK version management (Java, Go, etc.)
-- Catppuccin theming across all tools
+| Feature | Description |
+|---------|-------------|
+| **Automated Setup** | OS detection with platform-specific configurations |
+| **Package Management** | Homebrew (macOS) and pacman/paru (Arch Linux) |
+| **SDK Management** | Version management for Java, Go, and other SDKs |
+| **Catppuccin Theming** | Consistent theme across all tools |
 
 ## AI-Powered Development
 
 OpenCode configuration with 17 custom agents and 8 slash commands for AI-assisted coding:
 
-**Agents**: auditor, classless, designer, expo, fixer, follower, fsrs, optimizer, pragmatic, prompter, re-export-destroyer, reuser, reviewer, solver, sounder, structure, tester
-
-**Commands**: commit, continue, implement, refactor, test, update-commits
+| Type | Available |
+|------|-----------|
+| **Agents** | auditor, classless, designer, expo, fixer, follower, fsrs, optimizer, pragmatic, prompter, re-export-destroyer, reuser, reviewer, solver, sounder, structure, tester |
+| **Commands** | commit, continue, implement, refactor, test, update-commits |
 
 ## Scripts
 
-- **setup.sh** - Main setup script
-- **sync_links.sh** - Symlink management
-- **sync_packages.sh** - Package installation (Homebrew/pacman)
-- **sync_secrets.sh** - Secrets symlink management
-- **sdk_install.sh** - SDK version installation
-- **sdk_select.sh** - SDK version selection
-- **worktrees/** - Git worktree management (checkout, create, delete, move, rename, update)
+| Script | Description |
+|--------|-------------|
+| **setup.sh** | Main setup script |
+| **sync_links.sh** | Symlink management |
+| **sync_packages.sh** | Package installation (Homebrew/pacman) |
+| **sync_secrets.sh** | Secrets symlink management |
+| **sdk_install.sh** | SDK version installation |
+| **sdk_select.sh** | SDK version selection |
+| **worktrees/** | Git worktree management (checkout, create, delete, move, rename, update) |
 
 ## Tools
 
-- **Zellij** - Terminal multiplexer
-- **Yazi** - File manager with plugins
-- **Lazygit** - Git TUI
-- **Yabai + SKHD** - Window management (macOS)
-- **Btop** - System monitoring
-- **Ghostty** - Terminal emulator
-- **Starship** - Shell prompt
+| Tool | Description |
+|------|-------------|
+| **Zellij** | Terminal multiplexer |
+| **Yazi** | File manager with plugins |
+| **Lazygit** | Git TUI |
+| **Yabai + SKHD** | Window management (macOS) |
+| **Btop** | System monitoring |
+| **Ghostty** | Terminal emulator |
+| **Starship** | Shell prompt |
 
 ## Structure
 
