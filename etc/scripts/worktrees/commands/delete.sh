@@ -213,7 +213,11 @@ cmd_delete() {
 		fi
 
 		local available_worktrees
-		available_worktrees=($(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d | sort))
+		if [[ "$(uname)" == "Darwin" ]]; then
+			available_worktrees=($(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d -exec stat -f '%B %N' {} \; | sort -rn | cut -d' ' -f2-))
+		else
+			available_worktrees=($(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -rn | cut -d' ' -f2-))
+		fi
 
 		if [[ ${#available_worktrees[@]} -eq 0 ]]; then
 			print_color red "No worktrees found in $WORKTREES_DIR"
