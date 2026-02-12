@@ -1,9 +1,6 @@
 [mgr]
 show_hidden = true
 
-[preview]
-image_force = "kitty"
-
 # git.yazi
 [[plugin.prepend_fetchers]]
 id   = "git"
