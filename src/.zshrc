@@ -133,8 +133,22 @@ zellij_tab_name_update() {
     zellij action rename-tab "$tab_name" 2>/dev/null
   fi
 }
+
+_ZELLIJ_LAST_TAB_COUNT=""
+zellij_update_all_tab_indexes() {
+  [[ -z $ZELLIJ ]] && return
+  local layout=$(zellij action dump-layout 2>/dev/null)
+  local tab_count=$(echo "$layout" | awk '/^[[:space:]]*tab[[:space:]]/ {count++} END {print count}')
+  if [[ $tab_count != $_ZELLIJ_LAST_TAB_COUNT ]]; then
+    _ZELLIJ_LAST_TAB_COUNT=$tab_count
+    local script="$HOME/Programming/dotfiles/etc/scripts/zellij_update_tab_indexes.sh"
+    [[ -x $script ]] && $script &!
+  fi
+}
+
 zellij_tab_name_update
 chpwd_functions=(${chpwd_functions:#zellij_tab_name_update} zellij_tab_name_update)
+precmd_functions=(${precmd_functions:#zellij_update_all_tab_indexes} zellij_update_all_tab_indexes)
 
 # ===================================================================
 # THEME MANAGEMENT
