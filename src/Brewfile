@@ -36,6 +36,8 @@ brew "colima"
 brew "git-delta"
 
 # Yazi dependencies
+brew "bat"
+brew "chafa"
 brew "fd"
 brew "ffmpegthumbnailer"
 brew "fzf"
@@ -44,6 +46,7 @@ brew "jq"
 brew "p7zip"
 brew "poppler"
 brew "ripgrep"
+brew "unar"
 brew "zoxide"
 
 # Languages
