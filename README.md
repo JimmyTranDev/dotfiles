@@ -5,6 +5,21 @@
 
 Cross-platform dotfiles for macOS, Linux, and WSL.
 
+## Tech Stack
+
+| Component | Technologies |
+|-----------|--------------|
+| **Shell** | Zsh, Starship prompt |
+| **Terminal** | Ghostty, Zellij (multiplexer) |
+| **Package Management** | Homebrew (macOS), pacman/paru (Arch Linux) |
+| **Window Management** | Yabai + SKHD (macOS) |
+| **File Management** | Yazi (terminal file manager) |
+| **Git Tools** | Lazygit, custom worktree scripts |
+| **System Monitoring** | Btop |
+| **AI Development** | OpenCode (17 agents, 8 commands) |
+| **Theme** | Catppuccin (consistent across all tools) |
+| **Scripting** | Bash, Zsh |
+
 ## Features
 
 | Feature | Description |
