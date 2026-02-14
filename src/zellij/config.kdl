@@ -156,6 +156,7 @@ keybinds clear-defaults=true {
         bind "Alt q" { CloseTab; SwitchToMode "locked"; }
         bind "Alt i" { MoveTab "left"; }
         bind "Alt o" { MoveTab "right"; }
+        bind "Alt u" { Run "zsh" "-c" "$HOME/Programming/dotfiles/etc/scripts/zellij_update_tab_indexes.sh"; SwitchToMode "locked"; }
 
         bind "Alt 1" { GoToTab 1; SwitchToMode "locked"; }
         bind "Alt 2" { GoToTab 2; SwitchToMode "locked"; }

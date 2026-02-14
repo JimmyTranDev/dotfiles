@@ -11,5 +11,3 @@ tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:spa
 [[ -n $tab_index ]] && tab_name="${tab_index}. ${tab_name}"
 
 zellij action rename-tab "$tab_name" 2>/dev/null
-
-$HOME/Programming/dotfiles/etc/scripts/zellij_update_tab_indexes.sh &!
