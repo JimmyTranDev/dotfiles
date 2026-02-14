@@ -1,6 +1,10 @@
 [mgr]
 show_hidden = false
 
+[preview]
+max_width = 0
+max_height = 0
+
 # git.yazi
 [[plugin.prepend_fetchers]]
 id   = "git"

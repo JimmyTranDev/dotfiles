@@ -67,6 +67,7 @@ get_macos_links() {
 		"$HOME/Programming/dotfiles/src/btop $HOME/.config/btop"
 		"$HOME/Programming/dotfiles/src/starship.toml $HOME/.config/starship.toml"
 		"$HOME/Programming/dotfiles/src/ghostty $HOME/.config/ghostty"
+		"$HOME/Programming/dotfiles/src/kitty $HOME/.config/kitty"
 		"$HOME/Programming/dotfiles/src/opencode $HOME/.config/opencode"
 		"$HOME/Programming/dotfiles/src/git/hooks $HOME/.config/git/hooks"
 	)
@@ -87,6 +88,7 @@ get_linux_links() {
 		"$HOME/Programming/secrets/.npmrc $HOME/.npmrc"
 		"$HOME/Programming/dotfiles/src/btop $HOME/.config/btop"
 		"$HOME/Programming/dotfiles/src/starship.toml $HOME/.config/starship.toml"
+		"$HOME/Programming/dotfiles/src/kitty $HOME/.config/kitty"
 		"$HOME/Programming/dotfiles/src/opencode $HOME/.config/opencode"
 		"$HOME/Programming/dotfiles/src/git/hooks $HOME/.config/git/hooks"
 	)
