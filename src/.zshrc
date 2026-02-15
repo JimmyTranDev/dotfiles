@@ -66,6 +66,7 @@ alias F="$HOME/Programming/dotfiles/etc/scripts/pull_repos.sh"
 alias S="$HOME/Programming/dotfiles/etc/scripts/setup.sh"
 alias I="$HOME/Programming/dotfiles/etc/scripts/sync_packages.sh"
 alias L="$HOME/Programming/dotfiles/etc/scripts/sync_link.sh"
+alias E="$HOME/Programming/dotfiles/etc/scripts/sync_secrets.sh"
 alias C='find "$HOME/Programming/dotfiles/etc/scripts" -type f -name "*.sh" -exec chmod +x {} \;'
 
 wn() {
