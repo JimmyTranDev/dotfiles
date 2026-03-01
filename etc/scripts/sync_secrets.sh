@@ -189,6 +189,10 @@ perform_sync() {
 		"--exclude-regex"
 		".*\\.m2/repository/.*"
 		"--replace-newer"
+		"--compare-versions"
+		"none"
+		"--exclude-all-symlinks"
+		"--no-progress"
 	)
 
 	if [ "$is_dry_run" = true ]; then
@@ -223,8 +227,43 @@ perform_sync() {
 	fi
 }
 
+# Download secrets from B2 to local
+perform_download() {
+	setup_b2_env
+
+	log_header "Downloading secrets from B2..."
+	log_info "Source: b2://$PRI_B2_BUCKET_NAME"
+	log_info "Target: $SECRETS_PATH"
+	echo
+
+	# Create the secrets directory
+	mkdir -p "$SECRETS_PATH"
+
+	# Build download sync command arguments (B2 -> local)
+	local args=(
+		"sync"
+		"b2://$PRI_B2_BUCKET_NAME"
+		"$SECRETS_PATH"
+		"--exclude-regex"
+		".*\\.m2/repository/.*"
+		"--exclude-all-symlinks"
+		"--no-progress"
+	)
+
+	if $B2_CMD "${args[@]}"; then
+		log_success "Download completed successfully"
+		log_info "Files have been downloaded from B2 cloud storage"
+		return 0
+	else
+		log_error "Download failed"
+		return 1
+	fi
+}
+
 # Main sync function
 sync_secrets() {
+	local mode="$1"
+
 	# Validation checks
 	if ! validate_b2_credentials; then
 		return 1
@@ -234,25 +273,74 @@ sync_secrets() {
 		return 1
 	fi
 
-	if ! check_secrets_directory; then
-		return 1
-	fi
-
 	# Authorize with B2
 	if ! authorize_b2; then
 		return 1
 	fi
 
-	# Perform sync (always full sync, never dry run)
-	if ! perform_sync false; then
+	# Determine sync mode from argument, default to both
+	case "$mode" in
+	download) ;;
+	upload) ;;
+	"")
+		mode="both"
+		;;
+	*)
+		log_error "Unknown mode: $mode"
+		log_info "Usage: sync_secrets.sh [upload|download]"
 		return 1
+		;;
+	esac
+
+	# Download phase
+	if [ "$mode" = "download" ] || [ "$mode" = "both" ]; then
+		if [ ! -d "$SECRETS_PATH" ]; then
+			log_info "Secrets directory not found at $SECRETS_PATH"
+		fi
+		log_info "Downloading secrets from B2..."
+		echo
+
+		if ! perform_download; then
+			return 1
+		fi
+
+		echo
 	fi
 
-	echo
+	# Upload phase
+	if [ "$mode" = "upload" ] || [ "$mode" = "both" ]; then
+		if ! check_secrets_directory; then
+			return 1
+		fi
+
+		# Perform upload sync
+		if ! perform_sync false; then
+			return 1
+		fi
+
+		echo
+	fi
+
+	# Summary
 	log_info "${EMOJI_CLOUD} Sync Summary:"
-	log_info "  • Mode: Full sync"
-	log_info "  • Files uploaded to Backblaze B2"
-	log_info "  • Backup completed successfully"
+	case "$mode" in
+	download)
+		log_info "  • Mode: Download"
+		log_info "  • Files downloaded from Backblaze B2"
+		log_info "  • Secrets restored to $SECRETS_PATH"
+		;;
+	upload)
+		log_info "  • Mode: Upload"
+		log_info "  • Files uploaded to Backblaze B2"
+		log_info "  • Backup completed successfully"
+		;;
+	both)
+		log_info "  • Mode: Download + Upload"
+		log_info "  • Files downloaded from Backblaze B2"
+		log_info "  • Files uploaded to Backblaze B2"
+		log_info "  • Full sync completed successfully"
+		;;
+	esac
 	echo
 
 	return 0
@@ -260,7 +348,7 @@ sync_secrets() {
 
 # Main function
 main() {
-	if ! sync_secrets; then
+	if ! sync_secrets "$@"; then
 		exit 1
 	fi
 }
