@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Common installation steps shared across all platforms
+
+set -e
+
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../" && pwd)"
+SCRIPTS_DIR="$DOTFILES_DIR/etc/scripts"
+
+source "$SCRIPTS_DIR/common/utility.sh"
+
+echo "Running common setup..."
+
+# Make scripts executable
+find "$SCRIPTS_DIR" -type f -name "*.sh" -exec chmod +x {} \;
+
+# Install Oh My Zsh if not already installed
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+	echo "Installing Oh My Zsh..."
+	sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+else
+	echo "Oh My Zsh already installed"
+fi
+
+# Clone nvim config if it doesn't exist
+if [ ! -d "$HOME/Programming/nvim" ]; then
+	echo "Cloning nvim configuration..."
+	mkdir -p "$HOME/Programming"
+	git clone git@github.com:JimmyTranDev/nvim-config.git "$HOME/Programming/nvim"
+else
+	echo "Nvim config already exists"
+fi
+
+# Sync symbolic links
+echo "Syncing symbolic links..."
+"$SCRIPTS_DIR/sync_links.sh"
+
+# Sync secrets
+echo "Syncing secrets..."
+"$SCRIPTS_DIR/sync_secrets.sh"
+
+echo "Common setup completed"

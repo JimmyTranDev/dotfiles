@@ -76,7 +76,7 @@ get_macos_links() {
 
 get_linux_links() {
 	local links=(
-		"$HOME/Programming/dotfiles/src/nvim $HOME/.config/nvim"
+		"$HOME/Programming/nvim $HOME/.config/nvim"
 		"$HOME/Programming/dotfiles/src/yazi $HOME/.config/yazi"
 		"$HOME/Programming/dotfiles/src/zellij $HOME/.config/zellij"
 		"$HOME/Programming/dotfiles/src/lazygit $HOME/.config/lazygit"

@@ -83,15 +83,19 @@ validate_b2_credentials() {
     return 0
 }
 
-# Check if b2 CLI is installed
-check_b2_cli() {
-    if ! command -v b2 >/dev/null 2>&1; then
-        log_error "b2 CLI not found"
-        log_info "Install with: pip install b2"
+# Determine the correct b2 command name (macOS uses 'b2', Arch uses 'backblaze-b2')
+detect_b2_command() {
+    if command -v b2 >/dev/null 2>&1; then
+        B2_CMD="b2"
+    elif command -v backblaze-b2 >/dev/null 2>&1; then
+        B2_CMD="backblaze-b2"
+    else
+        log_error "b2 CLI not found (tried 'b2' and 'backblaze-b2')"
+        log_info "Install with: pip install b2 (or 'backblaze-b2' on Arch)"
         return 1
     fi
-    
-    log_success "b2 CLI found"
+
+    log_success "b2 CLI found: $B2_CMD"
     return 0
 }
 
@@ -121,7 +125,7 @@ authorize_b2() {
     
     setup_b2_env
     
-    if b2 account authorize "$PRI_B2_APPLICATION_KEY_ID" "$PRI_B2_APPLICATION_KEY" >/dev/null 2>&1; then
+    if $B2_CMD account authorize "$PRI_B2_APPLICATION_KEY_ID" "$PRI_B2_APPLICATION_KEY" >/dev/null 2>&1; then
         log_success "B2 authorization successful"
         return 0
     else
@@ -160,7 +164,7 @@ perform_sync() {
     echo
     
     # Execute sync command
-    if b2 "${args[@]}"; then
+    if $B2_CMD "${args[@]}"; then
         if [ "$is_dry_run" = true ]; then
             log_success "Dry run completed successfully"
             log_info "No files were actually uploaded"
@@ -186,7 +190,7 @@ sync_secrets() {
         return 1
     fi
     
-    if ! check_b2_cli; then
+    if ! detect_b2_command; then
         return 1
     fi
     

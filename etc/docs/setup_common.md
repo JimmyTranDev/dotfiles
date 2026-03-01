@@ -12,7 +12,7 @@ ssh-add ~/.ssh/id_ed25519
 
 ```sh
 ~/Programming/dotfiles/etc/scripts/install/clone_essential_repos.sh
-~/Programming/dotfiles/etc/scripts/install/install.sh
+~/Programming/dotfiles/etc/scripts/install.sh
 ```
 
 ## Sync secrets

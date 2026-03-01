@@ -63,8 +63,8 @@ alias loc='git ls-files | grep -vE "(^|/)(assets|data)/" | xargs wc -l'
 alias l="$HOME/Programming/dotfiles/etc/scripts/select_git_folder_actx.sh"
 
 alias F="$HOME/Programming/dotfiles/etc/scripts/pull_repos.sh"
-alias S="$HOME/Programming/dotfiles/etc/scripts/setup.sh"
-alias I="$HOME/Programming/dotfiles/etc/scripts/sync_packages.sh"
+alias S="$HOME/Programming/dotfiles/etc/scripts/install.sh"
+alias I="$HOME/Programming/dotfiles/etc/scripts/install.sh"
 alias L="$HOME/Programming/dotfiles/etc/scripts/sync_link.sh"
 alias E="$HOME/Programming/dotfiles/etc/scripts/sync_secrets.sh"
 alias C='find "$HOME/Programming/dotfiles/etc/scripts" -type f -name "*.sh" -exec chmod +x {} \;'
@@ -117,11 +117,11 @@ if command -v fnm >/dev/null 2>&1; then
   eval "$(fnm env --use-on-cd --shell zsh)"
 fi
 
-# Initialize gcloud CLI if installed
-if [[ -f "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc" ]]; then
-  source "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc"
-  source "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"
-fi
+# # Initialize gcloud CLI if installed
+# if [[ -f "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc" ]]; then
+#   source "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc"
+#   source "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"
+# fi
 
 zellij_tab_name_update() {
   if [[ -n $ZELLIJ ]]; then
@@ -226,6 +226,6 @@ if [[ -z "$ZELLIJ_AUTO_ATTACH" ]]; then
   export ZELLIJ_AUTO_ATTACH="false"
 fi
 
-# Uncomment the line below to enable auto-start in .zshrc
-# zellij_auto_start
-export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"
+# # Uncomment the line below to enable auto-start in .zshrc
+# # zellij_auto_start
+# export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"
