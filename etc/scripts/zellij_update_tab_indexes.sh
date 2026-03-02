@@ -5,11 +5,11 @@
 layout=$(zellij action dump-layout 2>/dev/null)
 [[ -z $layout ]] && exit 0
 
-current_tab_name=$(echo "$layout" | awk '/^[[:space:]]*tab[[:space:]].*focus=true/ {match($0, /name="[^"]*"/); print substr($0, RSTART+6, RLENGTH-7); exit}')
+current_tab_name=$(echo "$layout" | awk '/^[[:space:]]*tab[[:space:]].*name=.*focus=true/ {match($0, /name="[^"]*"/); print substr($0, RSTART+6, RLENGTH-7); exit}')
 [[ -z $current_tab_name ]] && exit 0
 current_tab_base=$(echo "$current_tab_name" | sed 's/^[0-9][0-9]*\.//')
 
-tab_lines=$(echo "$layout" | awk '/^[[:space:]]*tab[[:space:]]/ {print NR": "$0}')
+tab_lines=$(echo "$layout" | awk '/^[[:space:]]*tab[[:space:]].*name=/ {print NR": "$0}')
 tab_count=$(echo "$tab_lines" | wc -l | tr -d ' ')
 [[ $tab_count -eq 0 ]] && exit 0
 

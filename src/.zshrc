@@ -22,7 +22,7 @@ export MANPAGER='nvim +Man!'
 export MANWIDTH=999
 export ANDROID_HOME="$HOME/Library/Android/sdk"
 export MANPATH="/usr/local/man:$MANPATH"
-export ZELLIJ_TAB_NAME_MAX_LENGTH=20
+export ZELLIJ_TAB_NAME_MAX_LENGTH=10
 
 path_additions=(
   "$ANDROID_HOME/emulator"
@@ -129,15 +129,16 @@ zellij_tab_name_update() {
     [[ "$PWD" == "$HOME" ]] && current_dir="~"
     local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
     local tab_name="${current_dir:0:$max_length}"
-    local tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]]/ {count++; if (/focus=true/) {print count; exit}}')
+    local tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=/ {count++; if (/focus=true/) {print count; exit}}')
     [[ -n $tab_index ]] && tab_name="${tab_index}. ${tab_name}"
     zellij action rename-tab "$tab_name" 2>/dev/null
   fi
 }
 
 zellij_update_tab_indexes() {
-  $HOME/Programming/dotfiles/etc/scripts/zellij_update_tab_indexes.sh
+  $HOME/Programming/dotfiles/etc/scripts/zellij_update_tab_indexes.sh >/dev/null 2>&1
   zle reset-prompt
+  return 0
 }
 zle -N zellij_update_tab_indexes
 bindkey '^u' zellij_update_tab_indexes
