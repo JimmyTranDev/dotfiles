@@ -23,13 +23,13 @@ else
 fi
 
 # Clone nvim config if it doesn't exist
-if [ ! -d "$HOME/Programming/nvim" ]; then
+if [ ! -d "$HOME/Programming/JimmyTranDev/nvim" ]; then
 	echo "Cloning nvim configuration..."
-	mkdir -p "$HOME/Programming"
+	mkdir -p "$HOME/Programming/JimmyTranDev"
 	if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
-		git clone git@github.com:JimmyTranDev/nvim-config.git "$HOME/Programming/nvim"
+		git clone git@github.com:JimmyTranDev/nvim-config.git "$HOME/Programming/JimmyTranDev/nvim"
 	else
-		git clone https://github.com/JimmyTranDev/nvim-config.git "$HOME/Programming/nvim"
+		git clone https://github.com/JimmyTranDev/nvim-config.git "$HOME/Programming/JimmyTranDev/nvim"
 	fi
 else
 	echo "Nvim config already exists"

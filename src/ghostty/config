@@ -1,7 +1,7 @@
 theme = catppuccin-mocha.conf
 shell-integration = zsh
 shell-integration-features = cursor,sudo,title
-initial-command = /bin/zsh -l -c "$HOME/Programming/dotfiles/etc/scripts/ghostty_zellij_startup.sh"
+initial-command = /bin/zsh -l -c "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/ghostty_zellij_startup.sh"
 keybind = clear
 keybind = cmd+c=copy_to_clipboard
 keybind = cmd+v=paste_from_clipboard

@@ -117,5 +117,5 @@ desc = "Go to config directory"
 
 [[mgr.prepend_keymap]]
 on = [ "g", "." ]
-run = "cd ~/Programming/dotfiles"
+run = "cd ~/Programming/JimmyTranDev/dotfiles"
 desc = "Go to dotfiles"

@@ -156,7 +156,7 @@ log_info "Checking directories..."
 REQUIRED_DIRS=(
 	"$HOME/Programming:Programming directory"
 	"$DOTFILES_ROOT:Dotfiles repository"
-	"$HOME/Programming/nvim:Neovim config"
+	"$HOME/Programming/JimmyTranDev/nvim:Neovim config"
 )
 
 for dir_entry in "${REQUIRED_DIRS[@]}"; do
@@ -168,10 +168,10 @@ for dir_entry in "${REQUIRED_DIRS[@]}"; do
 	fi
 done
 
-if [ -d "$HOME/Programming/secrets" ]; then
+if [ -d "$HOME/Programming/JimmyTranDev/secrets" ]; then
 	check_pass "Secrets directory exists"
 else
-	check_warn "Secrets directory missing ($HOME/Programming/secrets)"
+	check_warn "Secrets directory missing ($HOME/Programming/JimmyTranDev/secrets)"
 fi
 echo
 

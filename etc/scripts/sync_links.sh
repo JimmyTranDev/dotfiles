@@ -12,7 +12,7 @@ DRY_RUN=false
 
 get_macos_links() {
 	local links=(
-		"$HOME/Programming/nvim $HOME/.config/nvim"
+		"$HOME/Programming/JimmyTranDev/nvim $HOME/.config/nvim"
 		"$DOTFILES_ROOT/src/yazi $HOME/.config/yazi"
 		"$DOTFILES_ROOT/src/zellij $HOME/.config/zellij"
 		"$DOTFILES_ROOT/src/lazygit $HOME/.config/lazygit"
@@ -20,9 +20,9 @@ get_macos_links() {
 		"$DOTFILES_ROOT/src/.ideavimrc $HOME/.ideavimrc"
 		"$DOTFILES_ROOT/src/.gitignore_global $HOME/.gitignore_global"
 		"$DOTFILES_ROOT/src/Brewfile $HOME/Brewfile"
-		"$HOME/Programming/secrets/.gitconfig $HOME/.gitconfig"
-		"$HOME/Programming/secrets/.m2 $HOME/.m2"
-		"$HOME/Programming/secrets/.npmrc $HOME/.npmrc"
+		"$HOME/Programming/JimmyTranDev/secrets/.gitconfig $HOME/.gitconfig"
+		"$HOME/Programming/JimmyTranDev/secrets/.m2 $HOME/.m2"
+		"$HOME/Programming/JimmyTranDev/secrets/.npmrc $HOME/.npmrc"
 		"$DOTFILES_ROOT/src/skhd $HOME/.config/skhd"
 		"$DOTFILES_ROOT/src/yabai $HOME/.config/yabai"
 		"$DOTFILES_ROOT/src/btop $HOME/.config/btop"
@@ -37,16 +37,16 @@ get_macos_links() {
 
 get_linux_links() {
 	local links=(
-		"$HOME/Programming/nvim $HOME/.config/nvim"
+		"$HOME/Programming/JimmyTranDev/nvim $HOME/.config/nvim"
 		"$DOTFILES_ROOT/src/yazi $HOME/.config/yazi"
 		"$DOTFILES_ROOT/src/zellij $HOME/.config/zellij"
 		"$DOTFILES_ROOT/src/lazygit $HOME/.config/lazygit"
 		"$DOTFILES_ROOT/src/.zshrc $HOME/.zshrc"
 		"$DOTFILES_ROOT/src/.ideavimrc $HOME/.ideavimrc"
 		"$DOTFILES_ROOT/src/.gitignore_global $HOME/.gitignore_global"
-		"$HOME/Programming/secrets/.gitconfig $HOME/.gitconfig"
-		"$HOME/Programming/secrets/.m2 $HOME/.m2"
-		"$HOME/Programming/secrets/.npmrc $HOME/.npmrc"
+		"$HOME/Programming/JimmyTranDev/secrets/.gitconfig $HOME/.gitconfig"
+		"$HOME/Programming/JimmyTranDev/secrets/.m2 $HOME/.m2"
+		"$HOME/Programming/JimmyTranDev/secrets/.npmrc $HOME/.npmrc"
 		"$DOTFILES_ROOT/src/btop $HOME/.config/btop"
 		"$DOTFILES_ROOT/src/starship.toml $HOME/.config/starship.toml"
 		"$DOTFILES_ROOT/src/kitty $HOME/.config/kitty"

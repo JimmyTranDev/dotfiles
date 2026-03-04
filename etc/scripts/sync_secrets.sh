@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common/utility.sh"
 source "$SCRIPT_DIR/common/logging.sh"
 set -e
-SECRETS_PATH="$HOME/Programming/secrets"
+SECRETS_PATH="$HOME/Programming/JimmyTranDev/secrets"
 
 B2_REQUIRED_VARS=(
 	"PRI_B2_BUCKET_NAME"
@@ -207,6 +207,7 @@ perform_download() {
 		".*\\.m2/repository/.*"
 		"--exclude-all-symlinks"
 		"--no-progress"
+		"--skip-newer"
 	)
 
 	if $B2_CMD "${args[@]}"; then
@@ -214,8 +215,8 @@ perform_download() {
 		log_info "Files have been downloaded from B2 cloud storage"
 		return 0
 	else
-		log_error "Download failed"
-		return 1
+		log_warning "Download encountered issues (some files may have been skipped)"
+		return 0
 	fi
 }
 

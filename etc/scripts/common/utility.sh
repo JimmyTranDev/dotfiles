@@ -14,6 +14,22 @@ elif [[ -n "$BASH_VERSION" ]]; then
 	fi
 fi
 
+PROGRAMMING_EXCLUDED_DIRS=("Worktrees" "secrets")
+
+get_org_dirs() {
+	local programming_dir="${1:-$HOME/Programming}"
+	for dir in "$programming_dir"/*/; do
+		[[ ! -d "$dir" ]] && continue
+		local name="${dir%/}"
+		name="${name##*/}"
+		local excluded=false
+		for excl in "${PROGRAMMING_EXCLUDED_DIRS[@]}"; do
+			[[ "$name" == "$excl" ]] && excluded=true && break
+		done
+		$excluded || echo "$dir"
+	done
+}
+
 require_tool() {
 	if ! command -v "$1" &>/dev/null; then
 		if [[ -n "$ZSH_VERSION" ]]; then

@@ -9,42 +9,53 @@ source "$SCRIPT_DIR/common/utility.sh"
 
 select_git_folder_actx() {
 	local programming_dir="$HOME/Programming"
-	local selection_type="${1:-both}" # Options: repos, worktrees, both
+	local selection_type="${1:-both}"
 
-	# Check if Programming directory exists
-	if [[ ! -d "$programming_dir" ]]; then
-		echo "Error: $programming_dir directory not found"
+	local search_dirs=()
+	while IFS= read -r org_dir; do
+		[[ -d "$org_dir" ]] && search_dirs+=("${org_dir%/}")
+	done < <(get_org_dirs "$programming_dir")
+
+	if [[ ${#search_dirs[@]} -eq 0 ]]; then
+		echo "Error: No org directories found in $programming_dir"
 		return 1
 	fi
 
-	# Check if fzf is available
 	if ! command -v fzf &>/dev/null; then
 		echo "Error: fzf is required but not installed"
 		echo "Install with: brew install fzf"
 		return 1
 	fi
 
-	# Find git repositories and/or worktrees based on selection type
 	local git_items=()
 
 	case "$selection_type" in
 	"repos")
 		echo "Searching for git repositories..."
-		while IFS= read -r line; do
-			[[ -n "$line" ]] && git_items+=("$line")
-		done < <(find_git_repos "$programming_dir" 2)
+		for dir in "${search_dirs[@]}"; do
+			local category="${dir##*/}"
+			while IFS= read -r line; do
+				[[ -n "$line" ]] && git_items+=("[$category] $line")
+			done < <(find_git_repos "$dir" 1)
+		done
 		;;
 	"worktrees")
 		echo "Searching for git worktrees..."
-		while IFS= read -r line; do
-			[[ -n "$line" ]] && git_items+=("$line")
-		done < <(find_git_worktrees "$programming_dir" 2)
+		for dir in "${search_dirs[@]}"; do
+			local category="${dir##*/}"
+			while IFS= read -r line; do
+				[[ -n "$line" ]] && git_items+=("[$category] $line")
+			done < <(find_git_worktrees "$dir" 1)
+		done
 		;;
 	"both" | *)
 		echo "Searching for git repositories and worktrees..."
-		while IFS= read -r line; do
-			[[ -n "$line" ]] && git_items+=("$line")
-		done < <(find_git_repos_and_worktrees "$programming_dir" 2)
+		for dir in "${search_dirs[@]}"; do
+			local category="${dir##*/}"
+			while IFS= read -r line; do
+				[[ -n "$line" ]] && git_items+=("[$category] $line")
+			done < <(find_git_repos_and_worktrees "$dir" 1)
+		done
 		;;
 	esac
 
@@ -52,13 +63,13 @@ select_git_folder_actx() {
 	if [[ ${#git_items[@]} -eq 0 ]]; then
 		case "$selection_type" in
 		"repos")
-			echo "No git repositories found in $programming_dir"
+			echo "No git repositories found"
 			;;
 		"worktrees")
-			echo "No git worktrees found in $programming_dir"
+			echo "No git worktrees found"
 			;;
 		*)
-			echo "No git repositories or worktrees found in $programming_dir"
+			echo "No git repositories or worktrees found"
 			;;
 		esac
 		return 1
@@ -113,8 +124,11 @@ select_git_folder_actx() {
 		return 1
 	fi
 
-	local source_path="$programming_dir/$selected_item"
-	local target_name="${selected_item##*/}-actx"
+	local category="${selected_item%%]*}"
+	category="${category#[}"
+	local item_name="${selected_item#*] }"
+	local source_path="$programming_dir/$category/$item_name"
+	local target_name="${item_name##*/}-actx"
 	local target_path="$(pwd)/$target_name"
 
 	# Check if source exists
@@ -148,7 +162,7 @@ select_git_folder_actx() {
 
 	# Create the symlink
 	if ln -s "$source_path" "$target_path"; then
-		echo "Successfully created symlink: $target_name -> $selected_item ($item_type)"
+		echo "Successfully created symlink: $target_name -> $category/$item_name ($item_type)"
 		echo "Source: $source_path"
 		echo "Target: $target_path"
 	else
@@ -162,7 +176,7 @@ show_help() {
 	cat <<EOF
 Usage: $(basename "$0") [OPTIONS]
 
-Create a symlink with -actx suffix for git repositories and worktrees from ~/Programming
+Create a symlink with -actx suffix for git repositories and worktrees from ~/Programming org directories
 
 OPTIONS:
   -r, --repos        Select from git repositories only
@@ -176,9 +190,9 @@ EXAMPLES:
   $(basename "$0") -w        # Select from worktrees only
 
 DESCRIPTION:
-  This script scans ~/Programming for git repositories and worktrees, allows you to
+  This script scans ~/Programming org directories for git repositories and worktrees, allows you to
   select one interactively with fzf, and creates a symlink in the current directory
-  with the format: {name}-actx -> ~/Programming/{selected-item}
+  with the format: {name}-actx -> ~/Programming/{category}/{selected-item}
   
   Git repositories are directories containing .git subdirectories.
   Git worktrees are directories containing .git files with gitdir: references.

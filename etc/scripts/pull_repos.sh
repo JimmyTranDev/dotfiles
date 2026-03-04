@@ -1,8 +1,9 @@
 #!/bin/zsh
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+source "$SCRIPT_DIR/common/utility.sh"
+
 PROGRAMMING_DIR="${PROGRAMMING_DIR:-$HOME/Programming}"
-WORK_DIR="${WORK_DIR:-$PROGRAMMING_DIR/work}"
-PERSONAL_DIR="${PERSONAL_DIR:-$PROGRAMMING_DIR/personal}"
 
 pull_dir() {
 	local target_dir="$1"
@@ -30,5 +31,9 @@ pull_dir() {
 	done
 }
 
-pull_dir "$WORK_DIR" "work"
-pull_dir "$PERSONAL_DIR" "personal"
+while IFS= read -r org_dir; do
+	[[ ! -d "$org_dir" ]] && continue
+	local org_name="${org_dir%/}"
+	org_name="${org_name##*/}"
+	pull_dir "${org_dir%/}" "$org_name"
+done < <(get_org_dirs "$PROGRAMMING_DIR")

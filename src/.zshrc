@@ -14,7 +14,7 @@ plugins=(
   history
 )
 
-DOTFILES_DIR="$HOME/Programming/dotfiles"
+DOTFILES_DIR="$HOME/Programming/JimmyTranDev/dotfiles"
 
 export BROWSER=firefox
 export ARCHFLAGS="-arch $(uname -m)"
@@ -43,7 +43,7 @@ for p in "${path_additions[@]}"; do
 done
 
 [[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-[[ -f "$HOME/Programming/secrets/env.sh" ]] && source "$HOME/Programming/secrets/env.sh"
+[[ -f "$HOME/Programming/JimmyTranDev/secrets/env.sh" ]] && source "$HOME/Programming/JimmyTranDev/secrets/env.sh"
 
 alias wD='$DOTFILES_DIR/etc/scripts/worktrees/worktree delete'
 alias wC='$DOTFILES_DIR/etc/scripts/worktrees/worktree clean'
@@ -99,26 +99,26 @@ wo() {
 source "$DOTFILES_DIR/etc/scripts/common/utility.sh"
 
 select_project() {
-  local work_dir="$HOME/Programming/work"
-  local personal_dir="$HOME/Programming/personal"
+  local programming_dir="$HOME/Programming"
   local last_file="$HOME/.last_project"
   local last_sel=""
   [[ -f "$last_file" ]] && last_sel=$(<"$last_file")
 
   local items=()
-  if [[ -d "$work_dir" ]]; then
-    for dir in "$work_dir"/*/; do
-      [[ -d "$dir" ]] && items+=("[work] ${dir##$work_dir/}")
+  while IFS= read -r org_dir; do
+    [[ ! -d "$org_dir" ]] && continue
+    local org_name="${org_dir%/}"
+    org_name="${org_name##*/}"
+    for dir in "$org_dir"/*/; do
+      [[ -d "$dir" ]] || continue
+      local dirname="${dir%/}"
+      dirname="${dirname##*/}"
+      items+=("[$org_name] $dirname")
     done
-  fi
-  if [[ -d "$personal_dir" ]]; then
-    for dir in "$personal_dir"/*/; do
-      [[ -d "$dir" ]] && items+=("[personal] ${dir##$personal_dir/}")
-    done
-  fi
+  done < <(get_org_dirs "$programming_dir")
 
   if [[ ${#items[@]} -eq 0 ]]; then
-    echo "No projects found"
+    zle -M "No projects found"
     return 1
   fi
 
@@ -131,14 +131,14 @@ select_project() {
   fi
 
   local selected
-  selected=$(printf "%s\n" "${sorted_items[@]}" | sed 's|/$||' | fzf --prompt="Select project: ")
+  selected=$(printf "%s\n" "${sorted_items[@]}" | fzf --prompt="Select project: ")
   if [[ -n "$selected" ]]; then
     echo "$selected" > "$last_file"
     local category="${selected%%]*}"
     category="${category#[}"
     local project="${selected#*] }"
-    project="${project%/}"
     cd "$HOME/Programming/$category/$project"
+    zle reset-prompt
   fi
 }
 zle -N select_project
@@ -175,6 +175,7 @@ select_worktree() {
     local path="${selected#*] }"
     path="${path# }"
     cd "$base_dir/$path"
+    zle reset-prompt
   fi
 }
 zle -N select_worktree

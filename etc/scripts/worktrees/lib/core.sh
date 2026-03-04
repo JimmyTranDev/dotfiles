@@ -166,13 +166,12 @@ find_main_branch() {
 # Get repository - either by name or interactive selection
 get_repository() {
 	local repo_name="$1"
-	local work_dir="${WORK_DIR:-$HOME/Programming/work}"
-	local personal_dir="${PERSONAL_DIR:-$HOME/Programming/personal}"
 	local programming_dir="${PROGRAMMING_DIR:-$HOME/Programming}"
 
 	local search_dirs=()
-	[[ -d "$work_dir" ]] && search_dirs+=("$work_dir")
-	[[ -d "$personal_dir" ]] && search_dirs+=("$personal_dir")
+	while IFS= read -r org_dir; do
+		[[ -d "$org_dir" ]] && search_dirs+=("${org_dir%/}")
+	done < <(get_org_dirs "$programming_dir")
 	[[ ${#search_dirs[@]} -eq 0 && -d "$programming_dir" ]] && search_dirs+=("$programming_dir")
 
 	if [[ ${#search_dirs[@]} -eq 0 ]]; then
