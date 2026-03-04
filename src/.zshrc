@@ -20,16 +20,24 @@ export BROWSER=firefox
 export ARCHFLAGS="-arch $(uname -m)"
 export MANPAGER='nvim +Man!'
 export MANWIDTH=999
-export ANDROID_HOME="$HOME/Library/Android/sdk"
-export MANPATH="/usr/local/man:$MANPATH"
 export ZELLIJ_TAB_NAME_MAX_LENGTH=10
 
+if [[ "$(uname)" == "Darwin" ]]; then
+  export ANDROID_HOME="$HOME/Library/Android/sdk"
+  export MANPATH="/usr/local/man${MANPATH:+:$MANPATH}"
+fi
+
 path_additions=(
-  "$ANDROID_HOME/emulator"
-  "$ANDROID_HOME/platform-tools"
   "$HOME/.local/bin"
   "$HOME/.local/share/pnpm"
 )
+
+if [[ -n "$ANDROID_HOME" ]]; then
+  path_additions+=(
+    "$ANDROID_HOME/emulator"
+    "$ANDROID_HOME/platform-tools"
+  )
+fi
 for p in "${path_additions[@]}"; do
   [[ ":$PATH:" != *":$p:"* ]] && export PATH="$PATH:$p"
 done
@@ -50,7 +58,6 @@ alias e='exit'
 alias o='opencode'
 alias g='rg'
 alias n='nvim'
-alias t='yabai --restart-service; skhd --restart-service'
 alias y='yazi'
 alias z='zellij'
 alias k="$DOTFILES_DIR/etc/scripts/kill_port.sh"
@@ -60,6 +67,10 @@ alias knip='pnpm dlx knip'
 alias knipw='pnpm dlx knip --watch'
 alias loc='git ls-files | rg -v "(^|/)(assets|data)/" | xargs wc -l'
 alias l="$DOTFILES_DIR/etc/scripts/select_git_folder_actx.sh"
+
+if [[ "$(uname)" == "Darwin" ]]; then
+  alias t='yabai --restart-service; skhd --restart-service'
+fi
 
 alias F="$DOTFILES_DIR/etc/scripts/pull_repos.sh"
 alias I="$DOTFILES_DIR/etc/scripts/install.sh"

@@ -172,13 +172,18 @@ delete_single_worktree() {
 			print_color yellow "Branch '$branch_name' does not exist locally (may have been already deleted)"
 		fi
 
-		# Delete remote branch if it exists
 		if git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
-			print_color yellow "Deleting remote branch: origin/$branch_name"
-			if git push origin --delete "$branch_name" 2>/dev/null; then
-				print_color green "✅ Successfully deleted remote branch: origin/$branch_name"
+			print_color yellow "Remote branch origin/$branch_name exists. Delete it? (y/N)"
+			local confirm_remote
+			read -r confirm_remote
+			if [[ "$confirm_remote" == "y" || "$confirm_remote" == "Y" ]]; then
+				if git push origin --delete "$branch_name" 2>/dev/null; then
+					print_color green "✅ Successfully deleted remote branch: origin/$branch_name"
+				else
+					print_color red "❌ Failed to delete remote branch: origin/$branch_name"
+				fi
 			else
-				print_color red "❌ Failed to delete remote branch: origin/$branch_name"
+				print_color yellow "Skipped remote branch deletion."
 			fi
 		fi
 	else

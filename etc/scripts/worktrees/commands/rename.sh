@@ -1,9 +1,5 @@
 #!/bin/zsh
-# ===================================================================
-# rename.sh - Rename Branch Command
-# ===================================================================
 
-# Rename current branch subcommand
 cmd_rename() {
 	if ! check_tool git; then
 		return 1
@@ -23,9 +19,6 @@ cmd_rename() {
 
 	print_color cyan "Current branch: $current_branch"
 
-	local JIRA_PATTERN_UNANCHORED='[A-Z]+-[0-9]+'
-
-	# Check if branch already contains JIRA ticket
 	if [[ "$current_branch" =~ $JIRA_PATTERN_UNANCHORED ]]; then
 		if ! check_tool acli; then
 			print_color red "acli not available. Cannot fetch ticket details."

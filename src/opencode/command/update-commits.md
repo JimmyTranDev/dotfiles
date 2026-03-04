@@ -10,7 +10,7 @@ Search for all commits with the text "update". Update them to have a better desc
   - An emoji prefix matching the type of change (✨ feat, 🐛 fix, 📚 docs, 🔨 refactor, 💎 style, 🧪 test, 🚀 perf, 🔧 chore, etc.)
   - Clear, concise commit message following conventional commits format: `type(scope): description`
   - Preserve the original commit content and authorship
-- Use interactive rebase to update commit messages while maintaining commit order and content
+- Use `git rebase` with `GIT_SEQUENCE_EDITOR` to non-interactively change `pick` to `reword` for target commits, then use `GIT_EDITOR` with a script to set the new message for each commit
 
 Common emoji mappings:
 - ✨ feat: new features

@@ -180,7 +180,6 @@ nnoremap <C-Up> <Action>(ActivateProjectToolWindow)
 " Arrow.nvim Bookmarks Alternative (mimicking arrow.lua)
 " =============================================================================
 " Arrow bookmarks using IntelliJ bookmarks
-nnoremap m <Action>(ToggleBookmark)
 nnoremap ' <Action>(ShowBookmarks)
 
 " =============================================================================
@@ -374,10 +373,6 @@ vnoremap > >gv
 " Move lines up and down
 vnoremap J :m '>+1<CR>gv=gv
 vnoremap K :m '<-2<CR>gv=gv
-
-" Stay in indent mode
-vnoremap < <gv
-vnoremap > >gv
 
 " Clear search highlighting
 nnoremap <leader>/ :nohlsearch<CR>

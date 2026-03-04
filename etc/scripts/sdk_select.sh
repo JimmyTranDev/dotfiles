@@ -36,8 +36,10 @@ if [[ ${#versions[@]} -eq 0 ]]; then
 	exit 1
 fi
 
-IFS=$'\n' sorted=($(printf "%s\n" "${versions[@]}" | sort -rV))
-unset IFS
+sorted=()
+while IFS= read -r line; do
+	[[ -n "$line" ]] && sorted+=("$line")
+done < <(printf "%s\n" "${versions[@]}" | sort -rV)
 
 display=()
 for v in "${sorted[@]}"; do

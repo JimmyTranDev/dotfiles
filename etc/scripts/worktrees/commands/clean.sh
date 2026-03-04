@@ -104,6 +104,14 @@ cmd_clean_worktrees() {
 		print_color cyan "  - $(basename "$wt")"
 	done
 
+	print_color yellow "Are you sure you want to delete these merged worktrees? (y/N)"
+	local confirm
+	read -r confirm
+	if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+		print_color yellow "Cleanup cancelled."
+		return 0
+	fi
+
 	local success_count=0
 	local total_count=${#worktrees_to_delete[@]}
 

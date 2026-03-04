@@ -138,7 +138,7 @@ install_dependencies() {
 	fi
 }
 
-# Find main branch (prefer develop, fallback to main)
+# Find main branch (prefer main, fallback to master, then develop)
 find_main_branch() {
 	local repo_dir="$1"
 
@@ -148,7 +148,7 @@ find_main_branch() {
 	fi
 
 	local main_branch=""
-	for branch in develop main master; do
+	for branch in main master develop; do
 		if git -C "$repo_dir" rev-parse --verify "$branch" >/dev/null 2>&1; then
 			main_branch="$branch"
 			break
@@ -156,7 +156,7 @@ find_main_branch() {
 	done
 
 	if [[ -z "$main_branch" ]]; then
-		print_color red "Error: No main branch (develop/main/master) found"
+		print_color red "Error: No main branch (main/master/develop) found"
 		return 1
 	fi
 

@@ -191,11 +191,9 @@ cmd_create() {
 			commit_message="$commit_type: $emoji $jira_ticket"
 		fi
 
-		# Add JIRA link in the commit body
-		local org_name="${ORG_NAME:-storebrand}"
 		commit_message="$commit_message
 
-Jira: https://${org_name}.atlassian.net/browse/${jira_ticket}"
+Jira: https://${ORG_NAME}.atlassian.net/browse/${jira_ticket}"
 	else
 		# No JIRA ticket, use the original input message
 		commit_message="$commit_type: $emoji $original_input"
