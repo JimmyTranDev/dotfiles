@@ -16,7 +16,12 @@ echo "Starting dotfiles installation..."
 if [ "$(uname)" == "Darwin" ]; then
 	"$INSTALL_DIR/mac.sh"
 elif [ "$(uname)" == "Linux" ]; then
-	"$INSTALL_DIR/arch.sh"
+	if [ -f /etc/arch-release ]; then
+		"$INSTALL_DIR/arch.sh"
+	else
+		echo "Unsupported Linux distribution. Only Arch Linux is currently supported."
+		exit 1
+	fi
 else
 	echo "Unknown platform: $(uname)"
 	exit 1

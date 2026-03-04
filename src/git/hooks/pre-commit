@@ -20,14 +20,14 @@ if [ -z "$STAGED_FILES" ]; then
 fi
 
 TEMP_DIR=$(mktemp -d)
-trap "rm -rf $TEMP_DIR" EXIT
+trap 'rm -rf "$TEMP_DIR"' EXIT
 
-for file in $STAGED_FILES; do
+while IFS= read -r file; do
     if [ -f "$file" ]; then
         mkdir -p "$TEMP_DIR/$(dirname "$file")"
         git show ":$file" > "$TEMP_DIR/$file" 2>/dev/null || true
     fi
-done
+done <<< "$STAGED_FILES"
 
 output=$(trufflehog filesystem "$TEMP_DIR" --no-update --no-verification --fail 2>&1) || exit_code=$?
 
