@@ -26,7 +26,11 @@ Use the follower agent to check:
 
 ## What to Review
 
-If no specific files are provided, review the staged changes (git diff --cached) or recent changes (git diff HEAD~1).
+If no specific files are provided, diff against the base branch to find all changes on the current branch:
+
+1. Detect the base branch: check if `main` or `develop` exists (prefer `main`, fall back to `develop`)
+2. Run `git diff <base-branch>...HEAD` to get all changes on the current branch since it diverged
+3. If already on the base branch, fall back to staged changes (`git diff --cached`) or recent changes (`git diff HEAD~1`)
 
 ## Output Format
 

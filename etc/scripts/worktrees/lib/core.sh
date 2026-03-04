@@ -166,25 +166,36 @@ find_main_branch() {
 # Get repository - either by name or interactive selection
 get_repository() {
 	local repo_name="$1"
+	local work_dir="${WORK_DIR:-$HOME/Programming/work}"
+	local personal_dir="${PERSONAL_DIR:-$HOME/Programming/personal}"
 	local programming_dir="${PROGRAMMING_DIR:-$HOME/Programming}"
 
-	if [[ ! -d "$programming_dir" ]]; then
-		print_color red "Error: Programming directory not found: $programming_dir" >&2
+	local search_dirs=()
+	[[ -d "$work_dir" ]] && search_dirs+=("$work_dir")
+	[[ -d "$personal_dir" ]] && search_dirs+=("$personal_dir")
+	[[ ${#search_dirs[@]} -eq 0 && -d "$programming_dir" ]] && search_dirs+=("$programming_dir")
+
+	if [[ ${#search_dirs[@]} -eq 0 ]]; then
+		print_color red "Error: No programming directories found" >&2
 		return 1
 	fi
 
-	# Build array of git repositories
 	local repos=()
-	while IFS= read -r -d '' git_dir; do
-		repos+=("$(dirname "$git_dir")")
-	done < <(find "$programming_dir" -maxdepth 2 -name ".git" -type d -print0 2>/dev/null)
+	local repo_labels=()
+	for dir in "${search_dirs[@]}"; do
+		local category=$(basename "$dir")
+		while IFS= read -r -d '' git_dir; do
+			local repo_path="$(dirname "$git_dir")"
+			repos+=("$repo_path")
+			repo_labels+=("[$category] $(basename "$repo_path")")
+		done < <(find "$dir" -maxdepth 2 -name ".git" -type d -print0 2>/dev/null)
+	done
 
 	if [[ ${#repos[@]} -eq 0 ]]; then
-		print_color red "No git repositories found in $programming_dir" >&2
+		print_color red "No git repositories found" >&2
 		return 1
 	fi
 
-	# If repo name provided, find exact match
 	if [[ -n "$repo_name" ]]; then
 		for repo in "${repos[@]}"; do
 			if [[ "$(basename "$repo")" == "$repo_name" ]]; then
@@ -196,15 +207,15 @@ get_repository() {
 		return 1
 	fi
 
-	# Interactive selection with fzf
 	print_color cyan "Scanning for git repositories..." >&2
 	if check_tool fzf; then
 		local selected
-		selected=$(printf '%s\n' "${repos[@]}" | xargs -n1 basename | fzf --prompt="Select repository: " --height=40% --reverse)
+		selected=$(printf '%s\n' "${repo_labels[@]}" | fzf --prompt="Select repository: " --height=40% --reverse)
 		[[ -z "$selected" ]] && return 1
 
+		local selected_name="${selected##*] }"
 		for repo in "${repos[@]}"; do
-			if [[ "$(basename "$repo")" == "$selected" ]]; then
+			if [[ "$(basename "$repo")" == "$selected_name" ]]; then
 				echo "$repo"
 				return 0
 			fi

@@ -100,6 +100,29 @@ find_git_worktrees() {
 	done | sort
 }
 
+find_git_worktrees_categorized() {
+	local base_dir="$1"
+	local max_depth="${2:-2}"
+	base_dir="${base_dir%/}"
+	local base_dir_with_slash="${base_dir}/"
+
+	find "$base_dir" -maxdepth "$max_depth" -name ".git" -type f 2>/dev/null | while IFS= read -r git_file; do
+		if grep -q "^gitdir:" "$git_file" 2>/dev/null; then
+			worktree_path=$(dirname "$git_file")
+			relative_path="${worktree_path#$base_dir_with_slash}"
+			local branch
+			branch=$(git -C "$worktree_path" rev-parse --abbrev-ref HEAD 2>/dev/null)
+			local upstream
+			upstream=$(git -C "$worktree_path" rev-parse --abbrev-ref '@{upstream}' 2>/dev/null)
+			if [[ -n "$upstream" ]]; then
+				echo "[checkout] $relative_path"
+			else
+				echo "[created]  $relative_path"
+			fi
+		fi
+	done | sort
+}
+
 find_non_git_dirs() {
 	local base_dir="$1"
 	local max_depth="${2:-1}"

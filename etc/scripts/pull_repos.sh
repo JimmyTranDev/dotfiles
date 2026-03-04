@@ -1,24 +1,34 @@
 #!/bin/zsh
 
-TARGET_DIR="${1:-.}"
+PROGRAMMING_DIR="${PROGRAMMING_DIR:-$HOME/Programming}"
+WORK_DIR="${WORK_DIR:-$PROGRAMMING_DIR/work}"
+PERSONAL_DIR="${PERSONAL_DIR:-$PROGRAMMING_DIR/personal}"
 
-if [[ ! -d "$TARGET_DIR" ]]; then
-	echo "Error: '$TARGET_DIR' is not a directory."
-	exit 1
-fi
+pull_dir() {
+	local target_dir="$1"
+	local label="$2"
 
-echo "Fetching all folders inside: $TARGET_DIR"
-
-for dir in "$TARGET_DIR"/*/; do
-	if [[ -d "$dir" ]]; then
-		if [[ ! -d "$dir/.git" && ! -f "$dir/.git" ]]; then
-			echo "Skipping non-git directory: $dir"
-			continue
-		fi
-		echo "Pulling: $dir"
-		git -C "$dir" pull --rebase || {
-			echo "Failed to pull changes in $dir"
-			continue
-		}
+	if [[ ! -d "$target_dir" ]]; then
+		echo "Skipping $label: $target_dir does not exist"
+		return
 	fi
-done
+
+	echo "=== Pulling $label repos: $target_dir ==="
+
+	for dir in "$target_dir"/*/; do
+		if [[ -d "$dir" ]]; then
+			if [[ ! -d "$dir/.git" && ! -f "$dir/.git" ]]; then
+				echo "Skipping non-git directory: $dir"
+				continue
+			fi
+			echo "Pulling: $dir"
+			git -C "$dir" pull --rebase || {
+				echo "Failed to pull changes in $dir"
+				continue
+			}
+		fi
+	done
+}
+
+pull_dir "$WORK_DIR" "work"
+pull_dir "$PERSONAL_DIR" "personal"

@@ -99,13 +99,83 @@ wo() {
 source "$DOTFILES_DIR/etc/scripts/common/utility.sh"
 
 select_project() {
-  fzf_select_all_projects_and_cd "Select project: " "$HOME/Programming" "$HOME/.last_project" 3
+  local work_dir="$HOME/Programming/work"
+  local personal_dir="$HOME/Programming/personal"
+  local last_file="$HOME/.last_project"
+  local last_sel=""
+  [[ -f "$last_file" ]] && last_sel=$(<"$last_file")
+
+  local items=()
+  if [[ -d "$work_dir" ]]; then
+    for dir in "$work_dir"/*/; do
+      [[ -d "$dir" ]] && items+=("[work] ${dir##$work_dir/}")
+    done
+  fi
+  if [[ -d "$personal_dir" ]]; then
+    for dir in "$personal_dir"/*/; do
+      [[ -d "$dir" ]] && items+=("[personal] ${dir##$personal_dir/}")
+    done
+  fi
+
+  if [[ ${#items[@]} -eq 0 ]]; then
+    echo "No projects found"
+    return 1
+  fi
+
+  local sorted_items=()
+  if [[ -n "$last_sel" ]]; then
+    for i in "${items[@]}"; do [[ "$i" == "$last_sel" ]] && sorted_items=("$i"); done
+    for i in "${items[@]}"; do [[ "$i" != "$last_sel" ]] && sorted_items+=("$i"); done
+  else
+    sorted_items=("${items[@]}")
+  fi
+
+  local selected
+  selected=$(printf "%s\n" "${sorted_items[@]}" | sed 's|/$||' | fzf --prompt="Select project: ")
+  if [[ -n "$selected" ]]; then
+    echo "$selected" > "$last_file"
+    local category="${selected%%]*}"
+    category="${category#[}"
+    local project="${selected#*] }"
+    project="${project%/}"
+    cd "$HOME/Programming/$category/$project"
+  fi
 }
 zle -N select_project
 bindkey '^f' select_project
 
 select_worktree() {
-  fzf_select_git_repos_and_worktrees_and_cd "Select git repo/worktree: " "$HOME/Programming/Worktrees/" "$HOME/.last_worktree" 3
+  local base_dir="$HOME/Programming/Worktrees"
+  local last_file="$HOME/.last_worktree"
+  local last_sel=""
+  [[ -f "$last_file" ]] && last_sel=$(<"$last_file")
+
+  local items=()
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && items+=("$line")
+  done < <(find_git_worktrees_categorized "$base_dir" 3)
+
+  if [[ ${#items[@]} -eq 0 ]]; then
+    echo "No worktrees found in $base_dir"
+    return 1
+  fi
+
+  local sorted_items=()
+  if [[ -n "$last_sel" ]]; then
+    for i in "${items[@]}"; do [[ "$i" == "$last_sel" ]] && sorted_items=("$i"); done
+    for i in "${items[@]}"; do [[ "$i" != "$last_sel" ]] && sorted_items+=("$i"); done
+  else
+    sorted_items=("${items[@]}")
+  fi
+
+  local selected
+  selected=$(printf "%s\n" "${sorted_items[@]}" | fzf --prompt="Select worktree: ")
+  if [[ -n "$selected" ]]; then
+    echo "$selected" > "$last_file"
+    local path="${selected#*] }"
+    path="${path# }"
+    cd "$base_dir/$path"
+  fi
 }
 zle -N select_worktree
 bindkey '^g' select_worktree
