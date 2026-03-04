@@ -13,6 +13,7 @@ select_fzf_multi() {
 # Delete a single worktree (extracted from main function)
 delete_single_worktree() {
 	local worktree_path="$1"
+	local original_dir="$PWD"
 
 	# Validate worktree path is provided
 	if [[ -z "$worktree_path" ]]; then
@@ -125,7 +126,7 @@ delete_single_worktree() {
 		print_color yellow "Method 4: Extracting from directory name"
 		local dir_name=$(basename "$worktree_path")
 		# Common patterns: BW-1234_description, feature/BW-1234, etc.
-		if [[ "$dir_name" =~ ^(BW-[0-9]+) ]]; then
+		if [[ "$dir_name" =~ ^([A-Z]+-[0-9]+) ]]; then
 			branch_name="$match[1]"
 			print_color yellow "Extracted branch from directory name: $branch_name"
 		elif [[ "$dir_name" =~ _(.+)$ ]]; then
@@ -191,6 +192,7 @@ delete_single_worktree() {
 	fi
 
 	print_color green "✅ Worktree deletion complete."
+	cd "$original_dir" 2>/dev/null || true
 }
 
 # Delete worktree subcommand

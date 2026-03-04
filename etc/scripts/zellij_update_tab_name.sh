@@ -4,6 +4,7 @@
 
 current_dir="${PWD##*/}"
 [[ "$PWD" == "$HOME" ]] && current_dir="~"
+current_dir="${current_dir#[A-Z]*-[0-9]*-}"
 max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
 tab_name="${current_dir:0:$max_length}"
 

@@ -1,11 +1,12 @@
 #!/bin/bash
 
-source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
-source "$HOME/Programming/dotfiles/etc/scripts/common/logging.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+source "$SCRIPT_DIR/common/utility.sh"
+source "$SCRIPT_DIR/common/logging.sh"
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES_ROOT="$HOME/Programming/dotfiles"
 BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d_%H%M%S)"
 DRY_RUN=false
 
@@ -51,6 +52,7 @@ get_linux_links() {
 		"$DOTFILES_ROOT/src/kitty $HOME/.config/kitty"
 		"$DOTFILES_ROOT/src/opencode $HOME/.config/opencode"
 		"$DOTFILES_ROOT/src/git/hooks $HOME/.config/git/hooks"
+		"$DOTFILES_ROOT/src/hypr $HOME/.config/hypr"
 	)
 	printf '%s\n' "${links[@]}"
 }

@@ -129,6 +129,7 @@ SYMLINKS=(
 	"$HOME/.config/btop|$DOTFILES_ROOT/src/btop"
 	"$HOME/.config/opencode|$DOTFILES_ROOT/src/opencode"
 	"$HOME/.config/git/hooks|$DOTFILES_ROOT/src/git/hooks"
+	"$HOME/.config/kitty|$DOTFILES_ROOT/src/kitty"
 	"$HOME/.ideavimrc|$DOTFILES_ROOT/src/.ideavimrc"
 	"$HOME/.gitignore_global|$DOTFILES_ROOT/src/.gitignore_global"
 )
@@ -138,7 +139,10 @@ if [ "$(uname)" = "Darwin" ]; then
 		"$HOME/.config/ghostty|$DOTFILES_ROOT/src/ghostty"
 		"$HOME/.config/skhd|$DOTFILES_ROOT/src/skhd"
 		"$HOME/.config/yabai|$DOTFILES_ROOT/src/yabai"
-		"$HOME/.config/kitty|$DOTFILES_ROOT/src/kitty"
+	)
+elif [ "$(uname)" = "Linux" ]; then
+	SYMLINKS+=(
+		"$HOME/.config/hypr|$DOTFILES_ROOT/src/hypr"
 	)
 fi
 

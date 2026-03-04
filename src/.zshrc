@@ -58,7 +58,7 @@ alias js="$DOTFILES_DIR/etc/scripts/sdk_select.sh"
 alias ji="$DOTFILES_DIR/etc/scripts/sdk_install.sh"
 alias knip='pnpm dlx knip'
 alias knipw='pnpm dlx knip --watch'
-alias loc='git ls-files | grep -vE "(^|/)(assets|data)/" | xargs wc -l'
+alias loc='git ls-files | rg -v "(^|/)(assets|data)/" | xargs wc -l'
 alias l="$DOTFILES_DIR/etc/scripts/select_git_folder_actx.sh"
 
 alias F="$DOTFILES_DIR/etc/scripts/pull_repos.sh"
@@ -88,13 +88,13 @@ wo() {
 source "$DOTFILES_DIR/etc/scripts/common/utility.sh"
 
 select_project() {
-  fzf_select_all_projects_and_cd "Select project: " "$HOME/Programming" "$HOME/.last_project" "" 3
+  fzf_select_all_projects_and_cd "Select project: " "$HOME/Programming" "$HOME/.last_project" 3
 }
 zle -N select_project
 bindkey '^f' select_project
 
 select_worktree() {
-  fzf_select_git_repos_and_worktrees_and_cd "Select git repo/worktree: " "$HOME/Programming/Worktrees/" "$HOME/.last_worktree" "" 3
+  fzf_select_git_repos_and_worktrees_and_cd "Select git repo/worktree: " "$HOME/Programming/Worktrees/" "$HOME/.last_worktree" 3
 }
 zle -N select_worktree
 bindkey '^g' select_worktree
@@ -123,6 +123,7 @@ zellij_tab_name_update() {
   if [[ -n $ZELLIJ ]]; then
     local current_dir="${PWD##*/}"
     [[ "$PWD" == "$HOME" ]] && current_dir="~"
+    current_dir="${current_dir#[A-Z]*-[0-9]*-}"
     local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
     local tab_name="${current_dir:0:$max_length}"
     local tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=/ {count++; if (/focus=true/) {print count; exit}}')
@@ -160,8 +161,8 @@ alias zellij-disable-auto="export ZELLIJ_AUTO_ATTACH=false"
 alias zj="zellij"
 alias zja="zellij attach"
 alias zjl="zellij list-sessions"
-alias ghostty-use-script='sed -i.bak "s|^#*initial-command.*|initial-command = $DOTFILES_DIR/etc/scripts/ghostty_zellij_startup.sh|" $DOTFILES_DIR/src/ghostty/config'
-alias ghostty-use-zsh='sed -i.bak "s|^initial-command.*|# initial-command = zsh|" $DOTFILES_DIR/src/ghostty/config'
+alias ghostty-use-script='sed -i "" "s|^#*initial-command.*|initial-command = $DOTFILES_DIR/etc/scripts/ghostty_zellij_startup.sh|" $DOTFILES_DIR/src/ghostty/config'
+alias ghostty-use-zsh='sed -i "" "s|^initial-command.*|# initial-command = zsh|" $DOTFILES_DIR/src/ghostty/config'
 
 export FZF_DEFAULT_OPTS="\
   --color=bg:#1e1e2e,fg:#cdd6f4,hl:#f38ba8 --color=fg+:#cdd6f4,bg+:#313244,hl+:#f38ba8 --color=info:#89b4fa,prompt:#fab387,spinner:#f9e2af --color=header:#cba6f7,marker:#89dceb --color=border:#6c7086 \

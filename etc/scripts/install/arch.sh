@@ -32,6 +32,12 @@ if command -v pacman >/dev/null 2>&1; then
 		btop
 		tree
 
+		# --- Desktop Environment ---
+		hyprland
+		hyprlock
+		hypridle
+		hyprsunset
+
 		# --- File Management & Utilities ---
 		fd
 		ripgrep

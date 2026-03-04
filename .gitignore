@@ -1,4 +1,6 @@
 *.txt
+*.bak
+*.swp
 **/.DS_Store
 **/history.txt
 h-*.md

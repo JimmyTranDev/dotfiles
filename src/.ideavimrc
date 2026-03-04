@@ -159,7 +159,7 @@ nnoremap <Leader>lt <Action>(OpenInBrowser)
 " =============================================================================
 " Plugin Management (Leader + z) - Using IntelliJ Plugin Manager
 " =============================================================================
-nnoremap <leader>zz <Action>(ShowSettings)
+nnoremap <leader>zs <Action>(ShowSettings)
 nnoremap <leader>zu <Action>(CheckForUpdate)
 
 " =============================================================================
@@ -254,10 +254,10 @@ nnoremap gn <Action>(RenameElement)
 nnoremap gN <Action>(RenameElement)
 
 " Substitute operations (mimicking your substitute.nvim plugin)
-nnoremap gr <Action>(Replace)
-vnoremap gr <Action>(Replace)
-nnoremap grr <Action>(Replace)
-nnoremap gR <Action>(Replace)
+nnoremap gs <Action>(Replace)
+vnoremap gs <Action>(Replace)
+nnoremap gss <Action>(Replace)
+nnoremap gS <Action>(Replace)
 
 " =============================================================================
 " Search and Find Operations
@@ -402,7 +402,6 @@ nnoremap <leader>zz <Action>(ToggleZenMode)
 nnoremap <leader>zf <Action>(ToggleFullScreen)
 
 " Recent files
-nnoremap <leader>fr <Action>(RecentFiles)
 nnoremap <leader>fp <Action>(ManageRecentProjects)
 
 " Show file structure
@@ -450,7 +449,7 @@ inoremap <C-Space> <Action>(CodeCompletion)
 " - which-key.nvim → which-key extension
 " - highlight-undo.nvim → highlightedyank
 " - mini.ai → textobj-entire + argtextobj
-" - substitute.nvim → Replace actions + custom mappings (gr, grr, gR)
+" - substitute.nvim → Replace actions + custom mappings (gs, gss, gS)
 " - inc-rename.nvim → RenameElement action (gn, gN)
 " - fugitive.nvim → IntelliJ VCS integration (all g* mappings)
 " - gitlinker.nvim → CopyReferencePopup (<leader>gL)

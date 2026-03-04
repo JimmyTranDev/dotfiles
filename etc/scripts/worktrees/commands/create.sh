@@ -118,7 +118,7 @@ cmd_create() {
 		read -r selection
 
 		if [[ "$selection" =~ ^[0-9]+$ ]] && [[ "$selection" -ge 1 ]] && [[ "$selection" -le "${#commit_types[@]}" ]]; then
-			commit_type="${commit_types[$((selection - 1))]}"
+			commit_type="${commit_types[$selection]}"
 		elif [[ -n "$selection" ]]; then
 			commit_type="$selection"
 		else

@@ -26,17 +26,23 @@ fi
 if [ ! -d "$HOME/Programming/nvim" ]; then
 	echo "Cloning nvim configuration..."
 	mkdir -p "$HOME/Programming"
-	git clone git@github.com:JimmyTranDev/nvim-config.git "$HOME/Programming/nvim"
+	if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+		git clone git@github.com:JimmyTranDev/nvim-config.git "$HOME/Programming/nvim"
+	else
+		git clone https://github.com/JimmyTranDev/nvim-config.git "$HOME/Programming/nvim"
+	fi
 else
 	echo "Nvim config already exists"
 fi
 
-# Sync symbolic links
 echo "Syncing symbolic links..."
 "$SCRIPTS_DIR/sync_links.sh"
 
-# Sync secrets
-echo "Syncing secrets..."
-"$SCRIPTS_DIR/sync_secrets.sh"
+if [[ -n "$PRI_B2_BUCKET_NAME" ]]; then
+	echo "Syncing secrets..."
+	"$SCRIPTS_DIR/sync_secrets.sh"
+else
+	echo "Skipping secrets sync (PRI_B2_BUCKET_NAME not set)"
+fi
 
 echo "Common setup completed"

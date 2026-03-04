@@ -1,13 +1,10 @@
 #!/bin/bash
 
-# Secrets Sync Script
-# Sync secrets to Backblaze B2 cloud storage
-
-source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
-source "$HOME/Programming/dotfiles/etc/scripts/common/logging.sh"
-set -e
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+source "$SCRIPT_DIR/common/utility.sh"
+source "$SCRIPT_DIR/common/logging.sh"
+set -e
 SECRETS_PATH="$HOME/Programming/secrets"
 
 B2_REQUIRED_VARS=(
