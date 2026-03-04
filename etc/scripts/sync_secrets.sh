@@ -4,56 +4,18 @@
 # Sync secrets to Backblaze B2 cloud storage
 
 source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
+source "$HOME/Programming/dotfiles/etc/scripts/common/logging.sh"
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SECRETS_PATH="$HOME/Programming/secrets"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
-
-# Emoji for better UX
-EMOJI_SUCCESS="✓"
-EMOJI_ERROR="❌"
-EMOJI_WARNING="⚠️"
-EMOJI_INFO="ℹ️"
-EMOJI_CLOUD="☁️"
-EMOJI_EYE="👁"
-
-# Required B2 environment variables
 B2_REQUIRED_VARS=(
 	"PRI_B2_BUCKET_NAME"
 	"PRI_B2_APPLICATION_KEY_ID"
 	"PRI_B2_APPLICATION_KEY"
 )
 
-# Function to log messages
-log_info() {
-	echo -e "${CYAN}${EMOJI_INFO} $1${NC}"
-}
-
-log_success() {
-	echo -e "${GREEN}${EMOJI_SUCCESS} $1${NC}"
-}
-
-log_error() {
-	echo -e "${RED}${EMOJI_ERROR} $1${NC}"
-}
-
-log_warning() {
-	echo -e "${YELLOW}${EMOJI_WARNING} $1${NC}"
-}
-
-log_header() {
-	echo -e "${BLUE}${EMOJI_CLOUD} $1${NC}"
-}
-
-# Validate B2 credentials
 validate_b2_credentials() {
 	log_info "Validating B2 credentials..."
 
@@ -165,7 +127,7 @@ authorize_b2() {
 
 	setup_b2_env
 
-	if $B2_CMD account authorize "$PRI_B2_APPLICATION_KEY_ID" "$PRI_B2_APPLICATION_KEY" >/dev/null 2>&1; then
+	if B2_APPLICATION_KEY_ID="$PRI_B2_APPLICATION_KEY_ID" B2_APPLICATION_KEY="$PRI_B2_APPLICATION_KEY" $B2_CMD account authorize >/dev/null 2>&1; then
 		log_success "B2 authorization successful"
 		return 0
 	else
