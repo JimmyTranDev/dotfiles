@@ -1,6 +1,4 @@
-zmodload zsh/zprof
-
-ZSH_THEME='robbyrussell'
+ZSH_THEME=''
 export ZSH="$HOME/.oh-my-zsh"
 
 zstyle ':omz:update' mode auto
@@ -16,8 +14,10 @@ plugins=(
   history
 )
 
+DOTFILES_DIR="$HOME/Programming/dotfiles"
+
 export BROWSER=firefox
-export ARCHFLAGS="-arch x86_64"
+export ARCHFLAGS="-arch $(uname -m)"
 export MANPAGER='nvim +Man!'
 export MANWIDTH=999
 export ANDROID_HOME="$HOME/Library/Android/sdk"
@@ -37,63 +37,55 @@ done
 [[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 [[ -f "$HOME/Programming/secrets/env.sh" ]] && source "$HOME/Programming/secrets/env.sh"
 
-alias wD='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree delete'
-alias wC='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree clean'
-alias wr='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree rename'
-alias wu='$HOME/Programming/dotfiles/etc/scripts/worktrees/worktree update'
+alias wD='$DOTFILES_DIR/etc/scripts/worktrees/worktree delete'
+alias wC='$DOTFILES_DIR/etc/scripts/worktrees/worktree clean'
+alias wr='$DOTFILES_DIR/etc/scripts/worktrees/worktree rename'
+alias wu='$DOTFILES_DIR/etc/scripts/worktrees/worktree update'
 
 alias nvm='fnm'
 alias a='eval "$(poetry env activate)"'
-alias d="$HOME/Programming/dotfiles/etc/scripts/common/git_diff_commits.sh"
+alias d="$DOTFILES_DIR/etc/scripts/common/git_diff_commits.sh"
 alias c='clear'
 alias e='exit'
 alias o='opencode'
-alias g='grep -rnw . -e'
+alias g='rg'
 alias n='nvim'
 alias t='yabai --restart-service; skhd --restart-service'
 alias y='yazi'
 alias z='zellij'
-alias l='ls -la'
-alias k="$HOME/Programming/dotfiles/etc/scripts/kill_port.sh"
-alias js="$HOME/Programming/dotfiles/etc/scripts/sdk_select.sh"
-alias ji="$HOME/Programming/dotfiles/etc/scripts/sdk_install.sh"
+alias k="$DOTFILES_DIR/etc/scripts/kill_port.sh"
+alias js="$DOTFILES_DIR/etc/scripts/sdk_select.sh"
+alias ji="$DOTFILES_DIR/etc/scripts/sdk_install.sh"
 alias knip='pnpm dlx knip'
 alias knipw='pnpm dlx knip --watch'
 alias loc='git ls-files | grep -vE "(^|/)(assets|data)/" | xargs wc -l'
-alias l="$HOME/Programming/dotfiles/etc/scripts/select_git_folder_actx.sh"
+alias l="$DOTFILES_DIR/etc/scripts/select_git_folder_actx.sh"
 
-alias F="$HOME/Programming/dotfiles/etc/scripts/pull_repos.sh"
-alias S="$HOME/Programming/dotfiles/etc/scripts/install.sh"
-alias I="$HOME/Programming/dotfiles/etc/scripts/install.sh"
-alias L="$HOME/Programming/dotfiles/etc/scripts/sync_link.sh"
-alias E="$HOME/Programming/dotfiles/etc/scripts/sync_secrets.sh"
-alias C='find "$HOME/Programming/dotfiles/etc/scripts" -type f -name "*.sh" -exec chmod +x {} \;'
+alias F="$DOTFILES_DIR/etc/scripts/pull_repos.sh"
+alias I="$DOTFILES_DIR/etc/scripts/install.sh"
+alias L="$DOTFILES_DIR/etc/scripts/sync_links.sh"
+alias E="$DOTFILES_DIR/etc/scripts/sync_secrets.sh"
+alias C='find "$DOTFILES_DIR/etc/scripts" -type f -name "*.sh" -exec chmod +x {} \;'
 
 wn() {
-  # Source the worktree configuration and libraries
-  local script_dir="$HOME/Programming/dotfiles/etc/scripts/worktrees"
+  local script_dir="$DOTFILES_DIR/etc/scripts/worktrees"
   source "$script_dir/config.sh"
   source "$script_dir/lib/core.sh" 
   source "$script_dir/lib/jira.sh"
   source "$script_dir/commands/create.sh"
-  
-  # Call the create command function directly
   cmd_create "$@"
 }
 
 wo() {
-  # Source the worktree configuration and libraries
-  local script_dir="$HOME/Programming/dotfiles/etc/scripts/worktrees"
+  local script_dir="$DOTFILES_DIR/etc/scripts/worktrees"
   source "$script_dir/config.sh"
   source "$script_dir/lib/core.sh"
   source "$script_dir/lib/jira.sh" 
   source "$script_dir/commands/checkout.sh"
-  
-  # Call the checkout command function directly
   cmd_checkout "$@"
 }
 
-source "$HOME/Programming/dotfiles/etc/scripts/common/utility.sh"
+source "$DOTFILES_DIR/etc/scripts/common/utility.sh"
 
 select_project() {
   fzf_select_all_projects_and_cd "Select project: " "$HOME/Programming" "$HOME/.last_project" "" 3
@@ -123,6 +115,10 @@ fi
 #   source "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"
 # fi
 
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+fi
+
 zellij_tab_name_update() {
   if [[ -n $ZELLIJ ]]; then
     local current_dir="${PWD##*/}"
@@ -136,7 +132,7 @@ zellij_tab_name_update() {
 }
 
 zellij_update_tab_indexes() {
-  $HOME/Programming/dotfiles/etc/scripts/zellij_update_tab_indexes.sh >/dev/null 2>&1
+  $DOTFILES_DIR/etc/scripts/zellij_update_tab_indexes.sh >/dev/null 2>&1
   zle reset-prompt
   return 0
 }
@@ -159,38 +155,14 @@ zellij() {
   return $ret
 }
 
-# ===================================================================
-# THEME MANAGEMENT
-# ===================================================================
-
-# Source theme configuration
-if [[ -f "$HOME/Programming/dotfiles/etc/theme.conf" ]]; then
-  source "$HOME/Programming/dotfiles/etc/theme.conf"
-fi
-
-# Theme management aliases
-alias theme-set="zsh $HOME/Programming/dotfiles/etc/scripts/theme.sh set"
-alias theme-get="zsh $HOME/Programming/dotfiles/etc/scripts/theme.sh get"
-alias theme-list="zsh $HOME/Programming/dotfiles/etc/scripts/theme.sh list"
-
-# ===================================================================
-# STORAGE MANAGEMENT
-# ===================================================================
-
-# Storage management aliases
-alias storage-init="$HOME/Programming/dotfiles/etc/scripts/storage.sh init"
-alias storage-sync="$HOME/Programming/dotfiles/etc/scripts/storage.sh sync"
-
-# Zellij management aliases
 alias zellij-enable-auto="export ZELLIJ_AUTO_ATTACH=true"
 alias zellij-disable-auto="export ZELLIJ_AUTO_ATTACH=false"
 alias zj="zellij"
 alias zja="zellij attach"
 alias zjl="zellij list-sessions"
-alias ghostty-use-script='sed -i.bak "s|^#*initial-command.*|initial-command = /Users/jimmy/Programming/dotfiles/etc/scripts/ghostty_zellij_startup.sh|" $HOME/Programming/dotfiles/src/ghostty/config'
-alias ghostty-use-zsh='sed -i.bak "s|^initial-command.*|# initial-command = zsh|" $HOME/Programming/dotfiles/src/ghostty/config'
+alias ghostty-use-script='sed -i.bak "s|^#*initial-command.*|initial-command = $DOTFILES_DIR/etc/scripts/ghostty_zellij_startup.sh|" $DOTFILES_DIR/src/ghostty/config'
+alias ghostty-use-zsh='sed -i.bak "s|^initial-command.*|# initial-command = zsh|" $DOTFILES_DIR/src/ghostty/config'
 
-# Catppuccin Umocha colors for fzf
 export FZF_DEFAULT_OPTS="\
   --color=bg:#1e1e2e,fg:#cdd6f4,hl:#f38ba8 --color=fg+:#cdd6f4,bg+:#313244,hl+:#f38ba8 --color=info:#89b4fa,prompt:#fab387,spinner:#f9e2af --color=header:#cba6f7,marker:#89dceb --color=border:#6c7086 \
 "
