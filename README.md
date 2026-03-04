@@ -11,12 +11,12 @@ Cross-platform dotfiles for macOS, Linux, and WSL.
 |-----------|--------------|
 | **Shell** | Zsh, Starship prompt |
 | **Terminal** | Ghostty, Zellij (multiplexer) |
-| **Package Management** | Homebrew (macOS), pacman/paru (Arch Linux) |
+| **Package Management** | Homebrew (macOS), pacman/yay (Arch Linux) |
 | **Window Management** | Yabai + SKHD (macOS) |
 | **File Management** | Yazi (terminal file manager) |
 | **Git Tools** | Lazygit, custom worktree scripts |
 | **System Monitoring** | Btop |
-| **AI Development** | OpenCode (17 agents, 8 commands) |
+| **AI Development** | OpenCode (18 agents, 8 commands) |
 | **Theme** | Catppuccin (consistent across all tools) |
 | **Scripting** | Bash, Zsh |
 
@@ -25,29 +25,29 @@ Cross-platform dotfiles for macOS, Linux, and WSL.
 | Feature | Description |
 |---------|-------------|
 | **Automated Setup** | OS detection with platform-specific configurations |
-| **Package Management** | Homebrew (macOS) and pacman/paru (Arch Linux) |
+| **Package Management** | Homebrew (macOS) and pacman/yay (Arch Linux) |
 | **SDK Management** | Version management for Java, Go, and other SDKs |
 | **Catppuccin Theming** | Consistent theme across all tools |
 
 ## AI-Powered Development
 
-OpenCode configuration with 17 custom agents and 8 slash commands for AI-assisted coding:
+OpenCode configuration with 18 custom agents and 8 slash commands for AI-assisted coding:
 
 | Type | Available |
 |------|-----------|
-| **Agents** | auditor, classless, designer, expo, fixer, follower, fsrs, optimizer, pragmatic, prompter, re-export-destroyer, reuser, reviewer, solver, sounder, structure, tester |
+| **Agents** | auditor, classless, designer, expo, fixer, follower, fsrs, optimizer, pragmatic, profile-reviewer, prompter, re-export-destroyer, reuser, reviewer, solver, sounder, structure, tester |
 | **Commands** | commit, continue, implement, refactor, test, update-commits |
 
 ## Scripts
 
 | Script | Description |
 |--------|-------------|
-| **setup.sh** | Main setup script |
-| **sync_links.sh** | Symlink management |
-| **sync_packages.sh** | Package installation (Homebrew/pacman) |
-| **sync_secrets.sh** | Secrets symlink management |
+| **install.sh** | Main setup script (detects platform, runs common + platform-specific) |
+| **sync_links.sh** | Symlink management (supports --dry-run and backups) |
+| **sync_secrets.sh** | Secrets sync to/from Backblaze B2 |
 | **sdk_install.sh** | SDK version installation |
 | **sdk_select.sh** | SDK version selection |
+| **doctor.sh** | Health check (validates symlinks, tools, environment) |
 | **worktrees/** | Git worktree management (checkout, create, delete, move, rename, update) |
 
 ## Tools
@@ -68,10 +68,12 @@ OpenCode configuration with 17 custom agents and 8 slash commands for AI-assiste
 etc/
 ├── docs/              # Platform-specific setup guides (macOS, WSL, common)
 ├── scripts/           # Automation and utility scripts
-│   ├── setup.sh       # Main entry point for installation
+│   ├── install.sh     # Main entry point for installation
 │   ├── sync_links.sh  # Creates symlinks from src/ to home directory
-│   ├── sync_packages.sh # Installs packages via Homebrew or pacman/paru
-│   ├── sync_secrets.sh  # Symlinks private configs from ~/Programming/secrets
+│   ├── sync_secrets.sh  # Syncs secrets to/from Backblaze B2
+│   ├── doctor.sh        # Health check for environment validation
+│   ├── common/          # Shared utilities (logging, functions)
+│   ├── install/         # Platform-specific installers (common, mac, arch)
 │   ├── sdk_install.sh   # Installs SDK versions (Java, Go, etc.)
 │   ├── sdk_select.sh    # Switches between installed SDK versions
 │   └── worktrees/       # Git worktree utilities for branch management
