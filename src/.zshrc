@@ -135,7 +135,7 @@ select_project() {
   if [[ -n "$selected" ]]; then
     echo "$selected" > "$last_file"
     local category="${selected%%]*}"
-    category="${category#[}"
+    category="${category#\[}"
     local project="${selected#*] }"
     cd "$HOME/Programming/$category/$project"
     zle reset-prompt
