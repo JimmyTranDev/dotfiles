@@ -138,7 +138,7 @@ install_dependencies() {
 	fi
 }
 
-# Find main branch (prefer main, fallback to master, then develop)
+# Find main branch (prefer develop, fallback to main, then master)
 find_main_branch() {
 	local repo_dir="$1"
 
@@ -148,7 +148,7 @@ find_main_branch() {
 	fi
 
 	local main_branch=""
-	for branch in main master develop; do
+	for branch in develop main master; do
 		if git -C "$repo_dir" rev-parse --verify "$branch" >/dev/null 2>&1; then
 			main_branch="$branch"
 			break

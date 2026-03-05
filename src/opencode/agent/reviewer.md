@@ -10,7 +10,7 @@ You review code for correctness, maintainability, and adherence to best practice
 
 When reviewing changes, diff against the base branch to capture all changes on the current branch:
 
-1. Detect the base branch: check if `main` or `develop` exists (prefer `main`, fall back to `develop`)
+1. Detect the base branch: check if `develop` or `main` exists (prefer `develop`, fall back to `main`)
 2. Run `git diff <base-branch>...HEAD` to get all changes since the branch diverged
 3. If already on the base branch, fall back to staged changes (`git diff --cached`) or recent changes (`git diff HEAD~1`)
 
