@@ -126,11 +126,7 @@ find_git_worktrees_categorized() {
 		if grep -q "^gitdir:" "$git_file" 2>/dev/null; then
 			worktree_path=$(dirname "$git_file")
 			relative_path="${worktree_path#$base_dir_with_slash}"
-			local branch
-			branch=$(git -C "$worktree_path" rev-parse --abbrev-ref HEAD 2>/dev/null)
-			local upstream
-			upstream=$(git -C "$worktree_path" rev-parse --abbrev-ref '@{upstream}' 2>/dev/null)
-			if [[ -n "$upstream" ]]; then
+			if git -C "$worktree_path" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; then
 				echo "[checkout] $relative_path"
 			else
 				echo "[created]  $relative_path"
