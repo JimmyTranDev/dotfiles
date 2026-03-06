@@ -9,7 +9,7 @@ INSTALL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/install"
 
 echo "Starting dotfiles installation..."
 
-# Run common setup (oh-my-zsh, nvim, symlinks, secrets)
+# Run common setup (oh-my-zsh, nvim, symlinks)
 "$INSTALL_DIR/common.sh"
 
 # Detect platform and run platform-specific setup

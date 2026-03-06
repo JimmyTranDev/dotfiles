@@ -38,11 +38,13 @@ fi
 echo "Syncing symbolic links..."
 "$SCRIPTS_DIR/sync_links.sh"
 
-if [[ -n "$PRI_B2_BUCKET_NAME" ]]; then
-	echo "Syncing secrets..."
-	"$SCRIPTS_DIR/sync_secrets.sh"
-else
-	echo "Skipping secrets sync (PRI_B2_BUCKET_NAME not set)"
+SECRETS_ENV="$HOME/Programming/JimmyTranDev/secrets/env.sh"
+if [[ -f "$SECRETS_ENV" ]]; then
+	source "$SECRETS_ENV"
+	if [[ -n "$PRI_EMAIL" ]]; then
+		echo "Setting git user email..."
+		git config --global user.email "$PRI_EMAIL"
+	fi
 fi
 
 echo "Common setup completed"

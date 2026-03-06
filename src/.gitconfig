@@ -1,0 +1,32 @@
+[user]
+	name = Jimmy Tran
+	email = jimmytrandev@gmail.com
+[push]
+  autoSetupRemote = true
+[init]
+	defaultBranch = main
+[format]
+  pretty = format:%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset
+[include]
+	path = /Users/jimmy/Programming/dotfiles/delta/themes/catppuccin.gitconfig
+
+[core]
+	excludesFile = /users/jimmy/programming/dotfiles/src/.gitignore_global
+	editor = nvim -u /Users/jimmy/Programming/nvim/init.lua --cmd 'set rtp+=/Users/jimmy/Programming/nvim'
+	pager = delta
+	hooksPath = /Users/jimmy/.config/git/hooks
+
+[interactive]
+	diffFilter = delta --color-only
+
+[delta]
+	navigate = true
+	side-by-side = false
+	line-numbers = true
+	features = catppuccin-mocha
+
+[merge]
+	conflictstyle = diff3
+
+[diff]
+	colorMoved = default

@@ -75,7 +75,6 @@ fi
 alias F="$DOTFILES_DIR/etc/scripts/pull_repos.sh"
 alias I="$DOTFILES_DIR/etc/scripts/install.sh"
 alias L="$DOTFILES_DIR/etc/scripts/sync_links.sh"
-alias E="$DOTFILES_DIR/etc/scripts/sync_secrets.sh"
 alias C='find "$DOTFILES_DIR/etc/scripts" -type f -name "*.sh" -exec chmod +x {} \;'
 
 wn() {

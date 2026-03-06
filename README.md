@@ -44,7 +44,6 @@ OpenCode configuration with 18 custom agents and 8 slash commands for AI-assiste
 |--------|-------------|
 | **install.sh** | Main setup script (detects platform, runs common + platform-specific) |
 | **sync_links.sh** | Symlink management (supports --dry-run and backups) |
-| **sync_secrets.sh** | Secrets sync to/from Backblaze B2 |
 | **sdk_install.sh** | SDK version installation |
 | **sdk_select.sh** | SDK version selection |
 | **doctor.sh** | Health check (validates symlinks, tools, environment) |
@@ -70,7 +69,6 @@ etc/
 ├── scripts/           # Automation and utility scripts
 │   ├── install.sh     # Main entry point for installation
 │   ├── sync_links.sh  # Creates symlinks from src/ to home directory
-│   ├── sync_secrets.sh  # Syncs secrets to/from Backblaze B2
 │   ├── doctor.sh        # Health check for environment validation
 │   ├── common/          # Shared utilities (logging, functions)
 │   ├── install/         # Platform-specific installers (common, mac, arch)
