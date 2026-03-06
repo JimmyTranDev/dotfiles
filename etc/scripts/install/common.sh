@@ -41,10 +41,38 @@ echo "Syncing symbolic links..."
 SECRETS_ENV="$HOME/Programming/JimmyTranDev/secrets/env.sh"
 if [[ -f "$SECRETS_ENV" ]]; then
 	source "$SECRETS_ENV"
-	if [[ -n "$PRI_EMAIL" ]]; then
-		echo "Setting git user email..."
-		git config --global user.email "$PRI_EMAIL"
-	fi
+
+	TEMPLATES_DIR="$DOTFILES_DIR/etc/templates"
+
+	generate_from_template() {
+		local template="$1"
+		local output="$2"
+		local output_dir
+		output_dir="$(dirname "$output")"
+
+		if [ -L "$output_dir" ]; then
+			rm "$output_dir"
+		fi
+		if [ -L "$output" ]; then
+			rm "$output"
+		fi
+
+		mkdir -p "$output_dir"
+
+		sed \
+			-e "s|{{HOME}}|$HOME|g" \
+			-e "s|{{PRI_EMAIL}}|${PRI_EMAIL}|g" \
+			-e "s|{{PRI_GITHUB_USERNAME}}|${PRI_GITHUB_USERNAME}|g" \
+			-e "s|{{PRI_GITHUB_TOKEN}}|${PRI_GITHUB_TOKEN}|g" \
+			-e "s|{{ORG_GITHUB_NAME}}|${ORG_GITHUB_NAME}|g" \
+			"$template" >"$output"
+	}
+
+	echo "Generating config files from templates..."
+	generate_from_template "$TEMPLATES_DIR/.gitconfig" "$HOME/.gitconfig"
+	generate_from_template "$TEMPLATES_DIR/.m2/settings.xml" "$HOME/.m2/settings.xml"
+	generate_from_template "$TEMPLATES_DIR/.npmrc" "$HOME/.npmrc"
+	echo "Config files generated"
 fi
 
 echo "Common setup completed"

@@ -1,6 +1,6 @@
 [user]
 	name = Jimmy Tran
-	email = jimmytrandev@gmail.com
+	email = {{PRI_EMAIL}}
 [push]
   autoSetupRemote = true
 [init]
@@ -8,13 +8,13 @@
 [format]
   pretty = format:%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset
 [include]
-	path = /Users/jimmy/Programming/dotfiles/delta/themes/catppuccin.gitconfig
+	path = {{HOME}}/Programming/dotfiles/delta/themes/catppuccin.gitconfig
 
 [core]
-	excludesFile = /users/jimmy/programming/dotfiles/src/.gitignore_global
-	editor = nvim -u /Users/jimmy/Programming/nvim/init.lua --cmd 'set rtp+=/Users/jimmy/Programming/nvim'
+	excludesFile = {{HOME}}/Programming/JimmyTranDev/dotfiles/src/.gitignore_global
+	editor = nvim -u {{HOME}}/Programming/nvim/init.lua --cmd 'set rtp+={{HOME}}/Programming/nvim'
 	pager = delta
-	hooksPath = /Users/jimmy/.config/git/hooks
+	hooksPath = {{HOME}}/.config/git/hooks
 
 [interactive]
 	diffFilter = delta --color-only
