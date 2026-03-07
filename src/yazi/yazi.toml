@@ -1,7 +1,6 @@
 [mgr]
 show_hidden = true
 
-# git.yazi
 [[plugin.prepend_fetchers]]
 id   = "git"
 name = "*"
@@ -11,3 +10,59 @@ run  = "git"
 id   = "git"
 name = "*/"
 run  = "git"
+
+[[plugin.prepend_previewers]]
+mime = "image/*"
+run  = "noop"
+
+[[plugin.prepend_previewers]]
+mime = "video/*"
+run  = "noop"
+
+[[plugin.prepend_previewers]]
+mime = "audio/*"
+run  = "noop"
+
+[[plugin.prepend_previewers]]
+mime = "application/pdf"
+run  = "noop"
+
+[[plugin.prepend_previewers]]
+mime = "application/zip"
+run  = "noop"
+
+[[plugin.prepend_previewers]]
+mime = "application/gzip"
+run  = "noop"
+
+[[plugin.prepend_previewers]]
+mime = "application/x-tar"
+run  = "noop"
+
+[[plugin.prepend_previewers]]
+mime = "application/x-7z-compressed"
+run  = "noop"
+
+[[plugin.prepend_previewers]]
+mime = "application/x-rar"
+run  = "noop"
+
+[[plugin.prepend_previewers]]
+mime = "application/x-bzip2"
+run  = "noop"
+
+[[plugin.prepend_previewers]]
+mime = "application/x-xz"
+run  = "noop"
+
+[[plugin.prepend_previewers]]
+mime = "application/octet-stream"
+run  = "noop"
+
+[[plugin.prepend_previewers]]
+mime = "application/x-executable"
+run  = "noop"
+
+[[plugin.prepend_previewers]]
+mime = "application/x-mach-binary"
+run  = "noop"
