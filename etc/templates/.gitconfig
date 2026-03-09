@@ -7,12 +7,9 @@
 	defaultBranch = main
 [format]
   pretty = format:%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset
-[include]
-	path = {{HOME}}/Programming/dotfiles/delta/themes/catppuccin.gitconfig
-
 [core]
 	excludesFile = {{HOME}}/Programming/JimmyTranDev/dotfiles/src/.gitignore_global
-	editor = nvim -u {{HOME}}/Programming/nvim/init.lua --cmd 'set rtp+={{HOME}}/Programming/nvim'
+	editor = nvim -u {{HOME}}/Programming/JimmyTranDev/nvim/init.lua --cmd 'set rtp+={{HOME}}/Programming/JimmyTranDev/nvim'
 	pager = delta
 	hooksPath = {{HOME}}/.config/git/hooks
 

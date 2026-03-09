@@ -10,7 +10,7 @@ set -e
 BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d_%H%M%S)"
 DRY_RUN=false
 
-get_macos_links() {
+get_common_links() {
 	local links=(
 		"$HOME/Programming/JimmyTranDev/nvim $HOME/.config/nvim"
 		"$DOTFILES_ROOT/src/yazi $HOME/.config/yazi"
@@ -19,12 +19,8 @@ get_macos_links() {
 		"$DOTFILES_ROOT/src/.zshrc $HOME/.zshrc"
 		"$DOTFILES_ROOT/src/.ideavimrc $HOME/.ideavimrc"
 		"$DOTFILES_ROOT/src/.gitignore_global $HOME/.gitignore_global"
-		"$DOTFILES_ROOT/src/Brewfile $HOME/Brewfile"
-		"$DOTFILES_ROOT/src/skhd $HOME/.config/skhd"
-		"$DOTFILES_ROOT/src/yabai $HOME/.config/yabai"
 		"$DOTFILES_ROOT/src/btop $HOME/.config/btop"
 		"$DOTFILES_ROOT/src/starship.toml $HOME/.config/starship.toml"
-		"$DOTFILES_ROOT/src/ghostty $HOME/.config/ghostty"
 		"$DOTFILES_ROOT/src/kitty $HOME/.config/kitty"
 		"$DOTFILES_ROOT/src/opencode $HOME/.config/opencode"
 		"$DOTFILES_ROOT/src/git/hooks $HOME/.config/git/hooks"
@@ -32,20 +28,20 @@ get_macos_links() {
 	printf '%s\n' "${links[@]}"
 }
 
-get_linux_links() {
+get_macos_links() {
+	get_common_links
 	local links=(
-		"$HOME/Programming/JimmyTranDev/nvim $HOME/.config/nvim"
-		"$DOTFILES_ROOT/src/yazi $HOME/.config/yazi"
-		"$DOTFILES_ROOT/src/zellij $HOME/.config/zellij"
-		"$DOTFILES_ROOT/src/lazygit $HOME/.config/lazygit"
-		"$DOTFILES_ROOT/src/.zshrc $HOME/.zshrc"
-		"$DOTFILES_ROOT/src/.ideavimrc $HOME/.ideavimrc"
-		"$DOTFILES_ROOT/src/.gitignore_global $HOME/.gitignore_global"
-		"$DOTFILES_ROOT/src/btop $HOME/.config/btop"
-		"$DOTFILES_ROOT/src/starship.toml $HOME/.config/starship.toml"
-		"$DOTFILES_ROOT/src/kitty $HOME/.config/kitty"
-		"$DOTFILES_ROOT/src/opencode $HOME/.config/opencode"
-		"$DOTFILES_ROOT/src/git/hooks $HOME/.config/git/hooks"
+		"$DOTFILES_ROOT/src/Brewfile $HOME/Brewfile"
+		"$DOTFILES_ROOT/src/skhd $HOME/.config/skhd"
+		"$DOTFILES_ROOT/src/yabai $HOME/.config/yabai"
+		"$DOTFILES_ROOT/src/ghostty $HOME/.config/ghostty"
+	)
+	printf '%s\n' "${links[@]}"
+}
+
+get_linux_links() {
+	get_common_links
+	local links=(
 		"$DOTFILES_ROOT/src/hypr $HOME/.config/hypr"
 	)
 	printf '%s\n' "${links[@]}"

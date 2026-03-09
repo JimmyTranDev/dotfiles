@@ -5,7 +5,7 @@ description: How to write effective OpenCode agent definitions with proper struc
 
 ## What Agents Are
 
-Agents are specialized AI subagents invoked via the Task tool or `@` mention. Each agent is a markdown file in `~/.config/opencode/agents/` (global) or `.opencode/agents/` (project). The filename becomes the agent name.
+Agents are specialized AI subagents invoked via the Task tool or `@` mention. Each agent is a markdown file in `~/.config/opencode/agent/` (global) or `.opencode/agent/` (project). The filename becomes the agent name.
 
 ## File Format
 

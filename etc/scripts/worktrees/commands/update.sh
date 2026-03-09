@@ -1,9 +1,5 @@
 #!/bin/zsh
-# ===================================================================
-# update.sh - Update All Worktrees Command
-# ===================================================================
 
-# Update all worktrees subcommand
 cmd_update() {
 	print_color yellow "Updating all worktrees in $WORKTREES_DIR..."
 
@@ -16,20 +12,17 @@ cmd_update() {
 	local failed_count=0
 	local skipped_count=0
 
-	# Find all directories that contain .git files (worktrees)
 	while IFS= read -r -d '' worktree_path; do
 		local worktree_name="${worktree_path##*/}"
 
 		print_color cyan "\n--- Processing worktree: $worktree_name ---"
 
-		# Check if it's a valid git worktree
 		if [[ ! -f "$worktree_path/.git" ]]; then
 			print_color yellow "Skipping $worktree_name: Not a git worktree"
 			((skipped_count++))
 			continue
 		fi
 
-		# Get current branch name
 		local current_branch
 		current_branch=$(git -C "$worktree_path" rev-parse --abbrev-ref HEAD 2>/dev/null) || {
 			print_color red "Error: Failed to get current branch for $worktree_name"
@@ -37,7 +30,6 @@ cmd_update() {
 			continue
 		}
 
-		# Skip if on detached HEAD
 		if [[ "$current_branch" == "HEAD" ]]; then
 			print_color yellow "Skipping $worktree_name: In detached HEAD state"
 			((skipped_count++))
@@ -46,14 +38,12 @@ cmd_update() {
 
 		print_color blue "Current branch: $current_branch"
 
-		# Check if there are any uncommitted changes
 		if ! git -C "$worktree_path" diff-index --quiet HEAD -- 2>/dev/null; then
 			print_color yellow "Warning: $worktree_name has uncommitted changes, skipping..."
 			((skipped_count++))
 			continue
 		fi
 
-		# Check if current branch has a remote tracking branch
 		local remote_branch
 		remote_branch=$(git -C "$worktree_path" rev-parse --abbrev-ref @{u} 2>/dev/null) || {
 			print_color yellow "Skipping $worktree_name: No remote tracking branch for $current_branch"
@@ -63,7 +53,6 @@ cmd_update() {
 
 		print_color blue "Remote branch: $remote_branch"
 
-		# Fetch latest changes
 		print_color blue "Fetching latest changes..."
 		if ! git -C "$worktree_path" fetch origin 2>/dev/null; then
 			print_color red "Error: Failed to fetch for $worktree_name"
@@ -71,7 +60,6 @@ cmd_update() {
 			continue
 		fi
 
-		# Check if there are any changes to pull
 		local local_commit remote_commit
 		local_commit=$(git -C "$worktree_path" rev-parse HEAD)
 		remote_commit=$(git -C "$worktree_path" rev-parse @{u})
@@ -82,7 +70,6 @@ cmd_update() {
 			continue
 		fi
 
-		# Pull with rebase
 		print_color blue "Pulling with rebase..."
 		if git -C "$worktree_path" pull --rebase origin "$current_branch" 2>/dev/null; then
 			print_color green "Successfully updated: $worktree_name"
@@ -101,7 +88,6 @@ cmd_update() {
 
 	done < <(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d -print0)
 
-	# Print summary
 	print_color yellow "\n=== Update Summary ==="
 	print_color green "Updated: $updated_count"
 	print_color yellow "Skipped: $skipped_count"

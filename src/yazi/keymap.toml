@@ -56,13 +56,6 @@ on = "<A-y>"
 run = ["plugin copy-file-contents"]
 desc = "Copy contents of file"
 
-# # jump-to-char.yazi
-# [[manager.prepend_keymap]]
-# on   = "f"
-# run  = "plugin jump-to-char"
-# desc = "Jump to char"
-
-# bookmarks.yazi
 [[mgr.prepend_keymap]]
 on = [ "m" ]
 run = "plugin bookmarks save"

@@ -34,7 +34,7 @@ cmd_rename() {
 		summary=$(get_jira_summary "$jira_ticket" 2>/dev/null)
 		if [[ $? -eq 0 && -n "$summary" ]]; then
 			local clean_summary
-			clean_summary=$(echo "$summary" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//')
+			clean_summary=$(slugify "$summary")
 			local new_branch="${jira_ticket}-${clean_summary}"
 
 			if [[ "$current_branch" == "$new_branch" ]]; then
@@ -55,7 +55,6 @@ cmd_rename() {
 		fi
 	fi
 
-	# Get user input for new branch name
 	print_color cyan "Enter new branch name or JIRA ticket (e.g., ABC-123): "
 	read -r input
 
@@ -66,7 +65,6 @@ cmd_rename() {
 
 	local new_branch="$input"
 
-	# Check if input is a JIRA ticket
 	if [[ "$input" =~ $JIRA_PATTERN_UNANCHORED ]]; then
 		if ! check_tool acli; then
 			print_color yellow "acli not available. Using input as branch name without JIRA integration."
@@ -78,7 +76,7 @@ cmd_rename() {
 			summary=$(get_jira_summary "$input" 2>/dev/null)
 			if [[ $? -eq 0 && -n "$summary" ]]; then
 				local clean_summary
-				clean_summary=$(echo "$summary" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//')
+				clean_summary=$(slugify "$summary")
 				new_branch="${input}-${clean_summary}"
 			else
 				print_color yellow "Could not fetch JIRA summary. Using ticket number as branch name."

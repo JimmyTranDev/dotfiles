@@ -1,10 +1,5 @@
 #!/bin/zsh
-# ===================================================================
-# jira.sh - Simplified JIRA Integration using acli
-# ===================================================================
 
-# Get JIRA summary - returns summary string or fails
-# Set WORKTREE_DEBUG=1 to enable debug output
 get_jira_summary() {
 	local jira_key="$1"
 

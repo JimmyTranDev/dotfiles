@@ -37,8 +37,7 @@ Agents to delegate to:
 Workflow:
 1. **Create a worktree** following the Worktree Workflow in AGENTS.md — name the branch after the feature being implemented
 2. Analyze the prompt to categorize the type of work (feature, fix, refactor, test, security, performance, etc.)
-3. Load the **convention-matcher** skill to learn codebase conventions
-4. Implement the changes in the worktree, delegating to the appropriate specialized agents based on the work type
-5. Run the **reviewer** agent on the completed implementation to catch issues
-6. If the reviewer surfaces problems, use the **fixer** agent to address them
-7. **Commit, merge, and clean up** the worktree following the Worktree Workflow in AGENTS.md
+3. Implement the changes in the worktree, loading relevant skills and delegating to the appropriate specialized agents based on the work type
+4. Run the **reviewer** agent on the completed implementation to catch issues
+5. If the reviewer surfaces problems, use the **fixer** agent to address them
+6. **Commit, merge, and clean up** the worktree following the Worktree Workflow in AGENTS.md
