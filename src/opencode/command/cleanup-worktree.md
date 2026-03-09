@@ -1,9 +1,9 @@
 ---
-name: worktree-cleanup
+name: cleanup-worktree
 description: List and remove stale git worktrees and their associated branches
 ---
 
-Usage: /worktree-cleanup [worktree-name]
+Usage: /cleanup-worktree [worktree-name]
 
 Find and clean up git worktrees that are no longer needed.
 

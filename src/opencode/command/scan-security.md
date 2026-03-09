@@ -1,11 +1,11 @@
 ---
-name: security
+name: scan-security
 description: Scan code for security vulnerabilities and provide exact fixes
 ---
 
 Scan the specified code for security vulnerabilities and apply fixes.
 
-Usage: /security [scope]
+Usage: /scan-security [scope]
 
 1. **Create a worktree** following the Worktree Workflow in AGENTS.md — name the branch after the security scope being addressed
 

@@ -1,11 +1,11 @@
 ---
-name: flashcards
+name: create-flashcards
 description: Generate FSRS-optimized spaced repetition flashcards from code, docs, or concepts
 ---
 
 Generate spaced repetition flashcards from the specified source material for long-term retention.
 
-Usage: /flashcards [source]
+Usage: /create-flashcards [source]
 
 1. Determine the source material:
    - If the user specifies files, directories, or a topic, use those

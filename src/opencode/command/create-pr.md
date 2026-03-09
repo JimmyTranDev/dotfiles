@@ -1,9 +1,9 @@
 ---
-name: pr-create
+name: create-pr
 description: Create a pull request with auto-generated title and body from branch commits
 ---
 
-Usage: /pr-create
+Usage: /create-pr
 
 Create a pull request for the current branch with an auto-generated title and body.
 
