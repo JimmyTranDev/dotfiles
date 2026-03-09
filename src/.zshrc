@@ -24,6 +24,7 @@ export ZELLIJ_TAB_NAME_MAX_LENGTH=10
 
 if [[ "$(uname)" == "Darwin" ]]; then
   export ANDROID_HOME="$HOME/Library/Android/sdk"
+  export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.1.12297006"
   export MANPATH="/usr/local/man${MANPATH:+:$MANPATH}"
 fi
 
