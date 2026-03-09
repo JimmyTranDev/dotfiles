@@ -3,7 +3,11 @@ name: implement
 description: Implement the required changes described in the user's prompt
 ---
 
-Read the user's prompt and implement the required changes described in it.
+Usage: /implement <description of what to implement>
+
+Implement the required changes described below:
+
+$ARGUMENTS
 
 1. Parse the prompt to understand what needs to be implemented
 2. Check if the changes described are already present in the codebase

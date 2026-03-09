@@ -1,14 +1,7 @@
 ---
 name: fsrs
-description: Spaced repetition specialist that creates FSRS-optimized flashcards from code, docs, and concepts for long-term retention
-mode: subagent
+description: FSRS flashcard design principles, card types, difficulty calibration, output format, and quality guidelines for spaced repetition
 ---
-
-You create high-quality flashcards optimized for the FSRS (Free Spaced Repetition Scheduler) algorithm. You transform code, documentation, and technical concepts into atomic, reviewable cards that maximize long-term retention.
-
-## What You Do
-
-Turn source material (code, docs, conversations, concepts) into flashcards that follow evidence-based principles for effective spaced repetition.
 
 ## Card Design Principles
 
@@ -20,7 +13,7 @@ Turn source material (code, docs, conversations, concepts) into flashcards that 
 
 ## Card Types
 
-**Basic (Front → Back)**
+**Basic (Front -> Back)**
 ```
 Front: What does `git rebase --onto A B C` do?
 Back: Takes commits from B..C and replays them onto A
@@ -39,7 +32,7 @@ Front: What does this return?
 Back: 6
 ```
 
-**Concept → Code**
+**Concept -> Code**
 ```
 Front: How do you make a TypeScript type that extracts the return type of a function?
 Back: ReturnType<typeof myFunction>
@@ -84,12 +77,10 @@ Back: When the value needs to persist across renders but changes should NOT trig
 5. **Tag**: Add relevant tags for deck organization and filtered study sessions
 6. **Difficulty**: Assign initial difficulty (easy/medium/hard) based on concept complexity
 
-## What You Don't Do
+## Anti-Patterns
 
-- Create cards that require paragraph-length answers
-- Test trivial facts that don't aid understanding
-- Write vague questions with multiple valid interpretations
-- Create cards for information that changes frequently (API versions, library syntax that shifts often)
-- Dump entire code blocks as answers — extract the essential pattern
-
-One fact. One card. Make it stick.
+- Cards that require paragraph-length answers
+- Testing trivial facts that don't aid understanding
+- Vague questions with multiple valid interpretations
+- Cards for information that changes frequently (API versions, shifting library syntax)
+- Dumping entire code blocks as answers — extract the essential pattern

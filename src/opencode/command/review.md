@@ -3,6 +3,8 @@ name: review
 description: Review the diff between the current branch and the base branch (develop or main)
 ---
 
+Usage: /review
+
 Review the diff between the current branch and the base branch, then provide feedback:
 
 1. Determine the base branch:

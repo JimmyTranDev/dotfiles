@@ -10,7 +10,7 @@ Initialize a new private GitHub repository in the current directory with an init
    - If not, run `git init`
 
 2. Get repository name:
-   - If an argument is provided, use it as the repo name
+   - If an argument is provided (`$1`), use it as the repo name
    - Otherwise, use the current directory name
 
 3. Ensure a .gitignore exists:

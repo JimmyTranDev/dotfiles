@@ -3,33 +3,23 @@ name: refactor
 description: Refactor and simplify code by applying DRY, KISS, and YAGNI principles
 ---
 
-Analyze the specified code (files, directories, or the area described in the user's prompt) and refactor it for simplicity, clarity, and maintainability.
+Usage: /refactor [scope or description]
+
+Refactor the specified code for simplicity, clarity, and maintainability.
+
+$ARGUMENTS
 
 1. Understand the scope:
    - If the user specifies files or directories, focus on those
    - If the user describes an area or pattern, search the codebase to locate the relevant code
    - Run tests or build commands if available to establish a working baseline before making changes
 
-2. Analyze the code for refactoring opportunities:
-   - **Duplication**: Repeated logic, copy-pasted blocks, similar functions that can be unified
-   - **Complexity**: Deeply nested conditionals, long functions, overly clever abstractions
-   - **Dead code**: Unused imports, unreachable branches, commented-out code, unused variables or functions
-   - **Over-engineering**: Unnecessary abstractions, premature generalization, layers that add no value
-   - **Naming**: Unclear or misleading variable, function, or file names
-   - **Structure**: Functions or modules doing too many things, poor separation of concerns
+2. Load the **simplifier** and **deduplicator** skills, then analyze the code for refactoring opportunities (duplication, complexity, dead code, over-engineering, naming, structure) and apply DRY, KISS, YAGNI principles while preserving existing behavior
 
-3. Apply refactoring principles:
-   - **DRY** (Don't Repeat Yourself): Extract shared logic into reusable functions or modules
-   - **KISS** (Keep It Simple, Stupid): Replace complex solutions with simpler alternatives
-   - **YAGNI** (You Aren't Gonna Need It): Remove speculative features and unused abstractions
-   - Preserve existing behavior — refactoring must not change what the code does
-
-4. Load relevant skills and delegate to specialized agents in parallel where applicable:
+3. Load relevant skills and delegate to specialized agents in parallel where applicable:
 
    Skills to load:
    - **convention-matcher**: Always load first to learn codebase conventions so refactored code matches the existing style
-   - **simplifier**: Load for guidance on applying DRY, KISS, YAGNI to reduce complexity
-   - **deduplicator**: Load for guidance on extracting repeated patterns into reusable utilities, hooks, or components
    - **import-optimizer**: Load if barrel files, circular dependencies, or re-export chains are found
    - **logic-checker**: Load if refactored logic involves complex conditionals or state to verify correctness
 
@@ -38,7 +28,7 @@ Analyze the specified code (files, directories, or the area described in the use
    - **reviewer**: Use after refactoring is complete to verify the changes are sound and nothing was broken
    - **tester**: Use to run existing tests or add tests if coverage is missing for refactored code
 
-5. After refactoring:
+4. After refactoring:
    - Run the project's test suite and build to confirm nothing is broken
    - Summarize what was changed and why
    - List any follow-up improvements that were out of scope but worth noting
