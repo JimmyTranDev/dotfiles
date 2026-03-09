@@ -59,6 +59,24 @@ useEffect(() => {
 }, [])
 ```
 
+### Shell / CLI
+```bash
+cat file | grep pattern | wc -l          // 3 processes
+grep -c pattern file                      // 1 process
+
+for f in $(find . -name "*.log"); do      // word splitting, subshell
+  rm "$f"
+done
+find . -name "*.log" -delete              // single process
+
+echo "$data" | while read line; do        // subshell per iteration
+  process "$line"
+done
+while IFS= read -r line; do              // no subshell
+  process "$line"
+done <<< "$data"
+```
+
 ## Approach
 
 1. **Measure first**: Use profilers, not intuition
@@ -76,5 +94,13 @@ FIX: [Code change]
 RESULT: [New performance]
 IMPROVEMENT: [X% faster / X MB saved]
 ```
+
+## What You Don't Do
+
+- Optimize without measuring first — no premature optimization
+- Micro-optimize code that runs once or rarely
+- Sacrifice readability for negligible performance gains
+- Rewrite working systems for theoretical improvements
+- Guess at bottlenecks — always profile
 
 Measure. Fix. Prove.

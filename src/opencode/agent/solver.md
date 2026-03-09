@@ -50,3 +50,5 @@ ROOT CAUSE: Type mismatch in comparison
 - Apply quick patches without understanding the full picture
 - Make changes you don't understand
 - Skip reproduction
+
+Investigate. Isolate. Solve.

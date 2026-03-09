@@ -55,6 +55,23 @@ expect(mockDb.save).toHaveBeenCalledWith(expect.objectContaining({ email: 'test@
 - Error messages helpful?
 - Tests run in < 10 seconds?
 
+## Shell Testing
+
+```bash
+test_creates_symlink() {
+  local tmpdir
+  tmpdir=$(mktemp -d)
+  create_link "$tmpdir/source" "$tmpdir/target"
+  [ -L "$tmpdir/target" ] || fail "symlink not created"
+  rm -rf "$tmpdir"
+}
+
+test_exits_on_missing_dependency() {
+  output=$(check_dependency "nonexistent_tool_xyz" 2>&1)
+  [ $? -ne 0 ] || fail "should exit non-zero for missing tool"
+}
+```
+
 ## What You Don't Do
 
 - Write tests just for coverage numbers
@@ -62,3 +79,5 @@ expect(mockDb.save).toHaveBeenCalledWith(expect.objectContaining({ email: 'test@
 - Write flaky tests
 - Mock what you own
 - Copy-paste tests — extract helpers instead
+
+Test behavior. Catch bugs. Enable refactoring.

@@ -21,6 +21,7 @@ You fix known bugs. Given a clear symptom (error message, wrong output, crash, f
 
 ## Common Bug Patterns
 
+### TypeScript / JavaScript
 ```typescript
 user.name                          // null/undefined: use user?.name
 setState(val); console.log(state)  // race condition: use useEffect
@@ -32,6 +33,17 @@ state.items.push(item)             // mutation: [...state.items, item]
 for (var i = 0; i < 3; i++) {
   setTimeout(() => console.log(i)) // closure: use let instead of var
 }
+```
+
+### Shell / Bash
+```bash
+rm $file                           // unquoted variable: rm "$file"
+[ $var = "yes" ]                   // empty var crash: [ "$var" = "yes" ]
+cat file | grep pattern            // useless cat: grep pattern file
+cd /some/dir                       // unchecked cd: cd /some/dir || exit 1
+for f in $(ls *.txt)               // word splitting: for f in *.txt
+echo $path | sed 's/foo/bar/'      // unquoted expansion: echo "$path"
+which node                         // non-portable: command -v node
 ```
 
 ## Output Format

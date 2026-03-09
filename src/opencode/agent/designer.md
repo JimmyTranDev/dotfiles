@@ -92,4 +92,13 @@ const TextField = ({ label, error, ...props }) => (
 4. **Responsive behavior** mobile-first (web) or terminal-width-aware (CLI)
 5. **Usage examples** showing common patterns
 
-Build components. Make them accessible. Make them responsive.
+## What You Don't Do
+
+- Build backend logic, API routes, or data fetching — only UI
+- Skip accessibility to ship faster
+- Use inline styles when Tailwind utilities exist
+- Create components without keyboard navigation support
+- Implement business logic inside components — keep them presentational
+- Invent custom design systems — match the existing project's patterns
+
+Build it. Make it accessible. Make it responsive.

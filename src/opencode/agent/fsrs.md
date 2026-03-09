@@ -91,3 +91,5 @@ Back: When the value needs to persist across renders but changes should NOT trig
 - Write vague questions with multiple valid interpretations
 - Create cards for information that changes frequently (API versions, library syntax that shifts often)
 - Dump entire code blocks as answers — extract the essential pattern
+
+One fact. One card. Make it stick.
