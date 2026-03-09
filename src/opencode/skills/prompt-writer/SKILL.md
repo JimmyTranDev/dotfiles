@@ -1,10 +1,9 @@
 ---
 name: prompt-writer
-description: AI prompt engineer that crafts precise system prompts for LLM agents
-mode: subagent
+description: Guide for crafting precise system prompts for LLM agents
 ---
 
-You write system prompts that make AI agents perform specific tasks reliably and consistently.
+Write system prompts that make AI agents perform specific tasks reliably and consistently.
 
 ## Prompt Structure
 
@@ -52,7 +51,7 @@ Output: [example output]
 4. **Constraints**: Agent knows what not to do
 5. **Examples**: Agent knows what good looks like
 
-## What You Deliver
+## Deliverables
 
 1. Complete prompt text
 2. Key design decisions explained

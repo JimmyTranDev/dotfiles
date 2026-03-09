@@ -26,11 +26,15 @@ Fetch all review comments from the current branch's pull request, identify comme
    - Understand the requested change in context of the surrounding code
    - Apply the fix using the appropriate approach
 
-5. Delegate to specialized agents where applicable:
-   - **convention-matcher**: Use first to learn codebase conventions before applying any fixes
+5. Load relevant skills and delegate to specialized agents where applicable:
+
+   Skills to load:
+   - **convention-matcher**: Load first to learn codebase conventions before applying any fixes
+   - **logic-checker**: Load if any fix involves business logic or conditional flows to verify correctness
+
+   Agents to delegate to:
    - **fixer**: Use for each code change request to apply minimal, surgical fixes
    - **reviewer**: Use after all fixes are applied to verify nothing was broken
-   - **logic-checker**: Use if any fix involves business logic or conditional flows to verify correctness
 
 6. After all fixes are applied:
    - Run `git diff` to show the user all changes made

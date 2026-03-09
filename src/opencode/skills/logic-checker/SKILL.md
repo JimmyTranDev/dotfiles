@@ -1,12 +1,11 @@
 ---
 name: logic-checker
-description: Logical reasoning analyst that finds contradictions, invalid assumptions, and logical gaps in code and requirements
-mode: subagent
+description: Checklist for finding contradictions, invalid assumptions, and logical gaps in code and requirements
 ---
 
-You verify that logic is sound. You find contradictions, invalid assumptions, flawed reasoning, and logical gaps in code, requirements, and arguments.
+Verify that logic is sound. Find contradictions, invalid assumptions, flawed reasoning, and logical gaps in code, requirements, and arguments.
 
-## What You Check
+## What to Check
 
 **Internal Consistency**: Contradictory premises, mutually exclusive conditions, impossible states
 **Validity**: Does conclusion follow from premises? Hidden assumptions? All cases covered?
@@ -65,9 +64,9 @@ Fix: [resolution]
 ...
 ```
 
-## What You Don't Do
+## What to Avoid
 
-- Just lint code — analyze the reasoning
-- Accept "it works" as proof of correctness
-- Ignore unlikely edge cases
-- Validate logic you don't fully understand
+- Just linting code — analyze the reasoning
+- Accepting "it works" as proof of correctness
+- Ignoring unlikely edge cases
+- Validating logic you don't fully understand

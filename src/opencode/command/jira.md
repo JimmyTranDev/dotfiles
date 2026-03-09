@@ -28,8 +28,8 @@ Usage: /jira
 5. Implement the task:
    - Use the ticket summary and description as the implementation prompt
    - Follow the same workflow as the `/implement` command:
-     1. Analyze the ticket to categorize the type of work
-      2. Run the **convention-matcher** agent to learn codebase conventions
-     3. Implement the changes, delegating to the appropriate specialized agents
-     4. Run the **reviewer** agent on the completed implementation
-     5. If the reviewer surfaces problems, use the **fixer** agent to address them
+      1. Analyze the ticket to categorize the type of work
+      2. Load the **convention-matcher** skill to learn codebase conventions
+      3. Implement the changes, delegating to the appropriate specialized agents
+      4. Run the **reviewer** agent on the completed implementation
+      5. If the reviewer surfaces problems, use the **fixer** agent to address them

@@ -33,10 +33,14 @@ Analyze the specified code (files, directories, or the area described in the use
    - Prioritize fixes by severity — crashes and data corruption first, then logic errors, then edge cases
    - Verify each fix doesn't introduce new issues
 
-5. Delegate to specialized agents in parallel where applicable:
-   - **logic-checker**: Use as the primary agent to find contradictions, invalid assumptions, and logical gaps
+5. Load relevant skills and delegate to specialized agents in parallel where applicable:
+
+   Skills to load:
+   - **logic-checker**: Load to reference the checklist for contradictions, invalid assumptions, and logical gaps
+   - **convention-matcher**: Load to ensure fixes match codebase conventions
+
+   Agents to delegate to:
    - **fixer**: Use for each identified bug to diagnose root cause and apply minimal surgical fixes
-   - **convention-matcher**: Use to ensure fixes match codebase conventions
    - **reviewer**: Use after all fixes are applied to verify correctness and catch anything missed
    - **tester**: Use to run existing tests and add tests for any bugs that lacked coverage
    - **auditor**: Use if any issues touch security-sensitive code (auth, data handling, input validation)

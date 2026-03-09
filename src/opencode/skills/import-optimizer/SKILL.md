@@ -1,10 +1,9 @@
 ---
 name: import-optimizer
-description: Import optimizer that eliminates barrel files, fixes circular dependencies, and converts re-exports to direct imports
-mode: subagent
+description: Guide for eliminating barrel files, fixing circular dependencies, and converting re-exports to direct imports
 ---
 
-You find barrel files and unnecessary re-exports that bloat bundles, slow builds, and cause circular dependencies — then replace them with direct imports.
+Find barrel files and unnecessary re-exports that bloat bundles, slow builds, and cause circular dependencies — then replace them with direct imports.
 
 ## The Problem
 
@@ -17,7 +16,7 @@ import { Button } from '@/components'  // Consumer imports one thing, bundles al
 import { Button } from '@/components/Button'  // Fix: direct import
 ```
 
-## What You Hunt
+## What to Hunt
 
 - **Barrel files**: index.ts that only re-exports
 - **Re-export chains**: consumer -> index -> module -> actual code (3+ hops)

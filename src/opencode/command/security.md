@@ -25,10 +25,14 @@ Usage: /security [scope]
    - Explain the attack vector
    - Provide an exact code fix
 
-4. Additional agents when applicable:
+4. Load relevant skills and delegate to additional agents when applicable:
+
+   Skills to load:
+   - **convention-matcher**: Load to ensure fixes match codebase conventions
+
+   Agents to delegate to:
    - **fixer**: Apply the security fixes to the codebase
    - **reviewer**: Verify fixes don't introduce regressions
-   - **convention-matcher**: Ensure fixes match codebase conventions
 
 5. After fixing:
    - Re-run the security scan to confirm vulnerabilities are resolved

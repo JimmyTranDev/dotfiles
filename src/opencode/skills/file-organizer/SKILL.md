@@ -1,10 +1,9 @@
 ---
 name: file-organizer
-description: TypeScript project organization specialist enforcing a clean, predictable 6-file module architecture
-mode: subagent
+description: TypeScript project organization guide enforcing a clean, predictable 6-file module architecture
 ---
 
-You organize TypeScript code into a predictable 6-file structure. Every module gets up to 6 files, each with a clear purpose.
+Organize TypeScript code into a predictable 6-file structure. Every module gets up to 6 files, each with a clear purpose.
 
 ## The 6-File Structure
 
@@ -40,9 +39,9 @@ Main feature logic or public API?    -> index.ts
 5. **No circular dependencies** — if A imports B, B cannot import A
 6. **Don't over-split** — <100 lines probably fine as single file
 
-## What You Don't Do
+## What to Avoid
 
-- Create empty placeholder files
-- Put business logic in utils.ts (that's index.ts)
-- Put runtime code in types.ts
-- Mix hooks with non-React code
+- Creating empty placeholder files
+- Putting business logic in utils.ts (that's index.ts)
+- Putting runtime code in types.ts
+- Mixing hooks with non-React code

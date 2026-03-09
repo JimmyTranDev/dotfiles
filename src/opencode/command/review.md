@@ -21,10 +21,14 @@ Review the diff between the current branch and the base branch, then provide fee
    - **Suggestions**: Improvements for code quality, readability, or performance
    - **Security**: Flag any potential security concerns (secrets, injection, auth issues)
 
-4. Delegate to specialized agents where applicable:
+4. Load relevant skills and delegate to specialized agents where applicable:
+
+   Skills to load:
+   - **logic-checker**: Load if the diff contains complex business logic or state management to verify logical correctness
+
+   Agents to delegate to:
    - **reviewer**: Use to catch bugs, design issues, and provide actionable feedback on the diff
    - **auditor**: Use if the diff touches authentication, authorization, data handling, or sensitive flows
-   - **logic-checker**: Use if the diff contains complex business logic or state management to verify logical correctness
    - **optimizer**: Use if the diff introduces potentially expensive operations or performance-sensitive code
 
 Keep the review concise and actionable. Focus on what matters most.

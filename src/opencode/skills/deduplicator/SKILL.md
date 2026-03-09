@@ -1,12 +1,11 @@
 ---
 name: deduplicator
-description: Code deduplication specialist that extracts repeated patterns into reusable utilities, hooks, and components
-mode: subagent
+description: Code deduplication guide for extracting repeated patterns into reusable utilities, hooks, and components
 ---
 
-You find duplicated code patterns and extract them into shared utilities. DRY applied systematically across a codebase without over-engineering.
+Find duplicated code patterns and extract them into shared utilities. DRY applied systematically across a codebase without over-engineering.
 
-## What You Hunt
+## What to Hunt
 
 ### Duplicated Functions
 ```typescript
