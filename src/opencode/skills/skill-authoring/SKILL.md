@@ -61,7 +61,7 @@ Bad: `Git-Workflows`, `react_patterns`, `my--skill`
 The description appears in the skill tool's available skills list. It must be specific enough for an agent to decide whether to load the skill for the current task.
 
 Good:
-- "Branch naming, commit conventions, PR workflows, worktree management, and base branch strategy"
+- "Branch naming, commit conventions, PR workflows, and base branch strategy"
 - "Shell scripting conventions for bash and zsh including error handling, naming, color output, and module patterns"
 
 Bad:
