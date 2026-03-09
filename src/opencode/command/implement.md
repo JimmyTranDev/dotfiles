@@ -14,10 +14,10 @@ $ARGUMENTS
 3. If the changes are missing or incomplete, implement them according to the description
 4. If the changes are already present, verify they match the description and suggest improvements if needed
 
-After understanding the intent, load relevant skills and delegate to specialized agents in parallel where applicable:
+After understanding the intent, load relevant skills and delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
-Skills to load for guidance:
-- **convention-matcher**: Always load first to study existing codebase conventions (naming, imports, file structure, patterns) so all new code matches the established style
+Skills to load (load all applicable skills in a single parallel batch):
+- **convention-matcher**: Always load to study existing codebase conventions (naming, imports, file structure, patterns) so all new code matches the established style
 - **file-organizer**: Load when the task describes adding new modules, reorganizing files, or restructuring project layout
 - **logic-checker**: Load when the task involves business logic, state machines, or complex conditional flows to verify logical soundness and catch impossible states
 - **deduplicator**: Load when the task describes extracting shared utilities or reducing duplication across the codebase
@@ -25,7 +25,7 @@ Skills to load for guidance:
 - **import-optimizer**: Load when the task describes cleaning up barrel files, fixing circular dependencies, or optimizing imports
 - **prompt-writer**: Load when the task describes writing or updating AI system prompts or agent instructions
 
-Agents to delegate to:
+Agents to delegate to (launch independent agents in parallel — only serialize when one depends on another's output):
 - **designer**: Use when the task describes UI component work, accessibility improvements, or frontend feature additions
 - **fixer**: Use when the task describes a bug fix — let it trace the root cause and apply the minimal surgical fix
 - **solver**: Use when the task describes a complex or multi-layered problem where the cause is unclear and deeper investigation is needed
@@ -37,7 +37,8 @@ Agents to delegate to:
 Workflow:
 1. **Create a worktree** following the Worktree Workflow in AGENTS.md — name the branch after the feature being implemented
 2. Analyze the prompt to categorize the type of work (feature, fix, refactor, test, security, performance, etc.)
-3. Implement the changes in the worktree, loading relevant skills and delegating to the appropriate specialized agents based on the work type
-4. Run the **reviewer** agent on the completed implementation to catch issues
-5. If the reviewer surfaces problems, use the **fixer** agent to address them
-6. **Commit, merge, and clean up** the worktree following the Worktree Workflow in AGENTS.md
+3. Load all applicable skills in parallel (always include **convention-matcher**, add others based on task type)
+4. Implement the changes in the worktree, delegating to the appropriate specialized agents based on the work type — launch independent agents in parallel
+5. Run post-implementation agents in parallel where independent (e.g., **reviewer** + **auditor** together, **tester** + **optimizer** together)
+6. If the reviewer surfaces problems, use the **fixer** agent to address them (sequential — depends on reviewer output)
+7. **Commit, merge, and clean up** the worktree following the Worktree Workflow in AGENTS.md

@@ -17,7 +17,7 @@ $ARGUMENTS
    - If no scope is given, analyze recent changes via `git diff` and `git log --oneline -20` against the base branch (prefer `develop`, fall back to `main`)
    - Run tests or build commands if available to establish a working baseline before making changes
 
-3. Load the **convention-matcher**, **simplifier**, and **deduplicator** skills, then scan for improvement opportunities across these categories:
+3. Load the **convention-matcher**, **simplifier**, and **deduplicator** skills in parallel, then scan for improvement opportunities across these categories:
    - **Code quality**: naming clarity, function length, complexity, readability
    - **Architecture**: separation of concerns, coupling, cohesion, abstraction levels
    - **Duplication**: repeated patterns, copy-pasted logic, similar implementations that could be unified
@@ -34,17 +34,15 @@ $ARGUMENTS
    - Make changes incrementally, verifying each improvement doesn't break existing behavior
    - Preserve existing conventions and patterns — improve within the established style, not against it
 
-6. Load relevant skills and delegate to specialized agents in parallel where applicable:
+6. Load additional skills and delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
-   Skills to load:
+   Skills to load (load all applicable in a single parallel batch):
    - **import-optimizer**: Load if barrel files, circular dependencies, or re-export chains are found
    - **logic-checker**: Load if improvements touch complex conditionals or state management
 
-   Agents to delegate to:
-   - **optimizer**: Use for performance-related improvements (memoization, algorithm optimization, reducing unnecessary work)
-   - **reviewer**: Use after all improvements are applied to verify correctness and catch regressions
-   - **tester**: Use to run existing tests and add tests for any improved code that lacks coverage
-   - **auditor**: Use if improvements touch security-sensitive code (auth, data handling, input validation)
+   Agents to delegate to (launch independent agents in parallel):
+   - **optimizer** + **tester**: Launch in parallel — optimizer handles performance improvements while tester runs existing tests and adds coverage for improved code
+   - **reviewer** + **auditor**: Launch in parallel after improvements are applied — reviewer verifies correctness while auditor scans security-sensitive changes
 
 7. After improving:
    - Run the project's test suite and build to confirm nothing is broken

@@ -16,19 +16,13 @@ $ARGUMENTS
    - If the user describes an area or pattern, search the codebase to locate the relevant code
    - Run tests or build commands if available to establish a working baseline before making changes
 
-3. Load the **simplifier** and **deduplicator** skills, then analyze the code for refactoring opportunities (duplication, complexity, dead code, over-engineering, naming, structure) and apply DRY, KISS, YAGNI principles while preserving existing behavior
+3. Load all applicable skills in parallel (**convention-matcher**, **simplifier**, **deduplicator**, and optionally **import-optimizer** and **logic-checker**), then analyze the code for refactoring opportunities (duplication, complexity, dead code, over-engineering, naming, structure) and apply DRY, KISS, YAGNI principles while preserving existing behavior
 
-4. Load relevant skills and delegate to specialized agents in parallel where applicable:
+4. Delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
-   Skills to load:
-   - **convention-matcher**: Always load first to learn codebase conventions so refactored code matches the existing style
-   - **import-optimizer**: Load if barrel files, circular dependencies, or re-export chains are found
-   - **logic-checker**: Load if refactored logic involves complex conditionals or state to verify correctness
-
-   Agents to delegate to:
+   Agents to delegate to (launch independent agents in parallel):
    - **optimizer**: Use if performance-sensitive code is identified during refactoring
-   - **reviewer**: Use after refactoring is complete to verify the changes are sound and nothing was broken
-   - **tester**: Use to run existing tests or add tests if coverage is missing for refactored code
+   - **reviewer** + **tester**: Launch in parallel after refactoring is complete — reviewer verifies correctness while tester runs tests and adds coverage
 
 5. After refactoring:
    - Run the project's test suite and build to confirm nothing is broken

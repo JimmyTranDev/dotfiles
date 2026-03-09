@@ -18,14 +18,11 @@ Usage: /test [scope]
    - Run tests and capture output
    - If tests fail, categorize failures by type (logic error, missing mock, stale snapshot, etc.)
 
-4. Load relevant skills and delegate to specialized agents:
-
-   Skills to load:
-   - **convention-matcher**: Load to ensure new tests match existing test conventions in the codebase
+4. Load **convention-matcher** skill, then delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
    Agents to delegate to:
-   - **tester**: Primary agent — analyzes code paths, writes new tests for uncovered behavior, fixes broken tests
-   - **fixer**: Use for each test failure that stems from a bug in the source code (not the test itself)
+   - **tester** + **fixer**: If there are both test coverage gaps and source code bugs causing failures, launch tester (for writing new tests) and fixer (for source code bugs) in parallel since they address independent problems
+   - If all failures stem from the same root cause, run **fixer** first, then **tester** sequentially
 
 5. After changes:
    - Re-run the test suite to confirm all tests pass
