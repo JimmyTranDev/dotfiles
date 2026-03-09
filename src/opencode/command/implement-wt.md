@@ -1,11 +1,11 @@
 ---
-name: implement
-description: Implement changes directly in the current working directory
+name: implement-wt
+description: Implement changes in a git worktree with full lifecycle management
 ---
 
-Usage: /implement <description of what to implement>
+Usage: /implement-wt <description of what to implement>
 
-Implement the required changes described below:
+Implement the required changes described below using a git worktree:
 
 $ARGUMENTS
 
@@ -34,9 +34,29 @@ Agents to delegate to (launch independent agents in parallel — only serialize 
 - **optimizer**: Use when the task describes performance improvements — profile and implement measurable optimizations
 - **auditor**: Use when the task describes security-related changes, authentication flows, or data handling to scan for vulnerabilities
 
-Workflow:
-1. Analyze the prompt to categorize the type of work (feature, fix, refactor, test, security, performance, etc.)
-2. Load all applicable skills in parallel (always include **convention-matcher**, add others based on task type)
-3. Implement the changes in the current working directory, delegating to the appropriate specialized agents based on the work type — launch independent agents in parallel
-4. Run post-implementation agents in parallel where independent (e.g., **reviewer** + **auditor** together, **tester** + **optimizer** together)
-5. If the reviewer surfaces problems, use the **fixer** agent to address them (sequential — depends on reviewer output)
+Worktree Workflow:
+
+1. **Detect the base branch**: Check for `develop` first (local or `origin/develop`), fall back to `main`
+2. **Create a worktree**:
+   ```bash
+   git worktree add ~/Programming/Worktrees/<branch-name> -b <branch-name>
+   ```
+   - Branch name should be a short kebab-case description of the work (e.g., `add-dark-mode-toggle`, `fix-auth-race-condition`)
+   - If the user provides a JIRA ticket, use the format `ABC-123-short-description`
+3. **Do all work in the worktree directory** — read, edit, and create files in `~/Programming/Worktrees/<branch-name>/`, not the main repo
+4. Analyze the prompt to categorize the type of work (feature, fix, refactor, test, security, performance, etc.)
+5. Load all applicable skills in parallel (always include **convention-matcher**, add others based on task type)
+6. Implement the changes in the worktree, delegating to the appropriate specialized agents based on the work type — launch independent agents in parallel
+7. Run post-implementation agents in parallel where independent (e.g., **reviewer** + **auditor** together, **tester** + **optimizer** together)
+8. If the reviewer surfaces problems, use the **fixer** agent to address them (sequential — depends on reviewer output)
+9. **Commit** in the worktree using the `git-workflows` skill commit format
+10. **Merge back** into the base branch:
+    ```bash
+    git checkout <base-branch>
+    git merge <branch-name>
+    ```
+11. **Clean up** the worktree and branch:
+    ```bash
+    git worktree remove ~/Programming/Worktrees/<branch-name>
+    git branch -d <branch-name>
+    ```
