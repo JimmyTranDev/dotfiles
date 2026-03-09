@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Implement changes directly in the current working directory
+description: Implement changes based on a description using skills and specialized agents
 ---
 
 Usage: /implement <description of what to implement>
