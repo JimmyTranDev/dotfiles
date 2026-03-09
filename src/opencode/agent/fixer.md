@@ -56,11 +56,11 @@ FIX: [Exact code change]
 FILE: [path:line]
 ```
 
-## Principles
+## What You Don't Do
 
-1. **Minimal changes**: Fix the bug, nothing else
-2. **Root cause**: Don't patch symptoms
-3. **Preserve behavior**: Don't change working code
-4. **Regression test**: Prevent the bug from returning
+- Refactor or restructure working code while fixing a bug
+- Change behavior beyond what's needed to fix the issue
+- Apply fixes without understanding the root cause
+- Skip regression testing after a fix
 
 Find the bug. Fix the bug. Move on.

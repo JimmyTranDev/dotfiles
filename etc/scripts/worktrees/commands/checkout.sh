@@ -1,9 +1,5 @@
 #!/bin/zsh
-# ===================================================================
-# checkout.sh - Checkout Remote Branch Command
-# ===================================================================
 
-# Checkout remote branch subcommand
 cmd_checkout() {
 	if ! check_tool git; then
 		return 1
@@ -16,13 +12,11 @@ cmd_checkout() {
 	local repo_dir
 	repo_dir=$(setup_project) || return 1
 
-	# Fetch latest remote refs
 	git -C "$repo_dir" fetch origin || {
 		print_color red "Failed to fetch from origin"
 		return 1
 	}
 
-	# Get all remote branches
 	local all_remote_branches=()
 	while IFS= read -r branch; do
 		[[ -n "$branch" ]] && all_remote_branches+=("$branch")
@@ -48,11 +42,9 @@ cmd_checkout() {
 
 	local worktree_path="$WORKTREES_DIR/${folder_name}"
 
-	# Check if worktree already exists
 	if [[ -d "$worktree_path" ]]; then
 		print_color yellow "Worktree already exists at: $worktree_path"
 
-		# Check if it's a valid git worktree
 		if git -C "$repo_dir" worktree list | grep -q "$worktree_path"; then
 			print_color green "Switching to existing worktree: $worktree_path"
 			cd "$worktree_path" || {
@@ -62,7 +54,6 @@ cmd_checkout() {
 			print_color green "Successfully switched to worktree!"
 			return 0
 		else
-			# Directory exists but not a valid worktree, ask user what to do
 			print_color yellow "Directory exists but is not a valid git worktree."
 			print -P "%F{cyan}Options:%f"
 			print -P "  1) Remove directory and create new worktree"
@@ -87,19 +78,15 @@ cmd_checkout() {
 		fi
 	fi
 
-	# Create the worktree
 	if git -C "$repo_dir" show-ref --verify --quiet "refs/heads/$local_branch"; then
 		print_color yellow "Local branch '$local_branch' already exists. Creating worktree from existing branch."
 
-		# First try to create worktree normally
 		if ! git -C "$repo_dir" worktree add "$worktree_path" "$local_branch" 2>/dev/null; then
-			# If it fails, check if it's a registered but missing worktree
 			if git -C "$repo_dir" worktree list | grep -q "$worktree_path"; then
 				print_color yellow "Worktree is registered but missing. Cleaning up and recreating..."
 				git -C "$repo_dir" worktree remove "$worktree_path" 2>/dev/null || true
 			fi
 
-			# Try again with force flag if needed
 			if ! git -C "$repo_dir" worktree add "$worktree_path" "$local_branch"; then
 				print_color red "Failed to create worktree from existing branch."
 				return 1
@@ -108,15 +95,12 @@ cmd_checkout() {
 	else
 		print_color green "Creating new branch '$local_branch' with worktree."
 
-		# First try to create worktree normally
 		if ! git -C "$repo_dir" worktree add "$worktree_path" -b "$local_branch" "origin/$local_branch" 2>/dev/null; then
-			# If it fails, check if it's a registered but missing worktree
 			if git -C "$repo_dir" worktree list | grep -q "$worktree_path"; then
 				print_color yellow "Worktree path is registered but missing. Cleaning up and recreating..."
 				git -C "$repo_dir" worktree remove "$worktree_path" 2>/dev/null || true
 			fi
 
-			# Try again
 			if ! git -C "$repo_dir" worktree add "$worktree_path" -b "$local_branch" "origin/$local_branch"; then
 				print_color red "Failed to create worktree with new branch."
 				return 1
@@ -126,10 +110,8 @@ cmd_checkout() {
 
 	print_color green "Worktree created at: $worktree_path"
 
-	# Install dependencies and navigate to worktree
 	install_dependencies "$worktree_path"
 
-	# Navigate to the worktree directory
 	cd "$worktree_path" || {
 		print_color yellow "Warning: Could not navigate to worktree directory"
 	}

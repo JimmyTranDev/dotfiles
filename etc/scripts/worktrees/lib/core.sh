@@ -1,9 +1,5 @@
 #!/bin/zsh
-# ===================================================================
-# core.sh - Core Worktree Utilities
-# ===================================================================
 
-# Safer version of require_tool that doesn't exit
 check_tool() {
 	local tool="${1:-}"
 	if [[ -z "$tool" ]]; then
@@ -17,7 +13,6 @@ check_tool() {
 	return 0
 }
 
-# Print colored message
 print_color() {
 	local color="${1:-white}"
 	shift
@@ -28,14 +23,16 @@ print_color() {
 	fi
 }
 
-# Select from list using fzf
+slugify() {
+	echo "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//'
+}
+
 select_fzf() {
 	local prompt="$1"
 	shift
 	[[ $# -gt 0 ]] && printf "%s\n" "$@" | fzf --prompt="$prompt" || fzf --prompt="$prompt"
 }
 
-# Get package manager in repo
 detect_package_manager() {
 	[[ -f pnpm-lock.yaml ]] && echo "pnpm" && return
 	[[ -f package-lock.json ]] && echo "npm" && return
@@ -43,7 +40,6 @@ detect_package_manager() {
 	echo ""
 }
 
-# Get folder name from branch name (removes prefix)
 get_folder_name_from_branch() {
 	local branch_name="$1"
 
@@ -52,7 +48,6 @@ get_folder_name_from_branch() {
 		return 1
 	fi
 
-	# Remove prefix (everything before and including the first slash)
 	if [[ "$branch_name" =~ ^[^/]+/(.+)$ ]]; then
 		echo "${match[1]}"
 	else
@@ -60,7 +55,6 @@ get_folder_name_from_branch() {
 	fi
 }
 
-# Setup project and validate
 setup_project() {
 	local proj
 	proj=$(select_project) || return 1
@@ -74,13 +68,11 @@ setup_project() {
 	echo "$PROGRAMMING_DIR/$proj"
 }
 
-# Select project interactively, prioritizing last used
 select_project() {
 	local last_proj_file="$HOME/.last_project"
 	local last_proj=""
 	[[ -f "$last_proj_file" ]] && last_proj=$(<"$last_proj_file")
 
-	# Get all projects safely
 	local all_projects=()
 	if [[ -d "$PROGRAMMING_DIR" ]]; then
 		while IFS= read -r -d '' dir; do
@@ -95,11 +87,9 @@ select_project() {
 
 	local projects_list=()
 	if [[ -n "$last_proj" ]]; then
-		# Add last project first if it exists
 		for p in "${all_projects[@]}"; do
 			[[ "$p" == "$last_proj" ]] && projects_list+=("$p")
 		done
-		# Add remaining projects
 		for p in "${all_projects[@]}"; do
 			[[ "$p" != "$last_proj" ]] && projects_list+=("$p")
 		done
@@ -110,7 +100,6 @@ select_project() {
 	select_fzf "Select project folder: " "${projects_list[@]}"
 }
 
-# Install dependencies if package manager detected
 install_dependencies() {
 	local worktree_path="$1"
 
@@ -138,7 +127,6 @@ install_dependencies() {
 	fi
 }
 
-# Find main branch (prefer develop, fallback to main, then master)
 find_main_branch() {
 	local repo_dir="$1"
 
@@ -163,7 +151,6 @@ find_main_branch() {
 	echo "$main_branch"
 }
 
-# Get repository - either by name or interactive selection
 get_repository() {
 	local repo_name="$1"
 	local programming_dir="${PROGRAMMING_DIR:-$HOME/Programming}"

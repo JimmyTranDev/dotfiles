@@ -5,7 +5,7 @@ description: How to write effective OpenCode slash commands with clear workflows
 
 ## What Commands Are
 
-Commands are slash-invoked prompts (`/command-name`) that execute a predefined workflow. Each command is a markdown file in `~/.config/opencode/commands/` (global) or `.opencode/commands/` (project). The filename becomes the command name.
+Commands are slash-invoked prompts (`/command-name`) that execute a predefined workflow. Each command is a markdown file in `~/.config/opencode/command/` (global) or `.opencode/command/` (project). The filename becomes the command name.
 
 ## File Format
 
@@ -72,7 +72,7 @@ List which agents to delegate to and when:
 
 ```markdown
 Delegate to specialized agents where applicable:
-- **follower**: Use first to learn codebase conventions
+- **reviewer**: Use first to review code for correctness
 - **fixer**: Use for each identified bug
 - **reviewer**: Use after all changes to verify correctness
 ```

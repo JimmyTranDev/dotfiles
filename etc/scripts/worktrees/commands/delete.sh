@@ -1,21 +1,15 @@
 #!/bin/zsh
-# ===================================================================
-# delete.sh - Delete Worktree Command
-# ===================================================================
 
-# Multi-select from list using fzf
 select_fzf_multi() {
 	local prompt="$1"
 	shift
 	[[ $# -gt 0 ]] && printf "%s\n" "$@" | fzf --multi --prompt="$prompt" || fzf --multi --prompt="$prompt"
 }
 
-# Delete a single worktree (extracted from main function)
 delete_single_worktree() {
 	local worktree_path="$1"
 	local original_dir="$PWD"
 
-	# Validate worktree path is provided
 	if [[ -z "$worktree_path" ]]; then
 		print_color red "Error: Worktree path is required for deletion"
 		return 1
@@ -25,7 +19,6 @@ delete_single_worktree() {
 		return 1
 	fi
 
-	# Check if this looks like a git worktree
 	if [[ ! -f "$worktree_path/.git" ]]; then
 		print_color yellow "Warning: $worktree_path does not have a .git file (corrupted worktree)"
 		print_color yellow "Force removing directory $worktree_path..."
@@ -37,7 +30,6 @@ delete_single_worktree() {
 		return 0
 	fi
 
-	# Detect main repo
 	local gitdir_line
 	gitdir_line=$(head -n1 "$worktree_path/.git")
 
@@ -49,25 +41,20 @@ delete_single_worktree() {
 		return 1
 	fi
 
-	# Get the actual repository root (not the .git directory)
 	local main_repo
 	main_repo=$(dirname "$(dirname "$worktree_gitdir")")
 	print_color yellow "Main repo detected at: $main_repo"
 
-	# Change to main repo directory before git operations
 	cd "$main_repo" || {
 		print_color red "Error: Could not change to main repo directory"
 		return 1
 	}
 
-	# Detect branch name using multiple methods
 	local branch_name
 
 	print_color yellow "Attempting to detect branch name..."
 
-	# Method 1: Try to get branch from the worktree directory itself
 	if [[ -d "$worktree_path" ]]; then
-		print_color yellow "Method 1: Checking branch from worktree directory"
 		local old_pwd="$PWD"
 		cd "$worktree_path" 2>/dev/null && {
 			branch_name=$(git branch --show-current 2>/dev/null)
@@ -78,13 +65,10 @@ delete_single_worktree() {
 		}
 	fi
 
-	# Method 2: Parse git worktree list output
 	if [[ -z "$branch_name" ]]; then
-		print_color yellow "Method 2: Parsing git worktree list"
 		local worktree_list_output
 		worktree_list_output=$(git worktree list --porcelain 2>/dev/null)
 
-		# Find the worktree entry and get the next branch line
 		local found_worktree=false
 		while IFS= read -r line; do
 			if [[ "$line" == "worktree $worktree_path" ]]; then
@@ -94,15 +78,12 @@ delete_single_worktree() {
 				print_color green "Found branch from worktree list: $branch_name"
 				break
 			elif [[ "$found_worktree" == true && "$line" =~ ^worktree ]]; then
-				# Hit another worktree entry, stop looking
 				break
 			fi
 		done <<<"$worktree_list_output"
 	fi
 
-	# Method 3: Try basename matching in worktree list
 	if [[ -z "$branch_name" ]]; then
-		print_color yellow "Method 3: Trying basename matching"
 		local worktree_basename=$(basename "$worktree_path")
 		local worktree_list_output
 		worktree_list_output=$(git worktree list --porcelain 2>/dev/null)
@@ -121,16 +102,12 @@ delete_single_worktree() {
 		done <<<"$worktree_list_output"
 	fi
 
-	# Method 4: Extract from directory name (last resort)
 	if [[ -z "$branch_name" ]]; then
-		print_color yellow "Method 4: Extracting from directory name"
 		local dir_name=$(basename "$worktree_path")
-		# Common patterns: BW-1234_description, feature/BW-1234, etc.
 		if [[ "$dir_name" =~ ^([A-Z]+-[0-9]+) ]]; then
 			branch_name="$match[1]"
 			print_color yellow "Extracted branch from directory name: $branch_name"
 		elif [[ "$dir_name" =~ _(.+)$ ]]; then
-			# Remove prefix before underscore
 			branch_name=$(echo "$dir_name" | sed 's/^[^_]*_//')
 			print_color yellow "Extracted branch from directory name: $branch_name"
 		fi
@@ -142,7 +119,6 @@ delete_single_worktree() {
 		print_color yellow "Detected branch name: '$branch_name'"
 	fi
 
-	# Remove worktree first (regardless of branch detection)
 	print_color yellow "Removing worktree: $worktree_path"
 	if [[ -d "$worktree_path" ]]; then
 		if git worktree remove "$worktree_path" 2>/dev/null; then
@@ -156,13 +132,10 @@ delete_single_worktree() {
 		git worktree prune 2>/dev/null || true
 	fi
 
-	# Delete the branch if detected
 	if [[ -n "$branch_name" ]]; then
 		print_color yellow "Deleting branch: '$branch_name'"
 
-		# Check if branch exists locally
 		if git show-ref --verify --quiet "refs/heads/$branch_name"; then
-			# Try to delete the branch
 			if git branch -D "$branch_name" 2>/dev/null; then
 				print_color green "✅ Successfully deleted local branch: $branch_name"
 			else
@@ -190,7 +163,6 @@ delete_single_worktree() {
 		print_color yellow "Could not detect branch name - no branch cleanup performed"
 	fi
 
-	# Always attempt to remove directory if it still exists
 	if [[ -d "$worktree_path" ]]; then
 		print_color yellow "Force removing directory $worktree_path..."
 		rm -rf "$worktree_path" || true
@@ -200,7 +172,6 @@ delete_single_worktree() {
 	cd "$original_dir" 2>/dev/null || true
 }
 
-# Delete worktree subcommand
 cmd_delete() {
 	if ! check_tool git; then
 		return 1
@@ -212,7 +183,6 @@ cmd_delete() {
 
 	local worktree_path="$1"
 
-	# If no worktree path provided, allow selection
 	if [[ -z "$worktree_path" ]]; then
 		if [[ ! -d "$WORKTREES_DIR" ]]; then
 			print_color red "Worktrees directory $WORKTREES_DIR does not exist"
@@ -238,7 +208,6 @@ cmd_delete() {
 			return 1
 		}
 
-		# Convert newline-separated list to array
 		local worktrees_to_delete=()
 		while IFS= read -r line; do
 			[[ -n "$line" ]] && worktrees_to_delete+=("$line")
@@ -249,7 +218,6 @@ cmd_delete() {
 			return 1
 		fi
 
-		# Confirm deletion of multiple worktrees
 		if [[ ${#worktrees_to_delete[@]} -gt 1 ]]; then
 			print_color yellow "You selected ${#worktrees_to_delete[@]} worktrees for deletion:"
 			for wt in "${worktrees_to_delete[@]}"; do
@@ -263,7 +231,6 @@ cmd_delete() {
 			fi
 		fi
 
-		# Delete each selected worktree
 		local success_count=0
 		local total_count=${#worktrees_to_delete[@]}
 
@@ -274,7 +241,7 @@ cmd_delete() {
 			else
 				print_color red "Failed to delete worktree: $worktree_path"
 			fi
-			echo # Add blank line between deletions for readability
+			echo
 		done
 
 		if [[ $success_count -eq $total_count ]]; then
@@ -285,7 +252,6 @@ cmd_delete() {
 
 		return 0
 	else
-		# Single worktree deletion (original behavior)
 		delete_single_worktree "$worktree_path"
 	fi
 }

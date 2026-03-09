@@ -180,21 +180,13 @@ select_worktree() {
 zle -N select_worktree
 bindkey '^g' select_worktree
 
-# Initialize starship if installed
 if command -v starship >/dev/null 2>&1; then
   eval "$(starship init zsh)"
 fi
 
-# Initialize fnm if installed
 if command -v fnm >/dev/null 2>&1; then
   eval "$(fnm env --use-on-cd --shell zsh)"
 fi
-
-# # Initialize gcloud CLI if installed
-# if [[ -f "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc" ]]; then
-#   source "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc"
-#   source "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"
-# fi
 
 if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh)"
@@ -239,7 +231,6 @@ zellij() {
 
 alias zellij-enable-auto="export ZELLIJ_AUTO_ATTACH=true"
 alias zellij-disable-auto="export ZELLIJ_AUTO_ATTACH=false"
-alias zj="zellij"
 alias zja="zellij attach"
 alias zjl="zellij list-sessions"
 alias ghostty-use-script='sed -i "" "s|^#*initial-command.*|initial-command = $DOTFILES_DIR/etc/scripts/ghostty_zellij_startup.sh|" $DOTFILES_DIR/src/ghostty/config'
@@ -249,38 +240,18 @@ export FZF_DEFAULT_OPTS="\
   --color=bg:#1e1e2e,fg:#cdd6f4,hl:#f38ba8 --color=fg+:#cdd6f4,bg+:#313244,hl+:#f38ba8 --color=info:#89b4fa,prompt:#fab387,spinner:#f9e2af --color=header:#cba6f7,marker:#89dceb --color=border:#6c7086 \
 "
 
-# ===================================================================
-# ZELLIJ AUTO-START (Alternative approach - disabled by default)
-# ===================================================================
-
-# Auto-start Zellij if:
-# 1. We're in an interactive shell
-# 2. Not already inside Zellij
-# 3. Not in a terminal multiplexer already
-# 4. Zellij command is available
-# 5. Auto-attach is explicitly enabled
 zellij_auto_start() {
   if [[ -o interactive ]] && [[ -z "$ZELLIJ" ]] && [[ -z "$TMUX" ]] && command -v zellij >/dev/null 2>&1; then
     if [[ "$ZELLIJ_AUTO_ATTACH" == "true" ]]; then
-      # Auto-attach logic
       if zellij list-sessions >/dev/null 2>&1 && zellij list-sessions | grep -q .; then
-        # There are existing sessions, attach to the first one
-        echo "Attaching to existing Zellij session..."
         exec zellij attach
       else
-        # No existing sessions, create a new one
-        echo "Starting new Zellij session..."
         exec zellij
       fi
     fi
   fi
 }
 
-# Set default behavior (disabled by default, enable with zellij-enable-auto)
 if [[ -z "$ZELLIJ_AUTO_ATTACH" ]]; then
   export ZELLIJ_AUTO_ATTACH="false"
 fi
-
-# # Uncomment the line below to enable auto-start in .zshrc
-# # zellij_auto_start
-# export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"

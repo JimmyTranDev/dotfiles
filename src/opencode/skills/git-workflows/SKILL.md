@@ -60,7 +60,7 @@ The full worktree lifecycle is managed via `worktree` CLI (`etc/scripts/worktree
 1. **Create** (`wn`): Select repo -> enter JIRA ticket -> fetch summary -> create branch -> create worktree at `~/Programming/Worktrees/<branch>` -> empty initial commit -> install deps
 2. **Checkout** (`wo`): Checkout existing remote branch as worktree
 3. **Work**: Branch from `develop` (preferred) or `main`
-4. **Commit**: Use `/commit` (staged only) or `/commit-chat` (session changes)
+4. **Commit**: Use `/commit` (staged only) or `/commit-all` (session changes)
 5. **Review**: Use `/review` to diff against base branch
 6. **PR Fix**: Use `/fix-pr` to auto-fix PR review comments
 7. **Clean** (`wC`): Delete worktrees merged into `main` or `develop`

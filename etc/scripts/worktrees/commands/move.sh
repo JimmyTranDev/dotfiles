@@ -1,9 +1,5 @@
 #!/bin/zsh
-# ===================================================================
-# move.sh - Move Worktree Command
-# ===================================================================
 
-# Move worktree subcommand
 cmd_move() {
 	if ! check_tool git; then
 		return 1
@@ -16,7 +12,6 @@ cmd_move() {
 	local source_path="$1"
 	local dest_path="$2"
 
-	# Select source worktree if not provided
 	if [[ -z "$source_path" ]]; then
 		if [[ ! -d "$WORKTREES_DIR" ]]; then
 			print_color red "Worktrees directory $WORKTREES_DIR does not exist"
@@ -37,7 +32,6 @@ cmd_move() {
 		}
 	fi
 
-	# Validate source worktree
 	if [[ ! -d "$source_path" ]]; then
 		print_color red "Error: Directory $source_path does not exist."
 		return 1
@@ -48,7 +42,6 @@ cmd_move() {
 		return 1
 	fi
 
-	# Get destination path if not provided
 	if [[ -z "$dest_path" ]]; then
 		local worktree_name
 		worktree_name=$(basename "$source_path")
@@ -63,19 +56,16 @@ cmd_move() {
 			return 1
 		fi
 
-		# If dest_path is just a directory, append the worktree name
 		if [[ -d "$dest_path" ]]; then
 			dest_path="$dest_path/$worktree_name"
 		fi
 	fi
 
-	# Validate destination
 	if [[ -e "$dest_path" ]]; then
 		print_color red "Error: Destination $dest_path already exists."
 		return 1
 	fi
 
-	# Detect main repo
 	local gitdir_line worktree_gitdir main_repo
 	gitdir_line=$(head -n1 "$source_path/.git")
 
@@ -90,7 +80,6 @@ cmd_move() {
 
 	print_color yellow "Moving worktree from $source_path to $dest_path..."
 
-	# Use git worktree move command
 	git -C "$main_repo" worktree move "$source_path" "$dest_path" || {
 		print_color red "Error: Failed to move worktree. Check that Git version supports 'git worktree move' (Git 2.17+)"
 		return 1

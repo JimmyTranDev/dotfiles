@@ -39,3 +39,4 @@ Fetch all review comments from the current branch's pull request, identify comme
 6. After all fixes are applied:
    - Run `git diff` to show the user all changes made
    - Summarize which comments were addressed and what was changed
+   - Commit the changes using the `git-workflows` skill commit format
