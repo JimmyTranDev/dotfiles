@@ -28,4 +28,4 @@ Usage: /test [scope]
    - Re-run the test suite to confirm all tests pass
    - Summarize what was tested, what was added, and current coverage status
 
-6. **Commit, merge, and clean up** the worktree following the Worktree Workflow in AGENTS.md
+6. **Commit, rebase, and clean up** the worktree following the Worktree Workflow in AGENTS.md

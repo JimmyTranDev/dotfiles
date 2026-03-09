@@ -43,7 +43,7 @@ description: Branch naming, commit conventions, PR workflows, worktree managemen
 Priority order: **`develop` > `main` > `master`**
 
 - If a `develop` branch exists (locally or as `origin/develop`), it is the primary integration branch
-- Feature branches are created from and merged back into `develop`
+- Feature branches are created from and rebased back into `develop`
 - Repos without `develop` use `main` as the base
 - This applies to: code reviews, PR diffs, worktree creation, branch cleanup
 

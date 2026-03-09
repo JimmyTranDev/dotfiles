@@ -36,4 +36,4 @@ $ARGUMENTS
    - Summarize each issue found: what was wrong, why it was wrong, and how it was fixed
    - Categorize findings by severity (critical, major, minor)
 
-7. **Commit, merge, and clean up** the worktree following the Worktree Workflow in AGENTS.md
+7. **Commit, rebase, and clean up** the worktree following the Worktree Workflow in AGENTS.md

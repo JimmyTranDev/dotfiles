@@ -37,4 +37,4 @@ Usage: /scan-security [scope]
    - Re-run the security scan to confirm vulnerabilities are resolved
    - Summarize findings by severity with before/after comparison
 
-7. **Commit, merge, and clean up** the worktree following the Worktree Workflow in AGENTS.md
+7. **Commit, rebase, and clean up** the worktree following the Worktree Workflow in AGENTS.md

@@ -29,4 +29,4 @@ $ARGUMENTS
    - Summarize what was changed and why
    - List any follow-up improvements that were out of scope but worth noting
 
-6. **Commit, merge, and clean up** the worktree following the Worktree Workflow in AGENTS.md
+6. **Commit, rebase, and clean up** the worktree following the Worktree Workflow in AGENTS.md

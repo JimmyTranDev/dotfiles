@@ -49,4 +49,4 @@ $ARGUMENTS
    - Summarize each improvement applied: what changed, why it's better, and any measurable impact
    - List any additional improvement opportunities that were out of scope but worth noting for future work
 
-8. **Commit, merge, and clean up** the worktree following the Worktree Workflow in AGENTS.md
+8. **Commit, rebase, and clean up** the worktree following the Worktree Workflow in AGENTS.md

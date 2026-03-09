@@ -50,12 +50,16 @@ Worktree Workflow:
 7. Run post-implementation agents in parallel where independent (e.g., **reviewer** + **auditor** together, **tester** + **optimizer** together)
 8. If the reviewer surfaces problems, use the **fixer** agent to address them (sequential — depends on reviewer output)
 9. **Commit** in the worktree using the `git-workflows` skill commit format
-10. **Merge back** into the base branch:
+10. **Rebase onto** the base branch:
+    ```bash
+    git rebase <base-branch>
+    ```
+11. **Fast-forward the base branch**:
     ```bash
     git checkout <base-branch>
-    git merge <branch-name>
+    git rebase <branch-name>
     ```
-11. **Clean up** the worktree and branch:
+12. **Clean up** the worktree and branch:
     ```bash
     git worktree remove ~/Programming/Worktrees/<branch-name>
     git branch -d <branch-name>
