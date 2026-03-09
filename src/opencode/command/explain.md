@@ -20,7 +20,7 @@ $ARGUMENTS
    - Highlight non-obvious behavior, edge cases, and important design decisions
    - Reference specific line numbers and file paths
 
-3. Load relevant skills where applicable:
+3. Load applicable skills in parallel:
    - **convention-matcher**: Load if explaining why code is structured a certain way
    - **logic-checker**: Load if the code contains complex conditional flows or state management worth annotating
 

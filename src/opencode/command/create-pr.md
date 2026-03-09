@@ -12,7 +12,7 @@ Create a pull request for the current branch with an auto-generated title and bo
    - Otherwise, fall back to `main` (or `origin/main`)
    - If neither exists, notify the user and stop
 
-2. Gather branch context:
+2. Gather branch context (run all three git commands in parallel):
    - Run `git log --oneline <base-branch>..HEAD` to see all commits on this branch
    - Run `git diff <base-branch>...HEAD` to see the full diff
    - Run `git rev-parse --abbrev-ref HEAD` to get the current branch name

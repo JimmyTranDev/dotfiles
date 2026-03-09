@@ -27,14 +27,11 @@ Usage: /scan-security [scope]
    - Explain the attack vector
    - Provide an exact code fix
 
-5. Load relevant skills and delegate to additional agents when applicable:
-
-   Skills to load:
-   - **convention-matcher**: Load to ensure fixes match codebase conventions
+5. Load **convention-matcher** skill to ensure fixes match codebase conventions, then delegate to agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
    Agents to delegate to:
-   - **fixer**: Apply the security fixes to the codebase
-   - **reviewer**: Verify fixes don't introduce regressions
+   - **fixer**: Apply the security fixes to the codebase — launch multiple fixer agents in parallel for independent vulnerabilities in different files
+   - **reviewer**: Verify fixes don't introduce regressions (sequential — depends on fixer output)
 
 6. After fixing:
    - Re-run the security scan to confirm vulnerabilities are resolved
