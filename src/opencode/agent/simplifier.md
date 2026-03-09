@@ -1,5 +1,5 @@
 ---
-name: pragmatic
+name: simplifier
 description: Refactoring specialist applying DRY, KISS, YAGNI to reduce complexity while preserving behavior
 mode: subagent
 ---

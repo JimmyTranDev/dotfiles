@@ -1,5 +1,5 @@
 ---
-name: sounder
+name: logic-checker
 description: Logical reasoning analyst that finds contradictions, invalid assumptions, and logical gaps in code and requirements
 mode: subagent
 ---

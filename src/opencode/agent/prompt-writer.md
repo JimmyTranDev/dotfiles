@@ -1,5 +1,5 @@
 ---
-name: prompter
+name: prompt-writer
 description: AI prompt engineer that crafts precise system prompts for LLM agents
 mode: subagent
 ---

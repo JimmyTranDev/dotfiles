@@ -18,19 +18,6 @@ const MyComponent = ({ variant = 'primary', size = 'md', ...props }: MyComponent
 - Spread remaining props onto the root element
 - Use `cn()` (clsx/tailwind-merge) for conditional class merging
 
-## File Organization
-
-Split components into separate files:
-
-```
-feature/
-├── index.tsx     # Main component & public export
-├── types.ts      # Props interfaces, component-specific types
-├── consts.ts     # Variants, sizes, config maps
-├── utils.ts      # Pure helper functions
-├── hooks.ts      # Custom hooks for the feature
-```
-
 ## Styling
 
 - **Tailwind CSS** utility classes — never custom CSS unless absolutely necessary
@@ -102,11 +89,3 @@ const TextField = ({ label, error, ...props }: TextFieldProps) => (
 - Avoid creating new object/array refs in render — use `useMemo`
 - Never mutate state directly — spread or use `structuredClone`
 - Debounce expensive handlers (search, resize)
-
-## Rules
-
-- No comments in code
-- Match existing project conventions exactly
-- Prefer composition over inheritance
-- Keep components small and focused on one thing
-- Co-locate tests with components

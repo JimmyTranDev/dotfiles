@@ -1,5 +1,5 @@
 ---
-name: reuser
+name: deduplicator
 description: Code deduplication specialist that extracts repeated patterns into reusable utilities, hooks, and components
 mode: subagent
 ---

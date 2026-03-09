@@ -25,12 +25,12 @@ Analyze the specified code (files, directories, or the area described in the use
    - Preserve existing behavior — refactoring must not change what the code does
 
 4. Delegate to specialized agents in parallel where applicable:
-   - **follower**: Always use first to learn codebase conventions so refactored code matches the existing style
-   - **pragmatic**: Use as the primary agent for applying DRY, KISS, YAGNI to reduce complexity
-   - **reuser**: Use to extract repeated patterns into reusable utilities, hooks, or components
-   - **re-export-destroyer**: Use if barrel files, circular dependencies, or re-export chains are found
+   - **convention-matcher**: Always use first to learn codebase conventions so refactored code matches the existing style
+   - **simplifier**: Use as the primary agent for applying DRY, KISS, YAGNI to reduce complexity
+   - **deduplicator**: Use to extract repeated patterns into reusable utilities, hooks, or components
+   - **import-optimizer**: Use if barrel files, circular dependencies, or re-export chains are found
    - **optimizer**: Use if performance-sensitive code is identified during refactoring
-   - **sounder**: Use if refactored logic involves complex conditionals or state to verify correctness
+   - **logic-checker**: Use if refactored logic involves complex conditionals or state to verify correctness
    - **reviewer**: Use after refactoring is complete to verify the changes are sound and nothing was broken
    - **tester**: Use to run existing tests or add tests if coverage is missing for refactored code
 

@@ -1,5 +1,5 @@
 ---
-name: structure
+name: file-organizer
 description: TypeScript project organization specialist enforcing a clean, predictable 6-file module architecture
 mode: subagent
 ---

@@ -34,9 +34,9 @@ Analyze the specified code (files, directories, or the area described in the use
    - Verify each fix doesn't introduce new issues
 
 5. Delegate to specialized agents in parallel where applicable:
-   - **sounder**: Use as the primary agent to find contradictions, invalid assumptions, and logical gaps
+   - **logic-checker**: Use as the primary agent to find contradictions, invalid assumptions, and logical gaps
    - **fixer**: Use for each identified bug to diagnose root cause and apply minimal surgical fixes
-   - **follower**: Use to ensure fixes match codebase conventions
+   - **convention-matcher**: Use to ensure fixes match codebase conventions
    - **reviewer**: Use after all fixes are applied to verify correctness and catch anything missed
    - **tester**: Use to run existing tests and add tests for any bugs that lacked coverage
    - **auditor**: Use if any issues touch security-sensitive code (auth, data handling, input validation)

@@ -1,5 +1,5 @@
 ---
-name: profiler
+name: career-reviewer
 description: Career profile reviewer that analyzes and improves resumes, LinkedIn, portfolios, and cover letters
 mode: subagent
 ---

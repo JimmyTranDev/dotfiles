@@ -27,10 +27,10 @@ Fetch all review comments from the current branch's pull request, identify comme
    - Apply the fix using the appropriate approach
 
 5. Delegate to specialized agents where applicable:
-   - **follower**: Use first to learn codebase conventions before applying any fixes
+   - **convention-matcher**: Use first to learn codebase conventions before applying any fixes
    - **fixer**: Use for each code change request to apply minimal, surgical fixes
    - **reviewer**: Use after all fixes are applied to verify nothing was broken
-   - **sounder**: Use if any fix involves business logic or conditional flows to verify correctness
+   - **logic-checker**: Use if any fix involves business logic or conditional flows to verify correctness
 
 6. After all fixes are applied:
    - Run `git diff` to show the user all changes made

@@ -1,5 +1,5 @@
 ---
-name: follower
+name: convention-matcher
 description: Codebase pattern detective that learns existing conventions and ensures new code matches established patterns exactly
 mode: subagent
 ---

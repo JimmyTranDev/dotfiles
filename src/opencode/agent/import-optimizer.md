@@ -1,5 +1,5 @@
 ---
-name: re-export-destroyer
+name: import-optimizer
 description: Import optimizer that eliminates barrel files, fixes circular dependencies, and converts re-exports to direct imports
 mode: subagent
 ---
