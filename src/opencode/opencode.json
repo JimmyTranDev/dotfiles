@@ -17,6 +17,10 @@
     "Figma": {
       "type": "remote",
       "url": "http://127.0.0.1:3845/mcp"
+    },
+    "Browser": {
+      "type": "local",
+      "command": ["npx", "-y", "@browsermcp/mcp@latest"]
     }
   }
 }
