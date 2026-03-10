@@ -89,54 +89,100 @@ global_vars:
       cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_ID_DAD"
 
 matches:
-  - trigger: ":es"
+  # shrug
+  - trigger: "/es"
     replace: "¯\\_(ツ)_/¯"
+  # table flip
+  - trigger: "/ef"
+    replace: "(╯°□°)╯︵ ┻━┻"
+  # table unflip
+  - trigger: "/eu"
+    replace: "┬─┬ノ( º _ ºノ)"
+  # despair
+  - trigger: "/ed"
+    replace: "(ಥ_ಥ)"
+  # hug
+  - trigger: "/eh"
+    replace: "(づ￣ ³￣)づ"
+  # finger guns
+  - trigger: "/ew"
+    replace: "(☞ﾟヮﾟ)☞"
+  # bear
+  - trigger: "/ea"
+    replace: "ʕ•ᴥ•ʔ"
+  # lenny
+  - trigger: "/el"
+    replace: "( ͡° ͜ʖ ͡°)"
+  # yay
+  - trigger: "/ey"
+    replace: "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"
+  # sobbing
+  - trigger: "/en"
+    replace: "(╥﹏╥)"
+  # surprised
+  - trigger: "/eo"
+    replace: "(⊙_⊙)"
+  # that guy
+  - trigger: "/et"
+    replace: "(☞ ͡° ͜ʖ ͡°)☞"
+  # love
+  - trigger: "/ep"
+    replace: "（╹◡╹）♡"
+  # running
+  - trigger: "/er"
+    replace: "ᕕ( ᐛ )ᕗ"
+  # fight
+  - trigger: "/eg"
+    replace: "(ง •̀_•́)ง"
+  # confused
+  - trigger: "/ek"
+    replace: "¯\\(°_o)/¯"
 
-  - trigger: ":pf"
+  - trigger: "/pf"
     replace: "{{first_name}}"
-  - trigger: ":pl"
+  - trigger: "/pl"
     replace: "{{last_name}}"
-  - trigger: ":pn"
+  - trigger: "/pn"
     replace: "{{full_name}}"
-  - trigger: ":pN"
+  - trigger: "/pN"
     replace: "{{nationality}}"
-  - trigger: ":pbw"
+  - trigger: "/pbw"
     replace: "{{birthday_world}}"
-  - trigger: ":pbu"
+  - trigger: "/pbu"
     replace: "{{birthday_us}}"
-  - trigger: ":pe"
+  - trigger: "/pe"
     replace: "{{email}}"
-  - trigger: ":pp"
+  - trigger: "/pp"
     replace: "{{phone}}"
 
-  - trigger: ":ac"
+  - trigger: "/ac"
     replace: "{{city}}"
-  - trigger: ":al"
+  - trigger: "/al"
     replace: "{{address_location}}"
-  - trigger: ":ap"
+  - trigger: "/ap"
     replace: "{{address_code}}"
-  - trigger: ":as"
+  - trigger: "/as"
     replace: "{{address_detail}}"
 
-  - trigger: ":lg"
+  - trigger: "/lg"
     replace: "{{link_github}}"
-  - trigger: ":ll"
+  - trigger: "/ll"
     replace: "{{link_linkedin}}"
-  - trigger: ":lp"
+  - trigger: "/lp"
     replace: "{{link_portfolio}}"
-  - trigger: ":lm"
+  - trigger: "/lm"
     replace: "{{link_massvocab}}"
 
-  - trigger: ":jn"
+  - trigger: "/jn"
     replace: "{{notice_period}}"
-  - trigger: ":jsu"
+  - trigger: "/jsu"
     replace: "{{salary_usd}}"
-  - trigger: ":jse"
+  - trigger: "/jse"
     replace: "{{salary_eur}}"
 
-  - trigger: ":is"
+  - trigger: "/is"
     replace: "{{id_self}}"
-  - trigger: ":im"
+  - trigger: "/im"
     replace: "{{id_mom}}"
-  - trigger: ":id"
+  - trigger: "/id"
     replace: "{{id_dad}}"
