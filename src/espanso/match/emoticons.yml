@@ -8,38 +8,35 @@ matches:
   - trigger: ";eF"
     replace: "┬─┬ノ( º _ ºノ)"
 
-  - trigger: ";ed"
+  - trigger: ";eD"
     replace: "ಠ_ಠ"
 
   - trigger: ";eh"
     replace: "( ͡° ͜ʖ ͡°)"
 
   - trigger: ";ej"
-    replace: "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"
+    replace: "(˶ᵔ ᵕ ᵔ˶)"
 
   - trigger: ";ec"
     replace: "(╥﹏╥)"
 
   - trigger: ";ea"
-    replace: "(╬ Ò﹏Ó)"
+    replace: "( •̀ ᴖ •́ )"
 
   - trigger: ";eq"
-    replace: "(・・?)"
+    replace: "(・_・?)"
 
   - trigger: ";el"
-    replace: "(｡♥‿♥｡)"
+    replace: "(˶ᵔ ᵕ ᵔ˶) ♡"
 
   - trigger: ";es"
-    replace: "(˶ᵔ ᵕ ᵔ˶)"
+    replace: "( º ㅡ º )"
 
-  - trigger: ";eW"
-    replace: "(⊙_⊙)"
-
-  - trigger: ";eS"
+  - trigger: ";ep"
     replace: "(￣ω￣)"
 
   - trigger: ";et"
-    replace: "(－_－)ｚＺ"
+    replace: "( ｡- . - )"
 
   - trigger: ";ew"
     replace: "(^_-)≡☆"
