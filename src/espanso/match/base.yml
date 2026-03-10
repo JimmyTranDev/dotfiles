@@ -89,54 +89,221 @@ global_vars:
       cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_ID_DAD"
 
 matches:
-  # shrug
-  - trigger: "/es"
-    replace: "¯\\_(ツ)_/¯"
-  # table flip
-  - trigger: "/ef"
-    replace: "(╯°□°)╯︵ ┻━┻"
-  # table unflip
-  - trigger: "/eu"
-    replace: "┬─┬ノ( º _ ºノ)"
-  # despair
-  - trigger: "/ed"
-    replace: "(ಥ_ಥ)"
+  # happy
+  - trigger: "/eha"
+    replace: "(^.^)"
+  # joyful
+  - trigger: "/ehb"
+    replace: "(*^▽^*)"
+  # excited
+  - trigger: "/ehc"
+    replace: "(>_<)"
+  # victory
+  - trigger: "/ehd"
+    replace: "٩(◕‿◕)۶"
+  # peaceful
+  - trigger: "/ehe"
+    replace: "(✿◠‿◠)"
+  # wholesome
+  - trigger: "/ehf"
+    replace: "(´｡• ᵕ •｡`)"
+
+  # in love
+  - trigger: "/ela"
+    replace: "(｡♥‿♥｡)"
   # hug
-  - trigger: "/eh"
-    replace: "(づ￣ ³￣)づ"
-  # finger guns
-  - trigger: "/ew"
-    replace: "(☞ﾟヮﾟ)☞"
+  - trigger: "/elb"
+    replace: "(づ｡◕‿‿◕｡)づ"
+
+  # blushing
+  - trigger: "/esa"
+    replace: "(⁄ ⁄•⁄ω⁄•⁄ ⁄)"
+  # wink
+  - trigger: "/esb"
+    replace: "^.~"
+
+  # crying
+  - trigger: "/eca"
+    replace: "(T_T)"
+  # tears
+  - trigger: "/ecb"
+    replace: "(;_;)"
+  # sobbing
+  - trigger: "/ecc"
+    replace: "(╥﹏╥)"
+  # puppy eyes
+  - trigger: "/ecd"
+    replace: "(´•ω•̥`)"
+  # wailing
+  - trigger: "/ece"
+    replace: "｡ﾟ･ (>﹏<) ･ﾟ｡"
+
+  # angry
+  - trigger: "/eaa"
+    replace: "(╬益´)"
+  # table flip
+  - trigger: "/eab"
+    replace: "(╯°□°）╯︵ ┻━┻"
+  # disapproval
+  - trigger: "/eac"
+    replace: "(눈_눈)"
+  # side eye
+  - trigger: "/ead"
+    replace: "(￢_￢)"
+  # middle finger
+  - trigger: "/eae"
+    replace: "凸(￣ヘ￣)"
+
+  # cat
+  - trigger: "/ema"
+    replace: "(=^･ω･^=)"
   # bear
-  - trigger: "/ea"
+  - trigger: "/emb"
     replace: "ʕ•ᴥ•ʔ"
   # lenny
-  - trigger: "/el"
+  - trigger: "/emc"
     replace: "( ͡° ͜ʖ ͡°)"
-  # yay
-  - trigger: "/ey"
-    replace: "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"
-  # sobbing
-  - trigger: "/en"
-    replace: "(╥﹏╥)"
-  # surprised
-  - trigger: "/eo"
+  # shrug
+  - trigger: "/emd"
+    replace: "¯\\_(ツ)_/¯"
+
+  # despair kneeling
+  - trigger: "/exa"
+    replace: "orz"
+  # sleeping
+  - trigger: "/exb"
+    replace: "(-_-)zzz"
+  # apathy
+  - trigger: "/exc"
+    replace: "( -_ - )"
+  # good grief
+  - trigger: "/exd"
+    replace: "┐('～` )┌"
+  # dead
+  - trigger: "/exe"
+    replace: "(×_×)"
+
+  # stunned
+  - trigger: "/efa"
+    replace: "(O_O;)"
+  # dizzy
+  - trigger: "/efb"
+    replace: "(＠_＠)"
+  # blank stare
+  - trigger: "/efc"
     replace: "(⊙_⊙)"
-  # that guy
-  - trigger: "/et"
-    replace: "(☞ ͡° ͜ʖ ͡°)☞"
-  # love
-  - trigger: "/ep"
-    replace: "（╹◡╹）♡"
-  # running
-  - trigger: "/er"
-    replace: "ᕕ( ᐛ )ᕗ"
-  # fight
-  - trigger: "/eg"
-    replace: "(ง •̀_•́)ง"
-  # confused
-  - trigger: "/ek"
-    replace: "¯\\(°_o)/¯"
+  # jump scare
+  - trigger: "/efd"
+    replace: "∑(O_O;)"
+  # dazed
+  - trigger: "/efe"
+    replace: "ヘ(°¬°)ノ"
+
+  # looking away
+  - trigger: "/esc"
+    replace: "(・・ )"
+  # cringe
+  - trigger: "/esd"
+    replace: "(＃＞＜)"
+  # my bad
+  - trigger: "/ese"
+    replace: "(￣ω￣;)"
+  # peeking
+  - trigger: "/esf"
+    replace: "壁||ω･)ｼﾞー"
+  # shame
+  - trigger: "/esg"
+    replace: "( ._.)"
+
+  # running away
+  - trigger: "/eta"
+    replace: "ε=ε=┌(;￣▽￣)┘"
+  # throwing
+  - trigger: "/etb"
+    replace: "( ・_・)ノ⌒●"
+  # come at me
+  - trigger: "/etc"
+    replace: "(っಠ‿ಠ)っ"
+  # banzai
+  - trigger: "/etd"
+    replace: "＼(￣▽￣)／"
+  # flexing
+  - trigger: "/ete"
+    replace: "ᕙ(⇀‸↼‶)ᕗ"
+
+  # stressed
+  - trigger: "/epa"
+    replace: "(；⌣̀_⌣́)"
+  # trembling
+  - trigger: "/epb"
+    replace: "(((＞＜)))"
+  # can't watch
+  - trigger: "/epc"
+    replace: "(ノ_<。)"
+  # calm down
+  - trigger: "/epd"
+    replace: "ヾ(°∇°*)"
+  # frantic wave
+  - trigger: "/epe"
+    replace: "(＠_＠)ﾉ"
+
+  # smug grin
+  - trigger: "/ega"
+    replace: "(￣∀￣)"
+  # I see you
+  - trigger: "/egb"
+    replace: "(¬‿¬)"
+  # mischievous smile
+  - trigger: "/egc"
+    replace: "(o´▽`o)"
+  # evil plan
+  - trigger: "/egd"
+    replace: "(｀∀´)Ψ"
+  # devious side eye
+  - trigger: "/ege"
+    replace: "(￢‿￢ )"
+
+  # delicious
+  - trigger: "/eda"
+    replace: "(っ˘ڡ˘ς)"
+  # tea
+  - trigger: "/edb"
+    replace: "(o^ ^o)旦"
+  # hot food
+  - trigger: "/edc"
+    replace: "( ˘▽˘)っ♨"
+  # drooling
+  - trigger: "/edd"
+    replace: "( ￣﹃￣)"
+  # cheers
+  - trigger: "/ede"
+    replace: "(*^◇^)_旦"
+
+  # peeking
+  - trigger: "/ewa"
+    replace: "|･ω･)"
+  # peek and hide
+  - trigger: "/ewb"
+    replace: "|д･)ソ"
+  # shady lurking
+  - trigger: "/ewc"
+    replace: "|_￣))"
+  # brick wall peek
+  - trigger: "/ewd"
+    replace: "┬┴┬┴┤(･_├┬┴┬┴"
+
+  # magic spell
+  - trigger: "/ena"
+    replace: "(ﾉ>ω<)ﾉ :｡･::･ﾟ'★,｡･::･ﾟ'☆"
+  # facepalm
+  - trigger: "/enb"
+    replace: "(－‸ლ)"
+  # ghost
+  - trigger: "/enc"
+    replace: "(G_G)"
+  # wait a minute
+  - trigger: "/end"
+    replace: "(－.－)ノ\""
 
   - trigger: "/pf"
     replace: "{{first_name}}"
