@@ -105,6 +105,7 @@ OPTIONAL_TOOLS=(
 	"zoxide:zoxide"
 	"trufflehog:TruffleHog"
 	"docker:Docker"
+	"espanso:Espanso"
 )
 
 echo
@@ -130,6 +131,7 @@ SYMLINKS=(
 	"$HOME/.config/opencode|$DOTFILES_ROOT/src/opencode"
 	"$HOME/.config/git/hooks|$DOTFILES_ROOT/src/git/hooks"
 	"$HOME/.config/kitty|$DOTFILES_ROOT/src/kitty"
+	"$HOME/.config/espanso|$DOTFILES_ROOT/src/espanso"
 	"$HOME/.ideavimrc|$DOTFILES_ROOT/src/.ideavimrc"
 	"$HOME/.gitignore_global|$DOTFILES_ROOT/src/.gitignore_global"
 )

@@ -24,6 +24,7 @@ get_common_links() {
 		"$DOTFILES_ROOT/src/kitty $HOME/.config/kitty"
 		"$DOTFILES_ROOT/src/opencode $HOME/.config/opencode"
 		"$DOTFILES_ROOT/src/git/hooks $HOME/.config/git/hooks"
+		"$DOTFILES_ROOT/src/espanso $HOME/.config/espanso"
 	)
 	printf '%s\n' "${links[@]}"
 }
