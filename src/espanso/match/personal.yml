@@ -1,0 +1,139 @@
+global_vars:
+  - name: first_name
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_FIRST_NAME"
+  - name: last_name
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_LAST_NAME"
+  - name: full_name
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_FULL_NAME"
+  - name: nationality
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_NATIONALITY"
+  - name: birthday_world
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_BIRTHDAY_WORLD"
+  - name: birthday_us
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_BIRTHDAY_US"
+  - name: email
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_EMAIL"
+  - name: phone
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_PHONE"
+  - name: city
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_CITY"
+  - name: address_location
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_ADDRESS_LOCATION"
+  - name: address_code
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_ADDRESS_CODE"
+  - name: address_detail
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_ADDRESS_DETAIL"
+  - name: link_github
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_LINK_GITHUB"
+  - name: link_linkedin
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_LINK_LINKEDIN"
+  - name: link_portfolio
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_LINK_PORTFOLIO"
+  - name: link_massvocab
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_LINK_MASSVOCAB"
+  - name: notice_period
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_NOTICE_PERIOD"
+  - name: salary_usd
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_SALARY_USD"
+  - name: salary_eur
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_SALARY_EUR"
+  - name: id_self
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_ID_SELF"
+  - name: id_mom
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_ID_MOM"
+  - name: id_dad
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_ID_DAD"
+
+matches:
+  - trigger: ";pf"
+    replace: "{{first_name}}"
+  - trigger: ";pl"
+    replace: "{{last_name}}"
+  - trigger: ";pn"
+    replace: "{{full_name}}"
+  - trigger: ";pN"
+    replace: "{{nationality}}"
+  - trigger: ";pbw"
+    replace: "{{birthday_world}}"
+  - trigger: ";pbu"
+    replace: "{{birthday_us}}"
+  - trigger: ";pe"
+    replace: "{{email}}"
+  - trigger: ";pp"
+    replace: "{{phone}}"
+
+  - trigger: ";ac"
+    replace: "{{city}}"
+  - trigger: ";al"
+    replace: "{{address_location}}"
+  - trigger: ";ap"
+    replace: "{{address_code}}"
+  - trigger: ";as"
+    replace: "{{address_detail}}"
+
+  - trigger: ";lg"
+    replace: "{{link_github}}"
+  - trigger: ";ll"
+    replace: "{{link_linkedin}}"
+  - trigger: ";lp"
+    replace: "{{link_portfolio}}"
+  - trigger: ";lm"
+    replace: "{{link_massvocab}}"
+
+  - trigger: ";jn"
+    replace: "{{notice_period}}"
+  - trigger: ";jsu"
+    replace: "{{salary_usd}}"
+  - trigger: ";jse"
+    replace: "{{salary_eur}}"
+
+  - trigger: ";id"
+    replace: "{{id_self}}"
+  - trigger: ";im"
+    replace: "{{id_mom}}"
+  - trigger: ";if"
+    replace: "{{id_dad}}"
