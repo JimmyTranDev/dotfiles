@@ -1,5 +1,5 @@
 ---
-name: init-repo
+name: init
 description: Initialize a private GitHub repo with initial commit in current directory
 ---
 
@@ -29,6 +29,6 @@ Initialize a new private GitHub repository in the current directory with an init
    - Run `git remote -v` to confirm the remote was added
    - Show the GitHub repository URL to the user
 
-Usage: /init-repo [repo-name]
+Usage: /init [repo-name]
 
 If repo-name is not provided, the current directory name will be used.

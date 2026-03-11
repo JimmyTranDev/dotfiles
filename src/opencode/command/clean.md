@@ -1,5 +1,5 @@
 ---
-name: clean-worktrees
+name: clean
 description: Delete all worktrees and their branches, preserving main/master/develop
 ---
 

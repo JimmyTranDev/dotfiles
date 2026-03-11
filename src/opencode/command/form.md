@@ -1,9 +1,9 @@
 ---
-name: fill-form
+name: form
 description: Fill web forms using Browser MCP tools and profile data from ~/Programming/JimmyTranDev/profile/data
 ---
 
-Usage: /fill-form $ARGUMENTS
+Usage: /form $ARGUMENTS
 
 Fill out the web form described below using Browser MCP tools and the user's profile data.
 

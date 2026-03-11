@@ -1,5 +1,5 @@
 ---
-name: fix-pr
+name: fix
 description: Fetch PR review comments, validate which request code changes, and fix them
 ---
 

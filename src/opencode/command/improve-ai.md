@@ -1,9 +1,9 @@
 ---
-name: create
+name: improve-ai
 description: Create a new command, skill, or agent by analyzing what type best fits the user's intent
 ---
 
-Usage: /create <description of what you want to create>
+Usage: /improve-ai <description of what you want to create>
 
 Analyze the user's description and create the appropriate OpenCode extension (command, skill, or agent).
 

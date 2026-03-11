@@ -1,9 +1,9 @@
 ---
-name: check-soundness
+name: sound
 description: Verify the logical soundness and correctness of a feature without modifying code
 ---
 
-Usage: /check-soundness $ARGUMENTS
+Usage: /sound $ARGUMENTS
 
 Analyze the specified feature for logical soundness, contradictions, invalid assumptions, and correctness issues. This is a read-only analysis — do not modify any code.
 

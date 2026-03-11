@@ -1,11 +1,11 @@
 ---
-name: scan-security
+name: security
 description: Scan code for security vulnerabilities and provide exact fixes
 ---
 
 Scan the specified code for security vulnerabilities and apply fixes.
 
-Usage: /scan-security [scope]
+Usage: /security [scope]
 
 1. Determine the scope:
    - If the user specifies files, directories, or a feature, focus on those
