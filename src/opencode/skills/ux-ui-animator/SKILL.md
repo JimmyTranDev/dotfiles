@@ -1,6 +1,6 @@
 ---
 name: ux-ui-animator
-description: UI animation patterns covering CSS transitions, keyframes, Framer Motion, spring physics, scroll-driven animations, and reduced-motion handling
+description: UI animation patterns covering CSS transitions, keyframes, Framer Motion, React Native Reanimated, Gesture Handler, spring physics, scroll-driven animations, and reduced-motion handling
 ---
 
 Guide for implementing polished, performant UI animations that enhance user experience without sacrificing accessibility or performance.
@@ -464,3 +464,232 @@ const pageVariants = {
 - [ ] Spring physics used for interactive/gesture-driven motion
 - [ ] `will-change` applied sparingly and removed after animation
 - [ ] Animations don't block user interaction or content access
+
+## React Native Reanimated
+
+### Shared Values & Animated Styles
+
+```tsx
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated"
+
+const CardComponent = () => {
+  const scale = useSharedValue(1)
+  const opacity = useSharedValue(1)
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }))
+
+  const handlePress = () => {
+    scale.value = withSpring(1.1, { damping: 15, stiffness: 150 })
+  }
+
+  return <Animated.View style={animatedStyle} />
+}
+```
+
+### Animation Functions
+
+| Function | Use Case | Config |
+|----------|----------|--------|
+| `withSpring` | Natural, bouncy motion | `{ damping, stiffness, mass }` |
+| `withTiming` | Timed transitions | `{ duration, easing }` |
+| `withDelay` | Delayed start | `withDelay(200, withSpring(...))` |
+| `withSequence` | Chained animations | `withSequence(withTiming(1.2), withTiming(1))` |
+| `withRepeat` | Looping | `withRepeat(withTiming(1), -1, true)` |
+| `withDecay` | Momentum/fling | `{ velocity, deceleration }` |
+
+### Entering & Exiting Animations
+
+```tsx
+import { FadeIn, FadeOut, SlideInRight, SlideOutLeft } from "react-native-reanimated"
+
+<Animated.View entering={FadeIn.duration(300)} exiting={FadeOut.duration(200)}>
+  <Text>Animated content</Text>
+</Animated.View>
+
+<Animated.View
+  entering={SlideInRight.springify().damping(15)}
+  exiting={SlideOutLeft.duration(200)}
+/>
+```
+
+### Layout Animations
+
+```tsx
+import { LinearTransition, SequencedTransition } from "react-native-reanimated"
+
+<Animated.View layout={LinearTransition.springify()}>
+  {items.map((item) => (
+    <Animated.View
+      key={item.id}
+      entering={FadeIn}
+      exiting={FadeOut}
+      layout={LinearTransition}
+    />
+  ))}
+</Animated.View>
+```
+
+### Interpolation
+
+```tsx
+import { interpolate, Extrapolation } from "react-native-reanimated"
+
+const animatedStyle = useAnimatedStyle(() => ({
+  opacity: interpolate(scrollY.value, [0, 100], [1, 0], Extrapolation.CLAMP),
+  transform: [
+    { translateY: interpolate(scrollY.value, [0, 100], [0, -50], Extrapolation.CLAMP) },
+  ],
+}))
+```
+
+### Scroll-Driven (Reanimated)
+
+```tsx
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from "react-native-reanimated"
+
+const scrollY = useSharedValue(0)
+
+const scrollHandler = useAnimatedScrollHandler({
+  onScroll: (event) => {
+    scrollY.value = event.contentOffset.y
+  },
+})
+
+<Animated.ScrollView onScroll={scrollHandler} scrollEventThrottle={16}>
+  {children}
+</Animated.ScrollView>
+```
+
+## React Native Gesture Handler
+
+### Basic Gestures
+
+```tsx
+import { Gesture, GestureDetector } from "react-native-gesture-handler"
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated"
+
+const DraggableCard = () => {
+  const translateX = useSharedValue(0)
+  const translateY = useSharedValue(0)
+
+  const pan = Gesture.Pan()
+    .onUpdate((event) => {
+      translateX.value = event.translationX
+      translateY.value = event.translationY
+    })
+    .onEnd(() => {
+      translateX.value = withSpring(0)
+      translateY.value = withSpring(0)
+    })
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+    ],
+  }))
+
+  return (
+    <GestureDetector gesture={pan}>
+      <Animated.View style={animatedStyle} />
+    </GestureDetector>
+  )
+}
+```
+
+### Gesture Types
+
+| Gesture | Use Case |
+|---------|----------|
+| `Gesture.Tap()` | Single/double tap detection |
+| `Gesture.Pan()` | Drag and swipe |
+| `Gesture.Pinch()` | Zoom in/out |
+| `Gesture.Rotation()` | Two-finger rotation |
+| `Gesture.LongPress()` | Press and hold |
+| `Gesture.Fling()` | Quick swipe in direction |
+
+### Composing Gestures
+
+```tsx
+const pinch = Gesture.Pinch().onUpdate((e) => {
+  scale.value = e.scale
+})
+
+const pan = Gesture.Pan().onUpdate((e) => {
+  translateX.value = e.translationX
+  translateY.value = e.translationY
+})
+
+const composed = Gesture.Simultaneous(pinch, pan)
+
+<GestureDetector gesture={composed}>
+  <Animated.View style={animatedStyle} />
+</GestureDetector>
+```
+
+### Swipe-to-Delete
+
+```tsx
+const SwipeableRow = ({ onDelete, children }: SwipeableRowProps) => {
+  const translateX = useSharedValue(0)
+  const deleteThreshold = -80
+
+  const pan = Gesture.Pan()
+    .activeOffsetX([-10, 10])
+    .onUpdate((e) => {
+      translateX.value = Math.min(0, e.translationX)
+    })
+    .onEnd(() => {
+      if (translateX.value < deleteThreshold) {
+        translateX.value = withTiming(-200)
+        runOnJS(onDelete)()
+      } else {
+        translateX.value = withSpring(0)
+      }
+    })
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }))
+
+  return (
+    <GestureDetector gesture={pan}>
+      <Animated.View style={animatedStyle}>{children}</Animated.View>
+    </GestureDetector>
+  )
+}
+```
+
+## React Native Reduced Motion
+
+```tsx
+import { useReducedMotion } from "react-native-reanimated"
+import { AccessibilityInfo } from "react-native"
+
+const prefersReducedMotion = useReducedMotion()
+
+const animatedStyle = useAnimatedStyle(() => ({
+  transform: [
+    {
+      scale: prefersReducedMotion
+        ? 1
+        : withSpring(scale.value, { damping: 15 }),
+    },
+  ],
+}))
+```
+
+- Always check `useReducedMotion()` from Reanimated
+- Disable or simplify animations when reduced motion is preferred
+- Ensure essential state changes are still communicated without animation

@@ -21,6 +21,10 @@
     "Browser": {
       "type": "local",
       "command": ["npx", "-y", "@browsermcp/mcp@latest"]
+    },
+    "mobile-mcp": {
+      "type": "local",
+      "command": ["npx", "-y", "@mobilenext/mobile-mcp@latest"]
     }
   }
 }

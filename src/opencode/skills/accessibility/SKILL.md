@@ -1,9 +1,17 @@
 ---
 name: accessibility
-description: Web accessibility checklist covering WCAG compliance, semantic HTML, ARIA patterns, keyboard navigation, focus management, and a11y testing
+description: Web and mobile accessibility checklist covering WCAG compliance, semantic HTML, ARIA patterns, React Native a11y props, keyboard navigation, focus management, and a11y testing
 ---
 
-Apply these patterns to make all web UI keyboard-operable, screen-reader-compatible, and WCAG AA compliant in structure, contrast, and semantics.
+Apply these patterns to make all web UI keyboard-operable, screen-reader-compatible, and WCAG AA compliant in structure, contrast, and semantics. For mobile (React Native/Expo), ensure VoiceOver (iOS) and TalkBack (Android) compatibility.
+
+## Platform Selection
+
+| Platform | Screen Reader | Primary API |
+|----------|--------------|-------------|
+| Web | NVDA, JAWS, VoiceOver | HTML semantics + ARIA |
+| iOS | VoiceOver | React Native `accessibility*` props |
+| Android | TalkBack | React Native `accessibility*` props |
 
 ## WCAG Compliance Levels
 
@@ -187,3 +195,95 @@ Use the correct element for the job — avoid `<div>` and `<span>` when a semant
 | WAVE | Browser extension for visual inspection |
 | pa11y | CLI-based automated testing |
 | @axe-core/playwright | Playwright integration for CI a11y checks |
+
+## Mobile Accessibility (React Native / Expo)
+
+### Core Props
+
+| Prop | Purpose | Example |
+|------|---------|---------|
+| `accessibilityLabel` | Announced by screen reader (like `aria-label`) | `accessibilityLabel="Delete item"` |
+| `accessibilityHint` | Describes result of action | `accessibilityHint="Removes item from cart"` |
+| `accessibilityRole` | Semantic role | `"button"`, `"link"`, `"header"`, `"image"`, `"search"` |
+| `accessibilityState` | Current state | `{ selected: true, disabled: false, checked: true }` |
+| `accessibilityValue` | Current value | `{ min: 0, max: 100, now: 50, text: "50%" }` |
+| `accessibilityLiveRegion` | Announces dynamic changes (Android) | `"polite"`, `"assertive"` |
+| `importantForAccessibility` | Visibility to screen reader | `"yes"`, `"no"`, `"no-hide-descendants"` |
+| `accessibilityElementsHidden` | Hide from VoiceOver (iOS) | `true` to hide decorative elements |
+| `accessibilityViewIsModal` | Trap VoiceOver focus (iOS) | `true` for modals and overlays |
+| `accessible` | Marks as a11y element | `true` (default for touchable) |
+
+### Component Patterns
+
+```tsx
+<Pressable
+  onPress={onDelete}
+  accessibilityRole="button"
+  accessibilityLabel="Delete item"
+  accessibilityHint="Removes this item from your cart"
+  accessibilityState={{ disabled: isLoading }}
+>
+  <TrashIcon accessibilityElementsHidden />
+</Pressable>
+
+<TextInput
+  accessibilityLabel="Email address"
+  accessibilityState={{ invalid: !!error }}
+  accessibilityHint="Enter your email to sign in"
+  placeholder="email@example.com"
+/>
+
+<View accessibilityRole="header">
+  <Text>Shopping Cart</Text>
+</View>
+```
+
+### Grouping Elements
+
+```tsx
+<View accessible accessibilityLabel="Price: $29.99, In stock">
+  <Text>$29.99</Text>
+  <Text>In stock</Text>
+</View>
+```
+
+- Set `accessible={true}` on the parent to group children into one a11y element
+- Provide a combined `accessibilityLabel` for the group
+
+### Screen Reader Announcements
+
+```tsx
+import { AccessibilityInfo } from "react-native"
+
+AccessibilityInfo.announceForAccessibility("Item added to cart")
+```
+
+### Focus Management
+
+```tsx
+const headerRef = useRef<View>(null)
+
+useEffect(() => {
+  if (headerRef.current) {
+    AccessibilityInfo.setAccessibilityFocus(
+      findNodeHandle(headerRef.current) ?? 0
+    )
+  }
+}, [])
+
+<View ref={headerRef} accessible accessibilityRole="header">
+  <Text>New Screen Title</Text>
+</View>
+```
+
+### Mobile A11y Checklist
+
+- [ ] All interactive elements have `accessibilityRole` and `accessibilityLabel`
+- [ ] Icon-only buttons have descriptive `accessibilityLabel`
+- [ ] Decorative images use `accessibilityElementsHidden` or `importantForAccessibility="no"`
+- [ ] Modals use `accessibilityViewIsModal` (iOS) to trap focus
+- [ ] Dynamic content announces changes via `AccessibilityInfo.announceForAccessibility`
+- [ ] Touch targets are at least 44x44pt (iOS) / 48x48dp (Android)
+- [ ] Form errors announce via screen reader when validation fails
+- [ ] Screen reader can navigate all screens without touch
+- [ ] Tested with VoiceOver (iOS) and TalkBack (Android)

@@ -1,5 +1,5 @@
 ---
-name: commit-chat
+name: chat
 description: Stage and commit all files changed during the current session
 ---
 
