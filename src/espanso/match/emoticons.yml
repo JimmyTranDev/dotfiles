@@ -51,12 +51,18 @@ matches:
   - trigger: ";el"
     replace: "(˶ᵔ ᵕ ᵔ˶) ♡"
 
+  - trigger: ";el"
+    replace: "(｡♥‿♥｡)"
+
   # Confused
   - trigger: ";ec"
     replace: "(・_・?)"
 
   - trigger: ";ec"
     replace: "¯\\_(ツ)_/¯"
+
+  - trigger: ";ec"
+    replace: "😗😗😗"
 
   # Laugh
   - trigger: ";el"
@@ -68,5 +74,9 @@ matches:
 
   - trigger: ";et"
     replace: "(×_×)"
+
+  - trigger: ";et"
+    replace: "(－_－)ｚＺ"
+
 
 
