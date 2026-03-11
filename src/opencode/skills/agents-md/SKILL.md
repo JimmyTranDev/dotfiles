@@ -3,6 +3,7 @@ name: agents-md
 description: Structure, conventions, and update workflow for AGENTS.md files that control AI agent behavior
 ---
 
+
 ## What AGENTS.md Is
 
 AGENTS.md files provide persistent instructions that are injected into every AI agent conversation. They control coding style, conventions, and behavioral rules across all interactions.

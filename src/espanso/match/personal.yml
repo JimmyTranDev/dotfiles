@@ -89,13 +89,13 @@ global_vars:
       cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_ID_DAD"
 
 matches:
-  - trigger: ";pf"
+  - trigger: ";pg"
     replace: "{{first_name}}"
-  - trigger: ";pl"
+  - trigger: ";ps"
     replace: "{{last_name}}"
   - trigger: ";pn"
     replace: "{{full_name}}"
-  - trigger: ";pN"
+  - trigger: ";pn"
     replace: "{{nationality}}"
   - trigger: ";pbw"
     replace: "{{birthday_world}}"
@@ -105,6 +105,8 @@ matches:
     replace: "{{email}}"
   - trigger: ";pp"
     replace: "{{phone}}"
+  - trigger: ";pl"
+    replace: "English, Norwegian, Vietnamese, Japanese"
 
   - trigger: ";ac"
     replace: "{{city}}"
@@ -137,3 +139,5 @@ matches:
     replace: "{{id_mom}}"
   - trigger: ";if"
     replace: "{{id_dad}}"
+  - trigger: ";ja"
+    replace: "Software Engineer with 6+ years delivering scalable web and mobile solutions across fintech and edtech. Full-stack expertise in TypeScript, JavaScript, Go, Python, and Dart. Founded two startups, shipping products end-to-end from architecture to deployment. Leverages AI-augmented workflows with LLM APIs, AI CLI tools, and a custom Neovim environment to maximize productivity. I think I have a lot to offer for this job!"
