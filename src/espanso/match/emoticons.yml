@@ -1,43 +1,72 @@
 matches:
-  - trigger: ";ed"
-    replace: "¯\\_(ツ)_/¯"
 
-  - trigger: ";ef"
+  # Angry
+  - trigger: ";ea"
     replace: "(╯°□°）╯︵ ┻━┻"
 
-  - trigger: ";eF"
+  - trigger: ";ea"
     replace: "┬─┬ノ( º _ ºノ)"
-
-  - trigger: ";eD"
-    replace: "ಠ_ಠ"
-
-  - trigger: ";eh"
-    replace: "( ͡° ͜ʖ ͡°)"
-
-  - trigger: ";ej"
-    replace: "(˶ᵔ ᵕ ᵔ˶)"
-
-  - trigger: ";ec"
-    replace: "(╥﹏╥)"
 
   - trigger: ";ea"
     replace: "( •̀ ᴖ •́ )"
 
-  - trigger: ";eq"
-    replace: "(・_・?)"
+  - trigger: ";ea"
+    replace: "凸(￣ヘ￣)"
 
-  - trigger: ";el"
-    replace: "(˶ᵔ ᵕ ᵔ˶) ♡"
+  # Shocked
+  - trigger: ";es"
+    replace: "ಠ_ಠ"
 
   - trigger: ";es"
     replace: "( º ㅡ º )"
 
-  - trigger: ";ep"
-    replace: "(￣ω￣)"
-
-  - trigger: ";et"
-    replace: "( ｡- . - )"
+  # Extra
+  - trigger: ";ee"
+    replace: "( ͡° ͜ʖ ͡°)"
 
   - trigger: ";ew"
     replace: "(^_-)≡☆"
+
+  - trigger: ";ee"
+    replace: "(￣ω￣)"
+
+  - trigger: ";ee"
+    replace: "(￢_￢)"
+
+  # Happy
+  - trigger: ";eh"
+    replace: "(˶ᵔ ᵕ ᵔ˶)"
+
+  - trigger: ";eh"
+    replace: "(=^･ω･^=)"
+
+  - trigger: ";eh"
+    replace: "(✿◠‿◠)"
+
+  # Sad
+  - trigger: ";es"
+    replace: "(╥﹏╥)"
+
+  # Love
+  - trigger: ";el"
+    replace: "(˶ᵔ ᵕ ᵔ˶) ♡"
+
+  # Confused
+  - trigger: ";ec"
+    replace: "(・_・?)"
+
+  - trigger: ";ec"
+    replace: "¯\\_(ツ)_/¯"
+
+  # Laugh
+  - trigger: ";el"
+    replace: "(＾▽＾)"
+
+  # Tired
+  - trigger: ";et"
+    replace: "( ｡- . - )"
+
+  - trigger: ";et"
+    replace: "(×_×)"
+
 
