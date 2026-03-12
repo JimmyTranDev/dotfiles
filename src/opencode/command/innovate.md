@@ -1,9 +1,9 @@
 ---
-name: suggest
+name: innovate
 description: Brainstorm new ideas, features, and creative improvements for the project
 ---
 
-Usage: /suggest [focus area]
+Usage: /innovate [focus area]
 
 Analyze the project and brainstorm fresh ideas — new features, user-facing enhancements, and creative improvements that would make the project better.
 

@@ -1,9 +1,9 @@
 ---
-name: refactor
+name: quality
 description: Restructure code for better quality, readability, and maintainability without changing behavior
 ---
 
-Usage: /refactor [scope or description]
+Usage: /quality [scope or description]
 
 Refactor the specified code to improve its internal quality — structure, readability, and maintainability — without changing user-facing behavior.
 
@@ -31,7 +31,7 @@ $ARGUMENTS
 4. Apply the refactoring:
    - Make changes incrementally, verifying each refactor preserves existing behavior exactly
    - Preserve existing conventions and patterns — restructure within the established style, not against it
-   - Focus purely on internal code quality (use `/improve` for user-facing enhancements)
+   - Focus purely on internal code quality (use `/ux` for user-facing enhancements)
 
 5. Delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 

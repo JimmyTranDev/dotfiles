@@ -1,9 +1,9 @@
 ---
-name: improve
+name: ux
 description: Improve user-facing behavior, UX, reliability, and overall product quality
 ---
 
-Usage: /improve [scope or focus area]
+Usage: /ux [scope or focus area]
 
 Analyze the specified code from the user's perspective and apply improvements that make the product better for its users.
 
@@ -31,7 +31,7 @@ $ARGUMENTS
 4. Apply the improvements:
    - Make changes incrementally, verifying each improvement doesn't break existing behavior
    - Preserve existing conventions and patterns — improve within the established style, not against it
-   - Prefer changes that users will directly notice over internal-only cleanups (use `/refactor` for code quality)
+   - Prefer changes that users will directly notice over internal-only cleanups (use `/quality` for code quality)
 
 5. Load additional skills and delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
