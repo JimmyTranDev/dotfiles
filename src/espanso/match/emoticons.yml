@@ -1,6 +1,6 @@
 matches:
 
-  # Angry
+  # Angry (;ea - A for Angry)
   - trigger: ";ea"
     replace: "(╯°□°）╯︵ ┻━┻"
 
@@ -13,7 +13,7 @@ matches:
   - trigger: ";ea"
     replace: "凸(￣ヘ￣)"
 
-  # Apologetic
+  # Apologetic (;eg - G for Groveling)
   - trigger: ";eg"
     replace: "(ᗒᗣᗕ)՞"
 
@@ -26,7 +26,7 @@ matches:
   - trigger: ";eg"
     replace: "(シ_ _)シ"
 
-  # Bored
+  # Bored (;eb - B for Bored)
   - trigger: ";eb"
     replace: "(￣ヘ￣)"
 
@@ -39,7 +39,7 @@ matches:
   - trigger: ";eb"
     replace: "( ˘_˘ )"
 
-  # Confused
+  # Confused (;ec - C for Confused)
   - trigger: ";ec"
     replace: "(・_・?)"
 
@@ -52,7 +52,7 @@ matches:
   - trigger: ";ec"
     replace: "( ˘•ω•˘ ).oO"
 
-  # Crying
+  # Crying (;ev - V for grieVing)
   - trigger: ";ev"
     replace: "(╥﹏╥)"
 
@@ -65,7 +65,7 @@ matches:
   - trigger: ";ev"
     replace: "( ᵒ̴̶̷̥́ _ᵒ̴̶̷̣̥̀ )"
 
-  # Determined
+  # Determined (;ed - D for Determined)
   - trigger: ";ed"
     replace: "(ง •̀_•́)ง"
 
@@ -78,7 +78,7 @@ matches:
   - trigger: ";ed"
     replace: "ᕙ(⇀‸↼)ᕗ"
 
-  # Embarrassed
+  # Embarrassed (;em - M for eMbarrassed)
   - trigger: ";em"
     replace: "(⁄ ⁄•⁄ω⁄•⁄ ⁄)"
 
@@ -91,7 +91,7 @@ matches:
   - trigger: ";em"
     replace: "(⁄⁄⁄ ⁄ ⁄⁄⁄)"
 
-  # Excited
+  # Excited (;ei - I for "I'm hyped!")
   - trigger: ";ei"
     replace: "☆*:.｡.o(≧▽≦)o.｡.:*☆"
 
@@ -104,7 +104,7 @@ matches:
   - trigger: ";ei"
     replace: "٩(◕‿◕｡)۶"
 
-  # Extra
+  # Extra (;ee - E for Extra)
   - trigger: ";ee"
     replace: "( ͡° ͜ʖ ͡°)"
 
@@ -117,7 +117,7 @@ matches:
   - trigger: ";ee"
     replace: "ʕ•ᴥ•ʔ"
 
-  # Happy
+  # Happy (;eh - H for Happy)
   - trigger: ";eh"
     replace: "(˶ᵔ ᵕ ᵔ˶)"
 
@@ -130,7 +130,7 @@ matches:
   - trigger: ";eh"
     replace: "(⌒‿⌒)"
 
-  # Laugh
+  # Laugh (;ex - X for eXploding with laughter)
   - trigger: ";ex"
     replace: "(＾▽＾)"
 
@@ -149,7 +149,7 @@ matches:
   - trigger: ";ex"
     replace: "ꉂꉂ(ᵔᗜᵔ*)"
 
-  # Love
+  # Love (;el - L for Love)
   - trigger: ";el"
     replace: "(˶ᵔ ᵕ ᵔ˶) ♡"
 
@@ -162,7 +162,7 @@ matches:
   - trigger: ";el"
     replace: "(´,,•ω•,,)♡"
 
-  # Nervous
+  # Nervous (;en - N for Nervous)
   - trigger: ";en"
     replace: "(；⌣̀_⌣́)"
 
@@ -175,7 +175,7 @@ matches:
   - trigger: ";en"
     replace: "(；一_一)"
 
-  # Playful
+  # Playful (;ep - P for Playful)
   - trigger: ";ep"
     replace: "(◕ᴗ◕✿)"
 
@@ -188,7 +188,7 @@ matches:
   - trigger: ";ep"
     replace: "(ノ´ヮ`)ノ*: ・゚✧"
 
-  # Proud
+  # Proud (;er - R for pRoud)
   - trigger: ";er"
     replace: "(⌐■_■)"
 
@@ -201,7 +201,7 @@ matches:
   - trigger: ";er"
     replace: "(ᵔ ᴗ ᵔ)✧"
 
-  # Sad
+  # Sad (;es - S for Sad)
   - trigger: ";es"
     replace: "(╥﹏╥)"
 
@@ -214,7 +214,7 @@ matches:
   - trigger: ";es"
     replace: "(っ˘̩╭╮˘̩)っ"
 
-  # Scared
+  # Scared (;ef - F for Frightened)
   - trigger: ";ef"
     replace: "(ㆆ_ㆆ)"
 
@@ -227,7 +227,7 @@ matches:
   - trigger: ";ef"
     replace: "(꒪⌓꒪)"
 
-  # Shocked
+  # Shocked (;ek - K for "K...what?!")
   - trigger: ";ek"
     replace: "ಠ_ಠ"
 
@@ -240,7 +240,7 @@ matches:
   - trigger: ";ek"
     replace: "Σ(ﾟДﾟ)"
 
-  # Tired
+  # Tired (;et - T for Tired)
   - trigger: ";et"
     replace: "( ｡- . - )"
 
@@ -253,7 +253,7 @@ matches:
   - trigger: ";et"
     replace: "(￣o￣) . z Z"
 
-  # Wink
+  # Wink (;ew - W for Wink)
   - trigger: ";ew"
     replace: "(^_-)≡☆"
 
