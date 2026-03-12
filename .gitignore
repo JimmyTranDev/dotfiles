@@ -6,3 +6,5 @@
 h-*.md
 src/opencode/node_modules/
 src/opencode/bun.lock
+
+!AGENTS.md
