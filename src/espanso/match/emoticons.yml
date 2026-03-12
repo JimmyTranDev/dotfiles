@@ -39,6 +39,19 @@ matches:
   - trigger: ";eb"
     replace: "( ˘_˘ )"
 
+  # Cat (;eq - Q for meoQ)
+  - trigger: ";eq"
+    replace: "(=^･ω･^=)"
+
+  - trigger: ";eq"
+    replace: "(＾• ω •＾)"
+
+  - trigger: ";eq"
+    replace: "ฅ(•ㅅ•❀)ฅ"
+
+  - trigger: ";eq"
+    replace: "(^◕ᴥ◕^)"
+
   # Confused (;ec - C for Confused)
   - trigger: ";ec"
     replace: "(・_・?)"
@@ -77,6 +90,32 @@ matches:
 
   - trigger: ";ed"
     replace: "ᕙ(⇀‸↼)ᕗ"
+
+  # Dancing (;ez - Z for jaZz)
+  - trigger: ";ez"
+    replace: "ヾ(⌐■_■)ノ♪"
+
+  - trigger: ";ez"
+    replace: "(〜￣▽￣)〜"
+
+  - trigger: ";ez"
+    replace: "⁽⁽◝( • ω • )◜⁾⁾"
+
+  - trigger: ";ez"
+    replace: "♪♪♪ ヽ(ˇ∀ˇ )ゞ"
+
+  # Disapproval (;ej - J for Judging)
+  - trigger: ";ej"
+    replace: "(ಠ_ಠ)"
+
+  - trigger: ";ej"
+    replace: "(￢_￢)"
+
+  - trigger: ";ej"
+    replace: "(←_←)"
+
+  - trigger: ";ej"
+    replace: "(¬‿¬ )"
 
   # Embarrassed (;em - M for eMbarrassed)
   - trigger: ";em"
@@ -117,6 +156,19 @@ matches:
   - trigger: ";ee"
     replace: "ʕ•ᴥ•ʔ"
 
+  # Greeting (;eo - O for Ohayo)
+  - trigger: ";eo"
+    replace: "(*・ω・)ﾉ"
+
+  - trigger: ";eo"
+    replace: "(￣▽￣)ノ"
+
+  - trigger: ";eo"
+    replace: "(´• ω •`)ﾉ"
+
+  - trigger: ";eo"
+    replace: "( ´ ▽ ` )ﾉ"
+
   # Happy (;eh - H for Happy)
   - trigger: ";eh"
     replace: "(˶ᵔ ᵕ ᵔ˶)"
@@ -129,6 +181,19 @@ matches:
 
   - trigger: ";eh"
     replace: "(⌒‿⌒)"
+
+  # Hugging (;eu - U for hUg)
+  - trigger: ";eu"
+    replace: "(づ￣ ³￣)づ"
+
+  - trigger: ";eu"
+    replace: "(つ≧▽≦)つ"
+
+  - trigger: ";eu"
+    replace: "(⊃｡•́‿•̀｡)⊃"
+
+  - trigger: ";eu"
+    replace: "(っ ᵔ◡ᵔ)っ"
 
   # Laugh (;ex - X for eXploding with laughter)
   - trigger: ";ex"
@@ -239,6 +304,19 @@ matches:
 
   - trigger: ";ek"
     replace: "Σ(ﾟДﾟ)"
+
+  # Sympathy (;ey - Y for sympathY)
+  - trigger: ";ey"
+    replace: "(ノ_<。)ヾ(´ ▽ ` )"
+
+  - trigger: ";ey"
+    replace: "ヽ(￣ω￣(。。 )ゝ"
+
+  - trigger: ";ey"
+    replace: "(; ω ; )ヾ(´∀`* )"
+
+  - trigger: ";ey"
+    replace: "(っ´ω`)ﾉ(╥ω╥)"
 
   # Tired (;et - T for Tired)
   - trigger: ";et"
