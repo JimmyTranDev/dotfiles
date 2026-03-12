@@ -78,5 +78,16 @@ matches:
   - trigger: ";et"
     replace: "(－_－)ｚＺ"
 
+  # Nervous
+  - trigger: ";en"
+    replace: "(；⌣̀_⌣́)"
 
+  - trigger: ";en"
+    replace: "(°△°|||)"
+
+  - trigger: ";en"
+    replace: "(⊙_⊙;)"
+
+  - trigger: ";en"
+    replace: "(；一_一)"
 
