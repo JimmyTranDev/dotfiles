@@ -87,6 +87,10 @@ global_vars:
     type: shell
     params:
       cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_ID_DAD"
+  - name: id_nils
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_ID_NILS"
 
 matches:
   - trigger: ";pg"
@@ -139,5 +143,7 @@ matches:
     replace: "{{id_mom}}"
   - trigger: ";if"
     replace: "{{id_dad}}"
+  - trigger: ";in"
+    replace: "{{id_nils}}"
   - trigger: ";ja"
     replace: "Software Engineer with 6+ years delivering scalable web and mobile solutions across fintech and edtech. Full-stack expertise in TypeScript, JavaScript, Go, Python, and Dart. Founded two startups, shipping products end-to-end from architecture to deployment. Leverages AI-augmented workflows with LLM APIs, AI CLI tools, and a custom Neovim environment to maximize productivity. I think I have a lot to offer for this job!"
