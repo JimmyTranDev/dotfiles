@@ -5,7 +5,7 @@ matches:
     replace: "(╯°□°）╯︵ ┻━┻"
 
   - trigger: ";ea"
-    replace: "┬─┬ノ( º _ ºノ)"
+    replace: "(`皿´＃)"
 
   - trigger: ";ea"
     replace: "( •̀ ᴖ •́ )"
@@ -28,7 +28,7 @@ matches:
 
   # Bored (;eb - B for Bored)
   - trigger: ";eb"
-    replace: "(￣ヘ￣)"
+    replace: "╮(￣_￣)╭"
 
   - trigger: ";eb"
     replace: "(¬_¬)"
@@ -151,7 +151,7 @@ matches:
     replace: "(￣ω￣)"
 
   - trigger: ";ee"
-    replace: "(￢_￢)"
+    replace: "(－‸ლ)"
 
   - trigger: ";ee"
     replace: "ʕ•ᴥ•ʔ"
@@ -174,7 +174,7 @@ matches:
     replace: "(˶ᵔ ᵕ ᵔ˶)"
 
   - trigger: ";eh"
-    replace: "(=^･ω･^=)"
+    replace: "(´｡• ᵕ •｡`)"
 
   - trigger: ";eh"
     replace: "(✿◠‿◠)"
@@ -238,7 +238,7 @@ matches:
     replace: "(⊙_⊙;)"
 
   - trigger: ";en"
-    replace: "(；一_一)"
+    replace: "(￣ ￣|||)"
 
   # Playful (;ep - P for Playful)
   - trigger: ";ep"
@@ -248,7 +248,7 @@ matches:
     replace: "～(˘▾˘～)"
 
   - trigger: ";ep"
-    replace: "ヾ(⌐■_■)ノ♪"
+    replace: "( ˙꒳​˙ )"
 
   - trigger: ";ep"
     replace: "(ノ´ヮ`)ノ*: ・゚✧"
@@ -268,7 +268,7 @@ matches:
 
   # Sad (;es - S for Sad)
   - trigger: ";es"
-    replace: "(╥﹏╥)"
+    replace: "(ಥ﹏ಥ)"
 
   - trigger: ";es"
     replace: "(；ω；)"
@@ -281,7 +281,7 @@ matches:
 
   # Scared (;ef - F for Frightened)
   - trigger: ";ef"
-    replace: "(ㆆ_ㆆ)"
+    replace: "(((＞＜)))"
 
   - trigger: ";ef"
     replace: "(°ロ°) !"
@@ -294,7 +294,7 @@ matches:
 
   # Shocked (;ek - K for "K...what?!")
   - trigger: ";ek"
-    replace: "ಠ_ಠ"
+    replace: "w(°ｏ°)w"
 
   - trigger: ";ek"
     replace: "( º ㅡ º )"
@@ -339,7 +339,7 @@ matches:
     replace: "(◕‿↼)"
 
   - trigger: ";ew"
-    replace: "( ˘▽˘)っ"
+    replace: "(｡•̀ᴗ-)✧"
 
   - trigger: ";ew"
     replace: "(・ωー)～☆"
