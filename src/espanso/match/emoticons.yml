@@ -13,25 +13,109 @@ matches:
   - trigger: ";ea"
     replace: "凸(￣ヘ￣)"
 
-  # Shocked
-  - trigger: ";es"
-    replace: "ಠ_ಠ"
+  # Apologetic
+  - trigger: ";eg"
+    replace: "(ᗒᗣᗕ)՞"
 
-  - trigger: ";es"
-    replace: "( º ㅡ º )"
+  - trigger: ";eg"
+    replace: "(；人；)"
+
+  - trigger: ";eg"
+    replace: "m(_ _)m"
+
+  - trigger: ";eg"
+    replace: "(シ_ _)シ"
+
+  # Bored
+  - trigger: ";eb"
+    replace: "(￣ヘ￣)"
+
+  - trigger: ";eb"
+    replace: "(¬_¬)"
+
+  - trigger: ";eb"
+    replace: "(-.-)ᶻ ᶻ"
+
+  - trigger: ";eb"
+    replace: "( ˘_˘ )"
+
+  # Confused
+  - trigger: ";ec"
+    replace: "(・_・?)"
+
+  - trigger: ";ec"
+    replace: "¯\\_(ツ)_/¯"
+
+  - trigger: ";ec"
+    replace: "(⊙_☉)"
+
+  - trigger: ";ec"
+    replace: "( ˘•ω•˘ ).oO"
+
+  # Crying
+  - trigger: ";ev"
+    replace: "(╥﹏╥)"
+
+  - trigger: ";ev"
+    replace: "(ಥ_ಥ)"
+
+  - trigger: ";ev"
+    replace: "(;´༎ຶД༎ຶ`)"
+
+  - trigger: ";ev"
+    replace: "( ᵒ̴̶̷̥́ _ᵒ̴̶̷̣̥̀ )"
+
+  # Determined
+  - trigger: ";ed"
+    replace: "(ง •̀_•́)ง"
+
+  - trigger: ";ed"
+    replace: "(•̀ᴗ•́)و"
+
+  - trigger: ";ed"
+    replace: "( ᕤ⁠ ⁠ᵔ⁠◡⁠ᵔ⁠ )"
+
+  - trigger: ";ed"
+    replace: "ᕙ(⇀‸↼)ᕗ"
+
+  # Embarrassed
+  - trigger: ";em"
+    replace: "(⁄ ⁄•⁄ω⁄•⁄ ⁄)"
+
+  - trigger: ";em"
+    replace: "(//ω//)"
+
+  - trigger: ";em"
+    replace: "(*/ω＼*)"
+
+  - trigger: ";em"
+    replace: "(⁄⁄⁄ ⁄ ⁄⁄⁄)"
+
+  # Excited
+  - trigger: ";ei"
+    replace: "☆*:.｡.o(≧▽≦)o.｡.:*☆"
+
+  - trigger: ";ei"
+    replace: "(ﾉ◕ヮ◕)ﾉ*:・ﾟ✧"
+
+  - trigger: ";ei"
+    replace: "ヽ(>∀<☆)ノ"
+
+  - trigger: ";ei"
+    replace: "٩(◕‿◕｡)۶"
 
   # Extra
   - trigger: ";ee"
     replace: "( ͡° ͜ʖ ͡°)"
-
-  - trigger: ";ew"
-    replace: "(^_-)≡☆"
 
   - trigger: ";ee"
     replace: "(￣ω￣)"
 
   - trigger: ";ee"
     replace: "(￢_￢)"
+
+  - trigger: ";ee"
+    replace: "ʕ•ᴥ•ʔ"
 
   # Happy
   - trigger: ";eh"
@@ -43,9 +127,21 @@ matches:
   - trigger: ";eh"
     replace: "(✿◠‿◠)"
 
-  # Sad
-  - trigger: ";es"
-    replace: "(╥﹏╥)"
+  - trigger: ";eh"
+    replace: "(⌒‿⌒)"
+
+  # Laugh
+  - trigger: ";ex"
+    replace: "(＾▽＾)"
+
+  - trigger: ";ex"
+    replace: "(≧∇≦)ﾉ"
+
+  - trigger: ";ex"
+    replace: "( ≧ᗜ≦)"
+
+  - trigger: ";ex"
+    replace: "ᐠ( ᐛ )ᐟ"
 
   # Love
   - trigger: ";el"
@@ -54,29 +150,11 @@ matches:
   - trigger: ";el"
     replace: "(｡♥‿♥｡)"
 
-  # Confused
-  - trigger: ";ec"
-    replace: "(・_・?)"
-
-  - trigger: ";ec"
-    replace: "¯\\_(ツ)_/¯"
-
-  - trigger: ";ec"
-    replace: "😗😗😗"
-
-  # Laugh
   - trigger: ";el"
-    replace: "(＾▽＾)"
+    replace: "(♡˙︶˙♡)"
 
-  # Tired
-  - trigger: ";et"
-    replace: "( ｡- . - )"
-
-  - trigger: ";et"
-    replace: "(×_×)"
-
-  - trigger: ";et"
-    replace: "(－_－)ｚＺ"
+  - trigger: ";el"
+    replace: "(´,,•ω•,,)♡"
 
   # Nervous
   - trigger: ";en"
@@ -91,3 +169,93 @@ matches:
   - trigger: ";en"
     replace: "(；一_一)"
 
+  # Playful
+  - trigger: ";ep"
+    replace: "(◕ᴗ◕✿)"
+
+  - trigger: ";ep"
+    replace: "～(˘▾˘～)"
+
+  - trigger: ";ep"
+    replace: "ヾ(⌐■_■)ノ♪"
+
+  - trigger: ";ep"
+    replace: "(ノ´ヮ`)ノ*: ・゚✧"
+
+  # Proud
+  - trigger: ";er"
+    replace: "(⌐■_■)"
+
+  - trigger: ";er"
+    replace: "(▀̿Ĺ̯▀̿ ̿)"
+
+  - trigger: ";er"
+    replace: "( ˙▿˙ )σ"
+
+  - trigger: ";er"
+    replace: "(ᵔ ᴗ ᵔ)✧"
+
+  # Sad
+  - trigger: ";es"
+    replace: "(╥﹏╥)"
+
+  - trigger: ";es"
+    replace: "(；ω；)"
+
+  - trigger: ";es"
+    replace: "(｡•́︿•̀｡)"
+
+  - trigger: ";es"
+    replace: "(っ˘̩╭╮˘̩)っ"
+
+  # Scared
+  - trigger: ";ef"
+    replace: "(ㆆ_ㆆ)"
+
+  - trigger: ";ef"
+    replace: "(°ロ°) !"
+
+  - trigger: ";ef"
+    replace: "Σ(°△°|||)"
+
+  - trigger: ";ef"
+    replace: "(꒪⌓꒪)"
+
+  # Shocked
+  - trigger: ";ek"
+    replace: "ಠ_ಠ"
+
+  - trigger: ";ek"
+    replace: "( º ㅡ º )"
+
+  - trigger: ";ek"
+    replace: "(⊙▂⊙)"
+
+  - trigger: ";ek"
+    replace: "Σ(ﾟДﾟ)"
+
+  # Tired
+  - trigger: ";et"
+    replace: "( ｡- . - )"
+
+  - trigger: ";et"
+    replace: "(×_×)"
+
+  - trigger: ";et"
+    replace: "(－_－)ｚＺ"
+
+  - trigger: ";et"
+    replace: "(￣o￣) . z Z"
+
+  # Wink
+  - trigger: ";ew"
+    replace: "(^_-)≡☆"
+
+  - trigger: ";ew"
+    replace: "(◕‿↼)"
+
+  - trigger: ";ew"
+    replace: "( ˘▽˘)っ"
+
+  - trigger: ";ew"
+    replace: "(・ωー)～☆"
