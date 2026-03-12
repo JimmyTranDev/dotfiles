@@ -143,6 +143,12 @@ matches:
   - trigger: ";ex"
     replace: "ᐠ( ᐛ )ᐟ"
 
+  - trigger: ";ex"
+    replace: "v(T▽T)"
+
+  - trigger: ";ex"
+    replace: "ꉂꉂ(ᵔᗜᵔ*)"
+
   # Love
   - trigger: ";el"
     replace: "(˶ᵔ ᵕ ᵔ˶) ♡"
