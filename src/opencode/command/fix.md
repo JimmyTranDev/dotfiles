@@ -1,43 +1,46 @@
 ---
 name: fix
-description: Fetch PR review comments, validate which request code changes, and fix them
+description: Investigate bugs, logical errors, and cross-system issues, then fix them
 ---
 
-Fetch all review comments from the current branch's pull request, identify comments that request specific code changes, and implement the fixes.
+Usage: /fix [scope, symptom, or description]
 
-1. Get the pull request and current user in parallel:
-   - Run `gh pr view --json number,title,url,reviewDecision` to get the PR associated with the current branch
-   - Run `gh api user --jq '.login'` to get the current user's login (needed for filtering in step 3)
-   - If no PR exists for this branch, notify the user and stop
+Investigate the described problem, trace it to its root cause, and implement a fix.
 
-2. Fetch all review comments in parallel:
-   - Run `gh api repos/{owner}/{repo}/pulls/{pr_number}/comments` to get inline review comments
-   - Run `gh pr view {pr_number} --json reviews --jq '.reviews[]'` to get top-level review comments
-   - Collect all comments including author, body, path, line, and in_reply_to fields
+$ARGUMENTS
 
-3. Filter for valid comments that request code changes:
-   - **Valid**: Comments that request a specific code change (e.g., rename a variable, fix a bug, change logic, add error handling, remove unused code, update an implementation)
-   - **Invalid**: Comments that are questions, praise, acknowledgments, approvals, general discussion, or observations without a clear change request
-   - Skip comments authored by the current user (fetched in step 1)
-   - Skip comments that are replies to other comments (follow-up discussion) unless they contain a distinct code change request
-   - Present the filtered list of valid comments to the user before proceeding
+1. Understand the scope:
+   - If the user describes a symptom, error message, or unexpected behavior, start from there
+   - If the user specifies files or directories, focus investigation on those
+   - If no details are given, check `git diff`, `git diff --cached`, and recent test/build output for clues
 
-4. Implement the fixes:
-   - For each valid comment, locate the referenced file and line
-   - Understand the requested change in context of the surrounding code
-   - Apply the fix using the appropriate approach
+2. Reproduce and gather evidence (run independent commands in parallel):
+   - Run the project's test suite or build to observe failures firsthand
+   - Search for error messages, stack traces, or related patterns in the codebase
+   - Trace data flow and call chains from the symptom back toward the root cause
 
-5. Load skills and delegate to agents — maximize parallelism per the Parallelization section in AGENTS.md:
+3. Load **logic-checker** and **convention-matcher** skills in parallel, then use the logic-checker checklists to systematically scan for:
+   - Logical soundness issues (contradictions, impossible states, invalid assumptions, off-by-one errors, race conditions, missing edge cases, broken control flow)
+   - Bugs (runtime errors, logic errors, resource leaks, error handling, data integrity)
 
-   Skills to load (load all applicable in a single parallel batch before applying fixes):
-   - **convention-matcher**: Learn codebase conventions before applying any fixes
-   - **logic-checker**: Load if any fix involves business logic or conditional flows to verify correctness
+4. Delegate to the **fixer** agent with all gathered context — the fixer will:
+   - Analyze the problem across system boundaries
+   - Form and test hypotheses about root cause
+   - Narrow down to the exact source of the issue
 
-   Agents to delegate to:
-   - **fixer**: Launch multiple fixer agents in parallel for independent fixes that affect different files or non-overlapping code regions
-   - **reviewer**: Use after all fixes are applied to verify nothing was broken (sequential — depends on fixer output)
+5. Apply fixes:
+   - Implement the minimal change that addresses the root cause, not just the symptom
+   - Prioritize by severity — crashes and data corruption first, then logic errors, then edge cases
+   - Verify fixes resolve the original problem without introducing regressions
 
-6. After all fixes are applied:
-   - Run `git diff` to show the user all changes made
-   - Summarize which comments were addressed and what was changed
-   - Commit the changes using the `git-workflows` skill commit format
+6. Delegate to additional agents — maximize parallelism per the Parallelization section in AGENTS.md:
+
+   Agents to delegate to (launch independent agents in parallel after fix):
+   - **fixer**: Use for each identified bug — launch multiple fixer agents in parallel for independent bugs in different files
+   - **reviewer** + **tester**: Launch in parallel — reviewer verifies correctness while tester runs tests and adds coverage
+   - **auditor**: Launch in parallel with reviewer + tester if any issues touch security-sensitive code
+
+7. After fixing:
+   - Run the project's test suite and build to confirm fixes work
+   - Summarize each issue found: what was wrong, what the root cause was, and how it was fixed
+   - Categorize findings by severity (critical, major, minor)

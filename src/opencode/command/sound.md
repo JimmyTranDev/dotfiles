@@ -32,7 +32,7 @@ $ARGUMENTS
    Agents to delegate to (launch all applicable agents in parallel — they analyze the same feature independently):
    - **reviewer**: Analyze the feature for correctness, design issues, and potential bugs
    - **auditor**: Check for security implications if the feature handles user input, authentication, or sensitive data
-   - **solver**: Investigate any unclear cross-system interactions or complex logic paths
+   - **fixer**: Investigate any unclear cross-system interactions or complex logic paths
 
 5. Report findings:
    - Categorize each issue by severity (critical, major, minor)

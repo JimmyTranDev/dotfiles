@@ -74,10 +74,10 @@ One line. Imperative mood. Reinforces the agent's core behavior.
 When two agents overlap in scope, add a "When to Use X (vs Y)" section at the top of each:
 
 ```markdown
-## When to Use Fixer (vs Solver)
+## When to Use Fixer (vs Reviewer)
 
-**Use fixer when**: There's a specific error message, a failing test, a stack trace.
-**Use solver when**: The problem is vague, spans multiple systems, nobody knows what's wrong.
+**Use fixer when**: There's a specific error, failing test, stack trace, or vague cross-system problem to investigate.
+**Use reviewer when**: Code is complete and you want a quality review for bugs, design issues, and maintainability.
 ```
 
 ## Quality Checklist

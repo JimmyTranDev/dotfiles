@@ -27,8 +27,7 @@ Skills to load (load all applicable skills in a single parallel batch):
 
 Agents to delegate to (launch independent agents in parallel — only serialize when one depends on another's output):
 - **designer**: Use when the task describes UI component work, accessibility improvements, or frontend feature additions
-- **fixer**: Use when the task describes a bug fix — let it trace the root cause and apply the minimal surgical fix
-- **solver**: Use when the task describes a complex or multi-layered problem where the cause is unclear and deeper investigation is needed
+- **fixer**: Use when the task describes a bug fix, a complex problem with unclear root cause, or a multi-layered issue requiring investigation
 - **tester**: Use when the task mentions adding or updating tests, or after implementing a feature to ensure proper test coverage
 - **reviewer**: Use after implementation is complete to catch bugs, design issues, and maintainability problems before finalizing
 - **optimizer**: Use when the task describes performance improvements — profile and implement measurable optimizations
