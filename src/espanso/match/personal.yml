@@ -31,6 +31,14 @@ global_vars:
     type: shell
     params:
       cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_PHONE"
+  - name: phone_code
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_PHONE_CODE"
+  - name: phone_number
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_PHONE_NUMBER"
   - name: city
     type: shell
     params:
@@ -75,6 +83,14 @@ global_vars:
     type: shell
     params:
       cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_SALARY_EUR"
+  - name: monthly_salary_usd
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_MONTHLY_SALARY_USD"
+  - name: monthly_salary_eur
+    type: shell
+    params:
+      cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_MONTHLY_SALARY_EUR"
   - name: id_self
     type: shell
     params:
@@ -93,13 +109,13 @@ global_vars:
       cmd: "source $HOME/Programming/JimmyTranDev/secrets/env.sh && echo $ESPANSO_ID_NILS"
 
 matches:
-  - trigger: ";pg"
+  - trigger: ";pf"
     replace: "{{first_name}}"
-  - trigger: ";ps"
+  - trigger: ";pl"
     replace: "{{last_name}}"
   - trigger: ";pn"
     replace: "{{full_name}}"
-  - trigger: ";pn"
+  - trigger: ";pN"
     replace: "{{nationality}}"
   - trigger: ";pbw"
     replace: "{{birthday_world}}"
@@ -107,9 +123,13 @@ matches:
     replace: "{{birthday_us}}"
   - trigger: ";pe"
     replace: "{{email}}"
-  - trigger: ";pp"
+  - trigger: ";ppp"
     replace: "{{phone}}"
-  - trigger: ";pl"
+  - trigger: ";ppc"
+    replace: "{{phone_code}}"
+  - trigger: ";ppn"
+    replace: "{{phone_number}}"
+  - trigger: ";pL"
     replace: "English, Norwegian, Vietnamese, Japanese"
 
   - trigger: ";ac"
@@ -136,6 +156,10 @@ matches:
     replace: "{{salary_usd}}"
   - trigger: ";jse"
     replace: "{{salary_eur}}"
+  - trigger: ";jmu"
+    replace: "{{monthly_salary_usd}}"
+  - trigger: ";jme"
+    replace: "{{monthly_salary_eur}}"
 
   - trigger: ";id"
     replace: "{{id_self}}"
