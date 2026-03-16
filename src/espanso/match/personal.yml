@@ -169,5 +169,7 @@ matches:
     replace: "{{id_dad}}"
   - trigger: ";in"
     replace: "{{id_nils}}"
+  - trigger: ";b"
+    replace: "Designing Data-Intensive Applications"
   - trigger: ";ja"
     replace: "Software Engineer with 6+ years delivering scalable web and mobile solutions across fintech and edtech. Full-stack expertise in TypeScript, JavaScript, Go, Python, and Dart. Founded two startups, shipping products end-to-end from architecture to deployment. Leverages AI-augmented workflows with LLM APIs, AI CLI tools, and a custom Neovim environment to maximize productivity. I think I have a lot to offer for this job!"
