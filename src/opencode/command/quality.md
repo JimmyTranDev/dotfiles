@@ -43,3 +43,10 @@ $ARGUMENTS
    - Run the project's test suite and build to confirm nothing is broken
    - Summarize each refactoring applied: what the code smell was, which principle was applied, and how it improved the codebase
    - List any follow-up refactoring opportunities that were out of scope but worth noting
+
+7. Add follow-up items to `TODO.md` at the project root:
+   - If `TODO.md` does not exist, create it with a `# TODO` heading
+   - If it exists, read its current contents and avoid adding duplicates (case-insensitive match)
+   - Append each follow-up refactoring opportunity as `- [ ] <description> [quality]`
+   - Preserve all existing content and formatting
+   - Report how many items were added and how many were skipped as duplicates
