@@ -35,11 +35,11 @@ $ARGUMENTS
    - Within each category, rank by impact-to-effort ratio (quick wins first, then high-impact projects)
    - Highlight the top 3 "best bang for buck" ideas across all categories
 
-5. Add ideas to `TODO.md` at the project root:
-   - If `TODO.md` does not exist, create it with a `# TODO` heading
+5. Add ideas to `IMPROVEMENTS.md` at the project root:
+   - If `IMPROVEMENTS.md` does not exist, create it with a `# IMPROVEMENTS` heading
    - If it exists, read its current contents and avoid adding duplicates (case-insensitive match)
    - Append each idea as `- [ ] <idea name> — <1-sentence description> [effort: <effort>, impact: <impact>]`
    - Preserve all existing content and formatting
    - Report how many items were added and how many were skipped as duplicates
 
-Do not apply code changes. Present ideas and add them to `TODO.md` so the user can decide what to build next.
+Do not apply code changes. Present ideas and add them to `IMPROVEMENTS.md` so the user can decide what to build next.
