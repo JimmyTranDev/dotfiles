@@ -52,6 +52,7 @@ if command -v pacman >/dev/null 2>&1; then
 		ffmpegthumbnailer
 		imagemagick
 		jq
+		ntfs-3g
 		unarchiver
 		yazi
 
