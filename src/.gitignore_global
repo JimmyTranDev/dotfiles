@@ -1,2 +1,8 @@
 copilot-instructions.md
 AGENTS.md
+
+.project
+.classpath
+.settings/
+.factorypath
+*.launch
