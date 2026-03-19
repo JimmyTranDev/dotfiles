@@ -62,6 +62,7 @@ alias g='rg'
 alias n='nvim'
 alias y='yazi'
 alias z='zellij'
+alias i='brew bundle --file=$DOTFILES_DIR/src/Brewfile --cleanup'
 alias k="$DOTFILES_DIR/etc/scripts/kill_port.sh"
 alias js="$DOTFILES_DIR/etc/scripts/sdk_select.sh"
 alias ji="$DOTFILES_DIR/etc/scripts/sdk_install.sh"
