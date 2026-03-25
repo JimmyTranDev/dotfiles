@@ -23,6 +23,10 @@
     "mobile-mcp": {
       "type": "local",
       "command": ["npx", "-y", "@mobilenext/mobile-mcp@latest"]
+    },
+    "stitch": {
+      "type": "local",
+      "command": ["npx", "-y", "@_davideast/stitch-mcp", "proxy"]
     }
   }
 }
