@@ -74,11 +74,17 @@ select_project() {
 	[[ -f "$last_proj_file" ]] && last_proj=$(<"$last_proj_file")
 
 	local all_projects=()
-	if [[ -d "$PROGRAMMING_DIR" ]]; then
-		while IFS= read -r -d '' dir; do
-			all_projects+=("${dir##*/}")
-		done < <(find "$PROGRAMMING_DIR" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
-	fi
+	while IFS= read -r org_dir; do
+		[[ ! -d "$org_dir" ]] && continue
+		local org_name="${org_dir%/}"
+		org_name="${org_name##*/}"
+		for dir in "$org_dir"/*/; do
+			[[ -d "$dir" ]] || continue
+			local dirname="${dir%/}"
+			dirname="${dirname##*/}"
+			all_projects+=("$org_name/$dirname")
+		done
+	done < <(get_org_dirs "$PROGRAMMING_DIR")
 
 	if [[ ${#all_projects[@]} -eq 0 ]]; then
 		print_color red "No projects found in $PROGRAMMING_DIR"
