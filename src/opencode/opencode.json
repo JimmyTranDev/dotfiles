@@ -18,15 +18,31 @@
     },
     "Browser": {
       "type": "local",
-      "command": ["npx", "-y", "@browsermcp/mcp@latest"]
+      "command": [
+        "npx",
+        "-y",
+        "@browsermcp/mcp@latest"
+      ]
     },
     "mobile-mcp": {
       "type": "local",
-      "command": ["npx", "-y", "@mobilenext/mobile-mcp@latest"]
+      "command": [
+        "npx",
+        "-y",
+        "@mobilenext/mobile-mcp@latest"
+      ]
     },
     "stitch": {
       "type": "local",
-      "command": ["npx", "-y", "@_davideast/stitch-mcp", "proxy"]
+      "command": [
+        "npx",
+        "-y",
+        "@_davideast/stitch-mcp",
+        "proxy"
+      ],
+      "environment": {
+        "STITCH_API_KEY": "{file:~/Programming/JimmyTranDev/secrets/stitch-api-key}"
+      }
     }
   }
 }
