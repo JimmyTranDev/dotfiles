@@ -144,7 +144,6 @@ select_project() {
   fi
 }
 zle -N select_project
-bindkey '^f' select_project
 
 select_worktree() {
   local base_dir="$HOME/Programming/Worktrees"
@@ -181,8 +180,6 @@ select_worktree() {
   fi
 }
 zle -N select_worktree
-bindkey '^g' select_worktree
-
 if command -v starship >/dev/null 2>&1; then
   eval "$(starship init zsh)"
 fi
@@ -194,6 +191,9 @@ fi
 if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh)"
 fi
+
+bindkey '^f' select_project
+bindkey '^g' select_worktree
 
 zellij_tab_name_update() {
   if [[ -n $ZELLIJ ]]; then
