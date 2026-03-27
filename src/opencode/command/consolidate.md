@@ -14,7 +14,7 @@ $ARGUMENTS
    - If the user describes a pattern or area, search the codebase to locate it
    - If no scope is given, analyze the current working directory recursively
 
-2. Load the **consolidator** and **convention-matcher** skills in parallel, then scan for over-separation smells — use the decision tree and smell table from the **consolidator** skill:
+2. Load the **consolidator** and **follower** skills in parallel, then scan for over-separation smells — use the decision tree and smell table from the **consolidator** skill:
    - Thin files (< 20 lines of logic)
    - Single-use wrappers and trivial abstractions
    - Pass-through layers that add no transformation

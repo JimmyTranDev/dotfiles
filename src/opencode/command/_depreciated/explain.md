@@ -21,7 +21,7 @@ $ARGUMENTS
    - Reference specific line numbers and file paths
 
 3. Load applicable skills in parallel:
-   - **convention-matcher**: Load if explaining why code is structured a certain way
+   - **follower**: Load if explaining why code is structured a certain way
    - **logic-checker**: Load if the code contains complex conditional flows or state management worth annotating
 
 Keep explanations concise and focused on the "why" behind the code, not just restating what each line does.

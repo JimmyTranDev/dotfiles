@@ -16,7 +16,7 @@ Usage: /test [scope]
    - Run tests and capture output
    - If tests fail, categorize failures by type (logic error, missing mock, stale snapshot, etc.)
 
-3. Load **convention-matcher** skill, then delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
+3. Load **follower** skill, then delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
    Agents to delegate to:
    - **tester** + **fixer**: If there are both test coverage gaps and source code bugs causing failures, launch tester (for writing new tests) and fixer (for source code bugs) in parallel since they address independent problems

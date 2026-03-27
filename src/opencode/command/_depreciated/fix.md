@@ -19,7 +19,7 @@ $ARGUMENTS
    - Search for error messages, stack traces, or related patterns in the codebase
    - Trace data flow and call chains from the symptom back toward the root cause
 
-3. Load **logic-checker** and **convention-matcher** skills in parallel, then use the logic-checker checklists to systematically scan for:
+3. Load **logic-checker** and **follower** skills in parallel, then use the logic-checker checklists to systematically scan for:
    - Logical soundness issues (contradictions, impossible states, invalid assumptions, off-by-one errors, race conditions, missing edge cases, broken control flow)
    - Bugs (runtime errors, logic errors, resource leaks, error handling, data integrity)
 

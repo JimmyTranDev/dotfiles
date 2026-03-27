@@ -1,5 +1,5 @@
 ---
-name: convention-matcher
+name: follower
 description: Checklist for learning existing codebase conventions and ensuring new code matches established patterns exactly
 ---
 

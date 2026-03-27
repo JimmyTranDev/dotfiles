@@ -15,7 +15,7 @@ $ARGUMENTS
    - If no scope is given, analyze recent changes via `git diff` and `git log --oneline -20` against the base branch (prefer `develop`, fall back to `main`)
    - Run tests or build commands if available to establish a working baseline before making changes
 
-2. Load the **convention-matcher**, **simplifier**, and **deduplicator** skills in parallel, then scan for user-focused improvement opportunities across these categories:
+2. Load the **follower**, **simplifier**, and **deduplicator** skills in parallel, then scan for user-focused improvement opportunities across these categories:
    - **User experience**: confusing workflows, missing feedback, unclear error messages, inconsistent behavior, slow interactions
    - **Reliability**: unhandled edge cases, silent failures, missing validation, data loss scenarios, race conditions users could trigger
    - **Performance users feel**: slow page loads, unresponsive UI, laggy interactions, unnecessary loading states, expensive operations blocking the main thread

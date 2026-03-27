@@ -17,7 +17,7 @@ $ARGUMENTS
 After understanding the intent, load relevant skills and delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
 Skills to load (load all applicable skills in a single parallel batch):
-- **convention-matcher**: Always load to study existing codebase conventions (naming, imports, file structure, patterns) so all new code matches the established style
+- **follower**: Always load to study existing codebase conventions (naming, imports, file structure, patterns) so all new code matches the established style
 - **file-organizer**: Load when the task describes adding new modules, reorganizing files, or restructuring project layout
 - **logic-checker**: Load when the task involves business logic, state machines, or complex conditional flows to verify logical soundness and catch impossible states
 - **deduplicator**: Load when the task describes extracting shared utilities or reducing duplication across the codebase
@@ -35,7 +35,7 @@ Agents to delegate to (launch independent agents in parallel — only serialize 
 
 Workflow:
 1. Analyze the prompt to categorize the type of work (feature, fix, refactor, test, security, performance, etc.)
-2. Load all applicable skills in parallel (always include **convention-matcher**, add others based on task type)
+2. Load all applicable skills in parallel (always include **follower**, add others based on task type)
 3. Implement the changes in the current working directory, delegating to the appropriate specialized agents based on the work type — launch independent agents in parallel
 4. Run post-implementation agents in parallel where independent (e.g., **reviewer** + **auditor** together, **tester** + **optimizer** together)
 5. If the reviewer surfaces problems, use the **fixer** agent to address them (sequential — depends on reviewer output)

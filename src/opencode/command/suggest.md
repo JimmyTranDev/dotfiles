@@ -25,7 +25,7 @@ $ARGUMENTS
    - Tailor suggestions to the project's existing patterns, stack, and conventions
 
 3. Load applicable skills in parallel based on the topic:
-   - **convention-matcher**: Load when suggestions involve writing new code to ensure they align with existing patterns
+   - **follower**: Load when suggestions involve writing new code to ensure they align with existing patterns
    - **logic-checker**: Load when suggestions involve complex decisions or architectural tradeoffs
 
 4. Delegate to specialized agents where applicable — maximize parallelism per the Parallelization section in AGENTS.md:

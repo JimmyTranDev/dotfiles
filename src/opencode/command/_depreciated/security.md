@@ -25,7 +25,7 @@ Usage: /security [scope]
    - Explain the attack vector
    - Provide an exact code fix
 
-4. Load **convention-matcher** skill to ensure fixes match codebase conventions, then delegate to agents — maximize parallelism per the Parallelization section in AGENTS.md:
+4. Load **follower** skill to ensure fixes match codebase conventions, then delegate to agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
    Agents to delegate to:
    - **fixer**: Apply the security fixes to the codebase — launch multiple fixer agents in parallel for independent vulnerabilities in different files

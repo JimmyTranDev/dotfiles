@@ -14,7 +14,7 @@ $ARGUMENTS
    - If the user describes an area or pattern, search the codebase to locate the relevant code
    - Run tests or build commands if available to establish a working baseline before making changes
 
-2. Load all applicable skills in parallel (**convention-matcher**, **simplifier**, **deduplicator**, and optionally **import-optimizer**, **consolidator**, and **logic-checker**), then analyze the code for internal quality issues across these categories:
+2. Load all applicable skills in parallel (**follower**, **simplifier**, **deduplicator**, and optionally **import-optimizer**, **consolidator**, and **logic-checker**), then analyze the code for internal quality issues across these categories:
    - **Naming clarity**: vague variable/function names, inconsistent naming conventions, misleading identifiers
    - **Function design**: functions doing too much, unclear responsibilities, deeply nested logic, high cyclomatic complexity
    - **Duplication**: repeated patterns, copy-pasted logic, similar implementations that should be unified via DRY
