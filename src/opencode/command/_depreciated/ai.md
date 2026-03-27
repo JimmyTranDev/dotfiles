@@ -23,10 +23,7 @@ $ARGUMENTS
    - Is it a **specialized role** that needs independent reasoning? -> **Agent**
    - If unclear, ask the user to clarify
 
-2. Load the appropriate authoring skill:
-   - Command -> load **command-authoring** skill
-   - Skill -> load **skill-authoring** skill
-   - Agent -> load **agent-authoring** skill
+2. Load the **opencode-authoring** skill, then follow the section matching the determined type (Agents, Commands, or Skills)
 
 3. Check for conflicts:
    - Search existing commands, skills, and agents for overlapping names or functionality
