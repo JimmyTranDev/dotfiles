@@ -3,7 +3,7 @@ name: simplifier
 description: Comprehensive refactoring and simplification guide with code smell detection, systematic patterns, complexity reduction strategies, and safe incremental transformation techniques
 ---
 
-Simplify complex code using DRY, KISS, and YAGNI. Every change preserves behavior while reducing complexity. Safe, incremental changes only.
+Simplify complex code by reducing complexity. Every change preserves behavior. Safe, incremental changes only.
 
 ## Code Smell Detection
 
@@ -31,48 +31,10 @@ Simplify complex code using DRY, KISS, and YAGNI. Every change preserves behavio
 | Inappropriate intimacy | Modules reaching into each other's internals | Define clean interfaces |
 | Data clumps | Same group of variables passed together | Extract into a type |
 
-## Core Principles
-
-### DRY (Don't Repeat Yourself)
-
-```typescript
-const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-const validateUserEmail = (user: User) => isValidEmail(user.email)
-```
-
-### KISS (Keep It Simple)
-
-```typescript
-// over-engineered
-class UserServiceFactory {
-  static createService(config: Config): UserService { ... }
-}
-
-// simple
-const createUserService = (db: Database) => ({
-  getUser: (id: string) => db.query('SELECT * FROM users WHERE id = ?', [id])
-})
-```
-
-### YAGNI (You Aren't Gonna Need It)
-
-```typescript
-// before: speculative fields
-interface User {
-  id: string
-  name: string
-  futureField1?: string
-  metadata?: Record<string, unknown>
-}
-
-// after: only what's needed now
-interface User {
-  id: string
-  name: string
-}
-```
-
 ## Refactoring Patterns
+
+For DRY extraction patterns (3+ occurrences), see the `deduplicator` skill.
+For inlining trivial abstractions and removing pass-through layers, see the `consolidator` skill.
 
 ### Extract Function
 

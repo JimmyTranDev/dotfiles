@@ -88,4 +88,3 @@ When two agents overlap in scope, add a "When to Use X (vs Y)" section at the to
 - [ ] Code examples use realistic patterns from actual codebases
 - [ ] "What You Don't Do" prevents scope creep into other agents
 - [ ] No duplication of content that belongs in skills (module structure, naming conventions, etc.)
-- [ ] No comments in code examples

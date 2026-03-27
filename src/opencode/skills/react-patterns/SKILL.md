@@ -1,6 +1,6 @@
 ---
 name: react-patterns
-description: React component conventions including styling with Tailwind, hook patterns, state management, and accessibility
+description: React component conventions including styling with Tailwind, hook patterns, state management, and performance
 ---
 
 ## Component Structure
@@ -51,17 +51,6 @@ className={cn(
 - Always include cleanup in `useEffect` return
 - Specify dependency arrays explicitly — never lie about deps
 - Prefer `useMemo`/`useCallback` only when needed (expensive computations, stable references for children)
-
-## Accessibility
-
-- Semantic HTML: `nav`, `main`, `article`, `section`, `aside`
-- Proper heading hierarchy (h1 -> h2 -> h3, never skip)
-- Form controls with associated `<label>` elements
-- Keyboard navigation: Tab, Enter, Escape, Arrow keys
-- Focus management: trap in modals, restore on close
-- ARIA attributes: `aria-label`, `aria-expanded`, `aria-invalid`, `aria-describedby`
-- Color contrast: 4.5:1 for text, 3:1 for large text
-- `@media (prefers-reduced-motion)` for animations
 
 ## Form Patterns
 

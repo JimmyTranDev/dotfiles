@@ -75,7 +75,7 @@ This file contains repo-specific context:
 | Content | Where It Belongs |
 |---------|-----------------|
 | Commit message format, emoji mapping | `git-workflows` skill |
-| Programming patterns, error handling | `conventions` skill |
+| Programming patterns, error handling | `code-style-guide` skill |
 | React component conventions | `react-patterns` skill |
 | Shell scripting conventions | `shell-scripting` skill |
 | File organization rules | `file-organizer` skill |

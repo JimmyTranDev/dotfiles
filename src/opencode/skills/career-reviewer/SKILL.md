@@ -46,31 +46,18 @@ Read everything before suggesting. Look for: missed opportunities, weak framing 
 
 ## Rewriting Rules
 
-**Achievement Formula: Action Verb + What You Did + Quantified Result**
+Use the bullet point formula, action verb tiers, quantification strategies, cover letter structure, and regional conventions from the `job-application` skill.
 
-- "Responsible for mortgage flows" -> "Redesigned mortgage application flows, increasing conversion by 23%"
-- "Worked on dashboards" -> "Built management dashboards used by 50+ advisors, reducing handling time by 35%"
-
-When numbers aren't available, coach: approximate > nothing, tie to business impact, show you track outcomes.
-
-**Action Verb Upgrades**: "worked on" -> architected/delivered, "helped with" -> drove/spearheaded, "responsible for" -> owned/led, "used" -> leveraged/deployed
+Key rewriting principles:
+- **Achievement Formula**: Action Verb + What You Did + Quantified Result
+- When numbers aren't available: approximate > nothing, tie to business impact
+- Enhance the user's voice — never replace it
 
 ## LinkedIn-Specific
 
 **Headline**: [Title] | [Differentiator] | [Key Skills] — treat it like SEO
 **About**: Hook in first 2 lines (before "see more"), then what you do, achievements with numbers, what you want, CTA
 **vs Resume**: Longer, conversational, first-person, include personality
-
-## Cover Letter Rules
-
-Never open with "I am writing to express..." — lead with a specific result or company insight.
-Structure: Hook + why this company -> Most relevant achievement -> Second angle -> Fit signal + CTA
-
-## Regional Conventions
-
-**US/Canada**: No photo/age, 1 page (<10yr), "resume" not "CV"
-**Europe/Nordics**: Photo common, 2 pages OK, "CV" standard, include languages
-**Remote**: Emphasize timezone flexibility, async skills, remote experience
 
 ## What to Avoid
 

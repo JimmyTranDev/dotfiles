@@ -5,7 +5,7 @@ description: Cross-language coding standards including naming, formatting, archi
 
 ## Core Rules
 
-1. **No comments** — write self-documenting code with clear variable names, function names, and code structure. Comments clutter code, become outdated, and can mislead.
+1. **No comments** — write self-documenting code with clear variable names, function names, and code structure.
 2. **Minimum code** — write the smallest amount of readable code necessary to satisfy the requirement.
 3. **Match existing style** — follow the conventions already in the codebase. Don't introduce new patterns.
 4. **No generated documentation** — don't create README, docs, or markdown files unless explicitly asked.
@@ -31,43 +31,13 @@ description: Cross-language coding standards including naming, formatting, archi
 | Functions | `lowercase_snake` | `get_org_dirs`, `cmd_create` |
 | Exported env vars | `UPPERCASE_SNAKE` | `MANPAGER`, `FZF_DEFAULT_OPTS` |
 
-### Git
-| Thing | Format | Example |
-|-------|--------|---------|
-| Commit messages | `<emoji> <type>(<scope>): <desc>` | `✨ feat(auth): add login flow` |
-| Branch names | `JIRA-ID-kebab-case` | `BW-123-add-login` |
+## TypeScript Conventions
 
-## File Organization
-
-### TypeScript Projects
-Split modules into up to 6 files:
-- `index.ts` — main logic & public exports
-- `types.ts` — TypeScript types/interfaces (no runtime code)
-- `consts.ts` — constants & configuration
-- `utils.ts` — pure utility functions
-- `classes.ts` — class definitions
-- `hooks.ts` — React hooks
-
-### Shell Projects
-```
-scripts/
-  common/       # Shared libraries (sourced, not run directly)
-  install/      # Platform-specific installers
-  worktrees/    # Full CLI tool with modular architecture
-    worktree    # Entry point (no .sh extension)
-    config.sh   # Constants
-    lib/        # Reusable modules
-    commands/   # Subcommand implementations
-  *.sh          # Standalone scripts
-```
-
-## Styling
-
-- **Tailwind CSS** utility classes over custom CSS
-- Mobile-first responsive: base -> `md:` -> `lg:`
-- Use `cn()` for conditional class merging
-- No inline `style` except dynamic values
-- **Catppuccin Mocha** as the unified theme across all tools
+- Use strict null handling — always handle `null`/`undefined` cases
+- Prefer `const` over `let`, never use `var`
+- Prefer arrow functions for callbacks and simple functions
+- Use template literals over string concatenation
+- Avoid nested `else if` chains — use early returns, guard clauses, or `switch`
 
 ## Architecture Preferences
 
@@ -78,28 +48,28 @@ scripts/
 - **Small, focused functions** — each does one thing
 - **Derive state** — never duplicate data that can be computed
 - **Direct imports** over barrel file re-exports when possible
+- **Catppuccin Mocha** as the unified theme across all tools
 
-## Error Handling
+## Project Setup Preferences
 
-### TypeScript
-- Throw for exceptional cases, result types for expected failures
-- Always handle async errors
-- Never swallow errors silently
-- Meaningful error messages
+- **Package manager**: Prefer `pnpm` for projects, `bun` for scripts/tooling
+- **Bundler**: Vite preferred
+- **Linting**: ESLint + Prettier or Biome
+- **Testing**: Vitest preferred
 
-### Shell
-- `set -e` for standalone scripts
-- `command -v` for tool existence (never `which`)
-- Inline `|| { error; return 1 }` for sourced libraries
-- `trap` for cleanup
+## Domain-Specific Details
 
-## Testing
+For detailed conventions on specific domains, load the relevant skill:
 
-- Test behavior, not implementation
-- Descriptive test names: "applies 20% discount for orders over $100"
-- AAA pattern: Arrange, Act, Assert
-- Mock external dependencies, not your own code
-- Prefer Vitest for TypeScript projects
+| Domain | Skill |
+|--------|-------|
+| File organization (6-file structure) | `file-organizer` |
+| Shell scripting (error handling, patterns) | `shell-scripting` |
+| Git commits, branches, PRs | `git-workflows` |
+| React components, styling, hooks | `react-patterns` |
+| Testing patterns, coverage | `test-coverage` |
+| Accessibility | `accessibility` |
+| Animations | `ux-ui-animator` |
 
 ## What to Avoid
 
@@ -110,5 +80,3 @@ scripts/
 - Copy-pasting code (extract shared utilities)
 - Barrel files that cause circular dependencies
 - Inline styles in React components
-- `var` in JavaScript
-- `which` in shell scripts

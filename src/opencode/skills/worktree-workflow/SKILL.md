@@ -23,9 +23,7 @@ Use worktrees when the user explicitly mentions worktrees, asks to work in isola
 git worktree add ~/Programming/Worktrees/<branch-name> -b <branch-name>
 ```
 
-- Detect the base branch: check for `develop` first (local or `origin/develop`), fall back to `main`
-- Branch name: short kebab-case description (e.g., `add-dark-mode-toggle`, `fix-auth-race-condition`)
-- JIRA ticket format: `ABC-123-short-description`
+- Base branch and branch naming conventions follow the `git-workflows` skill
 
 ### 2. Work in the Worktree
 

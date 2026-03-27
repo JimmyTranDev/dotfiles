@@ -114,4 +114,3 @@ Use `##` headers to organize by topic. Common patterns:
 - [ ] No duplication of content from other skills
 - [ ] Examples use realistic code, not toy examples
 - [ ] Tables and code blocks preferred over prose
-- [ ] No comments in code examples
