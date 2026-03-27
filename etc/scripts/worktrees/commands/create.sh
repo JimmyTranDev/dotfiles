@@ -115,15 +115,15 @@ cmd_create() {
 
 	print_color green "Selected commit type: $commit_type"
 
-	local worktree_dir="$WORKTREES_DIR/$branch_name"
+	local worktree_dir="$WCREATED_DIR/$branch_name"
 
 	if [[ -d "$worktree_dir" ]]; then
 		print_color red "Error: Worktree directory already exists: $worktree_dir"
 		return 1
 	fi
 
-	mkdir -p "$WORKTREES_DIR" || {
-		print_color red "Error: Could not create worktrees directory: $WORKTREES_DIR"
+	mkdir -p "$WCREATED_DIR" || {
+		print_color red "Error: Could not create worktrees directory: $WCREATED_DIR"
 		return 1
 	}
 

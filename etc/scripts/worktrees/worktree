@@ -39,21 +39,26 @@ COMMANDS:
   create [jira-ticket] [repo] Create a new worktree
                           Prompts to select repository from ~/Programming org directories if not specified
                           Then prompts for JIRA ticket if not provided
-                           Creates worktree in ~/Programming/Worktrees with empty initial commit
+                          Creates worktree in ~/Programming/wcreated with empty initial commit
                           Automatically installs dependencies if package.json exists
+                          Deleting a created worktree also deletes its remote branch
                           Examples:
                             worktree create ABC-123 my-repo
                             worktree create ABC-123 (interactive repo selection)
                             worktree create (interactive)
 
   checkout [branch]        Checkout existing remote branch as worktree
+                          Creates worktree in ~/Programming/wcheckout
                           If no branch provided, shows fzf selector
+                          Deleting a checkout worktree preserves the remote branch
                           Examples:
                             worktree checkout feature/new-feature
                             worktree checkout (interactive)
 
   delete [pattern]         Delete worktree(s)
                           If no pattern provided, shows fzf selector
+                          Created worktrees: deletes remote branch automatically
+                          Checkout worktrees: preserves remote branch
                           Examples:
                             worktree delete ABC-123
                             worktree delete (interactive)
@@ -72,30 +77,22 @@ GLOBAL OPTIONS:
   -v, --version           Show version information
 
 ENVIRONMENT:
-  WORKTREES_DIR           Directory for worktrees (default: ~/worktrees)
-  JIRA_PATTERN           Regex pattern for JIRA tickets (default: [A-Z]+-[0-9]+)
+  WCREATED_DIR            Directory for created worktrees (default: ~/Programming/wcreated)
+  WCHECKOUT_DIR           Directory for checkout worktrees (default: ~/Programming/wcheckout)
+  JIRA_PATTERN            Regex pattern for JIRA tickets (default: [A-Z]+-[0-9]+)
 
 EXAMPLES:
-  # Create worktree for JIRA ticket (will prompt for repository selection)
   worktree create ABC-123
-
-  # Interactive creation (prompts for JIRA ticket and repository)
   worktree create
-
-  # Checkout existing branch
   worktree checkout feature/new-login
-
-  # Clean all repositories
   worktree clean
-
-  # Rename current branch with JIRA integration
   worktree rename
 
 WORKFLOW:
   1. Run 'worktree create [ticket] [repo]'
-   2. Select repository from ~/Programming org directories (if not provided)
+  2. Select repository from ~/Programming org directories (if not provided)
   3. Enter JIRA ticket or branch name (if not provided)
-   4. Worktree created in ~/Programming/Worktrees/[branch-name]
+  4. Worktree created in ~/Programming/wcreated/[branch-name]
   5. Empty initial commit created with branch name
   6. Navigate to new worktree directory
   7. Install dependencies automatically (if package.json exists)

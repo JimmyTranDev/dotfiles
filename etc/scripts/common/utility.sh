@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROGRAMMING_EXCLUDED_DIRS=("Worktrees" "secrets")
+PROGRAMMING_EXCLUDED_DIRS=("Worktrees" "wcreated" "wcheckout" "secrets")
 
 get_org_dirs() {
 	local programming_dir="${1:-$HOME/Programming}"

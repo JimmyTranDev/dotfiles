@@ -54,6 +54,7 @@ alias wu='$DOTFILES_DIR/etc/scripts/worktrees/worktree update'
 
 alias nvm='fnm'
 alias a='eval "$(poetry env activate)"'
+alias e='zellij'
 alias d="$DOTFILES_DIR/etc/scripts/common/git_diff_commits.sh"
 alias c='clear'
 alias e='exit'
@@ -61,7 +62,6 @@ alias o='opencode'
 alias g='rg'
 alias n='nvim'
 alias y='yazi'
-alias z='zellij'
 alias i='brew bundle --file=$DOTFILES_DIR/src/Brewfile --cleanup'
 alias k="$DOTFILES_DIR/etc/scripts/kill_port.sh"
 alias js="$DOTFILES_DIR/etc/scripts/sdk_select.sh"
@@ -146,18 +146,23 @@ select_project() {
 zle -N select_project
 
 select_worktree() {
-  local base_dir="$HOME/Programming/Worktrees"
+  local created_dir="$HOME/Programming/wcreated"
+  local checkout_dir="$HOME/Programming/wcheckout"
   local last_file="$HOME/.last_worktree"
   local last_sel=""
   [[ -f "$last_file" ]] && last_sel=$(<"$last_file")
 
   local items=()
-  while IFS= read -r line; do
-    [[ -n "$line" ]] && items+=("$line")
-  done < <(find_git_worktrees_categorized "$base_dir" 3)
+  for dir in "$created_dir" "$checkout_dir"; do
+    [[ ! -d "$dir" ]] && continue
+    local tag="${dir##*/}"
+    while IFS= read -r line; do
+      [[ -n "$line" ]] && items+=("[$tag] $line")
+    done < <(find_git_worktrees "$dir" 2)
+  done
 
   if [[ ${#items[@]} -eq 0 ]]; then
-    echo "No worktrees found in $base_dir"
+    zle -M "No worktrees found"
     return 1
   fi
 
@@ -173,9 +178,11 @@ select_worktree() {
   selected=$(printf "%s\n" "${sorted_items[@]}" | fzf --prompt="Select worktree: ")
   if [[ -n "$selected" ]]; then
     echo "$selected" > "$last_file"
-    local path="${selected#*] }"
-    path="${path# }"
-    cd "$base_dir/$path"
+    local tag="${selected%%]*}"
+    tag="${tag#\[}"
+    local wt_path="${selected#*] }"
+    wt_path="${wt_path# }"
+    cd "$HOME/Programming/$tag/$wt_path"
     zle reset-prompt
   fi
 }

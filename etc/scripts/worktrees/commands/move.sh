@@ -13,16 +13,16 @@ cmd_move() {
 	local dest_path="$2"
 
 	if [[ -z "$source_path" ]]; then
-		if [[ ! -d "$WORKTREES_DIR" ]]; then
-			print_color red "Worktrees directory $WORKTREES_DIR does not exist"
-			return 1
-		fi
-
-		local available_worktrees
-		available_worktrees=($(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d | sort))
+		local available_worktrees=()
+		for dir in "$WCREATED_DIR" "$WCHECKOUT_DIR"; do
+			[[ ! -d "$dir" ]] && continue
+			while IFS= read -r wt; do
+				[[ -n "$wt" ]] && available_worktrees+=("$wt")
+			done < <(find "$dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
+		done
 
 		if [[ ${#available_worktrees[@]} -eq 0 ]]; then
-			print_color red "No worktrees found in $WORKTREES_DIR"
+			print_color red "No worktrees found"
 			return 1
 		fi
 
@@ -86,5 +86,4 @@ cmd_move() {
 	}
 
 	print_color green "Successfully moved worktree to: $dest_path"
-	print_color cyan "You can now access the worktree at the new location."
 }

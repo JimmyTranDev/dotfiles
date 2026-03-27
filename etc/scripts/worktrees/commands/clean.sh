@@ -7,16 +7,25 @@ cmd_clean_worktrees() {
 		return 1
 	fi
 
-	if [[ ! -d "$WORKTREES_DIR" ]]; then
-		print_color red "Worktrees directory $WORKTREES_DIR does not exist"
+	local all_worktree_dirs=()
+	for dir in "$WCREATED_DIR" "$WCHECKOUT_DIR"; do
+		[[ -d "$dir" ]] && all_worktree_dirs+=("$dir")
+	done
+
+	if [[ ${#all_worktree_dirs[@]} -eq 0 ]]; then
+		print_color red "No worktree directories found"
 		return 1
 	fi
 
-	local available_worktrees
-	available_worktrees=($(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d | sort))
+	local available_worktrees=()
+	for dir in "${all_worktree_dirs[@]}"; do
+		while IFS= read -r wt; do
+			[[ -n "$wt" ]] && available_worktrees+=("$wt")
+		done < <(find "$dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
+	done
 
 	if [[ ${#available_worktrees[@]} -eq 0 ]]; then
-		print_color green "No worktrees found in $WORKTREES_DIR"
+		print_color green "No worktrees found"
 		return 0
 	fi
 
@@ -123,7 +132,7 @@ cmd_clean_worktrees() {
 	done
 
 	print_color green "===================="
-	print_color green "✅ Cleanup Complete"
+	print_color green "Cleanup Complete"
 	print_color green "===================="
 	print_color green "Deleted $success_count out of $total_count merged worktrees."
 }

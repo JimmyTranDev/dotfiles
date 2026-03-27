@@ -35,12 +35,12 @@ cmd_checkout() {
 
 	local local_branch="$branch_sel"
 
-	mkdir -p "$WORKTREES_DIR"
+	mkdir -p "$WCHECKOUT_DIR"
 
 	local folder_name
 	folder_name=$(get_folder_name_from_branch "$local_branch") || return 1
 
-	local worktree_path="$WORKTREES_DIR/${folder_name}"
+	local worktree_path="$WCHECKOUT_DIR/${folder_name}"
 
 	if [[ -d "$worktree_path" ]]; then
 		print_color yellow "Worktree already exists at: $worktree_path"

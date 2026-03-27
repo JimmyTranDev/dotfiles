@@ -6,6 +6,13 @@ select_fzf_multi() {
 	[[ $# -gt 0 ]] && printf "%s\n" "$@" | fzf --multi --prompt="$prompt" || fzf --multi --prompt="$prompt"
 }
 
+is_wcreated_worktree() {
+	local worktree_path="$1"
+	local resolved_wt="${worktree_path:A}"
+	local resolved_created="${WCREATED_DIR:A}"
+	[[ "$resolved_wt" == "$resolved_created"/* ]]
+}
+
 delete_single_worktree() {
 	local worktree_path="$1"
 	local original_dir="$PWD"
@@ -19,6 +26,11 @@ delete_single_worktree() {
 		return 1
 	fi
 
+	local delete_remote=false
+	if is_wcreated_worktree "$worktree_path"; then
+		delete_remote=true
+	fi
+
 	if [[ ! -f "$worktree_path/.git" ]]; then
 		print_color yellow "Warning: $worktree_path does not have a .git file (corrupted worktree)"
 		print_color yellow "Force removing directory $worktree_path..."
@@ -26,7 +38,7 @@ delete_single_worktree() {
 			print_color red "Error: Failed to remove directory $worktree_path"
 			return 1
 		}
-		print_color green "✅ Successfully removed corrupted worktree directory."
+		print_color green "Successfully removed corrupted worktree directory."
 		return 0
 	fi
 
@@ -137,27 +149,25 @@ delete_single_worktree() {
 
 		if git show-ref --verify --quiet "refs/heads/$branch_name"; then
 			if git branch -D "$branch_name" 2>/dev/null; then
-				print_color green "✅ Successfully deleted local branch: $branch_name"
+				print_color green "Successfully deleted local branch: $branch_name"
 			else
-				print_color red "❌ Failed to delete local branch: $branch_name"
+				print_color red "Failed to delete local branch: $branch_name"
 			fi
 		else
 			print_color yellow "Branch '$branch_name' does not exist locally (may have been already deleted)"
 		fi
 
-		if git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
-			print_color yellow "Remote branch origin/$branch_name exists. Delete it? (y/N)"
-			local confirm_remote
-			read -r confirm_remote
-			if [[ "$confirm_remote" == "y" || "$confirm_remote" == "Y" ]]; then
+		if [[ "$delete_remote" == true ]]; then
+			if git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
+				print_color yellow "Deleting remote branch origin/$branch_name (created worktree)..."
 				if git push origin --delete "$branch_name" 2>/dev/null; then
-					print_color green "✅ Successfully deleted remote branch: origin/$branch_name"
+					print_color green "Successfully deleted remote branch: origin/$branch_name"
 				else
-					print_color red "❌ Failed to delete remote branch: origin/$branch_name"
+					print_color red "Failed to delete remote branch: origin/$branch_name"
 				fi
-			else
-				print_color yellow "Skipped remote branch deletion."
 			fi
+		else
+			print_color yellow "Skipping remote branch deletion (checkout worktree)."
 		fi
 	else
 		print_color yellow "Could not detect branch name - no branch cleanup performed"
@@ -168,8 +178,20 @@ delete_single_worktree() {
 		rm -rf "$worktree_path" || true
 	fi
 
-	print_color green "✅ Worktree deletion complete."
+	print_color green "Worktree deletion complete."
 	cd "$original_dir" 2>/dev/null || true
+}
+
+collect_worktrees_from_dirs() {
+	local dirs=("$WCREATED_DIR" "$WCHECKOUT_DIR")
+	for dir in "${dirs[@]}"; do
+		[[ ! -d "$dir" ]] && continue
+		if [[ "$(uname)" == "Darwin" ]]; then
+			find "$dir" -mindepth 1 -maxdepth 1 -type d -exec stat -f '%B %N' {} \; 2>/dev/null
+		else
+			find "$dir" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' 2>/dev/null
+		fi
+	done | sort -rn | cut -d' ' -f2-
 }
 
 cmd_delete() {
@@ -184,20 +206,13 @@ cmd_delete() {
 	local worktree_path="$1"
 
 	if [[ -z "$worktree_path" ]]; then
-		if [[ ! -d "$WORKTREES_DIR" ]]; then
-			print_color red "Worktrees directory $WORKTREES_DIR does not exist"
-			return 1
-		fi
-
-		local available_worktrees
-		if [[ "$(uname)" == "Darwin" ]]; then
-			available_worktrees=($(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d -exec stat -f '%B %N' {} \; | sort -rn | cut -d' ' -f2-))
-		else
-			available_worktrees=($(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -rn | cut -d' ' -f2-))
-		fi
+		local available_worktrees=()
+		while IFS= read -r line; do
+			[[ -n "$line" ]] && available_worktrees+=("$line")
+		done < <(collect_worktrees_from_dirs)
 
 		if [[ ${#available_worktrees[@]} -eq 0 ]]; then
-			print_color red "No worktrees found in $WORKTREES_DIR"
+			print_color red "No worktrees found"
 			return 1
 		fi
 
@@ -245,9 +260,9 @@ cmd_delete() {
 		done
 
 		if [[ $success_count -eq $total_count ]]; then
-			print_color green "✅ Successfully deleted all $total_count worktrees."
+			print_color green "Successfully deleted all $total_count worktrees."
 		else
-			print_color yellow "⚠️  Deleted $success_count out of $total_count worktrees."
+			print_color yellow "Deleted $success_count out of $total_count worktrees."
 		fi
 
 		return 0
