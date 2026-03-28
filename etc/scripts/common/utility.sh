@@ -110,6 +110,22 @@ find_git_worktrees_categorized() {
 	done | sort
 }
 
+get_worktree_project_name() {
+	local worktree_path="${1%/}"
+	local git_file="$worktree_path/.git"
+	if [[ -f "$git_file" ]]; then
+		local gitdir
+		gitdir=$(sed -n 's/^gitdir: *//p' "$git_file" 2>/dev/null)
+		if [[ -n "$gitdir" ]]; then
+			local repo_root
+			repo_root=$(dirname "$(dirname "$gitdir")")
+			basename "$repo_root"
+			return 0
+		fi
+	fi
+	echo "unknown"
+}
+
 find_git_repos_and_worktrees() {
 	local base_dir="$1"
 	local max_depth="${2:-2}"

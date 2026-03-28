@@ -194,6 +194,22 @@ collect_worktrees_from_dirs() {
 	done | sort -rn | cut -d' ' -f2-
 }
 
+get_worktree_project_name_zsh() {
+	local worktree_path="${1%/}"
+	local git_file="$worktree_path/.git"
+	if [[ -f "$git_file" ]]; then
+		local gitdir
+		gitdir=$(sed -n 's/^gitdir: *//p' "$git_file" 2>/dev/null)
+		if [[ -n "$gitdir" ]]; then
+			local repo_root
+			repo_root=$(dirname "$(dirname "$gitdir")")
+			basename "$repo_root"
+			return 0
+		fi
+	fi
+	echo "unknown"
+}
+
 cmd_delete() {
 	if ! check_tool git; then
 		return 1
@@ -216,17 +232,28 @@ cmd_delete() {
 			return 1
 		fi
 
+		local labels=()
+		typeset -A label_to_path
+		for wt in "${available_worktrees[@]}"; do
+			local wt_name="${wt##*/}"
+			local project_name
+			project_name=$(get_worktree_project_name_zsh "$wt")
+			local label="[$project_name] $wt_name"
+			labels+=("$label")
+			label_to_path[$label]="$wt"
+		done
+
 		print_color cyan "Use Tab to select multiple worktrees, Enter to confirm"
-		local selected_worktrees
-		selected_worktrees=$(select_fzf_multi "Select worktree(s) to delete: " "${available_worktrees[@]}") || {
+		local selected_labels
+		selected_labels=$(select_fzf_multi "Select worktree(s) to delete: " "${labels[@]}") || {
 			print_color red "No worktrees selected."
 			return 1
 		}
 
 		local worktrees_to_delete=()
 		while IFS= read -r line; do
-			[[ -n "$line" ]] && worktrees_to_delete+=("$line")
-		done <<<"$selected_worktrees"
+			[[ -n "$line" ]] && worktrees_to_delete+=("${label_to_path[$line]}")
+		done <<<"$selected_labels"
 
 		if [[ ${#worktrees_to_delete[@]} -eq 0 ]]; then
 			print_color red "No worktrees selected for deletion."
