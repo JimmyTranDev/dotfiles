@@ -1,9 +1,9 @@
 ---
-name: worktree-pr
+name: pr
 description: Implement changes in a worktree and create a PR
 ---
 
-Usage: /worktree-pr <description of what to implement>
+Usage: /pr <description of what to implement>
 
 Implement the described changes in a new git worktree, then create a pull request.
 

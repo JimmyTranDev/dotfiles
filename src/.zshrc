@@ -152,8 +152,9 @@ select_worktree() {
   local last_sel=""
   [[ -f "$last_file" ]] && last_sel=$(<"$last_file")
 
-  local items=()
+  zmodload -F zsh/stat b:zstat
   typeset -A label_to_path
+  local entries=()
   for dir in "$created_dir" "$checkout_dir"; do
     [[ -d "$dir" ]] || continue
     for wt_dir in "$dir"/*/; do
@@ -166,24 +167,30 @@ select_worktree() {
       local repo_root="${gitdir%/.git/worktrees/*}"
       local project_name="${repo_root##*/}"
       local label="[$project_name] $wt_name"
-      items+=("$label")
+      local mtime
+      mtime=$(zstat +mtime "$git_file" 2>/dev/null) || mtime=0
+      entries+=("$mtime $label")
       label_to_path[$label]="${wt_dir%/}"
     done
   done
 
-  if [[ ${#items[@]} -eq 0 ]]; then
+  if [[ ${#entries[@]} -eq 0 ]]; then
     zle -M "No worktrees found"
     return 1
   fi
 
   local sorted_items=()
+  local line
+  while IFS= read -r line; do
+    sorted_items+=("${line#* }")
+  done < <(printf "%s\n" "${entries[@]}" | sort -rn)
+
   if [[ -n "$last_sel" && ${label_to_path[$last_sel]+set} == set ]]; then
-    sorted_items=("$last_sel")
-    for item in "${items[@]}"; do
-      [[ "$item" != "$last_sel" ]] && sorted_items+=("$item")
+    local pinned=("$last_sel")
+    for item in "${sorted_items[@]}"; do
+      [[ "$item" != "$last_sel" ]] && pinned+=("$item")
     done
-  else
-    sorted_items=("${items[@]}")
+    sorted_items=("${pinned[@]}")
   fi
 
   local selected
