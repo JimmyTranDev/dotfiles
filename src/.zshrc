@@ -153,19 +153,21 @@ select_worktree() {
   [[ -f "$last_file" ]] && last_sel=$(<"$last_file")
 
   local items=()
-  local paths=()
+  typeset -A label_to_path
   for dir in "$created_dir" "$checkout_dir"; do
-    [[ ! -d "$dir" ]] && continue
+    [[ -d "$dir" ]] || continue
     for wt_dir in "$dir"/*/; do
       [[ -d "$wt_dir" ]] || continue
-      [[ -f "$wt_dir/.git" ]] || continue
+      local git_file="$wt_dir.git"
+      [[ -f "$git_file" ]] || continue
       local wt_name="${wt_dir%/}"
       wt_name="${wt_name##*/}"
-      local project_name
-      project_name=$(get_worktree_project_name "$wt_dir")
+      local gitdir="${$(<"$git_file")#gitdir: }"
+      local repo_root="${gitdir%/.git/worktrees/*}"
+      local project_name="${repo_root##*/}"
       local label="[$project_name] $wt_name"
       items+=("$label")
-      paths+=("${wt_dir%/}")
+      label_to_path[$label]="${wt_dir%/}"
     done
   done
 
@@ -175,29 +177,20 @@ select_worktree() {
   fi
 
   local sorted_items=()
-  local sorted_paths=()
-  if [[ -n "$last_sel" ]]; then
-    for idx in {1..${#items[@]}}; do
-      [[ "${items[$idx]}" == "$last_sel" ]] && sorted_items+=("${items[$idx]}") && sorted_paths+=("${paths[$idx]}")
-    done
-    for idx in {1..${#items[@]}}; do
-      [[ "${items[$idx]}" != "$last_sel" ]] && sorted_items+=("${items[$idx]}") && sorted_paths+=("${paths[$idx]}")
+  if [[ -n "$last_sel" && ${label_to_path[$last_sel]+set} == set ]]; then
+    sorted_items=("$last_sel")
+    for item in "${items[@]}"; do
+      [[ "$item" != "$last_sel" ]] && sorted_items+=("$item")
     done
   else
     sorted_items=("${items[@]}")
-    sorted_paths=("${paths[@]}")
   fi
 
   local selected
   selected=$(printf "%s\n" "${sorted_items[@]}" | fzf --prompt="Select worktree: ")
   if [[ -n "$selected" ]]; then
     echo "$selected" > "$last_file"
-    for idx in {1..${#sorted_items[@]}}; do
-      if [[ "${sorted_items[$idx]}" == "$selected" ]]; then
-        cd "${sorted_paths[$idx]}"
-        break
-      fi
-    done
+    cd "${label_to_path[$selected]}"
     zle reset-prompt
   fi
 }

@@ -118,7 +118,7 @@ get_worktree_project_name() {
 		gitdir=$(sed -n 's/^gitdir: *//p' "$git_file" 2>/dev/null)
 		if [[ -n "$gitdir" ]]; then
 			local repo_root
-			repo_root=$(dirname "$(dirname "$gitdir")")
+			repo_root=$(dirname "$(dirname "$(dirname "$gitdir")")")
 			basename "$repo_root"
 			return 0
 		fi
