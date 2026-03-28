@@ -90,5 +90,5 @@ Templates in `etc/templates/` use `{{VARIABLE}}` placeholders replaced by `sed` 
 - **Neovim config** lives in a separate repo (`JimmyTranDev/nvim`), cloned to `~/Programming/JimmyTranDev/nvim`
 - **Secrets** are kept in `~/Programming/JimmyTranDev/secrets/` (never committed to dotfiles)
 - **Project organization**: `~/Programming/{OrgName}/{RepoName}`
-- **Worktrees**: `~/Programming/Worktrees/{branch-name}`
+- **Worktrees**: `~/Programming/wcreated/{branch-name}`
 - Backup existing non-symlink files to `~/.dotfiles-backup/YYYYMMDD_HHMMSS/` before overwriting

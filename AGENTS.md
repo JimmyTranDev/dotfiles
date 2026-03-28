@@ -50,4 +50,64 @@ dotfiles/
 
 - **Adding a new tool config**: Create a directory under `src/`, add it to the appropriate `get_macos_links()` or `get_linux_links()` function in `sync_links.sh`, then run the script.
 - **Shell scripts**: All scripts use bash, source `common/logging.sh` and `common/utility.sh` for shared functions. Follow the existing pattern of `set -e`, function-based structure, and the logging helpers (`log_info`, `log_success`, `log_warning`, `log_error`).
-- **OpenCode config**: `src/opencode/` contains agents, commands, skills, and `AGENTS.md` (global LLM rules). The `opencode.json` loads `agent/*.md`, `command/*.md`, and `AGENTS.md` via its `instructions` array. Skills at `skills/<name>/SKILL.md` are auto-discovered.
+- **OpenCode config**: `src/opencode/` contains agents, commands, skills, and `AGENTS.md` (global LLM rules). The `opencode.json` loads `agent/*.md`, `command/*.md`, and `AGENTS.md` via its `instructions` array. Skills at `skills/<name>/SKILL.md` are auto-discovered. Deprecated items are moved to `_depreciated/` subdirectories within `command/` and `skills/` — they are excluded from auto-discovery.
+
+```
+src/opencode/
+├── AGENTS.md               # Global LLM rules (no-comments, parallelization, etc.)
+├── opencode.json            # OpenCode project config
+├── tui.json                 # TUI appearance config
+├── agent/                   # Specialized subagents
+│   ├── auditor.md
+│   ├── browser.md
+│   ├── designer.md
+│   ├── fixer.md
+│   ├── optimizer.md
+│   ├── reviewer.md
+│   └── tester.md
+├── command/                 # Slash commands (/name)
+│   ├── _depreciated/        # Retired commands
+│   ├── agents-md.md
+│   ├── chat.md
+│   ├── clean.md
+│   ├── comments.md
+│   ├── commit.md
+│   ├── commit-push.md
+│   ├── consolidate.md
+│   ├── convention.md
+│   ├── conventions.md
+│   ├── gitignore.md
+│   ├── implement.md
+│   ├── init.md
+│   ├── innovate.md
+│   ├── jira.md
+│   ├── npm-audit.md
+│   ├── quality.md
+│   ├── review.md
+│   ├── suggest.md
+│   └── ux.md
+└── skills/                  # On-demand knowledge (auto-discovered)
+    ├── _depreciated/        # Retired skills
+    ├── accessibility/
+    ├── agents-md/
+    ├── browser-mcp/
+    ├── career/
+    ├── consolidator/
+    ├── conventions/
+    ├── deduplicator/
+    ├── eslint-config/
+    ├── follower/
+    ├── fsrs/
+    ├── gamification/
+    ├── git-workflows/
+    ├── innovate/
+    ├── mobile-mcp/
+    ├── npm-vulnerabilities/
+    ├── opencode-authoring/
+    ├── shell-scripting/
+    ├── simplifier/
+    ├── stitch-mcp/
+    ├── todoist-cli/
+    ├── ux-ui-animator/
+    └── worktree-workflow/
+```

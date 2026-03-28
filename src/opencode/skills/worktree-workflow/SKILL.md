@@ -11,7 +11,7 @@ Use worktrees when the user explicitly mentions worktrees, asks to work in isola
 
 | Path | Purpose |
 |------|---------|
-| `~/Programming/Worktrees/<branch>` | All worktrees live here |
+| `~/Programming/wcreated/<branch>` | All worktrees live here |
 | `~/Programming/{Org}/{Repo}` | Main repository clones |
 | `etc/scripts/worktrees/` | Worktree CLI scripts (zsh) |
 
@@ -20,14 +20,14 @@ Use worktrees when the user explicitly mentions worktrees, asks to work in isola
 ### 1. Create a Worktree
 
 ```bash
-git worktree add ~/Programming/Worktrees/<branch-name> -b <branch-name>
+git worktree add ~/Programming/wcreated/<branch-name> -b <branch-name>
 ```
 
 - Base branch and branch naming conventions follow the `git-workflows` skill
 
 ### 2. Work in the Worktree
 
-- All file reads, edits, and creates happen in `~/Programming/Worktrees/<branch-name>/`, not the main repo
+- All file reads, edits, and creates happen in `~/Programming/wcreated/<branch-name>/`, not the main repo
 - Install dependencies if `package.json` exists (auto-detect npm/pnpm/yarn from lockfile)
 
 ### 3. Commit
@@ -50,7 +50,7 @@ git rebase <branch-name>
 ### 6. Clean Up
 
 ```bash
-git worktree remove ~/Programming/Worktrees/<branch-name>
+git worktree remove ~/Programming/wcreated/<branch-name>
 git branch -d <branch-name>
 ```
 
