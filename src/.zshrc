@@ -153,12 +153,20 @@ select_worktree() {
   [[ -f "$last_file" ]] && last_sel=$(<"$last_file")
 
   local items=()
+  local paths=()
   for dir in "$created_dir" "$checkout_dir"; do
     [[ ! -d "$dir" ]] && continue
-    local tag="${dir##*/}"
-    while IFS= read -r line; do
-      [[ -n "$line" ]] && items+=("[$tag] $line")
-    done < <(find_git_worktrees "$dir" 2)
+    for wt_dir in "$dir"/*/; do
+      [[ -d "$wt_dir" ]] || continue
+      [[ -f "$wt_dir/.git" ]] || continue
+      local wt_name="${wt_dir%/}"
+      wt_name="${wt_name##*/}"
+      local project_name
+      project_name=$(get_worktree_project_name "$wt_dir")
+      local label="[$project_name] $wt_name"
+      items+=("$label")
+      paths+=("${wt_dir%/}")
+    done
   done
 
   if [[ ${#items[@]} -eq 0 ]]; then
@@ -167,22 +175,29 @@ select_worktree() {
   fi
 
   local sorted_items=()
+  local sorted_paths=()
   if [[ -n "$last_sel" ]]; then
-    for i in "${items[@]}"; do [[ "$i" == "$last_sel" ]] && sorted_items=("$i"); done
-    for i in "${items[@]}"; do [[ "$i" != "$last_sel" ]] && sorted_items+=("$i"); done
+    for idx in {1..${#items[@]}}; do
+      [[ "${items[$idx]}" == "$last_sel" ]] && sorted_items+=("${items[$idx]}") && sorted_paths+=("${paths[$idx]}")
+    done
+    for idx in {1..${#items[@]}}; do
+      [[ "${items[$idx]}" != "$last_sel" ]] && sorted_items+=("${items[$idx]}") && sorted_paths+=("${paths[$idx]}")
+    done
   else
     sorted_items=("${items[@]}")
+    sorted_paths=("${paths[@]}")
   fi
 
   local selected
   selected=$(printf "%s\n" "${sorted_items[@]}" | fzf --prompt="Select worktree: ")
   if [[ -n "$selected" ]]; then
     echo "$selected" > "$last_file"
-    local tag="${selected%%]*}"
-    tag="${tag#\[}"
-    local wt_path="${selected#*] }"
-    wt_path="${wt_path# }"
-    cd "$HOME/Programming/$tag/$wt_path"
+    for idx in {1..${#sorted_items[@]}}; do
+      if [[ "${sorted_items[$idx]}" == "$selected" ]]; then
+        cd "${sorted_paths[$idx]}"
+        break
+      fi
+    done
     zle reset-prompt
   fi
 }
