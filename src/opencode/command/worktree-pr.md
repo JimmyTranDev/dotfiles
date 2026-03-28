@@ -1,0 +1,47 @@
+---
+name: worktree-pr
+description: Implement changes in a worktree and create a PR
+---
+
+Usage: /worktree-pr <description of what to implement>
+
+Implement the described changes in a new git worktree, then create a pull request.
+
+$ARGUMENTS
+
+Load the **worktree-workflow** and **git-workflows** skills to follow worktree lifecycle and commit conventions.
+
+1. Determine the base branch using the priority order from the **git-workflows** skill (`develop` > `main` > `master`)
+
+2. Derive a kebab-case branch name from the task description (e.g., `feat-add-dark-mode`, `fix-login-redirect`). Keep it short and descriptive.
+
+3. Check for uncommitted changes on the current branch (run in parallel):
+   - `git status --porcelain`
+   - `git diff --cached --stat`
+
+4. If there are staged or unstaged changes:
+   - Stash them with `git stash push -m "<branch-name>"`
+
+5. Create the worktree:
+   - `git worktree add ~/Programming/wcreated/<branch-name> -b <branch-name>`
+
+6. If changes were stashed in step 4:
+   - Apply the stash in the worktree: `git stash pop` (run from the worktree directory)
+
+7. Implement the requested changes — all file reads, edits, and creates happen in `~/Programming/wcreated/<branch-name>/`, not the main repo
+
+8. Stage and commit the changes using the commit format from the **git-workflows** skill:
+   - `git add -A`
+   - `git commit -m "<emoji> <type>(<scope>): <description>"`
+
+9. Push and create the PR:
+   - `git push -u origin <branch-name>`
+   - Create the PR with `gh pr create` targeting the base branch, with a title matching the commit message and a summary body
+
+10. Report the PR URL to the user
+
+Important:
+- All work happens in the worktree directory, never in the main repo
+- If the stash pop has conflicts, notify the user and stop
+- If `gh pr create` fails, report the error but do not retry
+- Do not modify the main repo's working tree
