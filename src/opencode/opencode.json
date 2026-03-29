@@ -35,9 +35,7 @@
     "stitch": {
       "type": "local",
       "command": [
-        "npx",
-        "-y",
-        "@_davideast/stitch-mcp",
+        "stitch-mcp",
         "proxy"
       ],
       "environment": {

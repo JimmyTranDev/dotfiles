@@ -78,6 +78,7 @@ fi
 if command -v npm >/dev/null 2>&1; then
 	echo "Installing global npm packages..."
 	npm install -g @doist/todoist-cli
+	npm install -g @_davideast/stitch-mcp
 else
 	echo "npm not found, skipping global npm packages"
 fi
