@@ -29,28 +29,34 @@ Do NOT use Browser MCP tools at any point in this workflow.
 3. Plan the implementation:
    - Break the design into components that match the project's existing component granularity
    - Map each design element to React Native/Expo components with NativeWind or the project's styling approach
-   - Present the component breakdown to the user and ask for confirmation before implementing
+   - Identify any new utility classes, custom values, or theme extensions the design requires that are not yet in the Tailwind/NativeWind config
+   - Identify any existing global/shared components (buttons, inputs, cards, typography, layout wrappers) that need modification to support the new design
+   - Present the component breakdown, proposed Tailwind config changes, and proposed global component changes to the user and ask for confirmation before implementing
 
-4. Implement the components:
+4. Update Tailwind config and global components:
+   - If the design introduces spacing, font sizes, border radii, breakpoints, or other values not present in `tailwind.config.js` / `tailwind.config.ts` / `nativewind` config, extend the theme to include them using the project's existing design system tokens (never Stitch tokens)
+   - If the design requires new NativeWind plugins, variants, or custom utilities, add them to the config
+   - If existing global/shared components need changes to support the new design (new variants, sizes, props, layout adjustments), update them in place rather than creating one-off duplicates
+   - Ensure global component changes remain backward compatible -- existing usages must not break
+   - Run the project's type check or linter after config/global changes to catch regressions before proceeding
+
+5. Implement the screen components:
    - Delegate to the **designer** agent for all component creation
    - Translate Stitch layout patterns to React Native primitives (`View`, `Text`, `Pressable`, `ScrollView`, `FlatList`, etc.)
    - Use the project's existing design system tokens exclusively -- never adopt Stitch colors, fonts, spacing, shadows, or radii
+   - Leverage the updated Tailwind config values and modified global components from step 4
    - Match the project's existing file structure, naming patterns, and import conventions
    - Add accessibility: screen reader support via `accessibilityLabel`, `accessibilityRole`, `accessibilityHint`, touch target sizing (min 44x44), focus management
    - Handle all states: loading, empty, error, disabled
    - Keep components presentational -- do not add business logic or data fetching
 
-5. Verify on Android emulator using Mobile MCP tools:
-   - Call `mobile_list_available_devices` to find an available Android emulator
-   - If no Android emulator is running, notify the user and ask them to start one
-   - Build and install the app if needed, or use hot reload if the dev server is running
-   - Call `mobile_launch_app` with the project's package name (check `app.json` or `app.config.ts` for the Android package)
-   - Navigate to the implemented screen using Mobile MCP tap and swipe interactions
-   - Call `mobile_take_screenshot` to capture the result
-   - Compare the screenshot against the original Stitch design screenshot
-   - If there are visual discrepancies, fix them and re-verify (max 2 iterations)
+6. Quick visual check on Android emulator:
+   - Call `mobile_list_available_devices` to find an available Android emulator -- if none is running, skip this step and note it in the summary
+   - Launch the app and navigate to the implemented screen
+   - Call `mobile_take_screenshot` once and compare it side-by-side with the original Stitch design screenshot
+   - Only fix obvious layout-breaking issues (wrong order, missing sections, completely wrong sizing) -- do not iterate on pixel-level polish
 
-6. Summarize the result:
+7. Summarize the result:
    - Show the final Android screenshot alongside the original Stitch design
    - List all components created with brief descriptions
    - List accessibility features added
@@ -63,4 +69,7 @@ Important:
 - Every component must have screen reader support and adequate touch targets
 - Never skip accessibility to match a design exactly
 - Match the project's existing file structure and naming patterns
+- Always extend Tailwind/NativeWind config through the theme `extend` object to avoid overriding defaults
+- When modifying global components, preserve backward compatibility -- add new props/variants instead of changing existing behavior
+- Run type checks after Tailwind config or global component changes to catch regressions early
 - If Stitch tools fail or auth errors occur, notify the user and suggest running `stitch-mcp doctor --verbose`
