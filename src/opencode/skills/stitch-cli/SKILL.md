@@ -1,27 +1,34 @@
 ---
-name: stitch-mcp
-description: Stitch MCP tool usage patterns for fetching AI-generated UI designs, building sites from screens, and integrating Google Stitch designs into coding workflows
+name: stitch-cli
+description: Stitch CLI usage patterns for fetching AI-generated UI designs, building sites from screens, and integrating Google Stitch designs into coding workflows
 ---
 
 ## How to Call Stitch Tools
 
-All Stitch tools are MCP tools — call them through the MCP tool-calling interface, NOT via the shell. The tools are prefixed with `stitch-mcp_` in the tool list (e.g., `stitch-mcp_list_projects`, `stitch-mcp_get_screen_code`).
+Run Stitch tool operations via the `stitch-mcp tool <tool_name>` CLI command in Bash. Pass parameters as JSON with the `-d` flag.
 
-**NEVER run `stitch-mcp tool <name>` via Bash.** The CLI `tool` subcommand has parameter passing bugs and will fail. Always use the MCP tool-calling interface directly.
+```bash
+stitch-mcp tool <tool_name> -d '{"key": "value"}'
+```
 
-The only `stitch-mcp` CLI commands safe to run via Bash are: `doctor`, `init`, `serve`, `site`, `view`, and `logout`.
+Tools with no required parameters can omit `-d`. Use `-o json` for machine-readable output, `-o raw` for unprocessed output.
 
-## Tool Overview
+Use `-s` or `--schema` to inspect a tool's arguments before calling it:
 
-The stitch MCP proxy exposes upstream Stitch API tools plus virtual tools that combine multiple API calls into higher-level operations.
+```bash
+stitch-mcp tool <tool_name> -s
+```
+
+## Tool Reference
 
 ### Virtual Tools
 
 | Tool | Purpose |
 |------|---------|
 | `get_screen_code` | Retrieve a screen and download its HTML code content |
-| `get_screen_image` | Retrieve a screen and download its screenshot image as base64 |
+| `get_screen_image` | Retrieve a screen and download its screenshot image content |
 | `build_site` | Build a site from a project by mapping screens to routes, returns design HTML per page |
+| `list_tools` | List all available tools with their descriptions and schemas |
 
 ### Upstream Tools
 
@@ -32,8 +39,8 @@ The stitch MCP proxy exposes upstream Stitch API tools plus virtual tools that c
 | `create_project` | Create a new project |
 | `list_screens` | List all screens in a project |
 | `get_screen` | Get details of a specific screen |
-| `generate_screen_from_text` | Generate a new screen from a text prompt |
-| `edit_screens` | Edit existing screens with a text prompt |
+| `generate_screen_from_text` | Generate a new screen from a text prompt (can take minutes) |
+| `edit_screens` | Edit existing screens with a text prompt (can take minutes) |
 | `generate_variants` | Generate variants of existing screens |
 | `create_design_system` | Create a design system for a project |
 | `update_design_system` | Update an existing design system |
@@ -51,23 +58,31 @@ Project and screen IDs are plain numeric/hex strings without prefixes, except wh
 
 ## Workflow
 
-1. **List projects** — call `list_projects` to browse available projects
-2. **Get project details** — call `get_project` with `name: "projects/{id}"` to see screen instances
-3. **List screens** — call `list_screens` with `projectId` to get screen IDs
-4. **Get screen content** — call `get_screen_code` or `get_screen_image` with `projectId` and `screenId`
+1. **List projects** -- `stitch-mcp tool list_projects`
+2. **Get project details** -- `stitch-mcp tool get_project -d '{"name": "projects/{id}"}'`
+3. **List screens** -- `stitch-mcp tool list_screens -d '{"projectId": "{id}"}'`
+4. **Get screen content** -- run `get_screen_code` and `get_screen_image` in parallel
 
 ## get_screen_code
 
 Retrieves a screen by ID and returns its full HTML content.
 
+```bash
+stitch-mcp tool get_screen_code -d '{"projectId": "5198704158110731809", "screenId": "98b50e2ddc9943efb387052637738f61"}'
+```
+
 | Parameter | Required | Type | Purpose |
 |-----------|----------|------|---------|
-| `projectId` | Yes | string | The project ID (e.g. `"5198704158110731809"`) |
-| `screenId` | Yes | string | The screen ID (e.g. `"98b50e2ddc9943efb387052637738f61"`) |
+| `projectId` | Yes | string | The project ID |
+| `screenId` | Yes | string | The screen ID |
 
 ## get_screen_image
 
-Retrieves a screen screenshot as a base64-encoded image.
+Retrieves a screen screenshot image content.
+
+```bash
+stitch-mcp tool get_screen_image -d '{"projectId": "5198704158110731809", "screenId": "98b50e2ddc9943efb387052637738f61"}'
+```
 
 | Parameter | Required | Type | Purpose |
 |-----------|----------|------|---------|
@@ -78,14 +93,8 @@ Retrieves a screen screenshot as a base64-encoded image.
 
 Maps project screens to URL routes and returns the design HTML for each page.
 
-```json
-{
-  "projectId": "5198704158110731809",
-  "routes": [
-    { "screenId": "abc123", "route": "/" },
-    { "screenId": "def456", "route": "/about" }
-  ]
-}
+```bash
+stitch-mcp tool build_site -d '{"projectId": "5198704158110731809", "routes": [{"screenId": "abc123", "route": "/"}, {"screenId": "def456", "route": "/about"}]}'
 ```
 
 | Parameter | Required | Type | Purpose |
@@ -99,15 +108,24 @@ Maps project screens to URL routes and returns the design HTML for each page.
 
 Lists all projects accessible to the user.
 
+```bash
+stitch-mcp tool list_projects
+stitch-mcp tool list_projects -d '{"filter": "view=shared"}'
+```
+
 | Parameter | Required | Type | Purpose |
 |-----------|----------|------|---------|
-| `filter` | No | string | AIP-160 filter (e.g. filter by `view` field) |
+| `filter` | No | string | AIP-160 filter: `view=owned` (default) or `view=shared` |
 
 Returns projects with `name`, `title`, `deviceType`, `screenInstances`, and `designTheme`.
 
 ## get_project
 
 Retrieves project details including all screen instances.
+
+```bash
+stitch-mcp tool get_project -d '{"name": "projects/5198704158110731809"}'
+```
 
 | Parameter | Required | Type | Purpose |
 |-----------|----------|------|---------|
@@ -117,13 +135,21 @@ Retrieves project details including all screen instances.
 
 Lists all screens within a project.
 
+```bash
+stitch-mcp tool list_screens -d '{"projectId": "5198704158110731809"}'
+```
+
 | Parameter | Required | Type | Purpose |
 |-----------|----------|------|---------|
-| `projectId` | Yes | string | Project ID without prefix: `"5198704158110731809"` |
+| `projectId` | Yes | string | Project ID without prefix |
 
 ## get_screen
 
 Retrieves details of a specific screen. Requires all three parameters.
+
+```bash
+stitch-mcp tool get_screen -d '{"name": "projects/{project}/screens/{screen}", "projectId": "{project}", "screenId": "{screen}"}'
+```
 
 | Parameter | Required | Type | Purpose |
 |-----------|----------|------|---------|
@@ -133,7 +159,15 @@ Retrieves details of a specific screen. Requires all three parameters.
 
 ## generate_screen_from_text
 
-Generates a new screen from a text prompt. This can take a few minutes.
+Generates a new screen from a text prompt. This can take a few minutes -- do NOT retry on timeout.
+
+If the tool call fails due to a connection error, the generation may still succeed. Try `get_screen` later to check.
+
+The response may include `output_components` with suggestions. If present, show them to the user. If the user accepts a suggestion, call `generate_screen_from_text` again with `prompt` set to the accepted suggestion.
+
+```bash
+stitch-mcp tool generate_screen_from_text -d '{"projectId": "5198704158110731809", "prompt": "a dashboard with analytics charts", "deviceType": "desktop"}'
+```
 
 | Parameter | Required | Type | Purpose |
 |-----------|----------|------|---------|
@@ -144,7 +178,11 @@ Generates a new screen from a text prompt. This can take a few minutes.
 
 ## edit_screens
 
-Edits existing screens with a text prompt. This can take a few minutes.
+Edits existing screens with a text prompt. This can take a few minutes -- do NOT retry on timeout.
+
+```bash
+stitch-mcp tool edit_screens -d '{"projectId": "5198704158110731809", "selectedScreenIds": ["98b50e2ddc9943efb387052637738f61"], "prompt": "make the header larger"}'
+```
 
 | Parameter | Required | Type | Purpose |
 |-----------|----------|------|---------|
@@ -157,6 +195,10 @@ Edits existing screens with a text prompt. This can take a few minutes.
 ## generate_variants
 
 Generates variants of existing screens.
+
+```bash
+stitch-mcp tool generate_variants -d '{"projectId": "5198704158110731809", "selectedScreenIds": ["98b50e2ddc9943efb387052637738f61"], "prompt": "explore different color schemes", "variantOptions": {}}'
+```
 
 | Parameter | Required | Type | Purpose |
 |-----------|----------|------|---------|
@@ -171,28 +213,28 @@ Generates variants of existing screens.
 
 ### Get Design HTML for Implementation
 
-1. Call `list_projects` to find the target project
-2. Call `list_screens` with `projectId` to get screen IDs
-3. Call `get_screen_code` with `projectId` and `screenId`
+1. Run `stitch-mcp tool list_projects` to find the target project
+2. Run `stitch-mcp tool list_screens -d '{"projectId": "<id>"}'` to get screen IDs
+3. Run `stitch-mcp tool get_screen_code -d '{"projectId": "<id>", "screenId": "<id>"}'`
 4. Use the returned HTML/CSS as reference for implementing components
 
 ### Generate New Designs
 
-1. Call `create_project` with a title, or use an existing project
-2. Call `generate_screen_from_text` with a prompt describing the UI
-3. Call `get_screen_image` to preview the result
-4. Call `edit_screens` to refine, or `generate_variants` to explore alternatives
+1. Run `stitch-mcp tool create_project -d '{"title": "<name>"}'`, or use an existing project
+2. Run `stitch-mcp tool generate_screen_from_text -d '{"projectId": "<id>", "prompt": "<description>"}'`
+3. Run `stitch-mcp tool get_screen_image -d '{"projectId": "<id>", "screenId": "<id>"}'` to preview
+4. Run `edit_screens` to refine, or `generate_variants` to explore alternatives
 
 ### Build a Multi-Page Site
 
-1. Call `list_screens` to get all screen IDs in the project
+1. Run `stitch-mcp tool list_screens -d '{"projectId": "<id>"}'` to get all screen IDs
 2. Decide on route mappings (which screen goes to which URL path)
-3. Call `build_site` with the project ID and route array
+3. Run `stitch-mcp tool build_site -d '{"projectId": "<id>", "routes": [...]}'`
 4. Use the returned HTML per route to scaffold the site
 
 ### Get Visual Reference
 
-1. Call `get_screen_image` to get a base64 screenshot
+1. Run `stitch-mcp tool get_screen_image -d '{"projectId": "<id>", "screenId": "<id>"}'`
 2. Use the image as a visual reference alongside code generation
 
 ### Finding Screen IDs from a Stitch URL
@@ -200,15 +242,15 @@ Generates variants of existing screens.
 Stitch URLs use the format: `stitch.withgoogle.com/projects/{projectId}?node-id={screenInstanceId}`
 
 The `node-id` from the URL maps to a screen instance `id` in the project. To get the screen content:
-1. Call `list_projects` and find the project by ID
-2. Look at `screenInstances` in the project data — match `id` to the `node-id` from the URL
+1. Run `stitch-mcp tool list_projects` and find the project by ID
+2. Look at `screenInstances` in the project data -- match `id` to the `node-id` from the URL
 3. The `sourceScreen` field contains the full resource name with the screen ID
 4. Extract the screen ID from `sourceScreen` (the part after `screens/`)
 5. Use that screen ID with `get_screen_code` or `get_screen_image`
 
 ## Authentication
 
-Authentication is handled automatically by the proxy. Setup options:
+Setup options:
 
 | Method | How |
 |--------|-----|
@@ -216,18 +258,57 @@ Authentication is handled automatically by the proxy. Setup options:
 | API key | Set `STITCH_API_KEY` environment variable |
 | System gcloud | Set `STITCH_USE_SYSTEM_GCLOUD=1` env var with existing gcloud config |
 
-## CLI Commands
+## Standalone CLI Commands
 
-These commands are available outside of MCP for direct terminal use:
+These commands are run directly (not via `stitch-mcp tool`):
 
 | Command | Purpose |
 |---------|---------|
 | `stitch-mcp init` | Setup auth, gcloud, and MCP client config |
 | `stitch-mcp doctor` | Verify configuration health |
-| `stitch-mcp serve -p <id>` | Preview project screens on local Vite dev server |
-| `stitch-mcp site -p <id>` | Generate Astro project from screens |
+| `stitch-mcp screens -p <id>` | Explore all screens in a project |
+| `stitch-mcp serve -p <id>` | Serve project HTML screens via local web server |
+| `stitch-mcp site -p <id>` | Build a structured site from Stitch screens |
+| `stitch-mcp snapshot` | Create a UI snapshot given a data state |
 | `stitch-mcp view` | Interactive resource browser in terminal |
 | `stitch-mcp logout` | Revoke credentials |
+
+### serve options
+
+| Flag | Purpose |
+|------|---------|
+| `-p, --project <id>` | Project ID |
+| `-l, --list-screens` | List all screens with their server paths as JSON |
+| `--json` | Start server in non-interactive mode, output JSON when ready |
+
+### site options
+
+| Flag | Purpose |
+|------|---------|
+| `-p, --project <id>` | Project ID |
+| `-o, --output <dir>` | Output directory (default: `.`) |
+| `-e, --export` | Export screen-to-route config as `build_site` JSON |
+| `-l, --list-screens` | List all screens with suggested routes as JSON |
+| `-r, --routes <json>` | JSON array of `{screenId, route}` mappings (skips TUI) |
+
+### snapshot options
+
+| Flag | Purpose |
+|------|---------|
+| `-c, --command <command>` | The command to snapshot (e.g. `init`) |
+| `-d, --data <file>` | Path to JSON data file |
+| `-s, --schema` | Print the data schema for the command |
+
+### view options
+
+| Flag | Purpose |
+|------|---------|
+| `--projects` | List all projects |
+| `--name <name>` | Resource name to view |
+| `--sourceScreen <name>` | Source screen resource name |
+| `--project <id>` | Project ID |
+| `--screen <id>` | Screen ID |
+| `--serve` | Serve the screen via local server |
 
 ## Environment Variables
 
