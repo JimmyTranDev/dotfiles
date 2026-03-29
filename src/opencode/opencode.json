@@ -32,7 +32,7 @@
         "@mobilenext/mobile-mcp@latest"
       ]
     },
-    "stitch": {
+    "stitch-mcp": {
       "type": "local",
       "command": [
         "stitch-mcp",
