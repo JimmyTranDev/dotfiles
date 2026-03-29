@@ -9,32 +9,35 @@ Generate AI-powered UI design variations using Google Stitch.
 
 $ARGUMENTS
 
-Load the **stitch-mcp** skill.
+Do NOT use Browser MCP tools — this command generates designs, not web pages.
 
-Use only Stitch MCP tools for all design generation. Do NOT use Browser MCP tools — this command generates designs, not web pages.
+Use the `stitch-mcp tool <tool_name>` CLI via Bash for all Stitch operations. Pass parameters as JSON after the tool name with `--input '{"key": "value"}'`.
 
 1. Check for existing designs:
-   - Call `list_projects` to check for a relevant existing project
-   - If a matching project exists, call `list_screens` with its `projectId` to see existing screens
+   - Run `stitch-mcp tool list_projects` to check for a relevant existing project
+   - If a matching project exists, run `stitch-mcp tool list_screens --input '{"projectId": "<id>"}'` to see existing screens
    - Ask the user whether to use existing screens, generate variants of them, or generate new screens from scratch
 
 2. Generate designs with Stitch:
-   - If generating new screens: call `generate_screen_from_text` with `projectId`, `prompt` (from `$ARGUMENTS`), and `deviceType`
-   - If generating variants of existing screens: call `generate_variants` with `projectId`, `selectedScreenIds`, `prompt`, and `variantOptions`
-   - If no existing project fits: call `create_project` first, then `generate_screen_from_text`
+   - If generating new screens: run `stitch-mcp tool generate_screen_from_text --input '{"projectId": "<id>", "prompt": "<from $ARGUMENTS>", "deviceType": "<mobile|desktop>"}'`
+   - If generating variants of existing screens: run `stitch-mcp tool generate_variants --input '{"projectId": "<id>", "selectedScreenIds": ["<id>"], "prompt": "<prompt>", "variantOptions": {}}'`
+   - If no existing project fits: run `stitch-mcp tool create_project` first, then `generate_screen_from_text`
    - Aim for 3 distinct variations with different visual approaches (e.g., minimal, detailed, creative)
 
 3. Retrieve the generated designs:
-   - Call `get_screen_code` and `get_screen_image` in parallel for each generated screen to get the HTML/CSS and screenshots
+   - For each generated screen, run `stitch-mcp tool get_screen_code --input '{"projectId": "<id>", "screenId": "<id>"}'` and `stitch-mcp tool get_screen_image --input '{"projectId": "<id>", "screenId": "<id>"}'` in parallel to retrieve both the full HTML/CSS code and the screenshot image
+   - Always retrieve both artifacts — the code is needed for implementation reference and the screenshot for visual review
 
 4. Present the variations to the user:
-   - Show each variation's screenshot and a brief description of its design approach
+   - Show each variation's screenshot image and its HTML/CSS code
+   - Provide a brief description of each variation's design approach
    - Highlight the key differences between the options (layout, typography, spacing, visual hierarchy, component patterns)
    - Ask the user to pick one variation, request modifications, or specify elements to combine from multiple variations
 
 5. If the user requests modifications:
-   - Call `edit_screens` with the selected `screenId`, `projectId`, and the edit `prompt`
-   - Retrieve and present the updated design
+   - Run `stitch-mcp tool edit_screens --input '{"projectId": "<id>", "selectedScreenIds": ["<id>"], "prompt": "<edit prompt>"}'`
+   - Run `get_screen_code` and `get_screen_image` in parallel for the updated screen to retrieve both the updated code and screenshot
+   - Present the updated screenshot and code to the user
 
 6. If the user wants to preview a design on a mobile device:
    - Load the **mobile-mcp** skill
@@ -42,7 +45,6 @@ Use only Stitch MCP tools for all design generation. Do NOT use Browser MCP tool
    - Do NOT use Browser MCP tools for mobile preview
 
 Important:
-- Call all Stitch tools through the MCP tool-calling interface (prefixed `stitch-mcp_`) — NEVER shell out to `stitch-mcp tool` via Bash
-- Use Stitch MCP tools for all design generation — never Browser MCP
+- Run all Stitch operations via `stitch-mcp tool <name> --input '{...}'` in Bash — do NOT use Stitch MCP tools
 - Use Mobile MCP tools for mobile device previews — never Browser MCP
-- If Stitch tools are unavailable or auth fails, notify the user and suggest running `stitch-mcp doctor`
+- If Stitch CLI fails or auth errors occur, notify the user and suggest running `stitch-mcp doctor`

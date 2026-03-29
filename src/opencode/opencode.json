@@ -35,12 +35,15 @@
     "stitch-mcp": {
       "type": "local",
       "command": [
-        "stitch-mcp",
+        "npx",
+        "-y",
+        "@_davideast/stitch-mcp",
         "proxy"
       ],
       "environment": {
         "STITCH_API_KEY": "{file:~/Programming/JimmyTranDev/secrets/stitch-api-key}"
-      }
+      },
+      "timeout": 30000
     }
   }
 }

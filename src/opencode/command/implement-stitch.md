@@ -9,15 +9,16 @@ Implement an existing Stitch design in the current React Native/Expo project and
 
 $ARGUMENTS
 
-Load the **stitch-mcp**, **mobile-mcp**, **accessibility**, and **follower** skills in parallel.
+Load the **mobile-mcp**, **accessibility**, and **follower** skills in parallel.
 
-Use Stitch MCP tools to fetch the design and Mobile MCP tools for device verification. Do NOT use Browser MCP tools at any point in this workflow.
+Use the `stitch-mcp tool <tool_name>` CLI via Bash for all Stitch operations. Pass parameters as JSON after the tool name with `--input '{"key": "value"}'`. Use Mobile MCP tools for device verification. Do NOT use Browser MCP tools at any point in this workflow.
 
 1. Fetch the Stitch design:
    - Extract the project ID (and screen instance ID if present) from `$ARGUMENTS`
-   - Call `list_projects` to find the project, then `list_screens` with its `projectId` to list available screens
+   - Run `stitch-mcp tool list_projects` to find the project, then `stitch-mcp tool list_screens --input '{"projectId": "<id>"}'` to list available screens
    - If a specific screen was provided, use it. Otherwise, present the available screens and ask the user which one to implement
-   - Call `get_screen_code` and `get_screen_image` in parallel for the selected screen to get the HTML/CSS and screenshot
+   - Run `stitch-mcp tool get_screen_code --input '{"projectId": "<id>", "screenId": "<id>"}'` and `stitch-mcp tool get_screen_image --input '{"projectId": "<id>", "screenId": "<id>"}'` in parallel to retrieve both the full HTML/CSS code and the screenshot image
+   - Always retrieve both artifacts — the code is needed for implementation reference and the screenshot for visual comparison during verification
 
 2. Analyze the design:
    - Parse the HTML/CSS structure from the Stitch output
@@ -49,27 +50,17 @@ Use Stitch MCP tools to fetch the design and Mobile MCP tools for device verific
    - Compare the screenshot against the original Stitch design screenshot
    - If there are visual discrepancies, fix them and re-verify (max 2 iterations)
 
-6. Post-implementation review — launch **reviewer** and **auditor** in parallel:
-   - **reviewer**: verify component correctness, prop interfaces, and convention adherence
-   - **auditor**: scan for unsafe patterns in user-facing components
-   - Collect all issues found by both agents
-
-7. If issues were found:
-   - Use **fixer** to address each finding
-   - Re-run **reviewer** once more to verify (max 2 iterations)
-
-8. Summarize the result:
+6. Summarize the result:
    - Show the final Android screenshot alongside the original Stitch design
    - List all components created with brief descriptions
    - List accessibility features added
    - List any follow-up improvements that were out of scope
 
 Important:
-- Call all Stitch tools through the MCP tool-calling interface (prefixed `stitch-mcp_`) — NEVER shell out to `stitch-mcp tool` via Bash
-- Use Stitch MCP tools to fetch designs — never Browser MCP
+- Run all Stitch operations via `stitch-mcp tool <name> --input '{...}'` in Bash — do NOT use Stitch MCP tools
 - Use Mobile MCP tools for all device interaction — never Browser MCP
 - The Stitch design informs layout and component structure only — never adopt its design tokens
 - Every component must have screen reader support and adequate touch targets
 - Never skip accessibility to match a design exactly
 - Match the project's existing file structure and naming patterns
-- If Stitch tools are unavailable or auth fails, notify the user and suggest running `stitch-mcp doctor`
+- If Stitch CLI fails or auth errors occur, notify the user and suggest running `stitch-mcp doctor`
