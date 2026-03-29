@@ -78,6 +78,7 @@ src/opencode/
 │   ├── conventions.md
 │   ├── gitignore.md
 │   ├── implement.md
+│   ├── implement-stitch.md
 │   ├── init.md
 │   ├── innovate.md
 │   ├── jira.md
@@ -85,6 +86,7 @@ src/opencode/
 │   ├── quality.md
 │   ├── review.md
 │   ├── suggest.md
+│   ├── stitch.md
 │   └── ux.md
 └── skills/                  # On-demand knowledge (auto-discovered)
     ├── _depreciated/        # Retired skills
@@ -106,7 +108,7 @@ src/opencode/
     ├── opencode-authoring/
     ├── shell-scripting/
     ├── simplifier/
-    ├── stitch-mcp/
+    ├── stitch/
     ├── todoist-cli/
     ├── ux-ui-animator/
     └── worktree-workflow/

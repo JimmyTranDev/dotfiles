@@ -32,18 +32,16 @@
         "@mobilenext/mobile-mcp@latest"
       ]
     },
-    "stitch-mcp": {
+    "stitch": {
       "type": "local",
       "command": [
         "npx",
-        "-y",
         "@_davideast/stitch-mcp",
         "proxy"
       ],
       "environment": {
         "STITCH_API_KEY": "{file:~/Programming/JimmyTranDev/secrets/stitch-api-key}"
-      },
-      "timeout": 30000
+      }
     }
   }
 }

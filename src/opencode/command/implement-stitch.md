@@ -9,21 +9,21 @@ Implement an existing Stitch design in the current React Native/Expo project and
 
 $ARGUMENTS
 
-Load the **stitch-cli**, **mobile-mcp**, **accessibility**, and **follower** skills in parallel.
+Load the **stitch**, **mobile-mcp**, **accessibility**, and **follower** skills in parallel.
 
-Use the `stitch-mcp tool <tool_name>` CLI via Bash for all Stitch operations. Pass parameters as JSON after the tool name with `-d '{"key": "value"}'`. Use Mobile MCP tools for device verification. Do NOT use Browser MCP tools at any point in this workflow.
+Do NOT use Browser MCP tools at any point in this workflow.
 
 1. Fetch the Stitch design:
    - Extract the project ID (and screen instance ID if present) from `$ARGUMENTS`
-   - Run `stitch-mcp tool list_projects` to find the project, then `stitch-mcp tool list_screens -d '{"projectId": "<id>"}'` to list available screens
+   - Call `list_projects` to find the project, then `list_screens` with the project ID to list available screens
    - If a specific screen was provided, use it. Otherwise, present the available screens and ask the user which one to implement
-   - Run `stitch-mcp tool get_screen_code -d '{"projectId": "<id>", "screenId": "<id>"}'` and `stitch-mcp tool get_screen_image -d '{"projectId": "<id>", "screenId": "<id>"}'` in parallel to retrieve both the full HTML/CSS code and the screenshot image
-   - Always retrieve both artifacts — the code is needed for implementation reference and the screenshot for visual comparison during verification
+   - Call `get_screen_code` and `get_screen_image` in parallel to retrieve both the full HTML/CSS code and the screenshot image
+   - Always retrieve both artifacts -- the code is needed for implementation reference and the screenshot for visual comparison during verification
 
 2. Analyze the design:
    - Parse the HTML/CSS structure from the Stitch output
    - Identify distinct components, layout patterns, and interactive elements
-   - **Discard all Stitch design tokens** (colors, fonts, spacing scales, shadows, radii) — use only the project's existing design system or Catppuccin Mocha theme
+   - **Discard all Stitch design tokens** (colors, fonts, spacing scales, shadows, radii) -- use only the project's existing design system or Catppuccin Mocha theme
    - Note any gaps: missing states (loading, empty, error), missing interactions, or accessibility issues
 
 3. Plan the implementation:
@@ -34,11 +34,11 @@ Use the `stitch-mcp tool <tool_name>` CLI via Bash for all Stitch operations. Pa
 4. Implement the components:
    - Delegate to the **designer** agent for all component creation
    - Translate Stitch layout patterns to React Native primitives (`View`, `Text`, `Pressable`, `ScrollView`, `FlatList`, etc.)
-   - Use the project's existing design system tokens exclusively — never adopt Stitch colors, fonts, spacing, shadows, or radii
+   - Use the project's existing design system tokens exclusively -- never adopt Stitch colors, fonts, spacing, shadows, or radii
    - Match the project's existing file structure, naming patterns, and import conventions
    - Add accessibility: screen reader support via `accessibilityLabel`, `accessibilityRole`, `accessibilityHint`, touch target sizing (min 44x44), focus management
    - Handle all states: loading, empty, error, disabled
-   - Keep components presentational — do not add business logic or data fetching
+   - Keep components presentational -- do not add business logic or data fetching
 
 5. Verify on Android emulator using Mobile MCP tools:
    - Call `mobile_list_available_devices` to find an available Android emulator
@@ -57,10 +57,10 @@ Use the `stitch-mcp tool <tool_name>` CLI via Bash for all Stitch operations. Pa
    - List any follow-up improvements that were out of scope
 
 Important:
-- Run all Stitch operations via `stitch-mcp tool <name> -d '{...}'` in Bash — do NOT use Stitch MCP tools
-- Use Mobile MCP tools for all device interaction — never Browser MCP
-- The Stitch design informs layout and component structure only — never adopt its design tokens
+- Use Stitch MCP tools for all design operations -- they are available via the proxy configured in opencode.json
+- Use Mobile MCP tools for all device interaction -- never Browser MCP
+- The Stitch design informs layout and component structure only -- never adopt its design tokens
 - Every component must have screen reader support and adequate touch targets
 - Never skip accessibility to match a design exactly
 - Match the project's existing file structure and naming patterns
-- If Stitch CLI fails or auth errors occur, notify the user and suggest running `stitch-mcp doctor`
+- If Stitch tools fail or auth errors occur, notify the user and suggest running `stitch-mcp doctor --verbose`
