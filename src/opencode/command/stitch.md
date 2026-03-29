@@ -1,15 +1,15 @@
 ---
 name: stitch
-description: Generate UI designs with Google Stitch and implement them as components
+description: Generate UI designs with Google Stitch, implement in a worktree, and create a PR
 ---
 
 Usage: /stitch <description of what to design>
 
-Generate AI-powered UI designs using Google Stitch, then implement them as working components in the project.
+Generate AI-powered UI designs using Google Stitch, implement the chosen design in a new git worktree, then create a pull request.
 
 $ARGUMENTS
 
-Load the **stitch-mcp**, **accessibility**, and **follower** skills in parallel.
+Load the **stitch-mcp**, **accessibility**, **follower**, **worktree-workflow**, and **git-workflows** skills in parallel.
 
 1. Determine the platform by examining the project:
    - Check for `react-native` or `expo` in `package.json` — if found, target React Native/Expo
@@ -38,31 +38,63 @@ Load the **stitch-mcp**, **accessibility**, and **follower** skills in parallel.
    - Map each design element to the project's styling approach (Tailwind, NativeWind, or shell formatting)
    - Present the component breakdown to the user and ask for confirmation before implementing
 
-6. Delegate implementation to the **designer** agent:
-   - Provide the chosen Stitch HTML/CSS and screenshot as reference
-   - Implement each component following the project's conventions
-   - Translate Stitch styles to the project's styling system
-   - Add accessibility: keyboard navigation, ARIA/a11y props, focus management, screen reader support
-   - Add responsive behavior: mobile-first breakpoints (web) or platform-specific adaptations (mobile)
-   - Handle all states: loading, empty, error, disabled, hover, focus, active
+6. Determine the base branch using the priority order from the **git-workflows** skill (`develop` > `main` > `master`)
 
-7. Post-implementation review — launch agents in parallel:
-   - **reviewer**: Verify component correctness, prop interfaces, and convention adherence
-   - **auditor**: Scan for XSS, injection risks, or unsafe patterns in user-facing components
-   - **optimizer**: Check for unnecessary re-renders, heavy imports, or animation performance issues
+7. Derive a kebab-case branch name from the task description (e.g., `feat-stitch-login-page`, `feat-stitch-dashboard`). Keep it short and descriptive.
 
-8. If review agents surface issues:
-   - Use **fixer** to address each finding
-   - Re-run **reviewer** once more to verify (max 2 iterations)
+8. Check for uncommitted changes on the current branch (run in parallel):
+   - `git status --porcelain`
+   - `git diff --cached --stat`
 
-9. After all components are implemented:
-   - Run the project's test suite and build to confirm nothing is broken
-   - Summarize what was generated: which variation was chosen, components created, design decisions made, accessibility features added
-   - Show the mapping from Stitch screens to implemented components
+9. If there are staged or unstaged changes:
+   - Stash them with `git stash push -m "<branch-name>"`
+
+10. Create the worktree:
+    - `git worktree add ~/Programming/wcreated/<branch-name> -b <branch-name>`
+
+11. If changes were stashed in step 9:
+    - Apply the stash in the worktree: `git stash pop` (run from the worktree directory)
+
+12. Delegate implementation to the **designer** agent — all work happens in `~/Programming/wcreated/<branch-name>/`:
+    - Provide the chosen Stitch HTML/CSS and screenshot as reference
+    - Implement each component following the project's conventions
+    - Translate Stitch styles to the project's styling system
+    - Add accessibility: keyboard navigation, ARIA/a11y props, focus management, screen reader support
+    - Add responsive behavior: mobile-first breakpoints (web) or platform-specific adaptations (mobile)
+    - Handle all states: loading, empty, error, disabled, hover, focus, active
+
+13. Stage and commit the changes using the commit format from the **git-workflows** skill:
+    - `git add -A`
+    - `git commit -m "✨ feat(<scope>): implement <description> from stitch design"`
+
+14. Review and fix — launch **reviewer**, **auditor**, and **optimizer** agents in parallel:
+    - All agents analyze the diff from `git diff <base-branch>...HEAD`
+    - **reviewer**: verify component correctness, prop interfaces, and convention adherence
+    - **auditor**: scan for XSS, injection risks, or unsafe patterns in user-facing components
+    - **optimizer**: check for unnecessary re-renders, heavy imports, or animation performance issues
+    - Collect all issues found by all agents
+
+15. If issues were found:
+    - Launch **fixer** agents in parallel for independent fixes across different files
+    - After fixes are applied, stage and commit: `git add -A && git commit -m "🐛 fix: address review and audit findings"`
+    - Run **reviewer** once more to verify the fixes are correct (max 2 iterations)
+
+16. Push and create the PR:
+    - `git push -u origin <branch-name>`
+    - Create the PR with `gh pr create` targeting the base branch, with a title matching the original commit message and a body containing:
+      - Which Stitch variation was chosen and why
+      - Components created with brief descriptions
+      - Accessibility features added
+      - Issues found and fixed during pre-PR review
+
+17. Report the PR URL to the user
 
 Important:
+- All implementation happens in the worktree directory, never in the main repo
 - The Stitch design is a reference, not a literal copy — adapt it to the project's conventions and design system
 - Never skip accessibility to match a design exactly
 - Keep components presentational — do not add business logic or data fetching
 - Match the project's existing file structure and naming patterns for new components
+- If the stash pop has conflicts, notify the user and stop
+- If `gh pr create` fails, report the error but do not retry
 - If Stitch tools are unavailable or auth fails, notify the user and suggest running `npx @_davideast/stitch-mcp doctor`
