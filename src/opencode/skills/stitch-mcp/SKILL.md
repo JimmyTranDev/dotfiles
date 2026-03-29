@@ -91,7 +91,7 @@ Authentication is handled automatically by the proxy. Setup options:
 
 | Method | How |
 |--------|-----|
-| Guided wizard | `npx @_davideast/stitch-mcp init` (handles gcloud, OAuth, config) |
+| Guided wizard | `stitch-mcp init` (handles gcloud, OAuth, config) |
 | API key | Set `STITCH_API_KEY` environment variable |
 | System gcloud | Set `STITCH_USE_SYSTEM_GCLOUD=1` env var with existing gcloud config |
 
@@ -101,13 +101,13 @@ These commands are available outside of MCP for direct terminal use:
 
 | Command | Purpose |
 |---------|---------|
-| `npx @_davideast/stitch-mcp init` | Setup auth, gcloud, and MCP client config |
-| `npx @_davideast/stitch-mcp doctor` | Verify configuration health |
-| `npx @_davideast/stitch-mcp serve -p <id>` | Preview project screens on local Vite dev server |
-| `npx @_davideast/stitch-mcp site -p <id>` | Generate Astro project from screens |
-| `npx @_davideast/stitch-mcp view` | Interactive resource browser in terminal |
-| `npx @_davideast/stitch-mcp tool [name]` | Invoke MCP tools from CLI |
-| `npx @_davideast/stitch-mcp logout` | Revoke credentials |
+| `stitch-mcp init` | Setup auth, gcloud, and MCP client config |
+| `stitch-mcp doctor` | Verify configuration health |
+| `stitch-mcp serve -p <id>` | Preview project screens on local Vite dev server |
+| `stitch-mcp site -p <id>` | Generate Astro project from screens |
+| `stitch-mcp view` | Interactive resource browser in terminal |
+| `stitch-mcp tool [name]` | Invoke MCP tools from CLI |
+| `stitch-mcp logout` | Revoke credentials |
 
 ## Environment Variables
 
