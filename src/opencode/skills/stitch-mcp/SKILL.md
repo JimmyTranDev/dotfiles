@@ -3,6 +3,14 @@ name: stitch-mcp
 description: Stitch MCP tool usage patterns for fetching AI-generated UI designs, building sites from screens, and integrating Google Stitch designs into coding workflows
 ---
 
+## How to Call Stitch Tools
+
+All Stitch tools are MCP tools — call them through the MCP tool-calling interface, NOT via the shell. The tools are prefixed with `stitch-mcp_` in the tool list (e.g., `stitch-mcp_list_projects`, `stitch-mcp_get_screen_code`).
+
+**NEVER run `stitch-mcp tool <name>` via Bash.** The CLI `tool` subcommand has parameter passing bugs and will fail. Always use the MCP tool-calling interface directly.
+
+The only `stitch-mcp` CLI commands safe to run via Bash are: `doctor`, `init`, `serve`, `site`, `view`, and `logout`.
+
 ## Tool Overview
 
 The stitch MCP proxy exposes upstream Stitch API tools plus virtual tools that combine multiple API calls into higher-level operations.
@@ -219,7 +227,6 @@ These commands are available outside of MCP for direct terminal use:
 | `stitch-mcp serve -p <id>` | Preview project screens on local Vite dev server |
 | `stitch-mcp site -p <id>` | Generate Astro project from screens |
 | `stitch-mcp view` | Interactive resource browser in terminal |
-| `stitch-mcp tool [name]` | Invoke MCP tools from CLI |
 | `stitch-mcp logout` | Revoke credentials |
 
 ## Environment Variables

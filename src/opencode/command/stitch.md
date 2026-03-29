@@ -42,6 +42,7 @@ Use only Stitch MCP tools for all design generation. Do NOT use Browser MCP tool
    - Do NOT use Browser MCP tools for mobile preview
 
 Important:
+- Call all Stitch tools through the MCP tool-calling interface (prefixed `stitch-mcp_`) — NEVER shell out to `stitch-mcp tool` via Bash
 - Use Stitch MCP tools for all design generation — never Browser MCP
 - Use Mobile MCP tools for mobile device previews — never Browser MCP
 - If Stitch tools are unavailable or auth fails, notify the user and suggest running `stitch-mcp doctor`
