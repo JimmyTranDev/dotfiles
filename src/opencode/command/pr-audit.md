@@ -1,89 +1,76 @@
 ---
 name: pr-audit
-description: Fix npm vulnerabilities in a worktree and create a PR with the dependency updates
+description: Roll up Dependabot PRs, apply audit fixes, and create a draft PR
 ---
 
 Usage: /pr-audit [$ARGUMENTS]
 
-Fix npm dependency vulnerabilities in a new git worktree, then create a pull request with the changes. If `$ARGUMENTS` is provided, use it as additional scope (e.g., "critical only", "--omit=dev").
+Create a new worktree branch, merge open Dependabot dependency PRs into it, apply dependency audit fixes, and open one draft rollup PR.
 
 $ARGUMENTS
 
-Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** skills.
+Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** skills in parallel.
 
-1. Determine the base branch using the priority order from the **git-workflows** skill (`develop` > `main` > `master`)
+1. Determine scope from `$ARGUMENTS`:
+   - If `$ARGUMENTS` contains `--base=<branch>`, use it as the base branch
+   - Otherwise use the priority order from the **git-workflows** skill (`develop` > `main` > `master`)
+   - If `$ARGUMENTS` contains `--match=<text>`, use it to filter Dependabot PRs by title/body
 
-2. Use `fix-npm-audit` as the branch name
+2. Discover open Dependabot PRs targeting the base branch:
+   - Run `gh pr list --state open --base <base-branch> --limit 200 --json number,title,url,author,labels,body`
+   - Keep only PRs where `author.login` is `app/dependabot` or `dependabot[bot]`
+   - Split matches into:
+     - Vulnerability PRs: title, body, or labels include `security`, `vulnerability`, `cve`, `ghsa`, or `dependabot alerts`
+     - Update PRs: all remaining Dependabot PRs
+   - Apply `--match=<text>` filter to both groups when provided
+   - If no Dependabot PRs are found, continue with audit-only flow
 
-3. Check for uncommitted changes on the current branch (run in parallel):
-   - `git status --porcelain`
-   - `git diff --cached --stat`
+3. Create a rollup branch and worktree:
+   - Use branch name `fix-pr-audit-<YYYYMMDD>`
+   - If that branch already exists, append `-<HHMMSS>` to keep it unique
+   - Create the worktree with `git worktree add ~/Programming/wcreated/<branch-name> -b <branch-name>`
 
-4. If there are staged or unstaged changes:
-   - Stash them with `git stash push -m "fix-npm-audit"`
+4. Merge each Dependabot PR in ascending PR number from inside the worktree:
+   - If both Dependabot groups are empty, skip this step
+   - Fetch each PR head with `git fetch origin pull/<pr-number>/head:dependabot-pr-<pr-number>`
+   - Merge with `git merge --no-ff --no-edit dependabot-pr-<pr-number>`
+   - Delete the temporary branch with `git branch -D dependabot-pr-<pr-number>`
+   - If a merge conflicts, run `git merge --abort`, mark that PR as skipped, delete the temporary branch, and continue
 
-5. Create the worktree:
-   - `git worktree add ~/Programming/wcreated/fix-npm-audit -b fix-npm-audit`
+5. Run dependency audit and apply fixes in the worktree:
+   - If `pnpm-lock.yaml` exists, run `pnpm install`, `pnpm audit --json`, `pnpm audit --fix`, then `pnpm audit --json` again
+   - Else if `package-lock.json` exists, run `npm install`, `npm audit --json`, `npm audit fix`, then `npm audit --json` again
+   - Else skip audit and report that no supported lockfile was found
+   - Capture before/after vulnerability summaries
+   - If audit fixes changed files, stage and commit with `git add -A && git commit -m "🐛 fix(deps): resolve audit vulnerabilities"`
 
-6. If changes were stashed in step 4:
-   - Apply the stash in the worktree: `git stash pop` (run from the worktree directory)
+6. Verify results:
+   - If no Dependabot PR was merged and audit fixes produced no file changes, remove the worktree and local branch, notify the user, and stop
+   - Run available project checks in the worktree (tests/build/lint) and report any failures
 
-7. Run the npm audit in the worktree directory:
-   - Determine the scope from `$ARGUMENTS` (severity filter, `--omit=dev`, etc.). If no scope given, run a full audit.
-   - Execute `npm audit --json` to get machine-readable vulnerability data
-   - Parse the output to extract vulnerability count, severity breakdown, affected packages, and fix availability
-   - If no vulnerabilities are found, notify the user, remove the worktree and branch, and stop
+7. Push and create the draft rollup PR:
+   - `git push -u origin <branch-name>`
+   - Create a draft PR against `<base-branch>` with `gh pr create --draft`
+   - Use title `fix(deps): roll up dependabot updates and audit fixes`
+   - Include in the PR body:
+     - Merged vulnerability PR list (`#number title`)
+     - Merged update PR list (`#number title`)
+     - Skipped PR list with conflict reason (if any)
+     - Audit before/after summary
+     - Validation commands and outcomes
 
-8. Triage using the **npm-vulnerabilities** skill decision tree:
-   - Classify each vulnerability by severity (critical, high, moderate, low)
-   - Determine if each is a direct or transitive dependency
-   - Check if a fix is available (`fixAvailable` field)
-   - Separate production vulnerabilities from dev-only vulnerabilities
+8. Close merged Dependabot update PRs:
+   - For each merged update PR, run `gh pr close <pr-number> --comment "Superseded by <rollup-pr-url>"`
+   - If closing any PR fails, report it and continue closing the rest
 
-9. Present findings to the user:
-   - Summary table: count by severity, direct vs transitive, fix available vs no fix
-   - For each critical/high vulnerability: package name, advisory URL, affected version range, and recommended action
-   - Ask the user to confirm before applying fixes
-
-10. Apply fixes incrementally, starting with the safest:
-    - **Phase 1**: Run `npm audit fix` for semver-compatible auto-fixes
-    - **Phase 2**: For remaining transitive vulnerabilities, add `overrides` to `package.json`
-    - **Phase 3**: For direct dependencies with major version bumps available, present breaking changes and ask user before upgrading
-    - Skip `npm audit fix --force` unless the user explicitly requests it
-
-11. After each phase, verify:
-    - Run `npm audit` to confirm vulnerability count decreased
-    - Run `npm test` and `npm run build` (if available) to catch regressions
-    - If a fix introduces test failures, revert the change and report the conflict to the user
-
-12. Stage and commit the changes:
-    - `git add -A`
-    - `git commit -m "🔒 fix(deps): resolve npm audit vulnerabilities"`
-    - If multiple phases produced separate logical changes, use separate commits per phase
-
-13. Review and fix — launch **reviewer** and **auditor** agents in parallel:
-    - Both agents analyze the diff from `git diff <base-branch>...HEAD`
-    - **reviewer**: verify `package.json` and `package-lock.json` changes are correct and overrides are properly scoped
-    - **auditor**: confirm no new security concerns were introduced by the dependency changes
-    - Collect all issues found by both agents
-
-14. If issues were found:
-    - Launch **fixer** agents in parallel for independent fixes
-    - After fixes are applied, stage and commit: `git add -A && git commit -m "🐛 fix(deps): address review findings"`
-    - Run **reviewer** once more to verify (max 2 iterations)
-
-15. Push and create the PR:
-    - `git push -u origin fix-npm-audit`
-    - Create the PR with `gh pr create` targeting the base branch:
-      - Title: `🔒 fix(deps): resolve npm audit vulnerabilities`
-      - Body: summary of vulnerabilities found, fixes applied, remaining unresolved issues, and verification results
-    - Include a section listing any unresolved vulnerabilities with explanation
-
-16. Report the PR URL to the user
+9. Report outcome to the user:
+   - Rollup branch name and worktree path
+   - Created PR URL
+   - Count of merged vulnerability PRs, merged update PRs, and skipped PRs
+   - Count of update PRs successfully closed
 
 Important:
 - All work happens in the worktree directory, never in the main repo
-- If the stash pop has conflicts, notify the user and stop
-- If `gh pr create` fails, report the error but do not retry
+- Never force push
+- If `gh pr create` fails, report the error and stop
 - Do not modify the main repo's working tree
-- If no vulnerabilities exist, clean up the worktree and branch before stopping

@@ -1,11 +1,11 @@
 ---
 name: pr
-description: Implement changes in a worktree and create a PR
+description: Implement changes in a worktree and create a draft PR
 ---
 
 Usage: /pr <description of what to implement>
 
-Implement the described changes in a new git worktree, then create a pull request.
+Implement the described changes in a new git worktree, then create a draft pull request.
 
 $ARGUMENTS
 
@@ -43,9 +43,9 @@ Load the **worktree-workflow** and **git-workflows** skills to follow worktree l
     - After fixes are applied, stage and commit: `git add -A && git commit -m "🐛 fix: address review and audit findings"`
     - Run **reviewer** once more to verify the fixes are correct — if new issues are found, repeat this step (max 2 iterations)
 
-11. Push and create the PR:
+11. Push and create the draft PR:
     - `git push -u origin <branch-name>`
-    - Create the PR with `gh pr create` targeting the base branch, with a title matching the original commit message and a summary body
+    - Create the PR with `gh pr create --draft` targeting the base branch, with a title matching the original commit message and a summary body
     - Include a section in the PR body listing issues found and fixed during pre-PR review
 
 12. Report the PR URL to the user

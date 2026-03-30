@@ -1,9 +1,9 @@
 ---
 name: audit
-description: Scan npm dependencies for vulnerabilities, apply fixes in a worktree, and create a PR
+description: Scan npm dependencies for vulnerabilities, apply fixes in a worktree, and create a draft PR
 ---
 
-Audit npm dependencies for known vulnerabilities, triage by severity, apply fixes in a worktree, and create a PR.
+Audit npm dependencies for known vulnerabilities, triage by severity, apply fixes in a worktree, and create a draft PR.
 
 Usage: /audit [scope]
 
@@ -65,9 +65,9 @@ Load the **npm-vulnerabilities**, **worktree-workflow**, **git-workflows**, and 
     - Stage and commit fixes: `git add -A && git commit -m "🐛 fix: address review findings"`
     - Run **reviewer** once more to verify (max 2 iterations)
 
-11. Push and create the PR:
+11. Push and create the draft PR:
     - `git push -u origin <branch-name>`
-    - Create the PR with `gh pr create` targeting the base branch
+    - Create the PR with `gh pr create --draft` targeting the base branch
     - Title: `🐛 fix: resolve npm audit vulnerabilities`
     - Body: summary of vulnerabilities found, fixes applied, overrides added, and any unresolved vulnerabilities with explanations
 
