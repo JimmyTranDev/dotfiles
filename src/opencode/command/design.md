@@ -16,19 +16,21 @@ $ARGUMENTS
    - Detect the platform: React (web), React Native/Expo (mobile), or CLI/TUI (terminal)
 
 2. Load applicable skills in parallel based on platform and scope:
+   - **designer-ui-ux**: Always load — component architecture, layout, responsive design, theming, state handling, design tokens
    - **accessibility**: Always load — every UI change must meet WCAG/a11y standards
    - **follower**: Always load — match existing component patterns, naming, and styling conventions
    - **ux-ui-animator**: Load when scope involves transitions, animations, micro-interactions, or loading states
    - **gamification**: Load when scope involves engagement features, progress indicators, achievements, or reward loops
 
-3. Audit the current UI/UX across these categories:
-   - **Component structure**: semantic markup, heading hierarchy, logical DOM/view order, proper use of platform primitives
-   - **Accessibility**: keyboard navigation, focus management, screen reader support, color contrast, ARIA/a11y props, touch targets, reduced motion
-   - **Responsiveness**: mobile-first breakpoints, container queries, safe areas, platform-specific adaptations
-   - **Visual consistency**: spacing, typography, color usage against the project's design system or Catppuccin Mocha theme
-   - **Interaction quality**: loading states, empty states, error states, transitions, feedback on user actions, confirmation for destructive actions
+3. Audit the current UI/UX across these categories (reference the `designer-ui-ux` and `accessibility` skills for detailed patterns):
+   - **Component structure**: semantic markup, heading hierarchy, logical DOM/view order, proper use of platform primitives, typed props with variant/size support
+   - **Accessibility**: keyboard navigation, focus management, screen reader support, color contrast, ARIA/a11y props, touch targets (44pt iOS / 48dp Android), reduced motion
+   - **Responsiveness**: mobile-first breakpoints, container queries, safe areas, platform-specific adaptations, graceful text truncation
+   - **Visual consistency**: spacing scale, typography scale, color usage against the project's design tokens or Catppuccin Mocha theme, icon sizing
+   - **State handling**: loading states (skeleton/spinner), empty states (illustration + CTA), error states (inline + banner), disabled states, selected states
+   - **Interaction quality**: transitions, micro-interactions, feedback on user actions, confirmation for destructive actions, optimistic updates
    - **User flow**: confusing workflows, dead-end states, missing navigation affordances, unclear calls to action
-   - **Input handling**: validation feedback, helpful defaults, autofill support, required vs optional clarity
+   - **Form design**: visible labels, required indicators, validation feedback, helper text, field grouping, submit button states
    - **Performance users feel**: layout shifts, janky animations, unnecessary re-renders, slow initial paint
 
 4. Prioritize findings:
