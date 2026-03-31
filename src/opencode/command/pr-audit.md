@@ -1,11 +1,11 @@
 ---
 name: pr-audit
-description: Apply Dependabot version bumps and audit fixes in a worktree, then create a draft PR
+description: Roll up Dependabot patch/minor bumps and scoped audit fixes into a draft PR via a worktree
 ---
 
 Usage: /pr-audit [$ARGUMENTS]
 
-Read open Dependabot PRs for version bump info, apply those bumps to `package.json` in a new worktree, run audit fixes, and open one draft rollup PR. Dependabot PRs are not merged or closed — they will auto-close when the rollup PR merges the same version changes into the base branch.
+Read open Dependabot PRs for version bump info, apply patch and minor bumps to `package.json` in a new worktree (skipping major bumps unless `--major` is passed), run audit fixes with overrides scoped to vulnerable ranges, and open one draft rollup PR. Dependabot PRs are not merged or closed — they will auto-close when the rollup PR merges the same version changes into the base branch.
 
 $ARGUMENTS
 

@@ -46,7 +46,6 @@ Load the **worktree-workflow** and **git-workflows** skills to follow worktree l
 11. Push and create the draft PR:
     - `git push -u origin <branch-name>`
     - Create the PR with `gh pr create --draft` targeting the base branch, with a title matching the original commit message and a summary body
-    - Include a section in the PR body listing issues found and fixed during pre-PR review
 
 12. Report the PR URL to the user
 
