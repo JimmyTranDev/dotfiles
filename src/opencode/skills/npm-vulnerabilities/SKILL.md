@@ -185,6 +185,69 @@ After applying any fix:
 | `ERESOLVE` conflict with override | Ensure override version satisfies peer dependency requirements |
 | lockfile out of sync | Run `npm install --package-lock-only` to regenerate without modifying `node_modules` |
 
+## Supply Chain Attack Prevention
+
+Delay installation of newly published dependency versions to allow time for the community to detect malicious packages before they reach your project.
+
+### pnpm: minimumReleaseAge
+
+In `pnpm-workspace.yaml`, set `minimumReleaseAge` (in minutes) to block packages published less than N days ago. 7 days = 10080 minutes:
+
+```yaml
+packages:
+  - '.'
+
+minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - '@your-org/*'
+trustPolicy: no-downgrade
+```
+
+| Setting | Purpose |
+|---------|---------|
+| `minimumReleaseAge` | Minutes a package version must exist on the registry before pnpm will install it |
+| `minimumReleaseAgeExclude` | Packages exempt from the age gate (e.g., internal scoped packages) |
+| `trustPolicy: no-downgrade` | Fail if a package's trust level has decreased compared to previous releases |
+
+### Dependabot: cooldown
+
+In `.github/dependabot.yml`, add `cooldown.default-days` to delay Dependabot version update PRs until a new version has been published for N days:
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+    cooldown:
+      default-days: 7
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+      development-dependencies:
+        dependency-type: "development"
+```
+
+| Setting | Purpose |
+|---------|---------|
+| `cooldown.default-days` | Days to wait after a new version is published before Dependabot creates a PR |
+| `groups` | Group dependency updates by type to reduce PR noise |
+
+### Why 7 Days?
+
+Most malicious npm packages are detected and removed within 24-72 hours. A 7-day cooldown provides a safety margin that catches the vast majority of supply chain attacks while keeping dependencies reasonably current.
+
+### Verification Checklist
+
+When auditing a project's supply chain defenses:
+
+1. Check for `minimumReleaseAge` in `pnpm-workspace.yaml` (pnpm projects)
+2. Check for `cooldown` in `.github/dependabot.yml` (GitHub-hosted projects)
+3. Verify `trustPolicy: no-downgrade` is set (pnpm projects)
+4. Verify `npm audit signatures` passes (registry signature integrity)
+5. Ensure internal/scoped packages are excluded from age gates to avoid blocking your own releases
+
 ## pnpm Equivalents
 
 | npm | pnpm |
