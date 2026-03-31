@@ -12,7 +12,9 @@ $ARGUMENTS
 Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** skills in parallel.
 
 1. Pull latest changes:
-   - Run `git pull` to ensure the working tree is up to date with the remote before auditing
+   - Run `git fetch origin` then pull `develop` and `main` (or `master`) branches to ensure they are up to date with the remote before auditing
+   - For each branch that exists locally: `git checkout <branch> && git pull`
+   - Return to the original branch after pulling
 
 2. Determine scope from `$ARGUMENTS`:
    - If `$ARGUMENTS` contains `--base=<branch>`, use it as the base branch
@@ -80,8 +82,16 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
     - Create a draft PR against `<base-branch>` with `gh pr create --draft`
     - Use title `fix(deps): roll up dependency bumps and audit fixes`
     - Include in the PR body:
-      - Applied vulnerability bump list (`#number title` — package@fromVersion -> package@toVersion)
-      - Applied update bump list (`#number title` — package@fromVersion -> package@toVersion)
+      - Group bumps by dependency type (`dependencies`, `devDependencies`, `peerDependencies`) with a summary header and markdown table for each group, e.g.:
+        ```
+        ## Bumps the development-dependencies group with 6 updates
+
+        | Package | From | To |
+        |---------|------|----|
+        | @vitejs/plugin-react | 5.2.0 | 6.0.1 |
+        | eslint | 9.39.4 | 10.1.0 |
+        ```
+      - If vulnerability bumps exist, list them in a separate section above update bumps with a `## Vulnerability fixes` header using the same table format
       - Skipped bump list with reason (if any)
       - Audit before/after summary
       - Supply chain defense status (missing configurations noted)
