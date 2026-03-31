@@ -39,15 +39,15 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
    - Parse the PR title and body to identify the package name and target version (e.g., "Bump express from 4.18.2 to 4.19.2")
    - Build a list of `{ package, fromVersion, toVersion, prNumber, prTitle, isVulnerability }` entries
    - If a package appears in multiple PRs, use the highest target version
-   - Present the list to the user for confirmation before proceeding
 
 6. Create a rollup branch and worktree:
    - Use branch name `fix-pr-audit-<YYYYMMDD>`
    - If that branch already exists, append `-<HHMMSS>` to keep it unique
    - Create the worktree with `git worktree add ~/Programming/wcreated/<branch-name> -b <branch-name>`
 
-7. Apply version bumps in the worktree:
+7. Apply all version bumps in the worktree:
    - For each extracted bump, update the version in `package.json` (`dependencies`, `devDependencies`, or `peerDependencies` as appropriate)
+   - Always apply all Dependabot bumps — do not ask for confirmation
    - Reinstall dependencies: `pnpm install` or `npm install` depending on the detected package manager
    - If any bump fails to install (e.g., peer dependency conflict), revert that bump, mark it as skipped, and continue
    - Stage and commit: `git add -A && git commit -m "⬆️ fix(deps): bump dependencies from dependabot PRs"`
@@ -67,7 +67,15 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
     - If any check fails, use **fixer** to resolve the issue, stage and commit the fix, then re-run the failing check
     - Do not proceed to PR creation until all three checks pass
 
-11. Push and create the draft rollup PR:
+11. Review all changes before creating the PR:
+    - Run `git diff <base-branch>...HEAD` in the worktree to capture the full diff
+    - Launch **reviewer** and **auditor** agents in parallel against the diff
+    - **reviewer**: evaluate code quality, correctness, and potential regressions introduced by the dependency changes
+    - **auditor**: scan for security concerns such as new transitive dependencies, suspicious version jumps, or known vulnerability patterns
+    - If either agent reports critical issues, use **fixer** to resolve them, stage and commit the fix, then re-run validation (step 10)
+    - Include a summary of review findings in the PR body
+
+12. Push and create the draft rollup PR:
     - `git push -u origin <branch-name>`
     - Create a draft PR against `<base-branch>` with `gh pr create --draft`
     - Use title `fix(deps): roll up dependency bumps and audit fixes`
@@ -78,9 +86,10 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
       - Audit before/after summary
       - Supply chain defense status (missing configurations noted)
       - Validation commands and outcomes
+      - Review findings summary from **reviewer** and **auditor** agents
       - Note: open Dependabot PRs will auto-close when this PR merges
 
-12. Report outcome to the user:
+13. Report outcome to the user:
     - Rollup branch name and worktree path
     - Created PR URL
     - Count of applied vulnerability bumps, applied update bumps, and skipped bumps
