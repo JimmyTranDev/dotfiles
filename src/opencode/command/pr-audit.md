@@ -1,11 +1,11 @@
 ---
 name: pr-audit
-description: Roll up Dependabot PRs, apply audit fixes, and create a draft PR
+description: Apply Dependabot version bumps and audit fixes in a worktree, then create a draft PR
 ---
 
 Usage: /pr-audit [$ARGUMENTS]
 
-Create a new worktree branch, merge open Dependabot dependency PRs into it, apply dependency audit fixes, and open one draft rollup PR.
+Read open Dependabot PRs for version bump info, apply those bumps to `package.json` in a new worktree, run audit fixes, and open one draft rollup PR. Dependabot PRs are not merged or closed — they will auto-close when the rollup PR merges the same version changes into the base branch.
 
 $ARGUMENTS
 
@@ -32,53 +32,56 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
    - Apply `--match=<text>` filter to both groups when provided
    - If no Dependabot PRs are found, continue with audit-only flow
 
-4. Create a rollup branch and worktree:
+4. Extract version bump info from each Dependabot PR:
+   - Parse the PR title and body to identify the package name and target version (e.g., "Bump express from 4.18.2 to 4.19.2")
+   - Build a list of `{ package, fromVersion, toVersion, prNumber, prTitle, isVulnerability }` entries
+   - If a package appears in multiple PRs, use the highest target version
+   - Present the list to the user for confirmation before proceeding
+
+5. Create a rollup branch and worktree:
    - Use branch name `fix-pr-audit-<YYYYMMDD>`
    - If that branch already exists, append `-<HHMMSS>` to keep it unique
    - Create the worktree with `git worktree add ~/Programming/wcreated/<branch-name> -b <branch-name>`
 
-5. Merge each Dependabot PR in ascending PR number from inside the worktree:
-   - If both Dependabot groups are empty, skip this step
-   - Fetch each PR head with `git fetch origin pull/<pr-number>/head:dependabot-pr-<pr-number>`
-   - Merge with `git merge --no-ff --no-edit dependabot-pr-<pr-number>`
-   - Delete the temporary branch with `git branch -D dependabot-pr-<pr-number>`
-   - If a merge conflicts, run `git merge --abort`, mark that PR as skipped, delete the temporary branch, and continue
+6. Apply version bumps in the worktree:
+   - For each extracted bump, update the version in `package.json` (`dependencies`, `devDependencies`, or `peerDependencies` as appropriate)
+   - Reinstall dependencies: `pnpm install` or `npm install` depending on the detected package manager
+   - If any bump fails to install (e.g., peer dependency conflict), revert that bump, mark it as skipped, and continue
+   - Stage and commit: `git add -A && git commit -m "⬆️ fix(deps): bump dependencies from dependabot PRs"`
 
-6. Run dependency audit and apply fixes in the worktree:
-   - If `pnpm-lock.yaml` exists, run `pnpm install`, `pnpm audit --json`, `pnpm audit --fix`, then `pnpm audit --json` again
-   - Else if `package-lock.json` exists, run `npm install`, `npm audit --json`, `npm audit fix`, then `npm audit --json` again
+7. Run dependency audit and apply fixes in the worktree:
+   - If `pnpm-lock.yaml` exists, run `pnpm audit --json`, `pnpm audit --fix`, then `pnpm audit --json` again
+   - Else if `package-lock.json` exists, run `npm audit --json`, `npm audit fix`, then `npm audit --json` again
    - Else skip audit and report that no supported lockfile was found
    - Capture before/after vulnerability summaries
    - If audit fixes changed files, stage and commit with `git add -A && git commit -m "🐛 fix(deps): resolve audit vulnerabilities"`
 
-7. Verify results:
-   - If no Dependabot PR was merged and audit fixes produced no file changes, remove the worktree and local branch, notify the user, and stop
+8. Verify results:
+   - If no bumps were applied and audit fixes produced no file changes, remove the worktree and local branch, notify the user, and stop
    - Run available project checks in the worktree (tests/build/lint) and report any failures
 
-8. Push and create the draft rollup PR:
+9. Push and create the draft rollup PR:
    - `git push -u origin <branch-name>`
    - Create a draft PR against `<base-branch>` with `gh pr create --draft`
-   - Use title `fix(deps): roll up dependabot updates and audit fixes`
+   - Use title `fix(deps): roll up dependency bumps and audit fixes`
    - Include in the PR body:
-     - Merged vulnerability PR list (`#number title`)
-     - Merged update PR list (`#number title`)
-     - Skipped PR list with conflict reason (if any)
+     - Applied vulnerability bump list (`#number title` — package@fromVersion -> package@toVersion)
+     - Applied update bump list (`#number title` — package@fromVersion -> package@toVersion)
+     - Skipped bump list with reason (if any)
      - Audit before/after summary
      - Supply chain defense status (missing configurations noted)
      - Validation commands and outcomes
-
-9. Close merged Dependabot update PRs:
-   - For each merged update PR, run `gh pr close <pr-number> --comment "Superseded by <rollup-pr-url>"`
-   - If closing any PR fails, report it and continue closing the rest
+     - Note: open Dependabot PRs will auto-close when this PR merges
 
 10. Report outcome to the user:
     - Rollup branch name and worktree path
     - Created PR URL
-    - Count of merged vulnerability PRs, merged update PRs, and skipped PRs
-    - Count of update PRs successfully closed
+    - Count of applied vulnerability bumps, applied update bumps, and skipped bumps
+    - Remaining open Dependabot PRs that were not addressed (if any)
 
 Important:
 - All work happens in the worktree directory, never in the main repo
 - Never force push
+- Do not merge or close Dependabot PRs — they auto-close when the base branch contains the same version bumps
 - If `gh pr create` fails, report the error and stop
 - Do not modify the main repo's working tree
