@@ -1,42 +1,44 @@
 ---
 name: merge
-description: Merge the current worktree's PR, then delete the worktree and branch
+description: List mergeable PRs authored by you, let the user select which to merge, and clean up worktrees
 ---
 
-Merge the pull request for the current branch, then clean up the worktree and branch.
+List your open, non-draft PRs that have passing checks and approvals, let the user select which to merge, then clean up associated worktrees and branches.
 
-1. Verify the current directory is a worktree (not the main working tree):
-   - Run `git worktree list` and confirm the current directory is listed as a worktree under `~/Programming/wcreated/`
-   - If the current directory is the main working tree, notify the user and stop
+1. Fetch the current user and list eligible PRs in parallel:
+   - Run `gh api user --jq '.login'` to get the current user's login
+   - Run `gh pr list --author @me --state open --json number,title,url,headRefName,isDraft,reviewDecision,statusCheckRollup` to list all open PRs authored by the user
 
-2. Check for uncommitted changes:
-   - Run `git status --porcelain`
-   - If there are uncommitted changes, warn the user and ask whether to proceed or abort
+2. Filter for mergeable PRs:
+   - Exclude draft PRs (`isDraft: true`)
+   - Exclude PRs without approval (`reviewDecision` must be `APPROVED`)
+   - Exclude PRs with failing or pending checks (`statusCheckRollup` — all checks must have `conclusion: SUCCESS`)
+   - If no PRs pass the filter, report why each was excluded (draft, missing approval, failing checks) and stop
 
-3. Identify the PR for the current branch:
-   - Run `gh pr view --json number,title,url,state,mergeable,mergeStateStatus,reviewDecision`
-   - If no PR exists for this branch, notify the user and stop
-   - If the PR is already merged or closed, notify the user and skip to step 5
+3. Present eligible PRs and let the user select which to merge:
+   - Display each PR with its number, title, branch name, and URL
+   - Ask the user which PRs to merge using the question tool with `multiple: true`
+   - Include a "Merge all" option as the first choice for convenience
 
-4. Merge the PR:
-   - Run `gh pr merge --merge --delete-branch` to merge the PR and delete the remote branch
-   - If the merge fails, report the error and stop
+4. For each selected PR, merge and clean up sequentially:
 
-5. Navigate out of the worktree before removal:
-   - Determine the main working tree path from `git worktree list` (first entry)
-   - Instruct the user to `cd` to the main working tree since the current directory will be removed
+   a. Merge the PR:
+      - Run `gh pr merge <number> --merge --delete-branch`
+      - If the merge fails, report the error and continue to the next PR
 
-6. Remove the worktree and local branch:
-   - Capture the current branch name and worktree path before removal
-   - Run `git worktree remove <worktree-path>`
-   - Run `git branch -d <branch-name>` (use `-D` if the branch was not fully merged)
-   - Run `git worktree prune` to clean stale references
+   b. Clean up the local worktree and branch if they exist:
+      - Run `git worktree list` to check if a worktree exists for this PR's branch
+      - If a worktree exists at `~/Programming/wcreated/<branch-name>`:
+        - Run `git worktree remove <worktree-path>`
+      - Run `git branch -d <branch-name>` to delete the local branch (use `-D` if needed)
+      - Run `git worktree prune` to clean stale references
 
-7. Report a summary:
-   - PR merge status (title, number, URL)
-   - Worktree and branch that were removed
+5. Report a summary:
+   - List each merged PR (number, title, URL)
+   - List any PRs that failed to merge and why
+   - List worktrees and branches that were cleaned up
 
 Important:
 - Never remove the main working tree
-- Always check for uncommitted changes before proceeding
-- If any step fails, report the error clearly and stop
+- If the current directory is inside a worktree being removed, instruct the user to `cd` out first
+- Continue merging remaining PRs even if one fails
