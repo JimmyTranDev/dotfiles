@@ -20,6 +20,7 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
    - If `$ARGUMENTS` contains `--base=<branch>`, use it as the base branch
    - Otherwise use the priority order from the **git-workflows** skill (`develop` > `main` > `master`)
    - If `$ARGUMENTS` contains `--match=<text>`, use it to filter Dependabot PRs by title/body
+   - If `$ARGUMENTS` contains `--major`, allow major version bumps (default: skip major bumps)
 
 3. Check supply chain defenses (using the **Supply Chain Attack Prevention** section of the **npm-vulnerabilities** skill):
    - Detect package manager: check for `pnpm-lock.yaml` (pnpm) or `package-lock.json` (npm)
@@ -41,6 +42,8 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
    - Parse the PR title and body to identify the package name and target version (e.g., "Bump express from 4.18.2 to 4.19.2")
    - Build a list of `{ package, fromVersion, toVersion, prNumber, prTitle, isVulnerability }` entries
    - If a package appears in multiple PRs, use the highest target version
+   - Only apply patch and minor version bumps by default — skip any bump where the major version increases (e.g., 5.x.x to 6.x.x) and mark it as skipped with reason "major version bump"
+   - If `$ARGUMENTS` contains `--major`, include major version bumps as well
 
 6. Create a rollup branch and worktree:
    - Use branch name `fix-pr-audit-<YYYYMMDD>`
@@ -58,6 +61,10 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
    - If `pnpm-lock.yaml` exists, run `pnpm audit --json`, `pnpm audit --fix`, then `pnpm audit --json` again
    - Else if `package-lock.json` exists, run `npm audit --json`, `npm audit fix`, then `npm audit --json` again
    - Else skip audit and report that no supported lockfile was found
+   - After audit fix, inspect any `overrides` (pnpm) or `overrides` (npm) added to `package.json`:
+     - If an override forces a major version jump on a transitive dependency (e.g., `picomatch 2.x→4.x`, `brace-expansion 2.x→5.x`), scope the override to only the vulnerable range instead of a blanket replacement — use `>=<minSafeVersion> <currentMajor+1` (e.g., `">=2.3.1 <3"` instead of `"4"`)
+     - If scoping is not possible because no safe version exists within the current major, prefer upgrading the upstream direct dependency that pulls the vulnerable transitive, rather than forcing a cross-major override
+     - If neither scoping nor upstream upgrade resolves the vulnerability, keep the major-version override but flag it in the PR body as a compatibility risk
    - Capture before/after vulnerability summaries
    - If audit fixes changed files, stage and commit with `git add -A && git commit -m "🐛 fix(deps): resolve audit vulnerabilities"`
 
@@ -93,6 +100,7 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
         ```
       - If vulnerability bumps exist, list them in a separate section above update bumps with a `## Vulnerability fixes` header using the same table format
       - Skipped bump list with reason (if any)
+      - Major-version transitive overrides flagged as compatibility risks (if any)
       - Audit before/after summary
       - Supply chain defense status (missing configurations noted)
       - Validation commands and outcomes
