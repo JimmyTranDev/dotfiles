@@ -18,12 +18,11 @@ After understanding the intent, load relevant skills and delegate to specialized
 
 Skills to load (load all applicable skills in a single parallel batch):
 - **follower**: Always load to study existing codebase conventions (naming, imports, file structure, patterns) so all new code matches the established style
-- **file-organizer**: Load when the task describes adding new modules, reorganizing files, or restructuring project layout
 - **logic-checker**: Load when the task involves business logic, state machines, or complex conditional flows to verify logical soundness and catch impossible states
 - **deduplicator**: Load when the task describes extracting shared utilities or reducing duplication across the codebase
 - **simplifier**: Load when the task describes refactoring or simplification work — apply DRY, KISS, YAGNI principles
-- **import-optimizer**: Load when the task describes cleaning up barrel files, fixing circular dependencies, or optimizing imports
-- **prompt-writer**: Load when the task describes writing or updating AI system prompts or agent instructions
+- **conventions**: Load when the task describes adding new code to ensure consistent coding patterns
+- **opencode-authoring**: Load when the task describes writing or updating OpenCode agents, commands, or skills
 
 Agents to delegate to (launch independent agents in parallel — only serialize when one depends on another's output):
 - **designer**: Use when the task describes UI component work, accessibility improvements, or frontend feature additions

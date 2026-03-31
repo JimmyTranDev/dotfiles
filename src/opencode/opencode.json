@@ -14,23 +14,26 @@
   "mcp": {
     "Figma": {
       "type": "remote",
-      "url": "http://127.0.0.1:3845/mcp"
+      "url": "http://127.0.0.1:3845/mcp",
+      "enabled": false
     },
     "Browser": {
       "type": "local",
       "command": [
         "npx",
         "-y",
-        "@browsermcp/mcp@latest"
-      ]
+        "@browsermcp/mcp@0.1.12"
+      ],
+      "enabled": false
     },
     "mobile-mcp": {
       "type": "local",
       "command": [
         "npx",
         "-y",
-        "@mobilenext/mobile-mcp@latest"
-      ]
+        "@mobilenext/mobile-mcp@0.2.3"
+      ],
+      "enabled": false
     },
     "stitch": {
       "type": "local",
@@ -41,7 +44,8 @@
       ],
       "environment": {
         "STITCH_API_KEY": "{file:~/Programming/JimmyTranDev/secrets/stitch-api-key}"
-      }
+      },
+      "enabled": false
     }
   }
 }
