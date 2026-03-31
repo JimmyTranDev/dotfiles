@@ -35,11 +35,9 @@ $ARGUMENTS
    - Within each category, rank by impact-to-effort ratio (quick wins first, then high-impact projects)
    - Highlight the top 3 "best bang for buck" ideas across all categories
 
-5. Add ideas to `IMPROVEMENTS.md` at the project root:
-   - If `IMPROVEMENTS.md` does not exist, create it with a `# IMPROVEMENTS` heading
-   - If it exists, read its current contents and avoid adding duplicates (case-insensitive match)
-   - Append each idea as `- [ ] <idea name> — <1-sentence description> [effort: <effort>, impact: <impact>]`
-   - Preserve all existing content and formatting
-   - Report how many items were added and how many were skipped as duplicates
+5. Ask the user which ideas to implement:
+   - Use the question tool with `multiple: true` to let the user select which ideas to build
+   - For each selected idea, suggest the appropriate `/command` to run (e.g., `/implement`, `/fix`, `/optimize`)
+   - If the user selects items, delegate to the appropriate commands or agents to begin implementation
 
-Do not apply code changes. Present ideas and add them to `IMPROVEMENTS.md` so the user can decide what to build next.
+Do not apply code changes until the user selects which ideas to implement.

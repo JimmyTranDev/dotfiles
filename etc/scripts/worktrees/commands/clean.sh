@@ -32,6 +32,7 @@ cmd_clean_worktrees() {
 	print_color yellow "Found ${#available_worktrees[@]} worktrees to check..."
 
 	local worktrees_to_delete=()
+	local -A fetched_repos=()
 
 	for wt_path in "${available_worktrees[@]}"; do
 		if [[ ! -f "$wt_path/.git" ]]; then
@@ -65,7 +66,8 @@ cmd_clean_worktrees() {
 		}
 
 		local develop_branch=""
-		if git -C "$repo_root" show-ref --verify --quiet refs/heads/develop 2>/dev/null; then
+		if git -C "$repo_root" show-ref --verify --quiet refs/heads/develop 2>/dev/null ||
+			git -C "$repo_root" show-ref --verify --quiet refs/remotes/origin/develop 2>/dev/null; then
 			develop_branch="develop"
 		fi
 
@@ -84,12 +86,17 @@ cmd_clean_worktrees() {
 		local is_merged=false
 		local merged_into=""
 
-		if git -C "$repo_root" merge-base --is-ancestor "$branch_name" "$main_branch" 2>/dev/null; then
+		if [[ -z "${fetched_repos[$repo_root]:-}" ]]; then
+			git -C "$repo_root" fetch --quiet 2>/dev/null
+			fetched_repos[$repo_root]=1
+		fi
+
+		if git -C "$repo_root" merge-base --is-ancestor "$branch_name" "origin/$main_branch" 2>/dev/null; then
 			is_merged=true
-			merged_into="$main_branch"
-		elif [[ -n "$develop_branch" ]] && git -C "$repo_root" merge-base --is-ancestor "$branch_name" "$develop_branch" 2>/dev/null; then
+			merged_into="origin/$main_branch"
+		elif [[ -n "$develop_branch" ]] && git -C "$repo_root" merge-base --is-ancestor "$branch_name" "origin/$develop_branch" 2>/dev/null; then
 			is_merged=true
-			merged_into="$develop_branch"
+			merged_into="origin/$develop_branch"
 		fi
 
 		if [[ "$is_merged" == "true" ]]; then

@@ -58,12 +58,10 @@ $ARGUMENTS
    - Summarize each improvement: what the UX was before, what it is now, and why it's better
    - List follow-up UI/UX opportunities that were out of scope
 
-8. Add follow-up items to `IMPROVEMENTS.md` at the project root:
-   - If `IMPROVEMENTS.md` does not exist, create it with a `# IMPROVEMENTS` heading
-   - If it exists, read its current contents and avoid adding duplicates (case-insensitive match)
-   - Append each follow-up opportunity as `- [ ] <description> [design]`
-   - Preserve all existing content and formatting
-   - Report how many items were added and how many were skipped as duplicates
+8. Present follow-up UI/UX opportunities to the user:
+   - List each follow-up item with a short description and estimated user impact
+   - Use the question tool with `multiple: true` to ask the user which items to implement
+   - For each selected item, delegate to the appropriate specialized agent to implement it
 
 Important:
 - Every component must have keyboard navigation (web) or screen reader support (mobile)

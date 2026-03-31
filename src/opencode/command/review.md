@@ -34,3 +34,8 @@ Review the diff between the current branch and the base branch, then provide fee
    - **optimizer**: Identifies performance concerns if the diff introduces potentially expensive operations
 
 Keep the review concise and actionable. Focus on what matters most.
+
+5. Present actionable follow-ups to the user:
+   - If issues or suggestions are found, list them with severity and estimated effort
+   - Use the question tool with `multiple: true` to ask the user which items to address
+   - For each selected item, delegate to the appropriate agent to fix it (e.g., **fixer** for bugs, **optimizer** for performance, **auditor** for security)

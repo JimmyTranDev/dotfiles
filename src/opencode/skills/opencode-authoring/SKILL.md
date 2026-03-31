@@ -290,3 +290,52 @@ Use `##` headers to organize by topic. Common patterns:
 - **Name validation**: all names must match `^[a-z0-9]+(-[a-z0-9]+)*$` — lowercase alphanumeric with single hyphens, no leading/trailing/consecutive hyphens
 - **No duplication**: commands should not duplicate skill content — reference skills instead. Skills should not duplicate other skills. Agents should not embed domain knowledge that belongs in skills.
 - **Code examples**: keep them short (3-10 lines), realistic, from actual codebases — not toy examples
+
+---
+
+## Per-Project MCP Server Enablement
+
+MCP servers in the global `opencode.json` can be set to `enabled: false` to avoid startup latency. Projects that need a specific server can override this in their project-level `.opencode/opencode.json`:
+
+```json
+{
+  "mcp": {
+    "server-name": {
+      "enabled": true
+    }
+  }
+}
+```
+
+Project-level config merges with global config — only the fields you specify are overridden. The server's `command`, `args`, and `env` from the global config are preserved; only `enabled` is flipped.
+
+Use this pattern to keep global startup fast while enabling servers per-project as needed.
+
+---
+
+## Skill Dependency Conventions
+
+OpenCode does not enforce skill dependencies in frontmatter. When a skill builds on or relates to another skill, declare the relationship in the skill's content:
+
+**Pattern**: Reference related skills at the point where they are relevant, using bold skill names.
+
+```markdown
+## What This Skill Does NOT Cover
+
+- Dependency vulnerability triage and npm audit workflows — see **npm-vulnerabilities** skill
+- Infrastructure security — out of scope
+```
+
+```markdown
+## Advanced Refactoring
+
+For extracting repeated patterns into shared utilities, load the **deduplicator** skill.
+For merging over-separated code, load the **consolidator** skill.
+```
+
+**Rules**:
+- Reference skills by their exact name (the directory name / frontmatter `name`)
+- Place references where a reader would naturally need the related skill
+- Use "see **skill-name** skill" for cross-references in scope exclusion sections
+- Use "load the **skill-name** skill" for cross-references in workflow sections
+- Do not create circular dependencies between skills

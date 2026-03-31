@@ -45,13 +45,19 @@ Analyze the current repository and create or update AGENTS.md files where they w
    - Do not duplicate content that belongs in skills or that a parent AGENTS.md already covers
    - Subdirectory AGENTS.md files should only contain rules specific to that directory
 
-6. **For existing AGENTS.md files**, diff the current content against what the codebase actually does:
+6. **Auto-sync check** — cross-reference AGENTS.md content against the actual file system:
+   - Verify every file and directory referenced in AGENTS.md actually exists (run `ls` or glob to confirm)
+   - Verify every directory tree in AGENTS.md matches the real structure (check for added/removed files)
+   - Flag any references to non-existent files, removed commands, deprecated skills, or stale paths
+   - Check that any listed skills, commands, or agents still exist in their expected locations
+
+7. **For existing AGENTS.md files**, diff the current content against what the codebase actually does:
    - Flag sections that are outdated (reference removed files, old patterns, wrong structure)
    - Add missing sections for conventions the file doesn't cover
    - Remove or update inaccurate information
    - Preserve the existing section ordering where possible
 
-7. **Present changes to the user** before writing:
+8. **Present changes to the user** before writing:
    - For new files: show the proposed content and location
    - For updates: show what will change and why
    - Ask for confirmation before writing

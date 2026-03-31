@@ -14,7 +14,7 @@ $ARGUMENTS
    - If the user describes an area or pattern, search the codebase to locate the relevant code
    - Run tests or build commands if available to establish a working baseline before making changes
 
-2. Load all applicable skills in parallel (**follower**, **simplifier**, **deduplicator**, and optionally **consolidator** and **logic-checker**), then analyze the code for internal quality issues across these categories:
+2. Load all applicable skills in parallel (**follower**, **simplifier**, **deduplicator**, **pragmatic-programmer**, and optionally **consolidator**, **logic-checker**, **total-typescript**, **eslint-config**, and **shell-scripting**), then analyze the code for internal quality issues across these categories:
    - **Naming clarity**: vague variable/function names, inconsistent naming conventions, misleading identifiers
    - **Function design**: functions doing too much, unclear responsibilities, deeply nested logic, high cyclomatic complexity
    - **Duplication**: repeated patterns, copy-pasted logic, similar implementations that should be unified via DRY
@@ -44,9 +44,7 @@ $ARGUMENTS
    - Summarize each refactoring applied: what the code smell was, which principle was applied, and how it improved the codebase
    - List any follow-up refactoring opportunities that were out of scope but worth noting
 
-7. Add follow-up items to `IMPROVEMENTS.md` at the project root:
-   - If `IMPROVEMENTS.md` does not exist, create it with a `# IMPROVEMENTS` heading
-   - If it exists, read its current contents and avoid adding duplicates (case-insensitive match)
-   - Append each follow-up refactoring opportunity as `- [ ] <description> [quality]`
-   - Preserve all existing content and formatting
-   - Report how many items were added and how many were skipped as duplicates
+7. Present follow-up refactoring opportunities to the user:
+   - List each follow-up item with a short description and estimated impact
+   - Use the question tool with `multiple: true` to ask the user which items to implement
+   - For each selected item, delegate to the appropriate specialized agent to implement it (e.g., **optimizer** for performance, **fixer** for bugs, or implement directly for refactoring)
