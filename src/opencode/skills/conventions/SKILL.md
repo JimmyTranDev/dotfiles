@@ -18,6 +18,12 @@ description: Coding conventions covering general principles, conditional complex
 - Prefer arrow functions for callbacks and simple functions
 - Use template literals over string concatenation
 
+### Naming
+
+- Use camelCase for files, folders, variables, functions, and properties
+- Use PascalCase for types, interfaces, enums, and React components
+- Use SCREAMING_SNAKE_CASE for constants and environment variables
+
 ### Module Structure
 
 - Components and hooks each get their own folder with `index.tsx` as the entry point
@@ -25,21 +31,21 @@ description: Coding conventions covering general principles, conditional complex
 
 ```
 components/
-  user-card/
+  userCard/
     index.tsx
     types.ts
     consts.ts
     utils.ts
-  search-input/
+  searchInput/
     index.tsx
     types.ts
     hooks.ts
 
 hooks/
-  use-debounce/
+  useDebounce/
     index.ts
     types.ts
-  use-auth/
+  useAuth/
     index.ts
     utils.ts
     consts.ts

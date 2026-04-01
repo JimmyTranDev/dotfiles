@@ -37,8 +37,11 @@ Load the **worktree-workflow** and **git-workflows** skills in parallel.
    - Each agent works exclusively in its own worktree directory
    - Wait for all agents to complete before proceeding
 
-8. Review all worktrees in parallel — for each completed worktree, launch **reviewer** and **auditor** agents in parallel:
-   - Both agents analyze the diff from `git diff <base-branch>...HEAD` in the worktree
+8. Review all worktrees in parallel — for each completed worktree, launch **reviewer**, **auditor**, and **tester** agents in parallel:
+   - All three agents analyze the diff from `git diff <base-branch>...HEAD` in the worktree
+   - **reviewer**: catches bugs, design issues, and code quality problems
+   - **auditor**: scans for security vulnerabilities and exploitable patterns
+   - **tester**: verifies test coverage and adds missing tests for the new changes
    - Collect all issues found across all worktrees
 
 9. Fix issues in parallel — for each worktree with issues:
