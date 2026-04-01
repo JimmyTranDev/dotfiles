@@ -20,7 +20,7 @@ export BROWSER=firefox
 export ARCHFLAGS="-arch $(uname -m)"
 export MANPAGER='nvim +Man!'
 export MANWIDTH=999
-export ZELLIJ_TAB_NAME_MAX_LENGTH=10
+export ZELLIJ_TAB_NAME_MAX_LENGTH=4
 export ESPANSO_CONFIG_DIR="$HOME/.config/espanso"
 
 if [[ "$(uname)" == "Darwin" ]]; then

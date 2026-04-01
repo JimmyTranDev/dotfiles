@@ -229,6 +229,7 @@ ui {
     }
     tab_bar {
         display_tab_index true
+        hide_session_name true
     }
 }
 
