@@ -71,6 +71,7 @@ src/opencode/
 │   ├── clarify.md
 │   ├── comments.md
 │   ├── commit.md
+│   ├── consolidate.md
 │   ├── design.md
 │   ├── engage.md
 │   ├── fix.md
@@ -103,6 +104,7 @@ src/opencode/
     ├── follower/
     ├── fsrs/
     ├── gamification/
+    ├── git-conflict-resolution/
     ├── git-workflows/
     ├── gitignore/
     ├── innovate/

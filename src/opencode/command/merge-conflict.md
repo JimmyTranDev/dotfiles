@@ -9,7 +9,7 @@ Resolve merge conflicts on the current branch by merging the base branch and fix
 
 $ARGUMENTS
 
-Load the **git-workflows** skill for commit conventions and base branch strategy.
+Load the **git-workflows** and **git-conflict-resolution** skills for commit conventions, base branch strategy, and conflict resolution patterns.
 
 1. Determine the base branch:
    - If `$ARGUMENTS` specifies a branch, use that
