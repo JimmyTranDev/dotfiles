@@ -1,11 +1,11 @@
 ---
 name: pr-fix
-description: Improve or fix an existing PR based on review feedback and code analysis
+description: Fix review feedback, update PR description, and resolve merge conflicts
 ---
 
 Usage: /pr-fix [$ARGUMENTS]
 
-Address review feedback and improve the current branch's pull request. If `$ARGUMENTS` is provided, focus on those specific issues. Otherwise, gather all open review comments and fix everything.
+Address review feedback, update the PR description on GitHub, and resolve merge conflicts for the current branch's pull request. If `$ARGUMENTS` is provided, focus on those specific issues. Otherwise, gather all open review comments and fix everything.
 
 Load the **git-workflows** skill for commit conventions.
 
@@ -26,35 +26,50 @@ Load the **git-workflows** skill for commit conventions.
    - If `$ARGUMENTS` was provided, prioritize those issues
    - If no `$ARGUMENTS` and no unresolved comments exist, run **reviewer** and **auditor** in parallel on the diff to find improvements
 
-4. Plan the fixes:
+4. Check for merge conflicts:
+   - Run `git fetch origin` then `git merge origin/<base-branch> --no-commit --no-ff` to test for conflicts
+   - If conflicts exist:
+     - List all conflicted files
+     - Resolve each conflict by analyzing both sides and choosing the correct resolution
+     - Stage resolved files with `git add <file>`
+     - Complete the merge with `git commit -m "🔨 refactor: resolve merge conflicts with <base-branch>"`
+   - If no conflicts, abort the test merge with `git merge --abort`
+
+5. Plan the fixes:
    - Group related issues together
    - Present a summary of what will be fixed to the user
    - Ask the user to confirm before proceeding
 
-5. Implement the fixes:
+6. Implement the fixes:
    - Apply changes to address each issue
    - Launch **fixer** agents in parallel for independent fixes across different files
 
-6. Verify the fixes — launch **reviewer** and **auditor** in parallel:
+7. Verify the fixes — launch **reviewer** and **auditor** in parallel:
    - Both agents analyze the updated diff from `git diff <base-branch>...HEAD`
    - If new issues are found, fix them (max 2 iterations)
 
-7. Stage and commit:
+8. Stage and commit:
    - `git add -A`
    - `git commit -m "<emoji> <type>(<scope>): <description>"` using the format from the **git-workflows** skill
    - Use a commit message that describes what was fixed (e.g., `🐛 fix(auth): address pr review feedback`)
 
-8. Push the changes:
+9. Push the changes:
    - `git push`
    - If the push fails, notify the user with the error details
 
-9. Report a summary:
-   - List of issues addressed
-   - Commit(s) created
-   - Link to the updated PR
+10. Update the PR description on GitHub:
+    - Generate an updated PR body summarizing all commits on the branch: `git log --oneline $(gh pr view --json baseRefName -q .baseRefName)..HEAD`
+    - Include a summary section describing the overall changes
+    - Update with `gh pr edit <number> --body "<updated body>"`
+
+11. Report a summary:
+    - List of issues addressed
+    - Whether merge conflicts were resolved
+    - Commit(s) created
+    - Link to the updated PR
 
 Important:
 - Do not force push unless the user explicitly requests it
-- If there are merge conflicts when pushing, notify the user and stop
+- If the push fails due to remote changes, pull and retry once before notifying the user
 - If the PR has required checks failing, mention it in the summary
 - Resolve inline review comments by replying with `gh api` if the fix directly addresses the comment
