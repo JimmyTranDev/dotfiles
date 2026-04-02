@@ -44,7 +44,7 @@ $ARGUMENTS
    - Summarize each refactoring applied: what the code smell was, which principle was applied, and how it improved the codebase
    - List any follow-up refactoring opportunities that were out of scope but worth noting
 
-7. Ask the user which follow-up items to implement:
-   - List each follow-up item with a short description and estimated impact
-   - Use the question tool with `multiple: true` to ask the user which items to implement
-   - For each selected item, delegate to the appropriate specialized agent to implement it immediately (e.g., **optimizer** for performance, **fixer** for bugs, or implement directly for refactoring)
+7. Persist follow-up items to `IMPROVEMENTS.md`:
+   - Write all follow-up refactoring opportunities to `IMPROVEMENTS.md` in the project root (or wherever the user specifies)
+   - If the file already exists, append a new section with a timestamp header
+   - Include each item's description, estimated impact, and which principle or agent applies

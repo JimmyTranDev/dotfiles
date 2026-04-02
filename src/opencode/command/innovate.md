@@ -35,8 +35,8 @@ $ARGUMENTS
    - Within each category, rank by impact-to-effort ratio (quick wins first, then high-impact projects)
    - Highlight the top 3 "best bang for buck" ideas across all categories
 
-5. Ask the user which ideas to implement:
-   - Use the question tool with `multiple: true` to let the user select which ideas to build
-   - For each selected idea, delegate to the appropriate commands or agents to implement it immediately (e.g., `/implement`, `/fix`, `/optimize`)
-
-Do not apply code changes until the user selects which ideas to implement.
+5. Persist findings to `IMPROVEMENTS.md`:
+   - Write all findings to `IMPROVEMENTS.md` in the project root (or wherever the user specifies)
+   - If the file already exists, append a new section with a timestamp header
+   - Use the same grouped-by-category format from step 4
+   - Include effort/impact estimates and suggested `/command` for each item
