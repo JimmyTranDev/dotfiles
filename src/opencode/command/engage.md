@@ -36,8 +36,8 @@ $ARGUMENTS
    - Highlight the top 3 "best bang for buck" improvements across all categories
    - Flag any ethical guardrail concerns (fabricated scarcity, fake social proof, punitive mechanics, dark patterns)
 
-5. Persist findings to `IMPROVEMENTS.md`:
-   - Write all findings to `IMPROVEMENTS.md` in the project root (or wherever the user specifies)
+5. Persist findings to `IMPROVEMENTS.md` in the project root:
+   - Write all findings to `IMPROVEMENTS.md` in the project root
    - If the file already exists, append a new section with a timestamp header
    - Use the same grouped-by-category format from step 4
    - Include effort/impact estimates and framework citations for each item

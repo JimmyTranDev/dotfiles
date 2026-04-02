@@ -44,7 +44,7 @@ $ARGUMENTS
    - Summarize each refactoring applied: what the code smell was, which principle was applied, and how it improved the codebase
    - List any follow-up refactoring opportunities that were out of scope but worth noting
 
-7. Persist follow-up items to `IMPROVEMENTS.md`:
-   - Write all follow-up refactoring opportunities to `IMPROVEMENTS.md` in the project root (or wherever the user specifies)
+7. Persist follow-up items to `IMPROVEMENTS.md` in the project root:
+   - Write all follow-up refactoring opportunities to `IMPROVEMENTS.md` in the project root
    - If the file already exists, append a new section with a timestamp header
    - Include each item's description, estimated impact, and which principle or agent applies

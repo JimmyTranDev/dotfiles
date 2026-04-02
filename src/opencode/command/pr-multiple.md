@@ -1,11 +1,11 @@
 ---
 name: pr-multiple
-description: Implement multiple independent changes in parallel worktrees and create a draft PR for each
+description: Implement multiple independent changes in parallel worktrees and create a PR for each
 ---
 
 Usage: /pr-multiple <list of changes to implement>
 
-Implement multiple independent changes simultaneously, each in its own git worktree, then create a draft pull request for each.
+Implement multiple independent changes simultaneously, each in its own git worktree, then create a pull request for each.
 
 $ARGUMENTS
 
@@ -49,10 +49,10 @@ Load the **worktree-workflow** and **git-workflows** skills in parallel.
    - After fixes are applied in a worktree, stage and commit: `git add -A && git commit -m "🐛 fix: address review and audit findings"`
    - Run **reviewer** once more per worktree to verify fixes (max 2 iterations per worktree)
 
-10. Push all branches and create draft PRs in parallel:
-    - For each worktree:
-      - `git push -u origin <branch-name>`
-      - Create the PR with `gh pr create --draft` targeting the base branch, with a title matching the original commit message and a summary body
+10. Push all branches and create PRs in parallel:
+     - For each worktree:
+       - `git push -u origin <branch-name>`
+       - Create the PR with `gh pr create` targeting the base branch, with a title matching the original commit message and a summary body
     - Collect all PR URLs
 
 11. Report outcome to the user:

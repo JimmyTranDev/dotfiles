@@ -1,11 +1,11 @@
 ---
 name: pr-audit
-description: Roll up Dependabot patch/minor bumps and scoped audit fixes into a draft PR via a worktree
+description: Roll up Dependabot patch/minor bumps and scoped audit fixes into a PR via a worktree
 ---
 
 Usage: /pr-audit [$ARGUMENTS]
 
-Read open Dependabot PRs for version bump info, apply patch and minor bumps to `package.json` in a new worktree (skipping major bumps unless `--major` is passed), run audit fixes with overrides scoped to vulnerable ranges, and open one draft rollup PR. Dependabot PRs are not merged or closed — they will auto-close when the rollup PR merges the same version changes into the base branch.
+Read open Dependabot PRs for version bump info, apply patch and minor bumps to `package.json` in a new worktree (skipping major bumps unless `--major` is passed), run audit fixes with overrides scoped to vulnerable ranges, and open one rollup PR. Dependabot PRs are not merged or closed — they will auto-close when the rollup PR merges the same version changes into the base branch.
 
 $ARGUMENTS
 
@@ -84,9 +84,9 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
     - If either agent reports critical issues, use **fixer** to resolve them, stage and commit the fix, then re-run validation (step 10)
     - Include a summary of review findings in the PR body
 
-12. Push and create the draft rollup PR:
-    - `git push -u origin <branch-name>`
-    - Create a draft PR against `<base-branch>` with `gh pr create --draft`
+12. Push and create the rollup PR:
+     - `git push -u origin <branch-name>`
+     - Create a PR against `<base-branch>` with `gh pr create`
     - Use title `fix(deps): roll up dependency bumps and audit fixes`
     - Include in the PR body:
       - Group bumps by dependency type (`dependencies`, `devDependencies`, `peerDependencies`) with a summary header and markdown table for each group, e.g.:
