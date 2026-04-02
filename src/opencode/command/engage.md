@@ -36,14 +36,8 @@ $ARGUMENTS
    - Highlight the top 3 "best bang for buck" improvements across all categories
    - Flag any ethical guardrail concerns (fabricated scarcity, fake social proof, punitive mechanics, dark patterns)
 
-5. Ask the user which improvements to implement:
-   - Use the question tool with `multiple: true` to let the user select which improvements to build
-   - For each selected improvement, delegate to the appropriate commands or agents to implement it immediately (e.g., `/implement`, `/ux`, `/quality`)
-
-6. Delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
-
-   Agents to delegate to (launch independent agents in parallel):
-   - **designer**: Use for UI/UX changes related to engagement improvements
-   - **reviewer** + **tester**: Launch in parallel after implementation is complete — reviewer verifies correctness while tester adds coverage
-
-Do not apply code changes until the user selects which improvements to implement.
+5. Persist findings to `IMPROVEMENTS.md`:
+   - Write all findings to `IMPROVEMENTS.md` in the project root (or wherever the user specifies)
+   - If the file already exists, append a new section with a timestamp header
+   - Use the same grouped-by-category format from step 4
+   - Include effort/impact estimates and framework citations for each item
