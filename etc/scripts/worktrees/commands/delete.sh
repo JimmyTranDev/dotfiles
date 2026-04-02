@@ -273,18 +273,41 @@ cmd_delete() {
 			fi
 		fi
 
-		local success_count=0
 		local total_count=${#worktrees_to_delete[@]}
+		local tmpdir
+		tmpdir=$(mktemp -d)
 
-		for worktree_path in "${worktrees_to_delete[@]}"; do
-			print_color cyan "Deleting worktree $(($success_count + 1))/$total_count: $(basename "$worktree_path")"
-			if delete_single_worktree "$worktree_path"; then
+		local pids=()
+		for i in {1..$total_count}; do
+			local wt_path="${worktrees_to_delete[$i]}"
+			(
+				if delete_single_worktree "$wt_path"; then
+					echo 0 >"$tmpdir/result_$i"
+				else
+					echo 1 >"$tmpdir/result_$i"
+				fi
+			) >"$tmpdir/output_$i" 2>&1 &
+			pids+=($!)
+		done
+
+		for pid in "${pids[@]}"; do
+			wait "$pid" 2>/dev/null
+		done
+
+		local success_count=0
+		for i in {1..$total_count}; do
+			local wt_path="${worktrees_to_delete[$i]}"
+			print_color cyan "Worktree $i/$total_count: $(basename "$wt_path")"
+			cat "$tmpdir/output_$i"
+			if [[ -f "$tmpdir/result_$i" && "$(cat "$tmpdir/result_$i")" == "0" ]]; then
 				((success_count++))
 			else
-				print_color red "Failed to delete worktree: $worktree_path"
+				print_color red "Failed to delete worktree: $wt_path"
 			fi
 			echo
 		done
+
+		rm -rf "$tmpdir"
 
 		if [[ $success_count -eq $total_count ]]; then
 			print_color green "Successfully deleted all $total_count worktrees."
