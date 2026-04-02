@@ -34,18 +34,17 @@ Load the **worktree-workflow** and **git-workflows** skills to follow worktree l
    - `git add -A`
    - `git commit -m "<emoji> <type>(<scope>): <description>"`
 
-9. Push the branch:
-   - `git push -u origin <branch-name>`
+9. Review and fix — launch **reviewer** and **auditor** agents in parallel to analyze the committed changes:
+   - Both agents analyze the diff from `git diff <base-branch>...HEAD`
+   - Collect all issues found by both agents
 
-10. Review and fix — launch **reviewer** and **auditor** agents in parallel to analyze the committed changes:
-    - Both agents analyze the diff from `git diff <base-branch>...HEAD`
-    - Collect all issues found by both agents
-
-11. If issues were found:
+10. If issues were found:
     - Launch **fixer** agents in parallel for independent fixes across different files
     - After fixes are applied, stage and commit: `git add -A && git commit -m "🐛 fix: address review and audit findings"`
     - Run **reviewer** once more to verify the fixes are correct — if new issues are found, repeat this step (max 2 iterations)
-    - Push the fixes: `git push`
+
+11. Push the branch:
+    - `git push -u origin <branch-name>`
 
 12. Create the PR:
     - Create the PR with `gh pr create` targeting the base branch, with a title matching the original commit message and a summary body

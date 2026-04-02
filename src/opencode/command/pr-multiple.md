@@ -37,21 +37,20 @@ Load the **worktree-workflow** and **git-workflows** skills in parallel.
    - Each agent works exclusively in its own worktree directory
    - Wait for all agents to complete before proceeding
 
-10. Push all branches in parallel:
-    - For each worktree: `git push -u origin <branch-name>`
-
-11. Review all worktrees in parallel — for each completed worktree, launch **reviewer**, **auditor**, and **tester** agents in parallel:
+10. Review all worktrees in parallel — for each completed worktree, launch **reviewer**, **auditor**, and **tester** agents in parallel:
     - All three agents analyze the diff from `git diff <base-branch>...HEAD` in the worktree
     - **reviewer**: catches bugs, design issues, and code quality problems
     - **auditor**: scans for security vulnerabilities and exploitable patterns
     - **tester**: verifies test coverage and adds missing tests for the new changes
     - Collect all issues found across all worktrees
 
-12. Fix issues in parallel — for each worktree with issues:
+11. Fix issues in parallel — for each worktree with issues:
     - Launch **fixer** agents in parallel for independent fixes across different worktrees
     - After fixes are applied in a worktree, stage and commit: `git add -A && git commit -m "🐛 fix: address review and audit findings"`
     - Run **reviewer** once more per worktree to verify fixes (max 2 iterations per worktree)
-    - Push the fixes: `git push`
+
+12. Push all branches in parallel:
+    - For each worktree: `git push -u origin <branch-name>`
 
 13. Create PRs in parallel:
     - For each worktree:

@@ -84,9 +84,11 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
     - If either agent reports critical issues, use **fixer** to resolve them, stage and commit the fix, then re-run validation (step 10)
     - Include a summary of review findings in the PR body
 
-12. Push and create the rollup PR:
-     - `git push -u origin <branch-name>`
-     - Create a PR against `<base-branch>` with `gh pr create`
+12. Push the branch:
+    - `git push -u origin <branch-name>`
+
+13. Create the rollup PR:
+    - Create a PR against `<base-branch>` with `gh pr create`
     - Use title `fix(deps): roll up dependency bumps and audit fixes`
     - Include in the PR body:
       - Group bumps by dependency type (`dependencies`, `devDependencies`, `peerDependencies`) with a summary header and markdown table for each group, e.g.:
@@ -107,7 +109,7 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
       - Review findings summary from **reviewer** and **auditor** agents
       - Note: open Dependabot PRs will auto-close when this PR merges
 
-13. Report outcome to the user:
+14. Report outcome to the user:
     - Rollup branch name and worktree path
     - Created PR URL
     - Count of applied vulnerability bumps, applied update bumps, and skipped bumps
