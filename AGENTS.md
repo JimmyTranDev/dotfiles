@@ -61,35 +61,35 @@ src/opencode/
 │   ├── auditor.md
 │   ├── browser.md
 │   ├── designer.md
+│   ├── engager.md
 │   ├── fixer.md
 │   ├── optimizer.md
 │   ├── reviewer.md
 │   └── tester.md
 ├── command/                 # Slash commands (/name)
-│   ├── _depreciated/        # Retired commands
 │   ├── agents-md.md
-│   ├── chat.md
-│   ├── clean.md
+│   ├── clarify.md
 │   ├── comments.md
 │   ├── commit.md
-│   ├── commit-push.md
-│   ├── consolidate.md
-│   ├── convention.md
-│   ├── conventions.md
-│   ├── gitignore.md
+│   ├── design.md
+│   ├── engage.md
+│   ├── fix.md
 │   ├── implement.md
-│   ├── implement-stitch.md
 │   ├── init.md
 │   ├── innovate.md
 │   ├── jira.md
-│   ├── npm-audit.md
+│   ├── merge-conflict.md
+│   ├── merge.md
+│   ├── optimize.md
+│   ├── pr-audit.md
+│   ├── pr-fix.md
+│   ├── pr-multiple.md
+│   ├── pr.md
 │   ├── quality.md
 │   ├── review.md
-│   ├── suggest.md
-│   ├── stitch.md
-│   └── ux.md
+│   ├── security.md
+│   └── test.md
 └── skills/                  # On-demand knowledge (auto-discovered)
-    ├── _depreciated/        # Retired skills
     ├── accessibility/
     ├── agents-md/
     ├── browser-mcp/
@@ -97,19 +97,29 @@ src/opencode/
     ├── consolidator/
     ├── conventions/
     ├── deduplicator/
+    ├── designer-ui-ux/
+    ├── engager/
     ├── eslint-config/
     ├── follower/
     ├── fsrs/
     ├── gamification/
     ├── git-workflows/
+    ├── gitignore/
     ├── innovate/
+    ├── logic-checker/
     ├── mobile-mcp/
     ├── npm-vulnerabilities/
     ├── opencode-authoring/
+    ├── parallelization/
+    ├── pragmatic-programmer/
+    ├── quality/
+    ├── security/
     ├── shell-scripting/
     ├── simplifier/
     ├── stitch/
+    ├── structure/
     ├── todoist-cli/
+    ├── total-typescript/
     ├── ux-ui-animator/
     └── worktree-workflow/
 ```

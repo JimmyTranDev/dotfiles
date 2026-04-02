@@ -3,10 +3,87 @@
 
 ## Universal Rules
 
-- **Match existing conventions** — before writing new code, examine the surrounding codebase and follow its patterns exactly. Never introduce new conventions without explicit instruction.
-- **Never create documentation files** (README, docs, markdown) unless explicitly asked.
 - **Prefer editing over creating** — always modify existing files rather than creating new ones when possible.
-- **Catppuccin Mocha** is the unified color theme across all tools.
+- **Use zsh** — when executing shell commands via the Bash tool, always use `zsh` syntax and builtins. This environment runs zsh as the default shell.
+
+## OpenCode Config Structure
+
+```
+src/opencode/
+├── AGENTS.md               # Global LLM rules
+├── opencode.json            # OpenCode project config
+├── tui.json                 # TUI appearance config
+├── agent/                   # Specialized subagents
+│   ├── auditor.md
+│   ├── browser.md
+│   ├── designer.md
+│   ├── engager.md
+│   ├── fixer.md
+│   ├── optimizer.md
+│   ├── reviewer.md
+│   └── tester.md
+├── command/                 # Slash commands (/name)
+│   ├── agents-md.md
+│   ├── clarify.md
+│   ├── comments.md
+│   ├── commit.md
+│   ├── design.md
+│   ├── engage.md
+│   ├── fix.md
+│   ├── implement.md
+│   ├── init.md
+│   ├── innovate.md
+│   ├── jira.md
+│   ├── merge-conflict.md
+│   ├── merge.md
+│   ├── optimize.md
+│   ├── pr-audit.md
+│   ├── pr-fix.md
+│   ├── pr-multiple.md
+│   ├── pr.md
+│   ├── quality.md
+│   ├── review.md
+│   ├── security.md
+│   └── test.md
+└── skills/                  # On-demand knowledge (auto-discovered)
+    ├── accessibility/
+    ├── agents-md/
+    ├── browser-mcp/
+    ├── career/
+    ├── consolidator/
+    ├── conventions/
+    ├── deduplicator/
+    ├── designer-ui-ux/
+    ├── engager/
+    ├── eslint-config/
+    ├── follower/
+    ├── fsrs/
+    ├── gamification/
+    ├── git-workflows/
+    ├── gitignore/
+    ├── innovate/
+    ├── logic-checker/
+    ├── mobile-mcp/
+    ├── npm-vulnerabilities/
+    ├── opencode-authoring/
+    ├── parallelization/
+    ├── pragmatic-programmer/
+    ├── quality/
+    ├── security/
+    ├── shell-scripting/
+    ├── simplifier/
+    ├── stitch/
+    ├── structure/
+    ├── todoist-cli/
+    ├── total-typescript/
+    ├── ux-ui-animator/
+    └── worktree-workflow/
+```
+
+- `opencode.json` loads `AGENTS.md` via its `instructions` array
+- Agents in `agent/` are subagents launched via the Task tool
+- Commands in `command/` are slash commands invoked with `/name`
+- Skills in `skills/<name>/SKILL.md` are auto-discovered and loaded on demand via the Skill tool
 
 ## Parallelization
 
@@ -33,5 +110,3 @@ Maximize parallel execution at every level to reduce latency and total task time
 ### Git Operations
 - Run independent git info commands in parallel (e.g., `git status`, `git diff`, `git log` can all run at once)
 - Only serialize git commands that mutate state and depend on ordering (e.g., `git add` before `git commit`)
-
-
