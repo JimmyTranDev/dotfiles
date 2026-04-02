@@ -44,24 +44,7 @@ $ARGUMENTS
    - Summarize each refactoring applied: what the code smell was, which principle was applied, and how it improved the codebase
    - List any follow-up refactoring opportunities that were out of scope but worth noting
 
-7. Write all findings and follow-up opportunities to `IMPROVEMENTS.md` in the project root as a task list:
-   - Create the file if it doesn't exist, or append to it if it does
-   - Use this format for each task:
-     ```
-     ## Quality Improvements
-
-     - [ ] **<Issue name>** (<impact>) — <code smell>, violates <principle>. <What the refactored version looks like>.
-     - [x] **<Issue name>** (<impact>) — <description>. *(applied)*
-
-     ## Follow-up Opportunities
-
-     - [ ] **<Item name>** (<impact>) — <short description>.
-     ```
-   - Mark applied refactorings with `[x]` and follow-up opportunities with `[ ]`
-   - If `IMPROVEMENTS.md` already has content, append under a `---` separator with a timestamp header: `## Quality Review — <YYYY-MM-DD>`
-   - Do not duplicate items that already exist in the file
-
-8. Present follow-up refactoring opportunities to the user:
+7. Ask the user which follow-up items to implement:
    - List each follow-up item with a short description and estimated impact
    - Use the question tool with `multiple: true` to ask the user which items to implement
-   - For each selected item, delegate to the appropriate specialized agent to implement it (e.g., **optimizer** for performance, **fixer** for bugs, or implement directly for refactoring)
+   - For each selected item, delegate to the appropriate specialized agent to implement it immediately (e.g., **optimizer** for performance, **fixer** for bugs, or implement directly for refactoring)

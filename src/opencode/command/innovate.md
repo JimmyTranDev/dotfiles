@@ -35,21 +35,8 @@ $ARGUMENTS
    - Within each category, rank by impact-to-effort ratio (quick wins first, then high-impact projects)
    - Highlight the top 3 "best bang for buck" ideas across all categories
 
-5. Write all ideas to `IMPROVEMENTS.md` in the project root as a task list:
-   - Create the file if it doesn't exist, or append to it if it does
-   - Use this format for each task:
-     ```
-     ## <Category>
-
-     - [ ] **<Idea name>** (<effort>, <impact>) — <1-2 sentence description>. Run `/<command>` to implement.
-     ```
-   - Group tasks by category, matching the grouping from step 4
-   - If `IMPROVEMENTS.md` already has content, append new ideas under a `---` separator with a timestamp header: `## Ideas — <YYYY-MM-DD>`
-   - Do not duplicate ideas that already exist in the file
-
-6. Ask the user which ideas to implement:
+5. Ask the user which ideas to implement:
    - Use the question tool with `multiple: true` to let the user select which ideas to build
-   - For each selected idea, suggest the appropriate `/command` to run (e.g., `/implement`, `/fix`, `/optimize`)
-   - If the user selects items, delegate to the appropriate commands or agents to begin implementation
+   - For each selected idea, delegate to the appropriate commands or agents to implement it immediately (e.g., `/implement`, `/fix`, `/optimize`)
 
 Do not apply code changes until the user selects which ideas to implement.
