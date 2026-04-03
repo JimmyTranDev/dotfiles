@@ -46,7 +46,7 @@ Load the **worktree-workflow** and **git-workflows** skills in parallel.
 
    e. **Create PR**: Create the PR with `gh pr create` targeting the base branch, with a title matching the original commit message and a summary body
 
-   f. **Mark todo**: If this task has a corresponding todo tracked via TodoWrite, mark it as `completed` on success or `pending` on failure
+    f. **Mark todo**: If this task has a corresponding todo tracked via TodoWrite, mark it as `completed` on success or `pending` on failure
 
    Each agent works exclusively in its own worktree directory (`~/Programming/wcreated/<branch-name>/`). A failure in one task does not block others — all tasks run to completion independently.
 
@@ -59,7 +59,11 @@ Load the **worktree-workflow** and **git-workflows** skills in parallel.
         - If rebase conflicts occur, load the **git-conflict-resolution** skill, resolve each conflicted file, then `git add <file>` and `git rebase --continue`
         - Force push the rebased branch: `git push --force-with-lease`
 
-9. Report outcome to the user:
+9. Clean up all worktrees and branches in parallel — for each task (run in parallel):
+   - `git worktree remove ~/Programming/wcreated/<branch-name>`
+   - `git branch -d <branch-name>`
+
+10. Report outcome to the user:
     - Table of all tasks with their branch name, PR URL, and status (success/failed)
     - Count of PRs created vs failed
     - If changes were stashed in step 5, remind the user to `git stash pop` in the main repo

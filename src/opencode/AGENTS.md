@@ -31,6 +31,7 @@ src/opencode/
 │   ├── consolidate.md
 │   ├── design.md
 │   ├── engage.md
+│   ├── fix-ci.md
 │   ├── fix.md
 │   ├── implement.md
 │   ├── init.md

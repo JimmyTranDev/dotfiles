@@ -9,13 +9,13 @@ Implement the described changes in a new git worktree, then create a pull reques
 
 $ARGUMENTS
 
-Load the **worktree-workflow** and **git-workflows** skills to follow worktree lifecycle and commit conventions.
+Load the **worktree-workflow** and **git-workflows** skills in parallel.
 
 1. Determine the base branch using the priority order from the **git-workflows** skill (`develop` > `main` > `master`)
 
 2. Derive a kebab-case branch name from the task description (e.g., `feat-add-dark-mode`, `fix-login-redirect`). Keep it short and descriptive.
 
-3. Check for uncommitted changes on the current branch (run in parallel):
+3. Check for uncommitted changes (run in parallel):
    - `git status --porcelain`
    - `git diff --cached --stat`
 
@@ -34,9 +34,10 @@ Load the **worktree-workflow** and **git-workflows** skills to follow worktree l
    - `git add -A`
    - `git commit -m "<emoji> <type>(<scope>): <description>"`
 
-9. Review and fix — launch **reviewer** and **auditor** agents in parallel to analyze the committed changes:
-   - Both agents analyze the diff from `git diff <base-branch>...HEAD`
-   - Collect all issues found by both agents
+9. Review — launch **reviewer**, **auditor**, and **tester** agents in parallel on the diff from `git diff <base-branch>...HEAD`:
+   - **reviewer**: catches bugs, design issues, and code quality problems
+   - **auditor**: scans for security vulnerabilities and exploitable patterns
+   - **tester**: verifies test coverage and adds missing tests for the new changes
 
 10. If issues were found:
     - Launch **fixer** agents in parallel for independent fixes across different files
@@ -49,10 +50,14 @@ Load the **worktree-workflow** and **git-workflows** skills to follow worktree l
 12. Create the PR:
     - Create the PR with `gh pr create` targeting the base branch, with a title matching the original commit message and a summary body
 
-13. Report the PR URL to the user
+13. Clean up the worktree and branch (run in parallel):
+    - `git worktree remove ~/Programming/wcreated/<branch-name>`
+    - `git branch -d <branch-name>`
+
+14. Report the PR URL to the user
 
 Important:
 - All work happens in the worktree directory, never in the main repo
-- If the stash pop has conflicts, notify the user and stop
+- If a stash pop has conflicts, notify the user and stop
 - If `gh pr create` fails, report the error but do not retry
 - Do not modify the main repo's working tree
