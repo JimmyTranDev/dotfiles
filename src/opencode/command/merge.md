@@ -1,28 +1,23 @@
 ---
 name: merge
-description: List mergeable PRs authored by you, let the user select which to merge, and clean up worktrees
+description: Merge specified PRs and clean up worktrees
 ---
 
-List your open, non-draft PRs that have passing checks, let the user select which to merge, then clean up associated worktrees and branches.
+Usage: /merge <PR numbers, URLs, or branch names>
 
-1. Fetch the current user and list eligible PRs in parallel:
-   - Run `gh api user --jq '.login'` to get the current user's login
-   - Run `gh pr list --author @me --state open --json number,title,url,headRefName,isDraft,reviewDecision,statusCheckRollup` to list all open PRs authored by the user
+Merge the specified PRs and clean up associated worktrees and branches.
 
-2. Filter for mergeable PRs:
-   - Exclude draft PRs (`isDraft: true`)
-   - Exclude PRs with failing or pending checks (`statusCheckRollup` — all checks must have `conclusion: SUCCESS`)
-   - If no PRs pass the filter, report why each was excluded (draft, failing checks) and stop
+$ARGUMENTS
 
-3. Present eligible PRs and let the user select which to merge:
-   - Display each PR with its number, title, branch name, and URL
-   - Ask the user which PRs to merge using the question tool with `multiple: true`
-   - Include a "Merge all" option as the first choice for convenience
+1. Resolve the target PRs from `$ARGUMENTS`:
+   - Parse PR numbers (`#123` or `123`), GitHub PR URLs, or branch names from the input
+   - For each reference, fetch PR details: `gh pr view <ref> --json number,title,url,headRefName`
+   - If any reference cannot be resolved to a PR, report the error and skip it
 
-4. Process each selected PR one at a time — fully merge, fix, and clean up each PR before moving to the next. This ensures each subsequent PR sees the previous PR's changes in the base branch, reducing conflicts:
+2. Process each PR one at a time — fully merge, fix, and clean up each PR before moving to the next. This ensures each subsequent PR sees the previous PR's changes in the base branch, reducing conflicts:
 
    a. Merge the PR:
-      - Run `gh pr merge <number> --merge --delete-branch`
+      - Run `gh pr merge <number> --merge --delete-branch --admin`
       - If the merge fails for a non-conflict reason, report the error and continue to the next PR
 
    b. If the merge fails due to merge conflicts, resolve and retry:
@@ -34,7 +29,7 @@ List your open, non-draft PRs that have passing checks, let the user select whic
       - Resolve each conflict using the **git-conflict-resolution** skill strategies — read each conflicted file, apply the correct resolution, then `git add` each resolved file
       - Commit the merge resolution: `git commit --no-edit`
       - Push the updated branch: `git push`
-      - Retry the merge: `gh pr merge <number> --merge --delete-branch`
+      - Retry the merge: `gh pr merge <number> --merge --delete-branch --admin`
       - If the retry still fails, report the error and continue to the next PR
 
    c. Clean up the local worktree and branch if they exist:
@@ -46,7 +41,7 @@ List your open, non-draft PRs that have passing checks, let the user select whic
 
    d. Only after cleanup is complete, move to the next PR
 
-5. Report a summary:
+3. Report a summary:
    - List each merged PR (number, title, URL)
    - List any PRs that failed to merge and why
    - List worktrees and branches that were cleaned up
