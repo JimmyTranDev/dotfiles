@@ -135,6 +135,8 @@ keybinds clear-defaults=true {
         bind "Alt x" { CloseFocus; SwitchToMode "locked"; }
 
         bind "Alt left" { MoveFocus "left"; }
+        bind "Alt down" { MoveFocus "down"; }
+        bind "Alt up" { MoveFocus "up"; }
         bind "Alt right" { MoveFocus "right"; }
 
         bind "Alt 1" { GoToTab 1; SwitchToMode "locked"; }

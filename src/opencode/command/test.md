@@ -19,28 +19,39 @@ $ARGUMENTS
    - Run the test suite and capture results — note passing, failing, and skipped tests
    - If tests fail, report the failures before proceeding
 
-3. Analyze coverage gaps:
-   - Identify untested code paths, edge cases, and error handling branches
-   - Prioritize by risk: critical paths and complex logic first, simple getters/setters last
-   - Check for existing test patterns and conventions in the project (test file location, naming, utilities, mocks)
+3. Load all applicable skills in parallel (**follower** and optionally **conventions**, **total-typescript**, **shell-scripting**), then analyze coverage gaps across these categories:
+   - **Untested code paths**: functions, branches, or modules with no test coverage at all
+   - **Missing edge cases**: empty/null input, boundary values (0, max, negative), non-numeric input, empty collections
+   - **Error handling**: failure cases (network, timeout, invalid input), error propagation, error message accuracy
+   - **Business logic**: complex conditional logic, state transitions, calculations, data transformations
+   - **Integration points**: API boundaries, database interactions, external service calls, event handlers
+   - **Race conditions**: concurrent access, async ordering, timeout behavior
 
-4. Write tests:
+4. Prioritize the findings:
+   - Rank coverage gaps by risk (high, medium, low) considering code criticality, complexity, and likelihood of bugs
+   - For each gap, explain what is untested, why it matters, and what test cases would cover it
+
+5. Write tests:
    - Follow existing test conventions exactly — same framework, same patterns, same file structure
-   - Cover happy paths, edge cases, error conditions, and boundary values
+   - Structure tests using AAA (Arrange, Act, Assert) pattern
    - Use descriptive test names that explain the expected behavior
    - Keep tests focused — one assertion per logical concept
+   - Mock external dependencies, not your own code
+   - Cover happy paths, edge cases, error conditions, and boundary values
 
-5. Verify:
-   - Run the full test suite to confirm all new tests pass and no existing tests broke
-   - If any tests fail, fix them before finishing
+6. Delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
-6. Load applicable skills and delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
-
-   Skills to load (load all applicable skills in a single parallel batch):
-   - **follower**: Always load to match existing test conventions and patterns
-
-   Agents to delegate to:
+   Agents to delegate to (launch independent agents in parallel):
    - **tester**: Primary agent — writes tests, verifies coverage, ensures test quality
    - **reviewer**: Launch after tests are written to verify test correctness and completeness
 
-Report what tests were added, what coverage gaps remain, and the final test suite result.
+7. After writing tests:
+   - Run the full test suite to confirm all new tests pass and no existing tests broke
+   - If any tests fail, fix them before finishing
+   - Summarize each test added: what behavior it covers, what gap it fills, and the test result
+   - List any remaining coverage gaps that were out of scope but worth noting
+
+8. Persist follow-up items to `IMPROVEMENTS.md` in the project root:
+   - Write all remaining coverage gaps and testing opportunities to `IMPROVEMENTS.md` in the project root
+   - If the file already exists, append a new section with a timestamp header
+   - Include each item's description, estimated risk level, and suggested test approach
