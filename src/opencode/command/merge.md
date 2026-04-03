@@ -3,7 +3,7 @@ name: merge
 description: List mergeable PRs authored by you, let the user select which to merge, and clean up worktrees
 ---
 
-List your open, non-draft PRs that have passing checks and approvals, let the user select which to merge, then clean up associated worktrees and branches.
+List your open, non-draft PRs that have passing checks, let the user select which to merge, then clean up associated worktrees and branches.
 
 1. Fetch the current user and list eligible PRs in parallel:
    - Run `gh api user --jq '.login'` to get the current user's login
@@ -11,9 +11,8 @@ List your open, non-draft PRs that have passing checks and approvals, let the us
 
 2. Filter for mergeable PRs:
    - Exclude draft PRs (`isDraft: true`)
-   - Exclude PRs without approval (`reviewDecision` must be `APPROVED`)
    - Exclude PRs with failing or pending checks (`statusCheckRollup` — all checks must have `conclusion: SUCCESS`)
-   - If no PRs pass the filter, report why each was excluded (draft, missing approval, failing checks) and stop
+   - If no PRs pass the filter, report why each was excluded (draft, failing checks) and stop
 
 3. Present eligible PRs and let the user select which to merge:
    - Display each PR with its number, title, branch name, and URL
