@@ -83,6 +83,7 @@ cask "minisim"
 cask "postman"
 cask "raycast"
 cask "stremio"
+cask "transmission"
 
 # Backend
 brew "postgresql@15"
