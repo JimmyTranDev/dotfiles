@@ -132,6 +132,7 @@ keybinds clear-defaults=true {
 
         bind "Alt d" { NewPane "down"; SwitchToMode "locked"; }
         bind "Alt e" { NewPane "right"; SwitchToMode "locked"; }
+        bind "Alt x" { CloseFocus; SwitchToMode "locked"; }
 
         bind "Alt left" { MoveFocus "left"; }
         bind "Alt right" { MoveFocus "right"; }
