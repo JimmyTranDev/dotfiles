@@ -1,9 +1,8 @@
 ---
-name: pr-fix
-description: Fix review feedback, update PR description, and resolve merge conflicts
+name: fix-pr
 ---
 
-Usage: /pr-fix [$ARGUMENTS]
+Usage: /fix-pr [$ARGUMENTS]
 
 Address review feedback, update the PR description on GitHub, and resolve merge conflicts for the current branch's pull request. If `$ARGUMENTS` is provided, focus on those specific issues. Otherwise, gather all open review comments and fix everything.
 

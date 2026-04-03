@@ -1,9 +1,9 @@
 ---
-name: innovate
+name: plan-innovate
 description: Brainstorm new ideas, features, and creative improvements for the project
 ---
 
-Usage: /innovate [focus area]
+Usage: /plan-innovate [focus area]
 
 Analyze the project and brainstorm fresh ideas — new features, user-facing enhancements, and creative improvements that would make the project better.
 

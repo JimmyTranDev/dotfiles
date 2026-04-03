@@ -1,9 +1,8 @@
 ---
-name: consolidate
-description: Merge over-separated code by inlining wrappers, collapsing layers, and unifying fragmented files
+name: improve-consolidate
 ---
 
-Usage: /consolidate [scope or description]
+Usage: /improve-consolidate [scope or description]
 
 Find and merge over-separated code — thin files, pass-through layers, single-use wrappers, and fragmented configs — to reduce indirection and cognitive load.
 

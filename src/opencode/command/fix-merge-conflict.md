@@ -1,9 +1,8 @@
 ---
-name: merge-conflict
-description: Resolve merge conflicts on the current branch by merging or rebasing the base branch
+name: fix-merge-conflict
 ---
 
-Usage: /merge-conflict [$ARGUMENTS]
+Usage: /fix-merge-conflict [$ARGUMENTS]
 
 Resolve merge conflicts on the current branch by merging the base branch and fixing all conflicted files.
 

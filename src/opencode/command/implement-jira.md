@@ -1,11 +1,10 @@
 ---
-name: jira
-description: Fetch a Jira ticket and implement the described task
+name: implement-jira
 ---
 
 Fetch the Jira ticket for the current branch and implement the work described in it.
 
-Usage: /jira
+Usage: /implement-jira
 
 1. Verify `acli` is installed:
    - Run `command -v acli` to check if the Atlassian CLI tool is available

@@ -1,9 +1,8 @@
 ---
-name: optimize
-description: Profile and optimize code for better performance with measurable improvements
+name: improve-optimize
 ---
 
-Usage: /optimize [scope or description]
+Usage: /improve-optimize [scope or description]
 
 Profile the specified code for performance bottlenecks and apply optimizations with measurable improvements.
 

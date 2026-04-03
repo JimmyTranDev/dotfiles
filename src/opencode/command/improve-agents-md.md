@@ -1,9 +1,8 @@
 ---
-name: agents-md
-description: Create or update AGENTS.md files across the repo based on codebase conventions and structure
+name: improve-agents-md
 ---
 
-Usage: /agents-md $ARGUMENTS
+Usage: /improve-agents-md $ARGUMENTS
 
 Analyze the current repository and create or update AGENTS.md files where they would provide value to AI agents. If $ARGUMENTS specifies a path or scope, focus on that area. Otherwise, analyze the entire repo.
 

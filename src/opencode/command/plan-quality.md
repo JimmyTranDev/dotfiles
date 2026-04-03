@@ -1,9 +1,9 @@
 ---
-name: quality
+name: plan-quality
 description: Analyze code for quality issues and report refactoring opportunities without making changes
 ---
 
-Usage: /quality [scope or description]
+Usage: /plan-quality [scope or description]
 
 Analyze the specified code for internal quality issues — structure, readability, and maintainability — and report refactoring opportunities without applying any changes.
 

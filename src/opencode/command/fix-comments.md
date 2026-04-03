@@ -1,5 +1,5 @@
 ---
-name: comments
+name: fix-comments
 description: Fetch PR review comments, let the user select which to fix, and implement the selected fixes
 ---
 
