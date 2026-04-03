@@ -22,6 +22,8 @@ export MANPAGER='nvim +Man!'
 export MANWIDTH=999
 export ZELLIJ_TAB_NAME_MAX_LENGTH=4
 export ESPANSO_CONFIG_DIR="$HOME/.config/espanso"
+export HOMEBREW_AUTO_UPDATE_SECS=604800
+export HOMEBREW_API_AUTO_UPDATE_SECS=604800
 
 if [[ "$(uname)" == "Darwin" ]]; then
   export ANDROID_HOME="$HOME/Library/Android/sdk"
