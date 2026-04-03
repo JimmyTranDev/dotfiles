@@ -31,61 +31,43 @@ Load the **worktree-workflow** and **git-workflows** skills in parallel.
    - For each task: `git worktree add ~/Programming/wcreated/<branch-name> -b <branch-name>`
    - If any worktree creation fails, report the error for that task and continue with the rest
 
-7. Implement all changes in parallel — launch a separate **general** agent for each task:
-   - Each agent receives its task description and worktree path (`~/Programming/wcreated/<branch-name>/`)
-   - Each agent implements the changes, stages, and commits using the format from the **git-workflows** skill
-   - Each agent works exclusively in its own worktree directory
-   - Wait for all agents to complete before proceeding
+7. Process all tasks in parallel — launch a separate **general** agent for each task. Each agent handles the full lifecycle for its task independently:
 
-8. Analyze file overlap and determine merge order:
-   - For each worktree, collect the set of changed files: `git diff <base-branch>...HEAD --name-only`
-   - Build a dependency graph: two tasks overlap if they modify any of the same files
-   - Order tasks so that non-overlapping tasks can merge freely, and overlapping tasks merge sequentially (smallest changeset first to minimize rebase complexity)
-   - Group tasks into: **independent** (no file overlap with any other task) and **overlapping** (share files with at least one other task)
+   a. **Implement**: Apply the changes in the worktree, stage, and commit using the format from the **git-workflows** skill
 
-9. Review all worktrees in parallel — for each completed worktree, launch **reviewer**, **auditor**, and **tester** agents in parallel:
-    - All three agents analyze the diff from `git diff <base-branch>...HEAD` in the worktree
-    - **reviewer**: catches bugs, design issues, and code quality problems
-    - **auditor**: scans for security vulnerabilities and exploitable patterns
-    - **tester**: verifies test coverage and adds missing tests for the new changes
-    - Collect all issues found across all worktrees
+   b. **Review**: Launch **reviewer**, **auditor**, and **tester** agents in parallel on the diff from `git diff <base-branch>...HEAD`:
+      - **reviewer**: catches bugs, design issues, and code quality problems
+      - **auditor**: scans for security vulnerabilities and exploitable patterns
+      - **tester**: verifies test coverage and adds missing tests for the new changes
 
-10. Fix issues in parallel — for each worktree with issues:
-    - Launch **fixer** agents in parallel for independent fixes across different worktrees
-    - After fixes are applied in a worktree, stage and commit: `git add -A && git commit -m "🐛 fix: address review and audit findings"`
-    - Run **reviewer** once more per worktree to verify fixes (max 2 iterations per worktree)
+   c. **Fix**: If issues were found, launch **fixer** to address them, then stage and commit: `git add -A && git commit -m "🐛 fix: address review and audit findings"`. Run **reviewer** once more to verify (max 2 iterations).
 
-11. Push and rebase to reduce merge conflicts:
-    - Push all **independent** branches in parallel: `git push -u origin <branch-name>`
-    - For **overlapping** branches, push and rebase sequentially in the determined merge order:
-      a. Push the first overlapping branch: `git push -u origin <branch-name>`
-      b. For each subsequent overlapping branch:
-         - In its worktree, fetch and rebase onto the previously pushed branch: `git fetch origin <previous-branch> && git rebase origin/<previous-branch>`
-         - If rebase conflicts occur, load the **git-conflict-resolution** skill, resolve each conflicted file, then `git add <file>` and `git rebase --continue`
-         - Push the rebased branch: `git push -u origin <branch-name>`
-    - This ensures each overlapping PR already incorporates the changes from earlier PRs, preventing conflicts at merge time
+   d. **Push**: Push the branch with `git push -u origin <branch-name>`
 
-12. Create PRs in parallel:
-    - For each worktree:
-      - Create the PR with `gh pr create` targeting the base branch, with a title matching the original commit message and a summary body
-    - Collect all PR URLs
+   e. **Create PR**: Create the PR with `gh pr create` targeting the base branch, with a title matching the original commit message and a summary body
 
-13. Mark todos as completed:
-    - If this command was invoked from a todo list (i.e., there are existing todos tracked via TodoWrite), mark the corresponding todo item(s) as `completed`
-    - Mark each successfully completed task as `completed` in the todo list
-    - Mark any failed tasks as `pending` so they can be retried
+   f. **Mark todo**: If this task has a corresponding todo tracked via TodoWrite, mark it as `completed` on success or `pending` on failure
 
-14. Report outcome to the user:
+   Each agent works exclusively in its own worktree directory (`~/Programming/wcreated/<branch-name>/`). A failure in one task does not block others — all tasks run to completion independently.
+
+8. Analyze file overlap and rebase overlapping branches:
+   - After all agents complete, collect the set of changed files per branch: `git diff <base-branch>...HEAD --name-only`
+   - Identify **overlapping** branches (those that modified any of the same files)
+   - For overlapping branches, rebase sequentially (smallest changeset first) to reduce merge conflicts:
+     a. For each subsequent overlapping branch:
+        - In its worktree, fetch and rebase onto the previously pushed branch: `git fetch origin <previous-branch> && git rebase origin/<previous-branch>`
+        - If rebase conflicts occur, load the **git-conflict-resolution** skill, resolve each conflicted file, then `git add <file>` and `git rebase --continue`
+        - Force push the rebased branch: `git push --force-with-lease`
+
+9. Report outcome to the user:
     - Table of all tasks with their branch name, PR URL, and status (success/failed)
     - Count of PRs created vs failed
     - If changes were stashed in step 5, remind the user to `git stash pop` in the main repo
 
 Important:
 - All work happens in worktree directories, never in the main repo
-- Each task is fully independent — a failure in one task does not block others
+- Each task runs through its full lifecycle (implement, review, fix, push, create PR) independently in parallel
+- A failure in one task does not block others — all tasks run to completion
 - If a stash pop has conflicts, notify the user and stop before creating worktrees
-- If `gh pr create` fails for a task, report the error for that task but continue with others
 - Do not modify the main repo's working tree
-- Maximize parallelism at every step — never serialize independent operations
-- Overlapping branches are rebased sequentially to prevent merge conflicts when PRs are merged into the base branch
-- The merge order (smallest changeset first) minimizes rebase conflict complexity
+- Overlapping branches are rebased sequentially after all tasks complete to reduce merge conflicts at merge time
