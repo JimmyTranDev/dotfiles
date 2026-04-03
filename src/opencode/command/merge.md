@@ -24,7 +24,18 @@ List your open, non-draft PRs that have passing checks and approvals, let the us
 
    a. Merge the PR:
       - Run `gh pr merge <number> --merge --delete-branch`
-      - If the merge fails, report the error and continue to the next PR
+      - If the merge fails due to merge conflicts, resolve them:
+        - Load the **git-conflict-resolution** skill
+        - Determine the base branch the PR targets: `gh pr view <number> --json baseRefName --jq '.baseRefName'`
+        - Ensure the worktree exists for this PR's branch at `~/Programming/wcreated/<branch-name>` — if not, create it with `git worktree add ~/Programming/wcreated/<branch-name> <branch-name>`
+        - In the worktree directory, fetch and merge the base branch: `git fetch origin <base-branch> && git merge origin/<base-branch>`
+        - Identify conflicted files with `git diff --name-only --diff-filter=U`
+        - Resolve each conflict using the **git-conflict-resolution** skill strategies — read each conflicted file, apply the correct resolution, then `git add` each resolved file
+        - Commit the merge resolution: `git commit --no-edit`
+        - Push the updated branch: `git push`
+        - Retry the merge: `gh pr merge <number> --merge --delete-branch`
+        - If the retry still fails, report the error and continue to the next PR
+      - If the merge fails for a non-conflict reason, report the error and continue to the next PR
 
    b. Clean up the local worktree and branch if they exist:
       - Run `git worktree list` to check if a worktree exists for this PR's branch

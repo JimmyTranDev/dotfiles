@@ -37,25 +37,43 @@ Load the **worktree-workflow** and **git-workflows** skills in parallel.
    - Each agent works exclusively in its own worktree directory
    - Wait for all agents to complete before proceeding
 
-10. Review all worktrees in parallel — for each completed worktree, launch **reviewer**, **auditor**, and **tester** agents in parallel:
+8. Analyze file overlap and determine merge order:
+   - For each worktree, collect the set of changed files: `git diff <base-branch>...HEAD --name-only`
+   - Build a dependency graph: two tasks overlap if they modify any of the same files
+   - Order tasks so that non-overlapping tasks can merge freely, and overlapping tasks merge sequentially (smallest changeset first to minimize rebase complexity)
+   - Group tasks into: **independent** (no file overlap with any other task) and **overlapping** (share files with at least one other task)
+
+9. Review all worktrees in parallel — for each completed worktree, launch **reviewer**, **auditor**, and **tester** agents in parallel:
     - All three agents analyze the diff from `git diff <base-branch>...HEAD` in the worktree
     - **reviewer**: catches bugs, design issues, and code quality problems
     - **auditor**: scans for security vulnerabilities and exploitable patterns
     - **tester**: verifies test coverage and adds missing tests for the new changes
     - Collect all issues found across all worktrees
 
-11. Fix issues in parallel — for each worktree with issues:
+10. Fix issues in parallel — for each worktree with issues:
     - Launch **fixer** agents in parallel for independent fixes across different worktrees
     - After fixes are applied in a worktree, stage and commit: `git add -A && git commit -m "🐛 fix: address review and audit findings"`
     - Run **reviewer** once more per worktree to verify fixes (max 2 iterations per worktree)
 
-12. Push all branches in parallel:
-    - For each worktree: `git push -u origin <branch-name>`
+11. Push and rebase to reduce merge conflicts:
+    - Push all **independent** branches in parallel: `git push -u origin <branch-name>`
+    - For **overlapping** branches, push and rebase sequentially in the determined merge order:
+      a. Push the first overlapping branch: `git push -u origin <branch-name>`
+      b. For each subsequent overlapping branch:
+         - In its worktree, fetch and rebase onto the previously pushed branch: `git fetch origin <previous-branch> && git rebase origin/<previous-branch>`
+         - If rebase conflicts occur, load the **git-conflict-resolution** skill, resolve each conflicted file, then `git add <file>` and `git rebase --continue`
+         - Push the rebased branch: `git push -u origin <branch-name>`
+    - This ensures each overlapping PR already incorporates the changes from earlier PRs, preventing conflicts at merge time
 
-13. Create PRs in parallel:
+12. Create PRs in parallel:
     - For each worktree:
       - Create the PR with `gh pr create` targeting the base branch, with a title matching the original commit message and a summary body
     - Collect all PR URLs
+
+13. Mark todos as completed:
+    - If this command was invoked from a todo list (i.e., there are existing todos tracked via TodoWrite), mark the corresponding todo item(s) as `completed`
+    - Mark each successfully completed task as `completed` in the todo list
+    - Mark any failed tasks as `pending` so they can be retried
 
 14. Report outcome to the user:
     - Table of all tasks with their branch name, PR URL, and status (success/failed)
@@ -69,3 +87,5 @@ Important:
 - If `gh pr create` fails for a task, report the error for that task but continue with others
 - Do not modify the main repo's working tree
 - Maximize parallelism at every step — never serialize independent operations
+- Overlapping branches are rebased sequentially to prevent merge conflicts when PRs are merged into the base branch
+- The merge order (smallest changeset first) minimizes rebase conflict complexity
