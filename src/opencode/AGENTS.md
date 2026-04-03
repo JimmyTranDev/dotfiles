@@ -5,6 +5,7 @@
 
 - **Prefer editing over creating** — always modify existing files rather than creating new ones when possible.
 - **Use zsh** — when executing shell commands via the Bash tool, always use `zsh` syntax and builtins. This environment runs zsh as the default shell.
+- **Todoist links** — when given a Todoist URL (`app.todoist.com/...`), always load the **todoist-cli** skill and use the `td` CLI to interact with it (e.g., `td view <url>`, `td task view <url>`, `td task complete <url>`). Never use WebFetch or browser tools for Todoist URLs.
 
 ## OpenCode Config Structure
 
@@ -76,6 +77,7 @@ src/opencode/
     ├── simplifier/
     ├── stitch/
     ├── structure/
+    ├── test/
     ├── todoist-cli/
     ├── total-typescript/
     ├── ux-ui-animator/

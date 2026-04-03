@@ -120,6 +120,7 @@ src/opencode/
     ├── simplifier/
     ├── stitch/
     ├── structure/
+    ├── test/
     ├── todoist-cli/
     ├── total-typescript/
     ├── ux-ui-animator/
