@@ -9,7 +9,7 @@ Implement multiple independent changes simultaneously, each in its own git workt
 
 $ARGUMENTS
 
-Load the **worktree-workflow** and **git-workflows** skills in parallel.
+Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in parallel.
 
 1. Parse the task list from `$ARGUMENTS`:
    - Split the input into individual change descriptions (separated by newlines, numbered lists, commas, or semicolons)
@@ -46,7 +46,9 @@ Load the **worktree-workflow** and **git-workflows** skills in parallel.
 
    e. **Create PR**: Create the PR with `gh pr create` targeting the base branch, with a title matching the original commit message and a summary body
 
-    f. **Mark todo**: If this task has a corresponding todo tracked via TodoWrite, mark it as `completed` on success or `pending` on failure
+    f. **Complete Todoist task**: If the task description contains a Todoist URL (`app.todoist.com/...`), complete the task: `td task complete <url>`
+
+    g. **Mark todo**: If this task has a corresponding todo tracked via TodoWrite, mark it as `completed` on success or `pending` on failure
 
    Each agent works exclusively in its own worktree directory (`~/Programming/wcreated/<branch-name>/`). A failure in one task does not block others — all tasks run to completion independently.
 

@@ -9,7 +9,7 @@ Implement the described changes in a new git worktree, then create a pull reques
 
 $ARGUMENTS
 
-Load the **worktree-workflow** and **git-workflows** skills in parallel.
+Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in parallel.
 
 1. Determine the base branch using the priority order from the **git-workflows** skill (`develop` > `main` > `master`)
 
@@ -54,7 +54,9 @@ Load the **worktree-workflow** and **git-workflows** skills in parallel.
     - `git worktree remove ~/Programming/wcreated/<branch-name>`
     - `git branch -d <branch-name>`
 
-14. Report the PR URL to the user
+14. If `$ARGUMENTS` contains a Todoist URL (`app.todoist.com/...`), complete the task: `td task complete <url>`
+
+15. Report the PR URL to the user
 
 Important:
 - All work happens in the worktree directory, never in the main repo
