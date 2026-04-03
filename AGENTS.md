@@ -93,6 +93,7 @@ src/opencode/
 └── skills/                  # On-demand knowledge (auto-discovered)
     ├── accessibility/
     ├── agents-md/
+    ├── android-db-inspector/
     ├── browser-mcp/
     ├── career/
     ├── consolidator/
@@ -118,6 +119,7 @@ src/opencode/
     ├── security/
     ├── shell-scripting/
     ├── simplifier/
+    ├── soundness/
     ├── stitch/
     ├── structure/
     ├── test/
