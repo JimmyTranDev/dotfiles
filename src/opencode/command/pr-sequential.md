@@ -34,7 +34,7 @@ Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in
    - Apply the stash in the worktree: `git stash pop` (run from the worktree directory)
 
 8. Create an initial empty commit and push:
-   - `git commit --allow-empty -m "🚧 chore: initialize <branch-name>"`
+   - `git commit --allow-empty -m "🔧 chore: initialize <branch-name>"`
    - `git push -u origin <branch-name>`
 
 9. Create the PR with `gh pr create` targeting the base branch:
@@ -55,7 +55,7 @@ Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in
 
     b. **Review**: Launch **reviewer**, **auditor**, and **tester** agents in parallel on the diff from `git diff HEAD~1...HEAD`
 
-    c. **Fix**: If issues were found, launch **fixer** to address them, then stage and commit: `git add -A && git commit -m "🐛 fix: address review and audit findings"`. Run **reviewer** once more to verify (max 2 iterations).
+    c. **Fix**: If issues were found, launch **fixer** agents in parallel for independent fixes across different files, then stage and commit: `git add -A && git commit -m "🐛 fix: address review and audit findings"`. Run **reviewer** once more to verify (max 2 iterations).
 
     d. **Push**: `git push`
 
@@ -69,6 +69,8 @@ Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in
 
     f. **Complete Todoist task**: If the task description contains a Todoist URL (`app.todoist.com/...`), complete the task: `td task complete <url>`
 
+    g. **Mark todo**: Mark the corresponding TodoWrite todo as `completed` on success or `pending` on failure
+
 11. **Final review**: Launch the **reviewer** agent on the full PR diff (`git diff <base-branch>...HEAD`) to review the cumulative changes across all tasks. If issues are found, launch **fixer** to address them, commit, and push.
 
 12. Clean up the worktree and branch (run in parallel):
@@ -76,6 +78,7 @@ Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in
     - `git branch -d <branch-name>`
 
 13. Report the PR URL to the user
+    - If changes were stashed in step 5, remind the user to `git stash pop` in the main repo
 
 Important:
 - All work happens in the worktree directory, never in the main repo
@@ -84,4 +87,5 @@ Important:
 - After each task, changes are pushed and the PR description is updated to check off the completed task
 - If a task fails, ask the user whether to continue with remaining tasks or stop
 - If a stash pop has conflicts, notify the user and stop
+- If `gh pr create` fails, report the error but do not retry
 - Do not modify the main repo's working tree
