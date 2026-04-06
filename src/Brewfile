@@ -85,6 +85,7 @@ cask "postman"
 cask "raycast"
 cask "stremio"
 cask "transmission"
+cask "webtorrent"
 
 # Backend
 brew "postgresql@15"

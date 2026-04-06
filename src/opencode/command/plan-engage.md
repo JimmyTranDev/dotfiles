@@ -36,8 +36,7 @@ $ARGUMENTS
    - Highlight the top 3 "best bang for buck" improvements across all categories
    - Flag any ethical guardrail concerns (fabricated scarcity, fake social proof, punitive mechanics, dark patterns)
 
-5. Persist findings to `IMPROVEMENTS.md` in the project root:
-   - Write all findings to `IMPROVEMENTS.md` in the project root
-   - If the file already exists, append a new section with a timestamp header
+5. Output findings directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
+   - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
    - Use the same grouped-by-category format from step 4
    - Include effort/impact estimates and framework citations for each item

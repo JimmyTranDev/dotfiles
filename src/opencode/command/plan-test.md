@@ -51,7 +51,6 @@ $ARGUMENTS
    - Summarize each test added: what behavior it covers, what gap it fills, and the test result
    - List any remaining coverage gaps that were out of scope but worth noting
 
-8. Persist follow-up items to `IMPROVEMENTS.md` in the project root:
-   - Write all remaining coverage gaps and testing opportunities to `IMPROVEMENTS.md` in the project root
-   - If the file already exists, append a new section with a timestamp header
+8. Output remaining coverage gaps directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
+   - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
    - Include each item's description, estimated risk level, and suggested test approach

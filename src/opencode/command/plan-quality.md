@@ -45,7 +45,6 @@ $ARGUMENTS
    - Highlight the top 3-5 highest-impact refactoring opportunities
    - Suggest which `/command` to run to address each finding (e.g., `/implement`, `/fix`, `/consolidate`)
 
-7. Persist findings to `IMPROVEMENTS.md` in the project root:
-   - Write all refactoring opportunities to `IMPROVEMENTS.md` in the project root
-   - If the file already exists, append a new section with a timestamp header
+7. Output findings directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
+   - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
    - Include each item's file location, description, estimated impact, violated principle, and suggested `/command`

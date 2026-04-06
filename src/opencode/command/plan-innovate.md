@@ -35,8 +35,7 @@ $ARGUMENTS
    - Within each category, rank by impact-to-effort ratio (quick wins first, then high-impact projects)
    - Highlight the top 3 "best bang for buck" ideas across all categories
 
-5. Persist findings to `IMPROVEMENTS.md` in the project root:
-   - Write all findings to `IMPROVEMENTS.md` in the project root
-   - If the file already exists, append a new section with a timestamp header
+5. Output findings directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
+   - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
    - Use the same grouped-by-category format from step 4
    - Include effort/impact estimates and suggested `/command` for each item
