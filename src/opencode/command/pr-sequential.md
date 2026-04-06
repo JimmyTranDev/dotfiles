@@ -69,11 +69,13 @@ Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in
 
     f. **Complete Todoist task**: If the task description contains a Todoist URL (`app.todoist.com/...`), complete the task: `td task complete <url>`
 
-11. Clean up the worktree and branch (run in parallel):
+11. **Final review**: Launch the **reviewer** agent on the full PR diff (`git diff <base-branch>...HEAD`) to review the cumulative changes across all tasks. If issues are found, launch **fixer** to address them, commit, and push.
+
+12. Clean up the worktree and branch (run in parallel):
     - `git worktree remove ~/Programming/wcreated/<branch-name>`
     - `git branch -d <branch-name>`
 
-12. Report the PR URL to the user
+13. Report the PR URL to the user
 
 Important:
 - All work happens in the worktree directory, never in the main repo
