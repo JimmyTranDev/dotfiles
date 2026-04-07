@@ -1,9 +1,41 @@
 ---
 name: engager
-description: Behavioral psychology for product engagement covering habit loop design, UX friction reduction, persuasion principles, cognitive biases, and ethical engagement patterns
+description: Behavioral psychology for product engagement covering hook model, habit loops, dual process theory, UX friction reduction, persuasion principles, cognitive biases, virality frameworks, and ethical engagement patterns
 ---
 
 Behavioral science frameworks for designing products users return to naturally.
+
+## Hook Model
+
+Based on Hooked (Eyal).
+
+| Phase | Question | Techniques |
+|-------|----------|------------|
+| **Trigger** | What brings the user back? | External: push notifications, emails, social mentions. Internal: boredom, anxiety, FOMO, curiosity |
+| **Action** | What's the simplest behavior in anticipation of reward? | Reduce effort (Fogg's B=MAT: Behavior = Motivation × Ability × Trigger), minimize steps, leverage existing mental models |
+| **Variable Reward** | Does the reward satisfy yet leave wanting more? | Rewards of the tribe (social validation), rewards of the hunt (material/information), rewards of the self (mastery/competence) |
+| **Investment** | What does the user put in that improves the next cycle? | Data, content, followers, reputation, skill — stored value that makes the product better with use |
+
+### Internal Trigger Development
+
+The goal is to move users from external triggers (notifications) to internal triggers (emotions/routines):
+
+| Stage | Trigger Type | Example |
+|-------|-------------|---------|
+| New user | External — push notification | "You have a new message" |
+| Returning user | External — habit cue | Morning routine, app icon on home screen |
+| Habitual user | Internal — emotional | Feeling bored → opens app without thinking |
+
+### Investment Loop
+
+Each cycle of the hook should load the next trigger:
+
+| Investment Type | How It Loads the Next Trigger | Example |
+|----------------|-------------------------------|---------|
+| Content creation | Others respond → notification → next trigger | Post a comment → get replies |
+| Data entry | Personalization improves → product becomes more valuable | Rate preferences → better recommendations |
+| Social connection | Followers create obligations → social triggers | Follow users → their activity triggers return visits |
+| Skill building | Competence creates identity → internal trigger | Learn features → "I'm a power user" |
 
 ## Habit Loop Framework
 
@@ -45,6 +77,79 @@ Make the desired action the path of least resistance:
 | 7-30 | Routine building | Streak mechanics, reminders, identity reinforcement |
 | 30-90 | Consolidation | Variable rewards, social proof, increasing commitment |
 | 90+ | Maintenance | Refresh mechanics, new challenges, community involvement |
+
+## Dual Process Theory
+
+Based on Thinking, Fast and Slow (Kahneman).
+
+| System | Characteristics | Design Implications |
+|--------|----------------|---------------------|
+| **System 1** (fast) | Automatic, intuitive, effortless, emotional, always on | Default interactions should target System 1 — visual, familiar, requiring no deliberation |
+| **System 2** (slow) | Deliberate, logical, effortful, lazy, easily fatigued | Minimize System 2 demands — every time the user has to think, you risk losing them |
+
+### Designing for System 1
+
+| Principle | Application | Example |
+|-----------|-------------|---------|
+| Visual over textual | Icons, colors, and spatial layout communicate faster than words | Red badge = urgent, green checkmark = done |
+| Familiarity bias | Reuse patterns users already know | Standard nav placement, conventional button styles |
+| Emotional priming | First impression sets the frame for all subsequent decisions | Warm onboarding tone → user feels safe to explore |
+| Cognitive ease | Fluent, simple presentation increases trust and liking | Clean typography, high contrast, short sentences |
+
+### System 2 Budget
+
+Users have a limited daily budget of System 2 effort. Every decision, form field, and unfamiliar UI element spends from this budget:
+
+| Action | System 2 Cost | Mitigation |
+|--------|--------------|------------|
+| Choosing between options | High | Smart defaults, reduce to 2-3 choices |
+| Reading instructions | High | Eliminate — make it self-evident |
+| Entering data | Medium | Auto-fill, progressive collection |
+| Learning new UI patterns | High | Use conventions, provide inline hints |
+| Confirming destructive actions | Low (worthwhile) | Keep — this friction is valuable |
+
+### Heuristics and Biases for Product Design
+
+| Heuristic | How It Affects Users | Design Application |
+|-----------|---------------------|-------------------|
+| Availability heuristic | Recent/vivid events feel more likely | Show recent activity, success stories prominently |
+| Representativeness | Users judge by surface similarity | Make important features look important |
+| Framing effect | Same info, different presentation → different decisions | Frame features as gains ("save 2 hours") not neutral descriptions |
+| Status quo bias | Users stick with defaults | Set defaults to the most beneficial option |
+| Sunk cost | Past investment drives continued use | Show users their accumulated history, data, progress |
+
+## Virality Framework
+
+Based on Contagious (Berger).
+
+### STEPPS Principles
+
+| Principle | Core Idea | Product Application |
+|-----------|-----------|-------------------|
+| **Social Currency** | People share things that make them look good | Shareable achievements, exclusive access, insider knowledge |
+| **Triggers** | Top-of-mind means tip-of-tongue | Associate product with frequent environmental cues (time of day, routine, location) |
+| **Emotion** | High-arousal emotions drive sharing (awe, excitement, anger, anxiety) | Design moments that provoke awe or excitement, not just satisfaction |
+| **Public** | Built to show, built to grow — observable behavior gets copied | Make usage visible (badges, status indicators, public profiles) |
+| **Practical Value** | People share useful things | Package features as shareable tips, templates, or tools others can use |
+| **Stories** | Narratives carry ideas as passengers | Embed product value in user success stories, not feature lists |
+
+### Virality Loops
+
+| Loop Type | Mechanism | Example |
+|-----------|-----------|---------|
+| Organic | Product use naturally creates exposure | Shared documents show brand, sent messages include link |
+| Incentivized | Reward for inviting others | Referral credits, unlocked features for invites |
+| Social proof | Visible usage attracts new users | Activity feeds, "X people are using this", public leaderboards |
+| Content-driven | User-generated content reaches non-users | Shareable reports, public portfolios, embeddable widgets |
+
+### Designing Shareable Moments
+
+| Moment | Why It's Shareable | How to Enable |
+|--------|-------------------|---------------|
+| First achievement | Social currency — user feels proud | One-tap share with pre-formatted message |
+| Milestone reached | Social currency + practical value | Auto-generated summary card with stats |
+| Surprising result | Emotion (awe) + social currency | Highlight the unexpected, make it visual |
+| Helpful discovery | Practical value + stories | "Share this tip" with context preserved |
 
 ## Friction Reduction
 
