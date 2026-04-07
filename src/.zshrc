@@ -159,7 +159,7 @@ select_worktree() {
   local entries=()
   for dir in "$created_dir" "$checkout_dir"; do
     [[ -d "$dir" ]] || continue
-    for wt_dir in "$dir"/*/; do
+    for wt_dir in "$dir"/*/(N); do
       [[ -d "$wt_dir" ]] || continue
       local git_file="$wt_dir.git"
       [[ -f "$git_file" ]] || continue

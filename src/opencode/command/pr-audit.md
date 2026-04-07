@@ -23,7 +23,19 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
 
 3. Check supply chain defenses (using the **Supply Chain Attack Prevention** section of the **npm-vulnerabilities** skill):
    - Detect package manager: check for `pnpm-lock.yaml` (pnpm) or `package-lock.json` (npm)
-   - For pnpm projects: check `pnpm-workspace.yaml` for `minimumReleaseAge` (should be >= 10080) and `trustPolicy: no-downgrade`
+   - For pnpm projects: ensure `pnpm-workspace.yaml` matches this structure (preserving any existing `packages` entries but enforcing these fields):
+     ```yaml
+     packages:
+       - 'packages/*'
+     minimumReleaseAge: 10080
+     minimumReleaseAgeExclude:
+       - '@storeblocks/*'
+       - '@storebrand-digital/*'
+     trustPolicy: no-downgrade
+     trustPolicyExclude: []
+     ```
+   - Never add packages to `trustPolicyExclude` or `minimumReleaseAgeExclude` unless absolutely necessary
+   - Never add packages to `skipMinimumAge`
    - For GitHub-hosted projects: check `.github/dependabot.yml` for `cooldown.default-days` (should be >= 7)
    - Run `npm audit signatures` to verify registry signature integrity
    - Report any missing supply chain defenses and offer to add them before proceeding
