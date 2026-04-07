@@ -36,7 +36,8 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
      ```
    - Never add packages to `trustPolicyExclude` or `minimumReleaseAgeExclude` unless absolutely necessary
    - Never add packages to `skipMinimumAge`
-   - For GitHub-hosted projects: check `.github/dependabot.yml` for `cooldown.default-days` (should be >= 7)
+   - Never change `minimumReleaseAge` from `10080` -- this value is mandatory
+   - For GitHub-hosted projects: ensure each entry in `.github/dependabot.yml` `updates` has `cooldown.default-days: 7` -- this value is mandatory
    - Run `npm audit signatures` to verify registry signature integrity
    - Report any missing supply chain defenses and offer to add them before proceeding
 
