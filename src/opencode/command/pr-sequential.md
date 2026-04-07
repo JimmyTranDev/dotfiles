@@ -39,12 +39,12 @@ Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in
 
 9. Create the PR with `gh pr create` targeting the base branch:
    - Title: a concise summary of the overall goal
-   - Body: a checklist of all tasks with unchecked boxes, e.g.:
+   - Body: a checklist of all tasks with unchecked boxes. Each task should have a descriptive summary explaining what will be changed, which files or areas are affected, and what the expected outcome is — not just a short label. Example:
      ```
      ## Tasks
-     - [ ] Task 1 description
-     - [ ] Task 2 description
-     - [ ] Task 3 description
+     - [ ] **Add user settings page** — Create a new `/settings` route with form fields for display name, email preferences, and theme selection. Add validation and wire up to the existing user API.
+     - [ ] **Migrate avatar upload to S3** — Replace the local filesystem avatar storage in `UserService` with S3 presigned URLs. Update the upload component to use the new endpoint and add file size/type validation.
+     - [ ] **Fix session timeout redirect** — The session expiry handler in `authMiddleware.ts` silently drops the request instead of redirecting to `/login`. Add proper redirect with a return URL parameter.
      ```
 
 10. Process each task sequentially — for task N (starting at 1):
@@ -59,12 +59,12 @@ Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in
 
     d. **Push**: `git push`
 
-    e. **Update PR description**: Use `gh pr edit <pr-number> --body` to update the body, checking off the completed task:
+    e. **Update PR description**: Use `gh pr edit <pr-number> --body` to update the body, checking off the completed task while preserving the full descriptive summaries:
        ```
        ## Tasks
-       - [x] Task 1 description
-       - [x] Task 2 description
-       - [ ] Task 3 description
+       - [x] **Add user settings page** — Create a new `/settings` route with form fields for display name, email preferences, and theme selection. Add validation and wire up to the existing user API.
+       - [x] **Migrate avatar upload to S3** — Replace the local filesystem avatar storage in `UserService` with S3 presigned URLs. Update the upload component to use the new endpoint and add file size/type validation.
+       - [ ] **Fix session timeout redirect** — The session expiry handler in `authMiddleware.ts` silently drops the request instead of redirecting to `/login`. Add proper redirect with a return URL parameter.
        ```
 
     f. **Complete Todoist task**: If the task description contains a Todoist URL (`app.todoist.com/...`), complete the task: `td task complete <url>`
