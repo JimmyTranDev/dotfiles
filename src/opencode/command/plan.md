@@ -23,7 +23,8 @@ $ARGUMENTS
      - User engagement / retention → `/plan-engage`
      - Test coverage → `/plan-test`
      - New ideas / brainstorming → `/plan-innovate`
-     - Practical user needs → `/plan-useful`
+      - Practical user needs → `/plan-useful`
+      - Developer tooling / DX → `/plan-devtools`
    - If the request spans multiple domains, combine the relevant `/plan-*` workflows and launch applicable agents in parallel
    - If the request is something else entirely (architecture migration, refactoring strategy, release plan, feature roadmap, etc.), create a custom plan tailored to what the user asked for
 
