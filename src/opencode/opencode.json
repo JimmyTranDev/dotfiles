@@ -46,6 +46,14 @@
         "STITCH_API_KEY": "{file:~/Programming/JimmyTranDev/secrets/stitch-api-key}"
       },
       "enabled": false
+    },
+    "playwright": {
+      "type": "local",
+      "command": [
+        "npx",
+        "@playwright/mcp@latest"
+      ],
+      "enabled": false
     }
   }
 }
