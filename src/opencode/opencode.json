@@ -54,6 +54,11 @@
         "@playwright/mcp@latest"
       ],
       "enabled": false
+    },
+    "storybook": {
+      "type": "remote",
+      "url": "http://localhost:6006/mcp",
+      "enabled": true,
     }
   }
 }
