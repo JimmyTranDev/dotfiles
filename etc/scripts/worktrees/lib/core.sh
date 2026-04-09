@@ -40,6 +40,22 @@ detect_package_manager() {
 	echo ""
 }
 
+resolve_unique_dir() {
+	local base_dir="$1"
+
+	if [[ ! -d "$base_dir" ]]; then
+		echo "$base_dir"
+		return 0
+	fi
+
+	local suffix=1
+	while [[ -d "${base_dir}-${suffix}" ]]; do
+		((suffix++))
+	done
+
+	echo "${base_dir}-${suffix}"
+}
+
 get_folder_name_from_branch() {
 	local branch_name="$1"
 

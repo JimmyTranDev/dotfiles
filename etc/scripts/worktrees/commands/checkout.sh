@@ -40,68 +40,38 @@ cmd_checkout() {
 	local folder_name
 	folder_name=$(get_folder_name_from_branch "$local_branch") || return 1
 
-	local worktree_path="$WCHECKOUT_DIR/${folder_name}"
+	local worktree_path
+	worktree_path=$(resolve_unique_dir "$WCHECKOUT_DIR/${folder_name}")
 
-	if [[ -d "$worktree_path" ]]; then
-		print_color yellow "Worktree already exists at: $worktree_path"
-
-		if git -C "$repo_dir" worktree list | grep -q "$worktree_path"; then
-			print_color green "Switching to existing worktree: $worktree_path"
-			cd "$worktree_path" || {
-				print_color red "Error: Could not change to worktree directory"
-				return 1
-			}
-			print_color green "Successfully switched to worktree!"
-			return 0
-		else
-			print_color yellow "Directory exists but is not a valid git worktree."
-			print -P "%F{cyan}Options:%f"
-			print -P "  1) Remove directory and create new worktree"
-			print -P "  2) Cancel operation"
-
-			local choice
-			read -r "choice?Enter your choice (1-2): "
-
-			case "$choice" in
-			1)
-				rm -rf "$worktree_path" || {
-					print_color red "Failed to remove existing directory"
-					return 1
-				}
-				print_color green "Removed existing directory"
-				;;
-			*)
-				print_color yellow "Operation cancelled"
-				return 0
-				;;
-			esac
-		fi
+	local actual_branch="$local_branch"
+	if [[ "$worktree_path" != "$WCHECKOUT_DIR/${folder_name}" ]]; then
+		actual_branch="${local_branch}-$(basename "$worktree_path" | grep -o '[0-9]*$')"
 	fi
 
-	if git -C "$repo_dir" show-ref --verify --quiet "refs/heads/$local_branch"; then
-		print_color yellow "Local branch '$local_branch' already exists. Creating worktree from existing branch."
+	if git -C "$repo_dir" show-ref --verify --quiet "refs/heads/$actual_branch"; then
+		print_color yellow "Local branch '$actual_branch' already exists. Creating worktree from existing branch."
 
-		if ! git -C "$repo_dir" worktree add "$worktree_path" "$local_branch" 2>/dev/null; then
+		if ! git -C "$repo_dir" worktree add "$worktree_path" "$actual_branch" 2>/dev/null; then
 			if git -C "$repo_dir" worktree list | grep -q "$worktree_path"; then
 				print_color yellow "Worktree is registered but missing. Cleaning up and recreating..."
 				git -C "$repo_dir" worktree remove "$worktree_path" 2>/dev/null || true
 			fi
 
-			if ! git -C "$repo_dir" worktree add "$worktree_path" "$local_branch"; then
+			if ! git -C "$repo_dir" worktree add "$worktree_path" "$actual_branch"; then
 				print_color red "Failed to create worktree from existing branch."
 				return 1
 			fi
 		fi
 	else
-		print_color green "Creating new branch '$local_branch' with worktree."
+		print_color green "Creating new branch '$actual_branch' with worktree."
 
-		if ! git -C "$repo_dir" worktree add "$worktree_path" -b "$local_branch" "origin/$local_branch" 2>/dev/null; then
+		if ! git -C "$repo_dir" worktree add "$worktree_path" -b "$actual_branch" "origin/$local_branch" 2>/dev/null; then
 			if git -C "$repo_dir" worktree list | grep -q "$worktree_path"; then
 				print_color yellow "Worktree path is registered but missing. Cleaning up and recreating..."
 				git -C "$repo_dir" worktree remove "$worktree_path" 2>/dev/null || true
 			fi
 
-			if ! git -C "$repo_dir" worktree add "$worktree_path" -b "$local_branch" "origin/$local_branch"; then
+			if ! git -C "$repo_dir" worktree add "$worktree_path" -b "$actual_branch" "origin/$local_branch"; then
 				print_color red "Failed to create worktree with new branch."
 				return 1
 			fi
