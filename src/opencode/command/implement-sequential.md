@@ -18,7 +18,18 @@ Load the **git-workflows** skill.
 
 2. Create a TodoWrite todo for each task (all set to `pending`)
 
-3. Process each task sequentially — for task N (starting at 1):
+3. Check if the current branch has an open PR:
+   - Run `gh pr view --json number,body` to get the PR number and body
+   - If a PR exists, update its body with `gh pr edit <pr-number> --body` to include a task checklist with all parsed tasks plus a final **Review** task, all unchecked. Example:
+     ```
+     ## Tasks
+     - [ ] **Add user settings page** — Create a new `/settings` route with form fields for display name, email preferences, and theme selection.
+     - [ ] **Fix session timeout redirect** — Add proper redirect with a return URL parameter.
+     - [ ] **Review** — Final review of all cumulative changes.
+     ```
+   - If no PR exists, skip PR description updates
+
+4. Process each task sequentially — for task N (starting at 1):
 
    a. **Mark todo**: Set the current task to `in_progress`
 
@@ -35,11 +46,15 @@ Load the **git-workflows** skill.
       - `git add -A`
       - `git commit -m "<emoji> <type>(<scope>): <description>"`
 
-   f. **Complete Todoist task**: If the task description contains a Todoist URL (`app.todoist.com/...`), load the **todoist-cli** skill and complete the task: `td task complete <url>`
+   f. **Update PR description**: If a PR exists, use `gh pr edit <pr-number> --body` to check off the completed task while preserving all descriptive summaries
 
-   g. **Mark todo**: Set the current task to `completed` on success or `pending` on failure
+   g. **Complete Todoist task**: If the task description contains a Todoist URL (`app.todoist.com/...`), load the **todoist-cli** skill and complete the task: `td task complete <url>`
 
-4. After all tasks are complete, report a summary:
+   h. **Mark todo**: Set the current task to `completed` on success or `pending` on failure
+
+5. **Final review**: Launch the **reviewer** agent on the full diff across all commits. If issues are found, launch **fixer** to address them and commit. If a PR exists, update the PR description to check off the **Review** task.
+
+6. After all tasks are complete, report a summary:
    - List each task with its commit hash and status (completed/failed)
    - Total commits created
 
