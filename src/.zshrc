@@ -60,7 +60,15 @@ alias e='zellij'
 alias d="$DOTFILES_DIR/etc/scripts/common/git_diff_commits.sh"
 alias c='clear'
 alias e='exit'
-alias o='opencode'
+o() {
+  opencode "$@"
+  if [[ -n $ZELLIJ ]]; then
+    local current_tab_name=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=.*focus=true/ {match($0, /name="[^"]*"/); print substr($0, RSTART+6, RLENGTH-7); exit}')
+    if [[ -n $current_tab_name && $current_tab_name != *" *" ]]; then
+      zellij action rename-tab "${current_tab_name} *" 2>/dev/null
+    fi
+  fi
+}
 alias g='rg'
 alias n='nvim'
 alias y='yazi'
@@ -245,6 +253,16 @@ bindkey '^u' zellij_update_tab_indexes
 
 zellij_tab_name_update
 chpwd_functions=(${chpwd_functions:#zellij_tab_name_update} zellij_tab_name_update)
+
+zellij_clear_tab_notification() {
+  if [[ -n $ZELLIJ ]]; then
+    local current_tab_name=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=.*focus=true/ {match($0, /name="[^"]*"/); print substr($0, RSTART+6, RLENGTH-7); exit}')
+    if [[ $current_tab_name == *" *" ]]; then
+      zellij action rename-tab "${current_tab_name% \*}" 2>/dev/null
+    fi
+  fi
+}
+precmd_functions=(${precmd_functions:#zellij_clear_tab_notification} zellij_clear_tab_notification)
 
 zellij() {
   command zellij "$@"
