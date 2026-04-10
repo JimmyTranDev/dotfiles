@@ -39,7 +39,7 @@ Load the **security** and **conventions** skills in parallel.
    - Classify severity: critical, high, medium, low
    - Estimate effort to fix (small, medium, large)
    - Include file paths and line numbers
-   - Suggest which `/command` to run to address it (e.g., `/fix`, `/implement`, `/security`)
+    - Suggest which `/command` to run to address it (e.g., `/fix`, `/implement`, `/improve-security`)
 
 5. Delegate to specialized agents — launch independent agents in parallel:
    - **auditor**: Deep scan for exploitable vulnerabilities with specific attack vectors

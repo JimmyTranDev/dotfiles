@@ -1,9 +1,9 @@
 ---
-name: security
+name: improve-security
 description: Scan code for security vulnerabilities and provide exact fixes with exploit scenarios
 ---
 
-Usage: /security [scope or description]
+Usage: /improve-security [scope or description]
 
 Scan the specified code for security vulnerabilities, classify severity, show exploit scenarios, and provide exact fixes.
 
