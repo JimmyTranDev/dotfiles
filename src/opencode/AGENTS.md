@@ -26,6 +26,7 @@ src/opencode/
 │   └── tester.md
 ├── command/                 # Slash commands (/name)
 │   ├── clarify.md
+│   ├── clarify-agents-md.md
 │   ├── clean-worktrees.md
 │   ├── close-dependabot.md
 │   ├── commit.md
@@ -120,6 +121,7 @@ src/opencode/
 | `implement-*` | Build new features or implement tasks | Yes |
 | `pr-*` | Create/manage pull requests with worktrees | Yes |
 | `tutorial-*` | Step-by-step interactive implementation | Yes |
+| `clarify-*` | Ask targeted questions to refine requirements or config | No |
 | (no prefix) | Utility commands (`commit`, `merge`, `init`, `review`, `clarify`) | Varies |
 
 ## Parallelization
