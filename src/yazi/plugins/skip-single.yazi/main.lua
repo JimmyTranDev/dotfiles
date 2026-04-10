@@ -5,8 +5,14 @@ local get_cwd = ya.sync(function()
 end)
 
 local function entry()
+	local prev_cwd = nil
 	while true do
 		local cwd = get_cwd()
+		if prev_cwd and tostring(cwd) == tostring(prev_cwd) then
+			break
+		end
+		prev_cwd = cwd
+
 		local files, err = fs.read_dir(cwd, { limit = 2 })
 
 		if err or not files or #files ~= 1 then
@@ -18,7 +24,7 @@ local function entry()
 			break
 		end
 
-		ya.emit("cd", { Url(tostring(only.url)) })
+		ya.emit("enter", {})
 
 		ya.sleep(0.05)
 	end
