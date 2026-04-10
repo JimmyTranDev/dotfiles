@@ -47,21 +47,25 @@ cmd_create() {
 
 	if [[ "$current_branch" == "$main_branch" ]]; then
 		local stashed=false
-		local stash_changes
-		stash_changes=$(git -C "$main_repo" status --porcelain)
+		local uncommitted_files
+		uncommitted_files=$(git -C "$main_repo" status --porcelain)
 
-		if [[ -n "$stash_changes" ]]; then
+		if [[ -n "$uncommitted_files" ]]; then
 			print_color yellow "Stashing uncommitted changes before pulling..."
-			git -C "$main_repo" stash push -m "worktree-create-auto-stash" || {
-				print_color yellow "Warning: Could not stash changes. Continuing without pull."
-			}
-			stashed=true
+			if git -C "$main_repo" stash push -m "worktree-create-auto-stash"; then
+				stashed=true
+			else
+				print_color yellow "Warning: Could not stash changes. Skipping pull."
+			fi
 		fi
 
-		print_color yellow "Pulling latest $main_branch..."
-		git -C "$main_repo" pull --rebase origin "$main_branch" || {
-			print_color yellow "Warning: Could not pull $main_branch. Continuing with local state."
-		}
+		if [[ "$stashed" == true ]] || [[ -z "$uncommitted_files" ]]; then
+			print_color yellow "Pulling latest $main_branch..."
+			if ! git -C "$main_repo" pull --rebase origin "$main_branch"; then
+				print_color yellow "Warning: Pull failed. Aborting rebase if in progress."
+				git -C "$main_repo" rebase --abort 2>/dev/null
+			fi
+		fi
 
 		if [[ "$stashed" == true ]]; then
 			print_color yellow "Restoring stashed changes..."
