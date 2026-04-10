@@ -34,7 +34,7 @@ Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in
    - Apply the stash in the worktree: `git stash pop` (run from the worktree directory)
 
 8. Create an initial empty commit and push:
-   - `git commit --allow-empty -m "🔧 chore: initialize <branch-name>"`
+    - `git commit --allow-empty --no-verify -m "🔧 chore: initialize <branch-name>"`
    - `git push -u origin <branch-name>`
 
 9. Create the PR with `gh pr create` targeting the base branch:
@@ -50,13 +50,13 @@ Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in
 
 10. Process each task sequentially — for task N (starting at 1):
 
-    a. **Implement**: Apply the changes in the worktree directory (`~/Programming/wcreated/<branch-name>/`), stage, and commit using the format from the **git-workflows** skill:
-       - `git add -A`
-       - `git commit -m "<emoji> <type>(<scope>): <description>"`
+     a. **Implement**: Apply the changes in the worktree directory (`~/Programming/wcreated/<branch-name>/`), stage, and commit using the format from the **git-workflows** skill (skip hooks during sequential tasks — they run once at the end):
+        - `git add -A`
+        - `git commit --no-verify -m "<emoji> <type>(<scope>): <description>"`
 
     b. **Review**: Launch **reviewer**, **auditor**, and **tester** agents in parallel on the diff from `git diff HEAD~1...HEAD`
 
-    c. **Fix**: If issues were found, launch **fixer** agents in parallel for independent fixes across different files, then stage and commit: `git add -A && git commit -m "🐛 fix: address review and audit findings"`. Run **reviewer** once more to verify (max 2 iterations).
+     c. **Fix**: If issues were found, launch **fixer** agents in parallel for independent fixes across different files, then stage and commit: `git add -A && git commit --no-verify -m "🐛 fix: address review and audit findings"`. Run **reviewer** once more to verify (max 2 iterations).
 
     d. **Push**: `git push`
 
@@ -73,13 +73,15 @@ Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in
 
     g. **Mark todo**: Mark the corresponding TodoWrite todo as `completed` on success or `pending` on failure
 
-11. **Final review**: Launch the **reviewer** agent on the full PR diff (`git diff <base-branch>...HEAD`) to review the cumulative changes across all tasks. If issues are found, launch **fixer** to address them, commit, and push. After the final review passes, update the PR description to check off the **Review** task.
+11. **Run pre-commit hooks**: Run `git hook run pre-commit` to execute all pre-commit hooks against the current state. If the hooks modify files (e.g., formatting, linting auto-fix), stage and commit the changes: `git add -A && git commit --no-verify -m "💎 style: apply pre-commit hook fixes"` and push. If hooks fail with errors, launch **fixer** to address them, then re-run the hooks.
 
-12. Clean up the worktree and branch (run in parallel):
+12. **Final review**: Launch the **reviewer** agent on the full PR diff (`git diff <base-branch>...HEAD`) to review the cumulative changes across all tasks. If issues are found, launch **fixer** to address them, commit, and push. After the final review passes, update the PR description to check off the **Review** task.
+
+13. Clean up the worktree and branch (run in parallel):
     - `git worktree remove ~/Programming/wcreated/<branch-name>`
     - `git branch -d <branch-name>`
 
-13. Report the PR URL to the user
+14. Report the PR URL to the user
     - If changes were stashed in step 5, remind the user to `git stash pop` in the main repo
 
 Important:

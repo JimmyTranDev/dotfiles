@@ -42,9 +42,9 @@ Load the **git-workflows** skill.
 
    d. **Fix**: If issues were found, launch **fixer** agents in parallel for independent fixes across different files. Run **reviewer** once more to verify (max 2 iterations).
 
-   e. **Commit**: Stage and commit using the format from the **git-workflows** skill:
-      - `git add -A`
-      - `git commit -m "<emoji> <type>(<scope>): <description>"`
+    e. **Commit**: Stage and commit using the format from the **git-workflows** skill (skip hooks during sequential tasks — they run once at the end):
+       - `git add -A`
+       - `git commit --no-verify -m "<emoji> <type>(<scope>): <description>"`
 
    f. **Update PR description**: If a PR exists, use `gh pr edit <pr-number> --body` to check off the completed task while preserving all descriptive summaries
 
@@ -52,9 +52,11 @@ Load the **git-workflows** skill.
 
    h. **Mark todo**: Set the current task to `completed` on success or `pending` on failure
 
-5. **Final review**: Launch the **reviewer** agent on the full diff across all commits. If issues are found, launch **fixer** to address them and commit. If a PR exists, update the PR description to check off the **Review** task.
+5. **Run pre-commit hooks**: Run `git hook run pre-commit` to execute all pre-commit hooks against the current state. If the hooks modify files (e.g., formatting, linting auto-fix), stage and commit the changes: `git add -A && git commit --no-verify -m "💎 style: apply pre-commit hook fixes"`. If hooks fail with errors, launch **fixer** to address them, then re-run the hooks.
 
-6. After all tasks are complete, report a summary:
+6. **Final review**: Launch the **reviewer** agent on the full diff across all commits. If issues are found, launch **fixer** to address them and commit. If a PR exists, update the PR description to check off the **Review** task.
+
+7. After all tasks are complete, report a summary:
    - List each task with its commit hash and status (completed/failed)
    - Total commits created
 
