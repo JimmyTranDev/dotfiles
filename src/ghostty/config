@@ -8,6 +8,8 @@ confirm-close-surface = false
 macos-titlebar-style = tabs
 window-inherit-working-directory = true
 window-save-state = always
+notify-on-command-finish = unfocused
+bell-features = attention,title,audio
 
 keybind = clear
 
