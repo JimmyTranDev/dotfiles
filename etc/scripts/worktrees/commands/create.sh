@@ -37,6 +37,49 @@ cmd_create() {
 
 	print_color yellow "Base branch: $main_branch"
 
+	print_color yellow "Fetching latest changes from origin..."
+	git -C "$main_repo" fetch origin || {
+		print_color yellow "Warning: Could not fetch from origin. Continuing with local state."
+	}
+
+	local current_branch
+	current_branch=$(git -C "$main_repo" symbolic-ref --short HEAD 2>/dev/null)
+
+	if [[ "$current_branch" == "$main_branch" ]]; then
+		local stashed=false
+		local uncommitted_files
+		uncommitted_files=$(git -C "$main_repo" status --porcelain)
+
+		if [[ -n "$uncommitted_files" ]]; then
+			print_color yellow "Stashing uncommitted changes before pulling..."
+			if git -C "$main_repo" stash push -m "worktree-create-auto-stash"; then
+				stashed=true
+			else
+				print_color yellow "Warning: Could not stash changes. Skipping pull."
+			fi
+		fi
+
+		if [[ "$stashed" == true ]] || [[ -z "$uncommitted_files" ]]; then
+			print_color yellow "Pulling latest $main_branch..."
+			if ! git -C "$main_repo" pull --rebase origin "$main_branch"; then
+				print_color yellow "Warning: Pull failed. Aborting rebase if in progress."
+				git -C "$main_repo" rebase --abort 2>/dev/null
+			fi
+		fi
+
+		if [[ "$stashed" == true ]]; then
+			print_color yellow "Restoring stashed changes..."
+			git -C "$main_repo" stash pop || {
+				print_color red "Warning: Could not restore stashed changes. Run 'git stash pop' manually."
+			}
+		fi
+	else
+		print_color yellow "Not on $main_branch, updating via fetch only."
+		git -C "$main_repo" fetch origin "$main_branch:$main_branch" 2>/dev/null || {
+			print_color yellow "Warning: Could not fast-forward $main_branch. Continuing with local state."
+		}
+	fi
+
 	if [[ -z "$jira_ticket" ]]; then
 		print_color cyan "Enter JIRA ticket (e.g., ABC-123) or leave empty to skip JIRA integration:"
 		read -r jira_ticket

@@ -16,38 +16,52 @@ src/opencode/
 ├── tui.json                 # TUI appearance config
 ├── agent/                   # Specialized subagents
 │   ├── auditor.md
-│   ├── browser.md
 │   ├── designer.md
 │   ├── engager.md
 │   ├── fixer.md
+│   ├── git.md
+│   ├── implementer.md
 │   ├── optimizer.md
 │   ├── reviewer.md
 │   └── tester.md
 ├── command/                 # Slash commands (/name)
-│   ├── agents-md.md
 │   ├── clarify.md
-│   ├── comments.md
+│   ├── clarify-agents-md.md
+│   ├── clean-worktrees.md
+│   ├── close-dependabot.md
 │   ├── commit.md
-│   ├── consolidate.md
-│   ├── design.md
-│   ├── engage.md
 │   ├── fix-ci.md
+│   ├── fix-comments.md
+│   ├── fix-conflict.md
+│   ├── fix-pr.md
 │   ├── fix.md
+│   ├── implement-jira.md
+│   ├── implement-sequential.md
 │   ├── implement.md
+│   ├── improve-agents-md.md
+│   ├── improve-consolidate.md
+│   ├── improve-optimize.md
+│   ├── improve-security.md
 │   ├── init.md
-│   ├── innovate.md
-│   ├── jira.md
-│   ├── merge-conflict.md
 │   ├── merge.md
-│   ├── optimize.md
+│   ├── plan-audit.md
+│   ├── plan-design.md
+│   ├── plan-devtools.md
+│   ├── plan-engage.md
+│   ├── plan-innovate.md
+│   ├── plan-logic.md
+│   ├── plan-quality.md
+│   ├── plan-review.md
+│   ├── plan-test.md
+│   ├── plan-useful.md
+│   ├── plan.md
 │   ├── pr-audit.md
-│   ├── pr-fix.md
 │   ├── pr-multiple.md
+│   ├── pr-sequential.md
 │   ├── pr.md
-│   ├── quality.md
 │   ├── review.md
-│   ├── security.md
-│   └── test.md
+│   ├── tutorial-implement-jira.md
+│   └── tutorial.md
 └── skills/                  # On-demand knowledge (auto-discovered)
     ├── accessibility/
     ├── agents-md/
@@ -58,6 +72,7 @@ src/opencode/
     ├── conventions/
     ├── deduplicator/
     ├── designer-ui-ux/
+    ├── drizzle-orm/
     ├── engager/
     ├── eslint-config/
     ├── follower/
@@ -67,6 +82,7 @@ src/opencode/
     ├── git-workflows/
     ├── gitignore/
     ├── innovate/
+    ├── knip/
     ├── logic-checker/
     ├── mobile-mcp/
     ├── npm-vulnerabilities/
@@ -77,8 +93,11 @@ src/opencode/
     ├── security/
     ├── shell-scripting/
     ├── simplifier/
+    ├── slack-cli/
     ├── soundness/
+    ├── spring-boot/
     ├── stitch/
+    ├── storybook-mcp/
     ├── structure/
     ├── test/
     ├── todoist-cli/
@@ -91,6 +110,19 @@ src/opencode/
 - Agents in `agent/` are subagents launched via the Task tool
 - Commands in `command/` are slash commands invoked with `/name`
 - Skills in `skills/<name>/SKILL.md` are auto-discovered and loaded on demand via the Skill tool
+
+## Command Naming Taxonomy
+
+| Prefix | Purpose | Makes Changes? |
+|--------|---------|----------------|
+| `plan-*` | Analysis, recommendations, findings | No |
+| `improve-*` | Find issues and apply fixes/improvements | Yes |
+| `fix-*` | Diagnose and fix specific problems | Yes |
+| `implement-*` | Build new features or implement tasks | Yes |
+| `pr-*` | Create/manage pull requests with worktrees | Yes |
+| `tutorial-*` | Step-by-step interactive implementation | Yes |
+| `clarify-*` | Ask targeted questions to refine requirements or config | No |
+| (no prefix) | Utility commands (`commit`, `merge`, `init`, `review`, `clarify`) | Varies |
 
 ## Parallelization
 

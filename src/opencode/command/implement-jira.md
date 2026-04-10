@@ -1,5 +1,6 @@
 ---
 name: implement-jira
+description: Fetch the Jira ticket for the current branch and implement the described work
 ---
 
 Fetch the Jira ticket for the current branch and implement the work described in it.

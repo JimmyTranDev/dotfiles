@@ -1,5 +1,6 @@
 ---
 name: improve-agents-md
+description: Create or update AGENTS.md files to accurately reflect the repository structure and conventions
 ---
 
 Usage: /improve-agents-md $ARGUMENTS

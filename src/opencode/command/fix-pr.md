@@ -1,5 +1,6 @@
 ---
 name: fix-pr
+description: Address PR review feedback, resolve merge conflicts, and update the PR description
 ---
 
 Usage: /fix-pr [$ARGUMENTS]

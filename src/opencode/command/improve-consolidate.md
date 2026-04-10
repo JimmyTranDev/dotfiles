@@ -1,5 +1,6 @@
 ---
 name: improve-consolidate
+description: Find and merge over-separated code to reduce indirection and cognitive load
 ---
 
 Usage: /improve-consolidate [scope or description]

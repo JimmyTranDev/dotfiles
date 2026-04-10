@@ -1,5 +1,6 @@
 ---
 name: improve-optimize
+description: Profile code for performance bottlenecks and apply optimizations with measurable improvements
 ---
 
 Usage: /improve-optimize [scope or description]

@@ -45,7 +45,7 @@ $ARGUMENTS
 6. Summarize the analysis:
    - Report total findings by category and severity
    - Highlight the most critical items that need immediate attention
-   - Suggest which `/command` to run to address each finding (e.g., `/fix`, `/implement`, `/security`)
+   - Suggest which `/command` to run to address each finding (e.g., `/fix`, `/implement`, `/improve-security`)
 
 7. Output findings directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
    - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
