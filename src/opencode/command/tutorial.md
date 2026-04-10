@@ -32,7 +32,7 @@ $ARGUMENTS
       - Do NOT proceed to the next step until the user confirms
 
 4. If the user asks a question:
-    - Answer it thoroughly — explain the why, show relevant code, connect it to the broader picture
+   - Answer it thoroughly — explain the why, show relevant code, connect it to the broader picture
    - After answering, ask again if they're ready to continue
 
 5. After all steps are complete:

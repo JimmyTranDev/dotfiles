@@ -84,11 +84,11 @@ echo ""
 PAYLOAD=$(jq -n --arg text "$MESSAGE" '{text: $text}')
 
 CURL_CONFIG=$(mktemp)
-trap 'rm -f "$CURL_CONFIG"' EXIT
+RESPONSE_BODY=$(mktemp)
+trap 'rm -f "$CURL_CONFIG" "$RESPONSE_BODY"' EXIT
 printf 'url = "%s"\n' "$SLACK_FRONTEND_WEBHOOK_URL" >"$CURL_CONFIG"
 chmod 600 "$CURL_CONFIG"
 
-RESPONSE_BODY=$(mktemp)
 HTTP_STATUS=$(curl -s -o "$RESPONSE_BODY" -w "%{http_code}" \
 	-X POST \
 	-H "Content-Type: application/json" \
@@ -100,8 +100,5 @@ if [[ "$HTTP_STATUS" == "200" ]]; then
 else
 	BODY=$(<"$RESPONSE_BODY")
 	log_error "Failed to post to Slack (HTTP $HTTP_STATUS): $BODY"
-	rm -f "$RESPONSE_BODY"
 	exit 1
 fi
-
-rm -f "$RESPONSE_BODY"
