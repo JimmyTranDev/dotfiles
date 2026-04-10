@@ -32,7 +32,6 @@ brew "vercel-cli"
 brew "wget"
 brew "yarn"
 brew "yazi"
-brew "zellij"
 
 # Yazi dependencies
 brew "bat"

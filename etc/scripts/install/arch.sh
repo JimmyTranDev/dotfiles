@@ -25,7 +25,6 @@ if command -v pacman >/dev/null 2>&1; then
 
 		# --- Shell & Terminal ---
 		zsh
-		zellij
 		fzf
 		zoxide
 		shfmt

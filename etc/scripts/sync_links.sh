@@ -14,7 +14,6 @@ get_common_links() {
 	local links=(
 		"$HOME/Programming/JimmyTranDev/nvim $HOME/.config/nvim"
 		"$DOTFILES_ROOT/src/yazi $HOME/.config/yazi"
-		"$DOTFILES_ROOT/src/zellij $HOME/.config/zellij"
 		"$DOTFILES_ROOT/src/lazygit $HOME/.config/lazygit"
 		"$DOTFILES_ROOT/src/.zshrc $HOME/.zshrc"
 		"$DOTFILES_ROOT/src/.ideavimrc $HOME/.ideavimrc"

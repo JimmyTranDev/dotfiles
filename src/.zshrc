@@ -20,7 +20,6 @@ export BROWSER=firefox
 export ARCHFLAGS="-arch $(uname -m)"
 export MANPAGER='nvim +Man!'
 export MANWIDTH=999
-export ZELLIJ_TAB_NAME_MAX_LENGTH=4
 export ESPANSO_CONFIG_DIR="$HOME/.config/espanso"
 export HOMEBREW_AUTO_UPDATE_SECS=604800
 export HOMEBREW_API_AUTO_UPDATE_SECS=604800
@@ -56,7 +55,6 @@ alias wu='$DOTFILES_DIR/etc/scripts/worktrees/worktree update'
 
 alias nvm='fnm'
 alias a='eval "$(poetry env activate)"'
-alias e='zellij'
 alias d="$DOTFILES_DIR/etc/scripts/common/git_diff_commits.sh"
 alias c='clear'
 alias e='exit'
@@ -222,70 +220,9 @@ fi
 bindkey '^f' select_project
 bindkey '^g' select_worktree
 
-zellij_tab_name_update() {
-  if [[ -n $ZELLIJ ]]; then
-    local current_dir="${PWD##*/}"
-    [[ "$PWD" == "$HOME" ]] && current_dir="~"
-    current_dir="${current_dir#[A-Z]*-[0-9]*-}"
-    local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
-    local tab_name="${current_dir:0:$max_length}"
-    local tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=/ {count++; if (/focus=true/) {print count; exit}}')
-    [[ -n $tab_index ]] && tab_name="${tab_index}. ${tab_name}"
-    zellij action rename-tab "$tab_name" 2>/dev/null
-  fi
-}
-
-zellij_update_tab_indexes() {
-  $DOTFILES_DIR/etc/scripts/zellij_update_tab_indexes.sh >/dev/null 2>&1
-  zle reset-prompt
-  return 0
-}
-zle -N zellij_update_tab_indexes
-bindkey '^u' zellij_update_tab_indexes
-
-zellij_tab_name_update
-chpwd_functions=(${chpwd_functions:#zellij_tab_name_update} zellij_tab_name_update)
-
-zellij() {
-  command zellij "$@"
-  local ret=$?
-  if [[ $1 == "action" && -n $ZELLIJ ]]; then
-    case $2 in
-      new-tab|close-tab|go-to-tab|move-tab|toggle-tab|break-pane|break-pane-left|break-pane-right)
-        zellij_tab_name_update
-        ;;
-    esac
-  fi
-  return $ret
-}
-
-alias zellij-enable-auto="export ZELLIJ_AUTO_ATTACH=true"
-alias zellij-disable-auto="export ZELLIJ_AUTO_ATTACH=false"
-alias zja="zellij attach"
-alias zjl="zellij list-sessions"
-alias ghostty-use-script='sed -i "" "s|^#*initial-command.*|initial-command = $DOTFILES_DIR/etc/scripts/ghostty_zellij_startup.sh|" $DOTFILES_DIR/src/ghostty/config'
-alias ghostty-use-zsh='sed -i "" "s|^initial-command.*|# initial-command = zsh|" $DOTFILES_DIR/src/ghostty/config'
-
 export FZF_DEFAULT_OPTS="\
   --color=bg:#1e1e2e,fg:#cdd6f4,hl:#f38ba8 --color=fg+:#cdd6f4,bg+:#313244,hl+:#f38ba8 --color=info:#89b4fa,prompt:#fab387,spinner:#f9e2af --color=header:#cba6f7,marker:#89dceb --color=border:#6c7086 \
 "
 
-zellij_auto_start() {
-  if [[ -o interactive ]] && [[ -z "$ZELLIJ" ]] && [[ -z "$TMUX" ]] && command -v zellij >/dev/null 2>&1; then
-    if [[ "$ZELLIJ_AUTO_ATTACH" == "true" ]]; then
-      if zellij list-sessions >/dev/null 2>&1 && zellij list-sessions | grep -q .; then
-        exec zellij attach
-      else
-        exec zellij
-      fi
-    fi
-  fi
-}
-
-if [[ -z "$ZELLIJ_AUTO_ATTACH" ]]; then
-  export ZELLIJ_AUTO_ATTACH="false"
-fi
-
-# Google Cloud SDK
 source "/opt/homebrew/Caskroom/gcloud-cli/561.0.0/google-cloud-sdk/path.zsh.inc"
 source "/opt/homebrew/Caskroom/gcloud-cli/561.0.0/google-cloud-sdk/completion.zsh.inc"

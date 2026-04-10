@@ -80,7 +80,6 @@ REQUIRED_TOOLS=(
 	"rg:Ripgrep"
 	"fd:fd"
 	"starship:Starship"
-	"zellij:Zellij"
 	"yazi:Yazi"
 	"lazygit:Lazygit"
 	"bat:bat"
@@ -123,7 +122,6 @@ echo
 log_info "Checking symlinks..."
 SYMLINKS=(
 	"$HOME/.zshrc|$DOTFILES_ROOT/src/.zshrc"
-	"$HOME/.config/zellij|$DOTFILES_ROOT/src/zellij"
 	"$HOME/.config/yazi|$DOTFILES_ROOT/src/yazi"
 	"$HOME/.config/lazygit|$DOTFILES_ROOT/src/lazygit"
 	"$HOME/.config/starship.toml|$DOTFILES_ROOT/src/starship.toml"
