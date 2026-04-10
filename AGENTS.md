@@ -17,7 +17,6 @@ dotfiles/
 │   ├── ghostty/            # -> ~/.config/ghostty/
 │   ├── kitty/              # -> ~/.config/kitty/
 │   ├── yazi/               # -> ~/.config/yazi/
-│   ├── zellij/             # -> ~/.config/zellij/
 │   ├── lazygit/            # -> ~/.config/lazygit/
 │   ├── btop/               # -> ~/.config/btop/
 │   ├── skhd/               # -> ~/.config/skhd/ (macOS only)
