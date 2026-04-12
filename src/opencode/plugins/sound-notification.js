@@ -5,7 +5,7 @@ export const SoundNotification = async ({ $ }) => {
     event: async ({ event }) => {
       if (event.type === "session.idle") {
         if (platform === "darwin") {
-          await $`afplay /System/Library/Sounds/Glass.aiff`
+          await $`afplay -v 0.3 /System/Library/Sounds/Glass.aiff`
         } else if (platform === "linux") {
           await $`paplay /usr/share/sounds/freedesktop/stereo/complete.oga`.catch(() => {})
         }
