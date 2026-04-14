@@ -66,6 +66,7 @@ brew "stylua"
 # Casks
 cask "android-studio"
 cask "db-browser-for-sqlite"
+cask "dbeaver-community"
 cask "discord"
 cask "espanso"
 cask "figma"
