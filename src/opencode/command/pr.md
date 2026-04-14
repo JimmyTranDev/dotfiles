@@ -50,13 +50,9 @@ Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in
 12. Create the PR:
     - Create the PR with `gh pr create` targeting the base branch, with a title matching the original commit message and a summary body
 
-13. Clean up the worktree and branch (run in parallel):
-    - `git worktree remove ~/Programming/wcreated/<branch-name>`
-    - `git branch -d <branch-name>`
+13. If `$ARGUMENTS` contains a Todoist URL (`app.todoist.com/...`), complete the task: `td task complete <url>`
 
-14. If `$ARGUMENTS` contains a Todoist URL (`app.todoist.com/...`), complete the task: `td task complete <url>`
-
-15. Report the PR URL to the user
+14. Report the PR URL to the user
 
 Important:
 - All work happens in the worktree directory, never in the main repo

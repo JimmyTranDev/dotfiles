@@ -59,11 +59,7 @@ Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in
 
    Each agent works exclusively in its own worktree directory (`~/Programming/wcreated/<branch-name>/`). A failure in one group does not block others — all groups run to completion independently.
 
-9. Clean up all worktrees and branches in parallel — for each group (run in parallel):
-   - `git worktree remove ~/Programming/wcreated/<branch-name>`
-   - `git branch -d <branch-name>`
-
-10. Report outcome to the user:
+9. Report outcome to the user:
     - Table showing each group, its tasks, branch name, PR URL, and status (success/failed)
     - Count of PRs created vs failed
     - If changes were stashed in step 6, remind the user to `git stash pop` in the main repo

@@ -107,11 +107,7 @@ Load the **worktree-workflow**, **git-workflows**, **git-conflict-resolution**, 
 
 16. Complete Todoist tasks: for each successfully merged task that contains a Todoist URL (`app.todoist.com/...`), complete it: `td task complete <url>`
 
-17. Clean up all worktrees and branches in parallel:
-    - For each task worktree: `git worktree remove ~/Programming/wcreated/<task-branch>` and `git branch -d <task-branch>`
-    - For the integration worktree: `git worktree remove ~/Programming/wcreated/<integration-branch>` and `git branch -d <integration-branch>`
-
-18. Report outcome to the user:
+17. Report outcome to the user:
     - PR URL
     - Table showing each task, its task branch, merge status (merged / skipped / failed), and conflict summary if any
     - Count of tasks merged vs skipped vs failed

@@ -77,11 +77,7 @@ Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in
 
 12. **Final review**: Launch the **reviewer** agent on the full PR diff (`git diff <base-branch>...HEAD`) to review the cumulative changes across all tasks. If issues are found, launch **fixer** to address them, commit, and push. After the final review passes, update the PR description to check off the **Review** task.
 
-13. Clean up the worktree and branch (run in parallel):
-    - `git worktree remove ~/Programming/wcreated/<branch-name>`
-    - `git branch -d <branch-name>`
-
-14. Report the PR URL to the user
+13. Report the PR URL to the user
     - If changes were stashed in step 5, remind the user to `git stash pop` in the main repo
 
 Important:
