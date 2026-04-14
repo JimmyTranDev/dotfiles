@@ -28,11 +28,13 @@ Load the **worktree-workflow**, **git-workflows**, and **npm-vulnerabilities** s
      packages:
        - 'packages/*'
      minimumReleaseAge: 10080
-     minimumReleaseAgeExclude: []
+     minimumReleaseAgeExclude:
+       - '@storeblocks/*'
+       - '@storebrand-digital/*'
      trustPolicy: no-downgrade
      trustPolicyExclude: []
      ```
-   - **Never** add packages to `minimumReleaseAgeExclude` or `trustPolicyExclude` — these lists must remain empty. If a package is too new to pass the minimum release age, wait for it to age out naturally or pin to an older version that already satisfies the age requirement. If a package fails the trust policy, investigate why (e.g., missing provenance, changed registry) and resolve at the source rather than excluding it.
+   - **Never** add new packages to `minimumReleaseAgeExclude` or `trustPolicyExclude` — keep only the existing entries shown above. If a package is too new to pass the minimum release age, wait for it to age out naturally or pin to an older version that already satisfies the age requirement. If a package fails the trust policy, investigate why (e.g., missing provenance, changed registry) and resolve at the source rather than excluding it.
    - Never add packages to `skipMinimumAge`
    - Never change `minimumReleaseAge` from `10080` -- this value is mandatory
    - For GitHub-hosted projects: ensure each entry in `.github/dependabot.yml` `updates` has `cooldown.default-days: 7` -- this value is mandatory
