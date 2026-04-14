@@ -1,11 +1,27 @@
 ---
 name: commit
-description: Create a well-formatted git commit with emoji prefix and conventional format
+description: Create a well-formatted git commit using conventional commit format
 ---
 
 Review my staged changes and create a well-formatted git commit.
 
-Format: `<emoji> <type>(<scope>): <description>` — use the emoji mapping from the `git-workflows` skill.
+Format: `<type>(<scope>): <emoji> <description>`
+
+Commit type/emoji mapping (keys match nvim `<Leader>gc*` keymaps):
+
+| Key | Type | Emoji |
+|-----|------|-------|
+| `f` | `feat` | `✨` |
+| `F` | `fix` | `🐛` |
+| `c` | `chore` | `🔧` |
+| `r` | `refactor` | `🔨` |
+| `d` | `docs` | `📚` |
+| `s` | `style` | `💎` |
+| `t` | `test` | `🧪` |
+| `p` | `perf` | `🚀` |
+| `b` | `build` | `📦` |
+| `a` | `ci` | `👷` |
+| `R` | `revert` | `⏪` |
 
 Important:
 - Only commit the files that are already staged (shown in `git diff --cached`)
