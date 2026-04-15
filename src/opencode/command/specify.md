@@ -1,11 +1,11 @@
 ---
 name: specify
-description: Generate a single implementation spec with tasks, data flow, and open questions in plans/
+description: Generate implementation specs in plans/ — one file per task group, scaled to complexity
 ---
 
 Usage: /specify <feature or task description>
 
-Analyze the project and the user's request, then produce a single implementation specification file in `plans/` at the project root. The spec breaks the work into concrete file-level tasks, maps data flow, identifies dependencies, and collects open questions — everything needed to start building without ambiguity. This command does NOT implement anything or launch agents. It produces a planning document only.
+Analyze the project and the user's request, then produce implementation specification files in `plans/` at the project root. For small features, write a single spec. For larger features with many tasks, split into multiple focused spec files — one per logical task group. Each spec contains everything needed to start building its piece without ambiguity. This command does NOT implement anything or launch agents. It produces planning documents only.
 
 $ARGUMENTS
 
@@ -23,23 +23,30 @@ $ARGUMENTS
 
 3. Create the `plans/` directory at the project root if it doesn't exist.
 
-4. Choose a descriptive filename for the spec:
-   - Derive it from the task description using kebab-case (e.g., `plans/user-auth-flow.md`, `plans/csv-export-api.md`, `plans/migrate-to-drizzle.md`)
-   - Keep it short (2-4 words) but specific enough to identify the feature at a glance
-   - Check `plans/` for existing files and avoid name collisions — if a conflict exists, add a distinguishing suffix
+4. Decide how many spec files to produce:
+   - If the feature has ~10 or fewer tasks that form a single cohesive unit, write one spec file
+   - If the feature has many tasks that naturally group into distinct areas (e.g., database layer, API endpoints, UI components, auth integration), split into one spec file per group
+   - Each spec file should be independently actionable — a developer can pick up one file and implement its tasks without reading the others first (though cross-references are fine)
 
-5. Write the single spec file with all sections combined:
-   - **Overview**: 2-3 sentence summary of what will be built and why
-   - **Architecture**: How the feature fits into the existing codebase — which layers it touches, where new code goes, how it connects to existing modules
-   - **Data flow**: Step-by-step description of how data moves through the system for this feature — from input to storage to output
+5. Choose descriptive filenames:
+   - Derive from the task/group description using kebab-case
+   - For a single spec: e.g., `plans/csv-export-api.md`
+   - For multiple specs: use a shared prefix, e.g., `plans/checkout-db-schema.md`, `plans/checkout-api.md`, `plans/checkout-ui.md`
+   - Keep names short (2-4 words) but specific enough to identify the scope at a glance
+   - Check `plans/` for existing files and avoid name collisions
+
+6. Write each spec file with these sections:
+   - **Overview**: 2-3 sentence summary of what this spec covers and why
+   - **Architecture**: How this piece fits into the existing codebase — which layers it touches, where new code goes, how it connects to existing modules
+   - **Data flow**: Step-by-step description of how data moves through the system for this piece — from input to storage to output
    - **Tasks**: An ordered list of every file that needs to be created or modified, with:
      - File path
      - What changes are needed (new file, add function, modify existing logic, etc.)
-     - Dependencies on other tasks in the list (which tasks must complete first)
+     - Dependencies on other tasks (within this spec or cross-referencing another spec file)
      - Estimated complexity (small/medium/large)
      - Whether the task can run in parallel with others or must be sequential
    - **API contracts**: If applicable — new endpoints, function signatures, type definitions, or interfaces that other code will depend on. Define these precisely so dependent tasks can proceed in parallel.
-   - **State changes**: New database tables, config entries, environment variables, or stored state this feature introduces
+   - **State changes**: New database tables, config entries, environment variables, or stored state this piece introduces
    - **Edge cases**: Known edge cases, error conditions, and boundary behaviors that the implementation must handle
    - **Testing approach**: What tests are needed — unit, integration, e2e — and what behaviors they should verify
    - **Open questions**: Ambiguities that need human input before implementation, grouped by:
@@ -49,11 +56,12 @@ $ARGUMENTS
      - Conventions — where existing patterns don't clearly apply to the new feature
      - Risks — potential breaking changes, performance concerns, or security implications
 
-6. Present the summary in chat:
-   - State the file written (e.g., `plans/user-auth-flow.md`)
-   - State the total number of tasks and estimated overall complexity
-   - Highlight the critical path (longest chain of dependent tasks)
+7. Present the summary in chat:
+   - List all spec files written (e.g., `plans/checkout-db-schema.md`, `plans/checkout-api.md`)
+   - State the total number of tasks across all specs and estimated overall complexity
+   - Highlight the critical path (longest chain of dependent tasks, including cross-spec dependencies)
    - Note the number of open questions that need answers before starting
-   - Suggest which task to start with
+   - Show which specs can be worked on in parallel vs which have ordering constraints
+   - Suggest which spec to start with
 
-Do NOT implement anything, launch agents, or apply changes — this command produces a planning document only.
+Do NOT implement anything, launch agents, or apply changes — this command produces planning documents only.
