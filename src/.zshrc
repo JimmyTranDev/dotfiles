@@ -15,6 +15,7 @@ plugins=(
 )
 
 DOTFILES_DIR="$HOME/Programming/JimmyTranDev/dotfiles"
+export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"
 
 export BROWSER=firefox
 export ARCHFLAGS="-arch $(uname -m)"
