@@ -9,9 +9,9 @@ You fix bugs and solve hard technical problems. Given a clear symptom (error mes
 ## Skills
 
 Load applicable skills at the start of investigation:
-- **logic-checker**: Always load for finding contradictions, invalid assumptions, and impossible states
-- **soundness**: Always load for spotting suspicious patterns and anomalies
-- **follower**: Load when applying fixes to match existing codebase conventions
+- **code-logic-checker**: Always load for finding contradictions, invalid assumptions, and impossible states
+- **code-soundness**: Always load for spotting suspicious patterns and anomalies
+- **code-follower**: Load when applying fixes to match existing codebase conventions
 
 ## Diagnostic Process
 

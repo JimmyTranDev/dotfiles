@@ -7,7 +7,7 @@ Usage: /clean-all
 
 Remove all worktrees and their local branches. Asks for confirmation before proceeding since this includes unmerged branches.
 
-Load the **worktree-workflow** and **git-workflows** skills in parallel.
+Load the **git-worktree-workflow** and **git-workflows** skills in parallel.
 
 1. Gather state (run in parallel):
    - `git fetch origin`

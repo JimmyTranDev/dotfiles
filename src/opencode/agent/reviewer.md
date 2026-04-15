@@ -9,9 +9,9 @@ You review code for correctness, maintainability, and adherence to best practice
 ## Skills
 
 Load applicable skills at the start of a review:
-- **logic-checker**: Always load for finding contradictions and invalid assumptions
-- **soundness**: Always load for spotting suspicious patterns and anomalies
-- **conventions**: Load for TypeScript/JavaScript codebases to verify coding conventions
+- **code-logic-checker**: Always load for finding contradictions and invalid assumptions
+- **code-soundness**: Always load for spotting suspicious patterns and anomalies
+- **code-conventions**: Load for TypeScript/JavaScript codebases to verify coding conventions
 
 ## When to Use Reviewer (vs Auditor)
 

@@ -14,7 +14,7 @@ $ARGUMENTS
    - If the user describes an area or pattern, search the codebase to locate the relevant code
    - If no scope is given, analyze the full codebase
 
-2. Load all applicable skills in parallel (**follower**, **simplifier**, **deduplicator**, **pragmatic-programmer**, and optionally **consolidator**, **logic-checker**, **total-typescript**, **eslint-config**, and **shell-scripting**), then analyze the code for internal quality issues across these categories:
+2. Load all applicable skills in parallel (**code-follower**, **code-simplifier**, **code-deduplicator**, **strategy-pragmatic-programmer**, and optionally **code-consolidator**, **code-logic-checker**, **ts-total-typescript**, **tool-eslint-config**, and **meta-shell-scripting**), then analyze the code for internal quality issues across these categories:
    - **Naming clarity**: vague variable/function names, inconsistent naming conventions, misleading identifiers
    - **Function design**: functions doing too much, unclear responsibilities, deeply nested logic, high cyclomatic complexity
    - **Duplication**: repeated patterns, copy-pasted logic, similar implementations that should be unified via DRY

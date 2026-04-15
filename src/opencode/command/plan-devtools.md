@@ -17,7 +17,7 @@ $ARGUMENTS
 
 2. If the user specifies a scope or focus area, narrow analysis to that. Otherwise analyze the full tooling setup.
 
-3. Load all applicable skills in parallel (**eslint-config**, **conventions**, **git-workflows**, **shell-scripting**, **gitignore**, and optionally **test**, **npm-vulnerabilities**, **total-typescript**).
+3. Load all applicable skills in parallel (**tool-eslint-config**, **code-conventions**, **git-workflows**, **meta-shell-scripting**, **git-gitignore**, and optionally **test**, **security-npm-vulnerabilities**, **ts-total-typescript**).
 
 4. Analyze the project's developer tooling across these categories (only include categories that are relevant):
    - **Linting and formatting**: ESLint config completeness, Prettier or formatting tool setup, rule coverage gaps, conflicting rules, missing plugins for the tech stack, typed linting enablement

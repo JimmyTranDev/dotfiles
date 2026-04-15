@@ -15,7 +15,7 @@ $ARGUMENTS
    - Read key config files, READMEs, or AGENTS.md to understand the project's purpose and audience
    - If the user specifies a focus area, narrow analysis to that scope
 
-2. Load all applicable skills in parallel (**engager**, **designer-ui-ux**, **gamification**, **ux-ui-animator**, and optionally **accessibility**, **follower**), then analyze the project for engagement opportunities across these categories:
+2. Load all applicable skills in parallel (**strategy-engager**, **ui-designer**, **ui-gamification**, **ui-animator**, and optionally **ui-accessibility**, **code-follower**), then analyze the project for engagement opportunities across these categories:
    - **Onboarding friction**: Time to first value, registration walls, empty states, cognitive load on first visit — apply the first-time user flow pattern (Entry → Immediate value → Micro-commitment → First success → Reward → Next action)
    - **Habit loop design**: Identify cue, craving, response, and reward for each core user action — find missing or weak phases and suggest strengthening them
    - **Friction audit**: Walk through key user flows and score each step (0-4 friction scale) — flag anything scoring 3+ as blocking and suggest fixes using progressive disclosure, smart defaults, and recognition over recall

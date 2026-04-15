@@ -39,8 +39,8 @@ $ARGUMENTS
 
    Skills to load (load all applicable skills in a single parallel batch):
    - **security**: Always load for vulnerability categories, severity classification, and remediation patterns
-   - **npm-vulnerabilities**: Load when the project uses npm/node to check dependency vulnerabilities
-   - **follower**: Always load to match existing codebase conventions when applying fixes
+   - **security-npm-vulnerabilities**: Load when the project uses npm/node to check dependency vulnerabilities
+   - **code-follower**: Always load to match existing codebase conventions when applying fixes
 
    Agents to delegate to:
    - **auditor**: Primary agent — scans code for vulnerabilities and provides fixes

@@ -32,8 +32,8 @@ $ARGUMENTS
 5. Load applicable skills and delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
    Skills to load (load all applicable skills in a single parallel batch):
-   - **follower**: Always load to match existing codebase conventions
-   - **logic-checker**: Load when the bug involves complex business logic or state management
+   - **code-follower**: Always load to match existing codebase conventions
+   - **code-logic-checker**: Load when the bug involves complex business logic or state management
 
    Agents to delegate to:
    - **fixer**: Delegate the core investigation and fix — this is the primary agent for /fix

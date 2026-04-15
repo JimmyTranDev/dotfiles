@@ -9,7 +9,7 @@ Create a single worktree and PR upfront with all tasks listed in the description
 
 $ARGUMENTS
 
-Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in parallel.
+Load the **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** skills in parallel.
 
 1. Parse the ordered task list from `$ARGUMENTS`:
    - Split the input into individual change descriptions (separated by newlines, numbered lists, commas, or semicolons)

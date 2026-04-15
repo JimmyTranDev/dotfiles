@@ -7,7 +7,7 @@ Usage: /clean-merged
 
 Remove all worktrees whose branches are fully merged into the base branch. No confirmation needed — merged branches are safe to remove.
 
-Load the **worktree-workflow** and **git-workflows** skills in parallel.
+Load the **git-worktree-workflow** and **git-workflows** skills in parallel.
 
 1. Gather state (run in parallel):
    - `git fetch origin`

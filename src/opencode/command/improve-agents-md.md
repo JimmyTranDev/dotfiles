@@ -7,7 +7,7 @@ Usage: /improve-agents-md $ARGUMENTS
 
 Analyze the current repository and create or update AGENTS.md files where they would provide value to AI agents. If $ARGUMENTS specifies a path or scope, focus on that area. Otherwise, analyze the entire repo.
 
-1. Load the **agents-md** skill to understand AGENTS.md structure, content principles, and what belongs vs. what doesn't
+1. Load the **meta-agents-md** skill to understand AGENTS.md structure, content principles, and what belongs vs. what doesn't
 
 2. **Scan the repo** to understand its structure:
    - Read the repo root to identify major directories, languages, and frameworks

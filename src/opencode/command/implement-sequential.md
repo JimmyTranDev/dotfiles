@@ -34,7 +34,7 @@ Load the **git-workflows** skill.
    a. **Mark todo**: Set the current task to `in_progress`
 
    b. **Implement**: Follow the `/implement` command workflow for this task:
-      - Load all applicable skills in parallel (always include **follower**, add others based on task type — see `/implement` for the full skill list)
+      - Load all applicable skills in parallel (always include **code-follower**, add others based on task type — see `/implement` for the full skill list)
       - Implement the changes, delegating to specialized agents based on work type
       - Launch independent agents in parallel (e.g., **designer** + **tester**, **reviewer** + **auditor**)
 
@@ -48,7 +48,7 @@ Load the **git-workflows** skill.
 
    f. **Update PR description**: If a PR exists, use `gh pr edit <pr-number> --body` to check off the completed task while preserving all descriptive summaries
 
-   g. **Complete Todoist task**: If the task description contains a Todoist URL (`app.todoist.com/...`), load the **todoist-cli** skill and complete the task: `td task complete <url>`
+   g. **Complete Todoist task**: If the task description contains a Todoist URL (`app.todoist.com/...`), load the **tool-todoist-cli** skill and complete the task: `td task complete <url>`
 
    h. **Mark todo**: Set the current task to `completed` on success or `pending` on failure
 

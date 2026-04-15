@@ -9,7 +9,7 @@ Analyze the project's application code for security vulnerabilities — injectio
 
 $ARGUMENTS
 
-Load the **security** and **conventions** skills in parallel.
+Load the **security** and **code-conventions** skills in parallel.
 
 1. Understand the project (run independent commands in parallel):
    - Explore the project structure, entry points, and key modules to understand the tech stack and attack surface

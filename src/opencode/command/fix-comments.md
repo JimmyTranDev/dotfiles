@@ -35,8 +35,8 @@ Fetch all review comments from the current branch's pull request, identify comme
 6. Load skills and delegate to agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
    Skills to load (load all applicable in a single parallel batch before applying fixes):
-   - **follower**: Learn codebase conventions before applying any fixes
-   - **logic-checker**: Load if any fix involves business logic or conditional flows to verify correctness
+   - **code-follower**: Learn codebase conventions before applying any fixes
+   - **code-logic-checker**: Load if any fix involves business logic or conditional flows to verify correctness
 
    Agents to delegate to:
    - **fixer**: Launch multiple fixer agents in parallel for independent fixes that affect different files or non-overlapping code regions

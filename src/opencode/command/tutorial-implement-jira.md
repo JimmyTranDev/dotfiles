@@ -36,7 +36,7 @@ Usage: /tutorial-implement-jira
 
    a. **Explain before doing**: Describe what you're about to change, which file it's in, why this change is needed, and how it connects to the Jira ticket's requirements. If there are design decisions or tradeoffs, explain them.
 
-   b. **Implement the change**: Make the single focused change. Keep it small enough that the user can follow along. Follow the `/implement` command workflow — load relevant skills (always include **follower**) and delegate to specialized agents as needed.
+   b. **Implement the change**: Make the single focused change. Keep it small enough that the user can follow along. Follow the `/implement` command workflow — load relevant skills (always include **code-follower**) and delegate to specialized agents as needed.
 
    c. **Show what changed**: Summarize what was modified — file path, what was added/removed/changed, and what the code does.
 

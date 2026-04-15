@@ -5,7 +5,7 @@
 
 - **Prefer editing over creating** — always modify existing files rather than creating new ones when possible.
 - **Use zsh** — when executing shell commands via the Bash tool, always use `zsh` syntax and builtins. This environment runs zsh as the default shell.
-- **Todoist links** — when given a Todoist URL (`app.todoist.com/...`), always load the **todoist-cli** skill and use the `td` CLI to interact with it (e.g., `td view <url>`, `td task view <url>`, `td task complete <url>`). Never use WebFetch or browser tools for Todoist URLs.
+- **Todoist links** — when given a Todoist URL (`app.todoist.com/...`), always load the **tool-todoist-cli** skill and use the `td` CLI to interact with it (e.g., `td view <url>`, `td task view <url>`, `td task complete <url>`). Never use WebFetch or browser tools for Todoist URLs.
 
 ## OpenCode Config Structure
 
@@ -63,47 +63,51 @@ src/opencode/
 │   ├── tutorial-implement-jira.md
 │   └── tutorial.md
 └── skills/                  # On-demand knowledge (auto-discovered)
-    ├── accessibility/
-    ├── agents-md/
-    ├── android-db-inspector/
-    ├── browser-mcp/
-    ├── career/
-    ├── consolidator/
-    ├── conventions/
-    ├── deduplicator/
-    ├── designer-ui-ux/
-    ├── drizzle-orm/
-    ├── engager/
-    ├── eslint-config/
-    ├── follower/
-    ├── fsrs/
-    ├── gamification/
+    ├── code-consolidator/
+    ├── code-conventions/
+    ├── code-deduplicator/
+    ├── code-follower/
+    ├── code-logic-checker/
+    ├── code-quality/
+    ├── code-simplifier/
+    ├── code-soundness/
+    ├── comm-caveman/
+    ├── comm-fsrs/
     ├── git-conflict-resolution/
+    ├── git-gitignore/
     ├── git-workflows/
-    ├── gitignore/
-    ├── innovate/
-    ├── knip/
-    ├── logic-checker/
-    ├── mobile-mcp/
-    ├── npm-vulnerabilities/
-    ├── opencode-authoring/
-    ├── parallelization/
-    ├── pragmatic-programmer/
-    ├── quality/
+    ├── git-worktree-workflow/
+    ├── mcp-browser/
+    ├── mcp-mobile/
+    ├── meta-agents-md/
+    ├── meta-opencode-authoring/
+    ├── meta-parallelization/
+    ├── meta-shell-scripting/
+    ├── meta-structure/
     ├── security/
-    ├── shell-scripting/
-    ├── simplifier/
-    ├── slack-cli/
-    ├── soundness/
-    ├── spring-boot/
-    ├── stitch/
-    ├── storybook-mcp/
-    ├── structure/
+    ├── security-npm-vulnerabilities/
+    ├── strategy-career/
+    ├── strategy-engager/
+    ├── strategy-founding-sales/
+    ├── strategy-innovate/
+    ├── strategy-pragmatic-programmer/
+    ├── strategy-usefulness-checker/
     ├── test/
-    ├── todoist-cli/
-    ├── total-typescript/
-    ├── ux-ui-animator/
-    └── worktree-workflow/
+    ├── test-android-db-inspector/
+    ├── tool-drizzle-orm/
+    ├── tool-eslint-config/
+    ├── tool-knip/
+    ├── tool-slack-cli/
+    ├── tool-spring-boot/
+    ├── tool-sqlite-local-sync/
+    ├── tool-storybook-mcp/
+    ├── tool-todoist-cli/
+    ├── ts-total-typescript/
+    ├── ui-accessibility/
+    ├── ui-animator/
+    ├── ui-designer/
+    ├── ui-gamification/
+    └── ui-stitch/
 ```
 
 - `opencode.json` loads `AGENTS.md` via its `instructions` array

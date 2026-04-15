@@ -14,7 +14,7 @@ $ARGUMENTS
    - If the user describes a pattern or area, search the codebase to locate the relevant code
    - If no scope is given, scan the project for over-separation smells
 
-2. Load all applicable skills in parallel (**consolidator**, **follower**, and optionally **simplifier**, **deduplicator**, **structure**, **pragmatic-programmer**), then identify over-separation smells:
+2. Load all applicable skills in parallel (**code-consolidator**, **code-follower**, and optionally **code-simplifier**, **code-deduplicator**, **meta-structure**, **strategy-pragmatic-programmer**), then identify over-separation smells:
    - **Thin files**: files with < 20 lines of actual logic that could merge into a related file
    - **Single-use wrappers**: functions or components that wrap another with no added logic
    - **Pass-through layers**: modules that forward calls without transformation

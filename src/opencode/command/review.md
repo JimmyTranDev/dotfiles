@@ -26,7 +26,7 @@ Review the diff between the current branch and the base branch, then provide fee
 4. Load applicable skills and delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
    Skills to load:
-   - **logic-checker**: Load if the diff contains complex business logic or state management to verify logical correctness
+   - **code-logic-checker**: Load if the diff contains complex business logic or state management to verify logical correctness
 
    Agents to delegate to (launch all applicable agents in parallel — they analyze the same diff independently):
    - **reviewer**: Catches bugs, design issues, and provides actionable feedback on the diff

@@ -14,7 +14,7 @@ $ARGUMENTS
    - If the user describes a feature or area, search the codebase to locate the relevant code
    - If no scope is given, analyze the full codebase
 
-2. Load all applicable skills in parallel (**follower**, **logic-checker**, **soundness**, and optionally **conventions**, **pragmatic-programmer**, **total-typescript**, **shell-scripting**), then analyze the code for issues across these categories:
+2. Load all applicable skills in parallel (**code-follower**, **code-logic-checker**, **code-soundness**, and optionally **code-conventions**, **strategy-pragmatic-programmer**, **ts-total-typescript**, **meta-shell-scripting**), then analyze the code for issues across these categories:
    - **Correctness**: Logic errors, wrong return values, incorrect conditionals, missing return paths, flawed comparisons
    - **Error handling**: Swallowed errors, missing try/catch, catch-all handlers that hide failures, unhandled promise rejections, missing error propagation
    - **Edge cases**: Null/undefined access, empty collections, boundary values, zero-length strings, negative numbers, overflow

@@ -17,18 +17,18 @@ $ARGUMENTS
 After understanding the intent, load relevant skills and delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
 Skills to load (load all applicable skills in a single parallel batch):
-- **follower**: Always load to study existing codebase conventions (naming, imports, file structure, patterns) so all new code matches the established style
-- **conventions**: Load when the task describes adding new code to ensure consistent coding patterns
-- **logic-checker**: Load when the task involves business logic, state machines, or complex conditional flows to verify logical soundness and catch impossible states
-- **deduplicator**: Load when the task describes extracting shared utilities or reducing duplication across the codebase
-- **simplifier**: Load when the task describes refactoring or simplification work — apply DRY, KISS, YAGNI principles
-- **pragmatic-programmer**: Load when writing new code or refactoring — apply DRY, orthogonality, tracer bullets, and pragmatic paranoia principles
-- **opencode-authoring**: Load when the task describes writing or updating OpenCode agents, commands, or skills
-- **total-typescript**: Load when the task involves TypeScript and requires advanced type patterns, generics, branded types, or utility types
-- **eslint-config**: Load when the task involves setting up or modifying ESLint configuration
-- **shell-scripting**: Load when the task involves writing or modifying shell scripts (bash/zsh)
+- **code-follower**: Always load to study existing codebase conventions (naming, imports, file structure, patterns) so all new code matches the established style
+- **code-conventions**: Load when the task describes adding new code to ensure consistent coding patterns
+- **code-logic-checker**: Load when the task involves business logic, state machines, or complex conditional flows to verify logical soundness and catch impossible states
+- **code-deduplicator**: Load when the task describes extracting shared utilities or reducing duplication across the codebase
+- **code-simplifier**: Load when the task describes refactoring or simplification work — apply DRY, KISS, YAGNI principles
+- **strategy-pragmatic-programmer**: Load when writing new code or refactoring — apply DRY, orthogonality, tracer bullets, and pragmatic paranoia principles
+- **meta-opencode-authoring**: Load when the task describes writing or updating OpenCode agents, commands, or skills
+- **ts-total-typescript**: Load when the task involves TypeScript and requires advanced type patterns, generics, branded types, or utility types
+- **tool-eslint-config**: Load when the task involves setting up or modifying ESLint configuration
+- **meta-shell-scripting**: Load when the task involves writing or modifying shell scripts (bash/zsh)
 - **security**: Load when the task touches authentication, authorization, data handling, or external inputs
-- **gitignore**: Load when the task involves creating or modifying .gitignore files
+- **git-gitignore**: Load when the task involves creating or modifying .gitignore files
 
 Agents to delegate to (launch independent agents in parallel — only serialize when one depends on another's output):
 - **designer**: Use when the task describes UI component work, accessibility improvements, or frontend feature additions
@@ -40,7 +40,7 @@ Agents to delegate to (launch independent agents in parallel — only serialize 
 
 Workflow:
 1. Analyze the prompt to categorize the type of work (feature, fix, refactor, test, security, performance, etc.)
-2. Load all applicable skills in parallel (always include **follower**, add others based on task type)
+2. Load all applicable skills in parallel (always include **code-follower**, add others based on task type)
 3. Implement the changes in the current working directory, delegating to the appropriate specialized agents based on the work type — launch independent agents in parallel
 4. Run post-implementation agents in parallel where independent (e.g., **reviewer** + **auditor** together, **tester** + **optimizer** together)
 5. If the reviewer surfaces problems, use the **fixer** agent to address them (sequential — depends on reviewer output)

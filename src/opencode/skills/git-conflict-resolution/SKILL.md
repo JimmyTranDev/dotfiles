@@ -179,4 +179,4 @@ Read both sides of the conflict:
 ## What This Skill Does NOT Cover
 
 - Branch naming and commit message conventions — see **git-workflows** skill
-- Worktree lifecycle and management — see **worktree-workflow** skill
+- Worktree lifecycle and management — see **git-worktree-workflow** skill

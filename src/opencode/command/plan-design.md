@@ -15,7 +15,7 @@ $ARGUMENTS
    - Read key config files, READMEs, or AGENTS.md to understand the project's purpose, audience, and platform targets
    - If the user specifies a focus area, narrow analysis to that scope
 
-2. Load all applicable skills in parallel (**designer-ui-ux**, **accessibility**, **ux-ui-animator**, and optionally **conventions**, **follower**, **engager**), then analyze the project for design opportunities across these categories:
+2. Load all applicable skills in parallel (**ui-designer**, **ui-accessibility**, **ui-animator**, and optionally **code-conventions**, **code-follower**, **strategy-engager**), then analyze the project for design opportunities across these categories:
    - **Component architecture**: Evaluate component composition, prop interfaces, compound patterns, and separation of layout vs content — flag overly monolithic components, prop drilling, and missing composition boundaries
    - **Layout and spacing**: Audit use of layout primitives (flexbox, grid, stack patterns), spacing consistency (design tokens vs magic numbers), and container/content separation — flag inconsistent gaps, hardcoded dimensions, and missing responsive breakpoints
    - **Responsive design**: Check breakpoint strategy, mobile-first vs desktop-first approach, fluid typography, container queries, and touch target sizing — flag layouts that break at common viewport widths or fail on mobile

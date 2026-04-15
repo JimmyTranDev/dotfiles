@@ -7,7 +7,7 @@ Usage: /clarify-agents-md $ARGUMENTS
 
 Read the project's AGENTS.md and ask the user targeted clarifying questions about their conventions, preferences, and coding style to help refine the rules. If $ARGUMENTS specifies a path, use that AGENTS.md. Otherwise, use the repo root.
 
-1. Load the **agents-md** skill to understand AGENTS.md structure and content principles
+1. Load the **meta-agents-md** skill to understand AGENTS.md structure and content principles
 
 2. **Read the existing AGENTS.md**:
    - If no AGENTS.md exists, tell the user to run `/improve-agents-md` first and stop

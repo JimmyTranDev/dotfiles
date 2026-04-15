@@ -14,7 +14,7 @@ $ARGUMENTS
    - If the user describes a feature or behavior, search the codebase to locate the relevant code
    - If no scope is given, analyze the full codebase
 
-2. Load all applicable skills in parallel (**logic-checker**, **soundness**, **follower**, and optionally **conventions**, **total-typescript**), then analyze the code for logic issues across these categories:
+2. Load all applicable skills in parallel (**code-logic-checker**, **code-soundness**, **code-follower**, and optionally **code-conventions**, **ts-total-typescript**), then analyze the code for logic issues across these categories:
    - **Internal consistency**: Contradictory conditions, mutually exclusive branches that overlap, impossible states that aren't prevented
    - **Completeness**: Missing branches, unhandled enum variants, gaps in state transitions, switch/if chains that don't cover all cases
    - **Boundary behavior**: Off-by-one errors, empty collections, zero/null/undefined, max values, negative numbers, integer overflow

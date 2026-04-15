@@ -9,7 +9,7 @@ Investigate failing GitHub Actions workflows on the current branch, identify the
 
 $ARGUMENTS
 
-Load the **follower** and **logic-checker** skills in parallel.
+Load the **code-follower** and **code-logic-checker** skills in parallel.
 
 1. Identify the current branch and fetch CI status (run in parallel):
    - `git branch --show-current`

@@ -19,7 +19,7 @@ $ARGUMENTS
    - Run the test suite and capture results — note passing, failing, and skipped tests
    - If tests fail, report the failures before proceeding
 
-3. Load all applicable skills in parallel (**follower** and optionally **conventions**, **total-typescript**, **shell-scripting**), then analyze coverage gaps across these categories:
+3. Load all applicable skills in parallel (**code-follower** and optionally **code-conventions**, **ts-total-typescript**, **meta-shell-scripting**), then analyze coverage gaps across these categories:
    - **Untested code paths**: functions, branches, or modules with no test coverage at all
    - **Missing edge cases**: empty/null input, boundary values (0, max, negative), non-numeric input, empty collections
    - **Error handling**: failure cases (network, timeout, invalid input), error propagation, error message accuracy

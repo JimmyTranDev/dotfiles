@@ -9,7 +9,7 @@ Implement the described changes in a new git worktree, then create a pull reques
 
 $ARGUMENTS
 
-Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in parallel.
+Load the **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** skills in parallel.
 
 1. Determine the base branch using the priority order from the **git-workflows** skill (`develop` > `main` > `master`)
 

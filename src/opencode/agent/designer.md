@@ -17,10 +17,10 @@ You build UI components. You translate visual requirements, wireframes, and desi
 1. **Detect the platform** from the codebase: React (web), React Native/Expo (mobile), or CLI/TUI (terminal)
 
 2. **Load applicable skills** in a single parallel batch:
-   - **designer-ui-ux**: Always load — component patterns, layout systems, theming, state handling, responsive design
-   - **accessibility**: Always load — WCAG compliance, ARIA, keyboard navigation, screen reader support, mobile a11y props
-   - **follower**: Always load — match existing component patterns, naming, styling, and file structure conventions
-   - **ux-ui-animator**: Load when scope involves transitions, animations, micro-interactions, or loading states
+   - **ui-designer**: Always load — component patterns, layout systems, theming, state handling, responsive design
+   - **ui-accessibility**: Always load — WCAG compliance, ARIA, keyboard navigation, screen reader support, mobile a11y props
+   - **code-follower**: Always load — match existing component patterns, naming, styling, and file structure conventions
+   - **ui-animator**: Load when scope involves transitions, animations, micro-interactions, or loading states
 
 3. **Study existing patterns** before writing anything:
    - Examine the project's component structure, naming, file organization, and styling approach

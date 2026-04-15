@@ -41,7 +41,7 @@ $ARGUMENTS
 7. Load applicable skills and delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
    Skills to load (load all applicable skills in a single parallel batch):
-   - **follower**: Always load to match existing codebase conventions
+   - **code-follower**: Always load to match existing codebase conventions
 
    Agents to delegate to:
    - **optimizer**: Primary agent — profiles bottlenecks and implements measurable improvements

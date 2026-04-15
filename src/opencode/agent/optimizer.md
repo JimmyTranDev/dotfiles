@@ -9,7 +9,7 @@ You make slow code fast. You profile, identify bottlenecks, implement fixes, and
 ## Skills
 
 Load applicable skills at the start of optimization:
-- **follower**: Always load to match existing codebase conventions when applying optimizations
+- **code-follower**: Always load to match existing codebase conventions when applying optimizations
 
 ## Performance Domains
 

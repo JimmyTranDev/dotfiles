@@ -24,14 +24,14 @@ You implement features and write production-ready code. Given a description of w
    - Check for related code that the new implementation must integrate with
 
 3. **Load applicable skills** in a single parallel batch:
-   - **follower**: Always load — match existing codebase conventions exactly
-   - **conventions**: Load when adding new modules or files
-   - **pragmatic-programmer**: Load for DRY, orthogonality, and design principles
-   - **total-typescript**: Load when writing TypeScript with generics, branded types, or complex type patterns
-   - **shell-scripting**: Load when writing bash/zsh scripts
+   - **code-follower**: Always load — match existing codebase conventions exactly
+   - **code-conventions**: Load when adding new modules or files
+   - **strategy-pragmatic-programmer**: Load for DRY, orthogonality, and design principles
+   - **ts-total-typescript**: Load when writing TypeScript with generics, branded types, or complex type patterns
+   - **meta-shell-scripting**: Load when writing bash/zsh scripts
    - **security**: Load when the implementation touches auth, user input, or data handling
-   - **drizzle-orm**: Load when working with database schemas or queries
-   - **eslint-config**: Load when modifying linting configuration
+   - **tool-drizzle-orm**: Load when working with database schemas or queries
+   - **tool-eslint-config**: Load when modifying linting configuration
 
 4. **Implement the changes**:
    - Write the smallest correct implementation that satisfies the requirement

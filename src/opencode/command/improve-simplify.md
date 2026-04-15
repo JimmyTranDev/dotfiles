@@ -9,7 +9,7 @@ Read the target code, ask clarifying questions to understand intent, constraints
 
 $ARGUMENTS
 
-Load the **simplifier**, **follower**, **conventions**, and **deduplicator** skills in parallel.
+Load the **code-simplifier**, **code-follower**, **code-conventions**, and **code-deduplicator** skills in parallel.
 
 1. Locate the target code:
    - If the user specifies files or directories, read them
@@ -38,7 +38,7 @@ Load the **simplifier**, **follower**, **conventions**, and **deduplicator** ski
 
 5. Apply the simplifications incrementally:
    - One logical change at a time — verify each preserves behavior before moving to the next
-   - Match existing codebase conventions exactly (load the **follower** skill patterns)
+   - Match existing codebase conventions exactly (load the **code-follower** skill patterns)
    - Common simplification patterns:
      - Extract repeated logic into shared utilities
      - Flatten deeply nested conditionals with early returns

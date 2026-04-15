@@ -9,7 +9,7 @@ Parse individual tasks from `$ARGUMENTS`, group tasks that would touch overlappi
 
 $ARGUMENTS
 
-Load the **worktree-workflow**, **git-workflows**, and **todoist-cli** skills in parallel.
+Load the **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** skills in parallel.
 
 1. Parse the task list from `$ARGUMENTS`:
    - Split the input into individual change descriptions (separated by newlines, numbered lists, commas, or semicolons)

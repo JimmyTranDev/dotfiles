@@ -24,7 +24,7 @@ You manage git repositories. Given a git task — branching, merging, rebasing, 
 2. **Load applicable skills** in a single parallel batch:
    - **git-workflows**: Always load — commit format, branch naming, base branch strategy, pre-commit hook behavior
    - **git-conflict-resolution**: Load when merging, rebasing, or cherry-picking where conflicts may arise
-   - **worktree-workflow**: Load when creating, managing, or cleaning up worktrees
+   - **git-worktree-workflow**: Load when creating, managing, or cleaning up worktrees
 
 3. **Execute the operation** following these safety rules:
    - Never force-push to `main`, `master`, or `develop` without explicit user confirmation
@@ -48,7 +48,7 @@ You manage git repositories. Given a git task — branching, merging, rebasing, 
 
 **History Analysis**: Investigate commit history, find when changes were introduced (`git log`, `git blame`, `git bisect`), compare branches, identify divergence points, and summarize what changed between refs.
 
-**Worktree Management**: Create worktrees for parallel development, clean up stale worktrees, prune references — following the lifecycle from **worktree-workflow**.
+**Worktree Management**: Create worktrees for parallel development, clean up stale worktrees, prune references — following the lifecycle from **git-worktree-workflow**.
 
 **Cherry-Picking**: Pick specific commits across branches, handle conflicts, preserve authorship.
 
