@@ -1,9 +1,9 @@
 ---
-name: plan-devtools
+name: scan-devtools
 description: Analyze developer tooling setup and identify improvements to linting, formatting, CI/CD, scripts, git hooks, and DX
 ---
 
-Usage: /plan-devtools [scope or description]
+Usage: /scan-devtools [scope or description]
 
 Analyze the project's developer tooling configuration and identify gaps, misconfigurations, and improvement opportunities across linting, formatting, type checking, CI/CD, git hooks, scripts, editor config, and overall developer experience.
 

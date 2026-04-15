@@ -1,9 +1,9 @@
 ---
-name: plan-design
+name: scan-design
 description: Analyze UI/UX design and suggest improvements for layout, responsiveness, accessibility, and visual consistency
 ---
 
-Usage: /plan-design [scope or focus area]
+Usage: /scan-design [scope or focus area]
 
 Analyze the project's UI/UX design and suggest improvements — component architecture, layout systems, responsive design, accessibility, theming, and animation patterns.
 

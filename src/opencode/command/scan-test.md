@@ -1,9 +1,9 @@
 ---
-name: plan-test
+name: scan-test
 description: Run tests and add or improve test coverage for specified code
 ---
 
-Usage: /plan-test [scope or description]
+Usage: /scan-test [scope or description]
 
 Run the project's test suite and add or improve test coverage for the specified area.
 

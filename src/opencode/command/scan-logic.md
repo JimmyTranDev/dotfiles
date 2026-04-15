@@ -1,9 +1,9 @@
 ---
-name: plan-logic
+name: scan-logic
 description: Analyze code for logic errors, contradictions, invalid assumptions, and missing edge cases without making changes
 ---
 
-Usage: /plan-logic [scope or description]
+Usage: /scan-logic [scope or description]
 
 Analyze the specified code for logical correctness — contradictions, invalid assumptions, impossible states, missing edge cases, and flawed reasoning — without applying any changes.
 

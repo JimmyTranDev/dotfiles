@@ -1,9 +1,9 @@
 ---
-name: plan-engage
+name: scan-engage
 description: Analyze product engagement and suggest behavioral improvements to increase retention and reduce friction
 ---
 
-Usage: /plan-engage [scope or focus area]
+Usage: /scan-engage [scope or focus area]
 
 Analyze the project's user-facing flows and suggest engagement improvements — habit formation, friction reduction, and persuasion techniques grounded in behavioral science.
 

@@ -1,9 +1,9 @@
 ---
-name: plan-audit
+name: scan-audit
 description: Analyze application code for security vulnerabilities and report findings without making changes
 ---
 
-Usage: /plan-audit [scope or description]
+Usage: /scan-audit [scope or description]
 
 Analyze the project's application code for security vulnerabilities — injection flaws, authentication weaknesses, authorization gaps, data exposure, and unsafe patterns — without making any changes. This focuses on code-level security, not package/dependency auditing (use `/pr-audit` for that).
 

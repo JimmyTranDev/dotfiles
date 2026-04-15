@@ -1,9 +1,9 @@
 ---
-name: plan-review
+name: scan-review
 description: Review codebase for bugs, design issues, and correctness problems without making changes
 ---
 
-Usage: /plan-review [scope or description]
+Usage: /scan-review [scope or description]
 
 Analyze the specified code for bugs, design issues, and correctness problems — report findings without applying any changes.
 

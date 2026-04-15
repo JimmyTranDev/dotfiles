@@ -1,9 +1,9 @@
 ---
-name: plan-useful
+name: scan-useful
 description: Identify practical features and improvements users would actually want based on real workflows and pain points
 ---
 
-Usage: /plan-useful [focus area]
+Usage: /scan-useful [focus area]
 
 Analyze the project from a user's perspective and identify practical features, missing conveniences, and workflow improvements that solve real problems users face day-to-day.
 
@@ -38,7 +38,7 @@ $ARGUMENTS
    - Describe the user problem it solves and why a user would want it in 1-2 sentences
    - Estimate effort (small, medium, large) and impact (high, medium, low)
    - Suggest where in the codebase it would fit and which existing patterns to follow
-   - Suggest which `/command` to run to get started (e.g., `/implement`, `/fix`, `/design`, `/plan-innovate`)
+   - Suggest which `/command` to run to get started (e.g., `/implement`, `/fix`, `/design`, `/scan-innovate`)
 
 5. Present findings:
    - Group by category
