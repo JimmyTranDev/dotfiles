@@ -5,6 +5,10 @@
 - Wrong: `if (!cachedLoans) return [];`
 - Right: `if (!cachedLoans) { return []; }`
 
+## Clarification Before Action
+
+When a user request is vague, ambiguous, or could be interpreted in multiple ways, **always ask clarifying questions before taking action**. Use the question tool to present concrete options when possible. Do not guess the user's intent — a quick clarification round is faster than redoing wrong work. Only skip clarification when the request is unambiguous and has a single obvious interpretation.
+
 ## Universal Rules
 
 - **Prefer editing over creating** — always modify existing files rather than creating new ones when possible.
