@@ -10,3 +10,4 @@ src/opencode/bun.lock
 !AGENTS.md
 
 .env
+secrets/

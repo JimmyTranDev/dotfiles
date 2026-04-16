@@ -308,3 +308,11 @@ fi
 # Google Cloud SDK
 source "/opt/homebrew/Caskroom/gcloud-cli/561.0.0/google-cloud-sdk/path.zsh.inc"
 source "/opt/homebrew/Caskroom/gcloud-cli/561.0.0/google-cloud-sdk/completion.zsh.inc"
+
+# pnpm
+export PNPM_HOME="/Users/jimmy/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
