@@ -27,7 +27,7 @@ Load the **git-worktree-workflow**, **git-workflows**, and **security-npm-vulner
    - Run `npx npm-check-updates -u --target minor --jsonUpgraded` (or without `--target minor` if `--major`)
    - Parse the JSON output to build the bumped packages list with `{ package, fromVersion, toVersion }` entries
    - Detect the package manager and run install
-   - If install fails, revert `package.json` changes, re-run ncu with `--reject <failing-packages>`, and install again — mark rejected packages as skipped with reason
+   - If install fails due to trust downgrade, supply chain protection (e.g., `minimumReleaseAge`), or peer dependency conflicts, revert `package.json` changes, re-run ncu with `--reject <failing-packages>`, and install again — mark rejected packages as skipped with reason
    - If no bumps were applied, remove the worktree and local branch, notify the user, and stop
    - Stage and commit: `git add -A && git commit -m "⬆️ chore(deps): bump all packages to latest minor versions"`
 
