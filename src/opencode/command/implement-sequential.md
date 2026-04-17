@@ -66,3 +66,4 @@ Important:
 - Skills loaded for one task can be reused for subsequent tasks if still applicable
 - If a task fails, ask the user whether to continue with remaining tasks or stop
 - Do not push to remote unless the user explicitly asks
+- **Spec cleanup**: If `$ARGUMENTS` references files in `plans/` (paths starting with `plans/` or containing `.md` files inside `plans/`), delete each consumed spec file after all its tasks are successfully implemented and committed. If the `plans/` directory is empty after deletion, remove it too. Note in the final summary: "Removed consumed spec: plans/xyz.md"

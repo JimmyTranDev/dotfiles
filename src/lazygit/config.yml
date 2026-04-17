@@ -2,9 +2,9 @@ keybinding:
   universal:
     return: <c-a>
 os:
-  editPreset: 'nvim'
-  edit: 'nvim {{filename}}'
-  editAtLine: 'nvim +{{line}} {{filename}}'
+  editPreset: 'nvim-remote'
+  edit: 'nvim --server "$NVIM" --remote-tab {{filename}}'
+  editAtLine: 'nvim --server "$NVIM" --remote-tab +{{line}} {{filename}}'
 theme:
   activeBorderColor:
     - '#f5e0dc'

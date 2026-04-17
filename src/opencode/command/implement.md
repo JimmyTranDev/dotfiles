@@ -44,3 +44,4 @@ Workflow:
 3. Implement the changes in the current working directory, delegating to the appropriate specialized agents based on the work type — launch independent agents in parallel
 4. Run post-implementation agents in parallel where independent (e.g., **reviewer** + **auditor** together, **tester** + **optimizer** together)
 5. If the reviewer surfaces problems, use the **fixer** agent to address them (sequential — depends on reviewer output)
+6. **Spec cleanup**: If `$ARGUMENTS` references a file in `plans/` (path starts with `plans/` or contains a `.md` file inside `plans/`), delete the consumed spec file after successful implementation. If the `plans/` directory is empty after deletion, remove it too. Note in the final summary: "Removed consumed spec: plans/xyz.md"

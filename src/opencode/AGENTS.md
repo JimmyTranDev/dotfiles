@@ -52,17 +52,18 @@ src/opencode/
 │   ├── improve-security.md
 │   ├── init.md
 │   ├── merge.md
-│   ├── plan-audit.md
-│   ├── plan-design.md
-│   ├── plan-devtools.md
-│   ├── plan-engage.md
-│   ├── plan-innovate.md
-│   ├── plan-logic.md
-│   ├── plan-quality.md
-│   ├── plan-review.md
-│   ├── plan-test.md
-│   ├── plan-useful.md
-│   ├── plan.md
+│   ├── scan-architecture.md
+│   ├── scan-audit.md
+│   ├── scan-design.md
+│   ├── scan-devtools.md
+│   ├── scan-engage.md
+│   ├── scan-innovate.md
+│   ├── scan-logic.md
+│   ├── scan-quality.md
+│   ├── scan-review.md
+│   ├── scan-test.md
+│   ├── scan-useful.md
+│   ├── scan.md
 │   ├── pr-audit.md
 │   ├── pr-multiple.md
 │   ├── pr-sequential.md
@@ -80,7 +81,9 @@ src/opencode/
     ├── code-simplifier/
     ├── code-soundness/
     ├── comm-caveman/
+    ├── comm-doc-writer/
     ├── comm-fsrs/
+    ├── comm-spec-writer/
     ├── git-conflict-resolution/
     ├── git-gitignore/
     ├── git-workflows/
@@ -99,6 +102,7 @@ src/opencode/
     ├── strategy-founding-sales/
     ├── strategy-innovate/
     ├── strategy-pragmatic-programmer/
+    ├── strategy-criticize/
     ├── strategy-usefulness-checker/
     ├── test/
     ├── test-android-db-inspector/
@@ -127,7 +131,7 @@ src/opencode/
 
 | Prefix | Purpose | Makes Changes? |
 |--------|---------|----------------|
-| `plan-*` | Analysis, recommendations, findings | No |
+| `scan-*` | Analysis, recommendations, findings | No |
 | `improve-*` | Find issues and apply fixes/improvements | Yes |
 | `fix-*` | Diagnose and fix specific problems | Yes |
 | `implement-*` | Build new features or implement tasks | Yes |

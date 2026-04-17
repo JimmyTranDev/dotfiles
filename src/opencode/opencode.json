@@ -58,7 +58,7 @@
     "storybook": {
       "type": "remote",
       "url": "http://localhost:6006/mcp",
-      "enabled": true,
+      "enabled": false,
     }
   }
 }
