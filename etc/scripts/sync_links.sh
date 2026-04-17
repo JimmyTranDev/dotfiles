@@ -12,19 +12,20 @@ DRY_RUN=false
 
 get_common_links() {
 	local links=(
-		"$HOME/Programming/JimmyTranDev/nvim $HOME/.config/nvim"
-		"$DOTFILES_ROOT/src/yazi $HOME/.config/yazi"
-		"$DOTFILES_ROOT/src/zellij $HOME/.config/zellij"
-		"$DOTFILES_ROOT/src/lazygit $HOME/.config/lazygit"
-		"$DOTFILES_ROOT/src/.zshrc $HOME/.zshrc"
-		"$DOTFILES_ROOT/src/.ideavimrc $HOME/.ideavimrc"
-		"$DOTFILES_ROOT/src/.gitignore_global $HOME/.gitignore_global"
-		"$DOTFILES_ROOT/src/btop $HOME/.config/btop"
-		"$DOTFILES_ROOT/src/starship.toml $HOME/.config/starship.toml"
-		"$DOTFILES_ROOT/src/kitty $HOME/.config/kitty"
-		"$DOTFILES_ROOT/src/opencode $HOME/.config/opencode"
-		"$DOTFILES_ROOT/src/git/hooks $HOME/.config/git/hooks"
-		"$DOTFILES_ROOT/src/espanso $HOME/.config/espanso"
+		"$HOME/Programming/JimmyTranDev/nvim|$HOME/.config/nvim"
+		"$DOTFILES_ROOT/src/yazi|$HOME/.config/yazi"
+		"$DOTFILES_ROOT/src/zellij|$HOME/.config/zellij"
+		"$DOTFILES_ROOT/src/lazygit|$HOME/.config/lazygit"
+		"$DOTFILES_ROOT/src/lazydocker|$HOME/Library/Application Support/jesseduffield/lazydocker"
+		"$DOTFILES_ROOT/src/.zshrc|$HOME/.zshrc"
+		"$DOTFILES_ROOT/src/.ideavimrc|$HOME/.ideavimrc"
+		"$DOTFILES_ROOT/src/.gitignore_global|$HOME/.gitignore_global"
+		"$DOTFILES_ROOT/src/btop|$HOME/.config/btop"
+		"$DOTFILES_ROOT/src/starship.toml|$HOME/.config/starship.toml"
+		"$DOTFILES_ROOT/src/kitty|$HOME/.config/kitty"
+		"$DOTFILES_ROOT/src/opencode|$HOME/.config/opencode"
+		"$DOTFILES_ROOT/src/git/hooks|$HOME/.config/git/hooks"
+		"$DOTFILES_ROOT/src/espanso|$HOME/.config/espanso"
 	)
 	printf '%s\n' "${links[@]}"
 }
@@ -32,10 +33,12 @@ get_common_links() {
 get_macos_links() {
 	get_common_links
 	local links=(
-		"$DOTFILES_ROOT/src/Brewfile $HOME/Brewfile"
-		"$DOTFILES_ROOT/src/skhd $HOME/.config/skhd"
-		"$DOTFILES_ROOT/src/yabai $HOME/.config/yabai"
-		"$DOTFILES_ROOT/src/ghostty $HOME/.config/ghostty"
+		"$DOTFILES_ROOT/src/Brewfile|$HOME/Brewfile"
+		"$DOTFILES_ROOT/src/skhd|$HOME/.config/skhd"
+		"$DOTFILES_ROOT/src/yabai|$HOME/.config/yabai"
+		"$DOTFILES_ROOT/src/ghostty|$HOME/.config/ghostty"
+		"$DOTFILES_ROOT/src/lazysql|$HOME/Library/Application Support/lazysql"
+		"$DOTFILES_ROOT/src/lazydocker|$HOME/Library/Application Support/jesseduffield/lazydocker"
 	)
 	printf '%s\n' "${links[@]}"
 }
@@ -43,7 +46,9 @@ get_macos_links() {
 get_linux_links() {
 	get_common_links
 	local links=(
-		"$DOTFILES_ROOT/src/hypr $HOME/.config/hypr"
+		"$DOTFILES_ROOT/src/hypr|$HOME/.config/hypr"
+		"$DOTFILES_ROOT/src/lazysql|$HOME/.config/lazysql"
+		"$DOTFILES_ROOT/src/lazydocker|$HOME/.config/lazydocker"
 	)
 	printf '%s\n' "${links[@]}"
 }
@@ -89,8 +94,8 @@ create_links() {
 	while IFS= read -r entry; do
 		[ -z "$entry" ] && continue
 
-		local src=$(echo "$entry" | awk '{print $1}')
-		local dest=$(echo "$entry" | awk '{print $2}')
+		local src="${entry%%|*}"
+		local dest="${entry##*|}"
 
 		total_count=$((total_count + 1))
 
