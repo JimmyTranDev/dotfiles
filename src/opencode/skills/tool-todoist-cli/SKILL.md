@@ -11,6 +11,7 @@ The `td` command is the Todoist CLI. Install via `npm install -g @doist/todoist-
 - Use `--json` or `--ndjson` for machine-readable output
 - Use `--full` with JSON to include all fields
 - Reference entities by name, `id:xxx`, or Todoist web URL
+- **`td view` only supports task and project URLs** — section URLs (`/app/section/...`) return `INVALID_URL`. To work with sections, use `td section list --project <name> --json` and filter by section ID
 
 ## Authentication
 
@@ -30,6 +31,21 @@ td auth logout          # remove token
 | `td add "text"` | Natural language (human shorthand) | `td add "Buy milk tomorrow p1 #Shopping"` |
 | `td task add` | Structured flags (agents/scripts) | `td task add "Buy milk" --due tomorrow --priority p1 --project Shopping` |
 
+## Priority Mapping (INVERTED)
+
+**The API/JSON priority values are INVERTED from the UI labels:**
+
+| UI Label | CLI Flag | API/JSON `priority` field |
+|----------|----------|--------------------------|
+| p1 (urgent, red) | `--priority p1` | `4` |
+| p2 (high, orange) | `--priority p2` | `3` |
+| p3 (medium, blue) | `--priority p3` | `2` |
+| p4 (no priority) | `--priority p4` | `1` |
+
+When filtering tasks by priority in JSON output, use the API value: `priority == 1` means p4 (no priority), `priority == 4` means p1 (urgent).
+
+The `--priority` flag on `td task list`, `td task add`, etc. accepts UI labels (`p1`-`p4`), so use `--priority p4` to filter for no-priority tasks.
+
 ## Task Commands
 
 ### td task add
@@ -42,7 +58,7 @@ td task add "content" [options]
 |------|-------------|
 | `--due <date>` | Due date (natural language or YYYY-MM-DD) |
 | `--deadline <date>` | Deadline date (YYYY-MM-DD) |
-| `--priority <p1-p4>` | Priority level |
+| `--priority <p1-p4>` | Priority level (see priority mapping below) |
 | `--project <name>` | Project name or id:xxx |
 | `--section <ref>` | Section (name with --project, or id:xxx) |
 | `--labels <a,b>` | Comma-separated labels |
@@ -172,7 +188,7 @@ td comment browse [id]
 ## Section Commands
 
 ```bash
-td section list [project] [--json]
+td section list [project] [--json] [--show-urls]
 td section create --name "Name" --project <ref>
 td section update [id] --name "New Name"
 td section delete [id]
@@ -229,6 +245,14 @@ Tasks, projects, labels, and filters accept multiple reference formats:
 | ID prefix | `td task view id:8204963997` |
 | Todoist URL | `td task view https://app.todoist.com/app/task/buy-milk-8Jx4mVr72kPn3QwB` |
 
+**Unsupported URL types**: `td view` does NOT support section URLs (`/app/section/...`). It returns `INVALID_URL`. Use the section workaround below.
+
+### Extracting IDs from URLs
+
+Todoist URLs encode the ID as the last segment after the final `-`:
+- Task: `https://app.todoist.com/app/task/buy-milk-8Jx4mVr72kPn3QwB` → ID is `8Jx4mVr72kPn3QwB`
+- Section: `https://app.todoist.com/app/section/doing-1-6gM8GxffJ7xQfCqC` → section ID is `6gM8GxffJ7xQfCqC`
+
 ## Output Formats
 
 | Flag | Format | Use Case |
@@ -261,6 +285,9 @@ td task add "Review PR" --due tomorrow --project "Work" --priority p2
 # complete a task by name
 td task complete "Buy milk"
 
+# complete a task by URL
+td task complete "https://app.todoist.com/app/task/buy-milk-8Jx4mVr72kPn3QwB"
+
 # move task to different project and section
 td task move "Design review" --project "Work" --section "In Progress"
 
@@ -272,4 +299,39 @@ td activity --since $(date +%Y-%m-%d) --json
 
 # add comment with stdin content
 echo "Detailed notes here" | td comment add "Task name" --stdin
+```
+
+### Listing tasks in a section (workaround)
+
+`td task list` has no `--section` flag. To get tasks in a specific section:
+
+1. Find the section ID from the URL or via `td section list --project <name> --json --show-urls`
+2. List all project tasks and filter by `sectionId` in JSON:
+
+```bash
+# Find section ID
+td section list --project "Vocabulary" --json --show-urls
+
+# List tasks in that section, filtering by sectionId
+td task list --project "Vocabulary" --json --full --show-urls | \
+  python3 -c "
+import sys, json
+data = json.loads(sys.stdin.read())
+for t in data.get('results', []):
+    if t.get('sectionId') == 'SECTION_ID_HERE':
+        print(f'{t[\"content\"]} | p{5 - t[\"priority\"]} | {t.get(\"url\", \"\")}')"
+```
+
+### Filtering by priority in JSON
+
+Remember priority is inverted in JSON. To find p4 (no priority) tasks:
+
+```bash
+td task list --project "MyProject" --json --full | \
+  python3 -c "
+import sys, json
+data = json.loads(sys.stdin.read())
+for t in data.get('results', []):
+    if t.get('priority') == 1:  # 1 = p4 (no priority)
+        print(t['content'])"
 ```
