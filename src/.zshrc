@@ -81,6 +81,7 @@ alias knip='pnpm dlx knip'
 alias knipw='pnpm dlx knip --watch'
 alias loc='git ls-files | rg -v "(^|/)(assets|data)/" | xargs wc -l'
 alias l="$DOTFILES_DIR/etc/scripts/select_git_folder_actx.sh"
+alias csv='git ls-files "*/core/*.csv" 2>/dev/null | fzf --preview "head -20 {}" | xargs -r vd --csv-delimiter "|"'
 
 if [[ "$(uname)" == "Darwin" ]]; then
   alias t='yabai --restart-service; skhd --restart-service'
