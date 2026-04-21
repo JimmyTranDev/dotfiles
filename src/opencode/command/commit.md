@@ -28,4 +28,4 @@ Important:
 - Do NOT stage any additional files - only commit what is already staged
 - If no files are staged, notify the user and do not create a commit
 
-Analyze the staged changes (git diff --cached) to understand the changes, then create the commit.
+Analyze the staged changes (git diff --cached -- . ':!*.csv') to understand the changes, then create the commit. Always exclude `*.csv` files from diff output — CSV diffs are large, noisy, and not useful for understanding changes.
