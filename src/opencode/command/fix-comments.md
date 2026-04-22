@@ -11,7 +11,7 @@ Fetch all review comments from the current branch's pull request, identify comme
    - If no PR exists for this branch, notify the user and stop
 
 2. Fetch all review comments in parallel:
-   - Run `gh api repos/{owner}/{repo}/pulls/{pr_number}/comments` to get inline review comments
+   - Run `gh api repos/{owner}/{repo}/pulls/{pr_number}/comments` to get inline review comments — only keep comments from unresolved threads (use `gh api graphql` to query `pullRequest.reviewThreads` and only include threads with `isResolved: false`)
    - Run `gh pr view {pr_number} --json reviews --jq '.reviews[]'` to get top-level review comments
    - Collect all comments including author, body, path, line, and in_reply_to fields
 
