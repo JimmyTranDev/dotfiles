@@ -17,6 +17,7 @@ When a user request is vague, ambiguous, or could be interpreted in multiple way
 - **Always continue** — if there are remaining tasks, todos, or steps left to complete, keep working without stopping to ask for permission to continue. Only pause for user input when you need clarification or a decision, not when you simply have more work to do.
 - **Java projects** — when working in a Java project, always load the **java-spring-senior** skill before making changes. Detect Java projects by the presence of `pom.xml`, `build.gradle`, `build.gradle.kts`, or `*.java` files.
 - **100% test coverage** — when writing or modifying code, always ensure 100% unit test coverage for all affected code. This includes new code, modified functions, and any code paths touched by the changes. Load the **test** skill, write or update tests, and run them to verify full coverage before considering the task complete.
+- **Record learnings** — whenever reviewing or analyzing code (any review activity, not just specific commands), append any discovered bugs, gotchas, pitfalls, or anti-patterns to `LEARNINGS.md` in the project root. Create the file if it doesn't exist. Each entry should include a short title, the file/location where it was found, and a concise description of the pitfall and how to avoid it. Do not duplicate entries already present in the file.
 
 ## OpenCode Config Structure
 

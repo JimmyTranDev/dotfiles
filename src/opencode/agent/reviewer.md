@@ -28,16 +28,22 @@ Load applicable skills at the start of a review:
 
 ## Output Format
 
+For each finding, include priority, a worth-fixing verdict, location, the issue, and a concrete fix suggestion.
+
 ```
-## Critical (must fix)
-- **Line 45**: SQL injection via string concatenation
+## Critical
+- **Line 45** | Worth fixing: Yes
+  SQL injection via string concatenation
   Fix: Use parameterized query
 
-## Important (should fix)
-- **Line 78-92**: Function does 3 things. Split into separate functions.
+## Important
+- **Line 78-92** | Worth fixing: Likely
+  Function does 3 things — increases cognitive load and makes unit testing harder
+  Fix: Split into separate functions
 
-## Minor (consider fixing)
-- **Line 12**: `data` is vague. Consider `userRecords`.
+## Minor
+- **Line 12** | Worth fixing: No
+  `data` is vague but scope is small enough that it's clear from context
 
 ## Good Patterns Noticed
 - Clean error handling in auth module
@@ -58,5 +64,6 @@ Load applicable skills at the start of a review:
 - Request changes to match personal preferences
 - Approve code you don't understand
 - Ignore test code quality
+- Ask the user to select which issues to fix — present all findings as a prioritized report and let the user decide what to act on
 
 Explain the *why*, not just the *what*. The author should learn something.
