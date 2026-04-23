@@ -1,6 +1,6 @@
 ---
 name: specify-security
-description: Scan code for security vulnerabilities with exploit scenarios and severity classification and write spec to `spec/security/`
+description: Scan code for security vulnerabilities with exploit scenarios and severity classification and write spec to `spec/`
 ---
 
 Usage: /specify-security [scope or description]
@@ -52,8 +52,8 @@ $ARGUMENTS
    - **reviewer**: Analyze code patterns for correctness issues that overlap with security (race conditions, error handling, input validation)
 
 6. Write findings to a spec file:
-   - Create the `spec/security/` directory if it doesn't exist
-   - Choose the filename: if the user provided a scope description, convert it to kebab-case and use it as the filename (e.g., `auth-flow.md`); otherwise use a timestamp (`YYYY-MM-DDTHH-MM-SS.md`)
-   - If a file with the chosen name already exists, append a timestamp suffix before the extension
+   - Create the `spec/` directory if it doesn't exist
+   - Choose the filename: use the `security-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/security-auth-flow.md`, `spec/security-input-validation.md`)
+   - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/security-auth-flow-2.md`)
    - Write all findings to the file: grouped by category, ranked by severity, with exploit scenario, severity classification, file location, effort estimate, and suggested fix for each item
    - Print a brief summary to chat: the spec file path, total findings count, and any critical/high severity items

@@ -1,6 +1,6 @@
 ---
 name: specify-innovate
-description: Brainstorm new ideas, practical improvements, and workflow enhancements for the project and write spec to `spec/innovate/`
+description: Brainstorm new ideas, practical improvements, and workflow enhancements for the project and write spec to `spec/`
 ---
 
 Usage: /specify-innovate [focus area]
@@ -50,9 +50,8 @@ $ARGUMENTS
    - Flag any suggestions that could be addressed immediately with existing `/commands` or skills
 
 6. Write findings to a spec file:
-   - Create the `spec/innovate/` directory if it doesn't exist
-   - If the user provided a focus area, use it as the filename in kebab-case (e.g., `spec/innovate/payment-features.md`). Otherwise use a timestamp (e.g., `spec/innovate/2026-04-23.md`)
-   - If a file with the same name already exists, append a timestamp suffix to avoid overwriting
+   - Create the `spec/` directory if it doesn't exist
+   - Use the `innovate-` prefix followed by a descriptive kebab-case name based on the focus area or key findings (e.g., `spec/innovate-payment-features.md`, `spec/innovate-onboarding-ux.md`). If a file with the same name already exists, append a numeric suffix
    - Write all findings using the same grouped-by-category format from step 5
    - Include effort/impact estimates and suggested `/command` for each item
    - Print a brief summary to chat: the file path, total number of findings, and the top 3 items

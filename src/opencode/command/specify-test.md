@@ -1,6 +1,6 @@
 ---
 name: specify-test
-description: Run tests and add or improve test coverage for specified code and write spec to `spec/test/`
+description: Run tests and add or improve test coverage for specified code and write spec to `spec/`
 ---
 
 Usage: /specify-test [scope or description]
@@ -51,12 +51,11 @@ $ARGUMENTS
    - Summarize each test added: what behavior it covers, what gap it fills, and the test result
    - List any remaining coverage gaps that were out of scope but worth noting
 
-8. Write coverage gap analysis to `spec/test/`:
-   - Create the `spec/test/` directory if it doesn't exist
+8. Write coverage gap analysis to `spec/`:
+   - Create the `spec/` directory if it doesn't exist
    - Choose the filename:
-     - If a scope or description was given, convert it to kebab-case and use as the filename (e.g., `spec/test/user-authentication.md`)
-     - If no scope was given, use a timestamp filename (e.g., `spec/test/2026-04-23T12-00-00.md`)
-     - If a file with the chosen name already exists, append a timestamp suffix before the extension (e.g., `spec/test/user-authentication-2026-04-23T12-00-00.md`)
+     - Use the `test-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/test-user-authentication.md`, `spec/test-api-error-paths.md`)
+     - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/test-user-authentication-2.md`)
    - Write the spec file containing:
      - Test results summary (total, passing, failing, skipped)
      - Tests added in this run with descriptions

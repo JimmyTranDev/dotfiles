@@ -1,6 +1,6 @@
 ---
 name: specify-reuse
-description: Find duplicated patterns, over-separated code, missed abstractions, and reuse opportunities and write spec to `spec/reuse/`
+description: Find duplicated patterns, over-separated code, missed abstractions, and reuse opportunities and write spec to `spec/`
 ---
 
 Usage: /specify-reuse [scope or description]
@@ -69,8 +69,8 @@ $ARGUMENTS
    - Suggest which `/command` to run to address each finding (e.g., `/implement` to extract a utility or merge files)
 
 8. Write findings to a spec file:
-   - Create the `spec/reuse/` directory if it doesn't exist
-   - Choose the filename: if the user provided a scope description, convert it to kebab-case and use it as the filename (e.g., `api-handlers.md`); otherwise use a timestamp (`YYYY-MM-DDTHH-MM-SS.md`)
-   - If a file with the chosen name already exists, append a timestamp suffix before the extension
+   - Create the `spec/` directory if it doesn't exist
+   - Choose the filename: use the `reuse-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/reuse-api-handlers.md`, `spec/reuse-validation-logic.md`)
+   - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/reuse-api-handlers-2.md`)
    - Write all findings to the file: grouped by category, ranked by impact, with all locations, representative code, suggested abstraction or merge, estimated impact, and risk level for each item
    - Print a brief summary to chat: the spec file path, total findings count, estimated deduplication potential, and the top 3 highest-impact items

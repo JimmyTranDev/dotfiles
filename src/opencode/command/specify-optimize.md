@@ -1,6 +1,6 @@
 ---
 name: specify-optimize
-description: Profile code for performance bottlenecks and report optimization opportunities without making changes and write spec to `spec/optimize/`
+description: Profile code for performance bottlenecks and report optimization opportunities without making changes and write spec to `spec/`
 ---
 
 Usage: /specify-optimize [scope or description]
@@ -39,8 +39,8 @@ $ARGUMENTS
    - **reviewer**: Verify optimization suggestions are correct and won't break behavior
 
 6. Write findings to a spec file:
-   - Create the `spec/optimize/` directory if it doesn't exist
-   - Choose the filename: if the user provided a scope description, convert it to kebab-case and use it as the filename (e.g., `api-endpoints.md`); otherwise use a timestamp (`YYYY-MM-DDTHH-MM-SS.md`)
-   - If a file with the chosen name already exists, append a timestamp suffix before the extension
+   - Create the `spec/` directory if it doesn't exist
+   - Choose the filename: use the `optimize-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/optimize-api-endpoints.md`, `spec/optimize-database-queries.md`)
+   - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/optimize-api-endpoints-2.md`)
    - Write all findings to the file: grouped by category, ranked by impact, with file location, description, estimated impact, effort level, and suggested optimization for each item
    - Print a brief summary to chat: the spec file path, total findings count, and the top 3 highest-impact items

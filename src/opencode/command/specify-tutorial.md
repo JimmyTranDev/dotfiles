@@ -1,6 +1,6 @@
 ---
 name: specify-tutorial
-description: Break a task into step-by-step instructions with before/after code examples and write spec to `spec/tutorial/`
+description: Break a task into step-by-step instructions with before/after code examples and write spec to `spec/`
 ---
 
 Usage: /specify-tutorial <what to implement or change>
@@ -45,7 +45,7 @@ $ARGUMENTS
    - **reviewer**: Verify the proposed steps are correct, complete, and in the right order
 
 6. Write findings to a spec file:
-   - Create the `spec/tutorial/` directory if it doesn't exist
-   - Choose the filename: convert the task description to kebab-case and use it as the filename (e.g., `add-dark-mode-toggle.md`); if a file with that name already exists, append a timestamp suffix
+   - Create the `spec/` directory if it doesn't exist
+   - Choose the filename: use the `tutorial-` prefix followed by a descriptive kebab-case name based on the task (e.g., `spec/tutorial-add-dark-mode-toggle.md`); if a file with that name already exists, append a numeric suffix
    - Write the full step-by-step tutorial with before/after code blocks to the file
    - Print a brief summary to chat: the spec file path, total number of steps, and list of files that will be modified

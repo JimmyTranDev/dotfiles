@@ -1,6 +1,6 @@
 ---
 name: specify-review
-description: Review code for bugs, logic errors, design issues, and correctness problems and write spec to `spec/review/`
+description: Review code for bugs, logic errors, design issues, and correctness problems and write spec to `spec/`
 ---
 
 Usage: /specify-review [scope or description]
@@ -63,8 +63,8 @@ $ARGUMENTS
    - Suggest which `/command` to run to address each finding (e.g., `/fix`, `/implement`)
 
 7. Write findings to a spec file:
-   - Create the `spec/review/` directory if it doesn't exist
-   - Choose the filename: if the user provided a scope description, use it in kebab-case (e.g., `spec/review/auth-module.md`); otherwise use today's date (e.g., `spec/review/2026-04-23.md`)
-   - If a file with the chosen name already exists, append a timestamp suffix (e.g., `spec/review/auth-module-1682300000.md`)
+   - Create the `spec/` directory if it doesn't exist
+   - Choose the filename: use the `review-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/review-auth-module.md`, `spec/review-payment-error-handling.md`)
+   - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/review-auth-module-2.md`)
    - Write all findings to the file: grouped by category, ranked by severity, with file location, severity, description, suggested fix, Sound Logic section, Fragile Assumptions section, and verdict
    - Print a brief summary to chat: the spec file path, total findings count, and the top 3 most critical items

@@ -1,6 +1,6 @@
 ---
 name: specify-quality
-description: Analyze code for quality issues, simplification opportunities, and refactoring candidates and write spec to `spec/quality/`
+description: Analyze code for quality issues, simplification opportunities, and refactoring candidates and write spec to `spec/`
 ---
 
 Usage: /specify-quality [scope or description]
@@ -49,8 +49,8 @@ $ARGUMENTS
    - Suggest which `/command` to run to address each finding (e.g., `/implement`, `/fix`)
 
 7. Write findings to a spec file:
-   - Create the `spec/quality/` directory if it doesn't exist
-   - Choose the filename: if the user provided a scope description, convert it to kebab-case and use it as the filename (e.g., `auth-module.md`); otherwise use a timestamp (`YYYY-MM-DDTHH-MM-SS.md`)
-   - If a file with the chosen name already exists, append a timestamp suffix before the extension (e.g., `auth-module-2025-01-15T10-30-00.md`)
+   - Create the `spec/` directory if it doesn't exist
+   - Choose the filename: use the `quality-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/quality-auth-module.md`, `spec/quality-api-layer-complexity.md`)
+   - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/quality-auth-module-2.md`)
    - Write all findings to the file in the same structured format: grouped by category, ranked by impact, with file location, description, estimated impact, violated principle, and suggested `/command` for each item
    - Print a brief summary to chat: the spec file path, total findings count, and the top 3 highest-impact items

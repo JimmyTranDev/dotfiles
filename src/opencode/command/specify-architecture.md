@@ -1,6 +1,6 @@
 ---
 name: specify-architecture
-description: Analyze project architecture, module boundaries, and structural patterns without making changes and write spec to `spec/architecture/`
+description: Analyze project architecture, module boundaries, and structural patterns without making changes and write spec to `spec/`
 ---
 
 Usage: /specify-architecture [scope or description]
@@ -52,9 +52,8 @@ Load the **meta-structure**, **code-quality**, **strategy-pragmatic-programmer**
    - Include a dependency graph or module map if the project is complex enough to warrant one
 
 7. Write findings to a spec file:
-   - Create the `spec/architecture/` directory if it doesn't exist
-   - If the user provided a scope or description, use it as the filename in kebab-case (e.g., `spec/architecture/api-layer.md`). Otherwise use a timestamp (e.g., `spec/architecture/2026-04-23.md`)
-   - If a file with the same name already exists, append a timestamp suffix to avoid overwriting
+   - Create the `spec/` directory if it doesn't exist
+   - Use the `architecture-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/architecture-api-layer.md`, `spec/architecture-module-boundaries.md`). If a file with the same name already exists, append a numeric suffix
    - Write all findings using the same grouped-by-dimension format from step 6
    - Include each item's file location, classification, description, and suggested `/command`
    - Print a brief summary to chat: the file path, total number of findings, and the top 3 items

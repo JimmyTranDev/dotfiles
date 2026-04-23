@@ -1,6 +1,6 @@
 ---
 name: specify-ci
-description: Investigate failing GitHub Actions workflows on the current branch and report root causes without making changes and write spec to `spec/ci/`
+description: Investigate failing GitHub Actions workflows on the current branch and report root causes without making changes and write spec to `spec/`
 ---
 
 Usage: /specify-ci [$ARGUMENTS]
@@ -53,7 +53,7 @@ Load the **code-follower** and **code-logic-checker** skills in parallel.
    - **reviewer**: Verify root cause analysis is accurate
 
 8. Write findings to a spec file:
-   - Create the `spec/ci/` directory if it doesn't exist
-   - Choose the filename: use the branch name in kebab-case (e.g., `feature-auth.md`); if a file with that name already exists, append a timestamp suffix
+   - Create the `spec/` directory if it doesn't exist
+   - Choose the filename: use the `ci-` prefix followed by a descriptive kebab-case name based on the branch or failure type (e.g., `spec/ci-feature-auth.md`, `spec/ci-lint-type-errors.md`); if a file with that name already exists, append a numeric suffix
    - Write all findings to the file: table of failures with workflow name, job name, error category, root cause, file location, suggested fix, and status (actionable/flaky)
    - Print a brief summary to chat: the spec file path, total failures found, and any build-breaking issues

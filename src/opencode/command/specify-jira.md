@@ -1,6 +1,6 @@
 ---
 name: specify-jira
-description: Fetch the Jira ticket for the current branch and generate an implementation spec in spec/jira/
+description: Fetch the Jira ticket for the current branch and generate an implementation spec in spec/
 ---
 
 Usage: /specify-jira
@@ -36,8 +36,8 @@ Fetch the Jira ticket associated with the current branch, analyze the codebase t
    - Note any dependencies between tasks
 
 6. Write the spec file:
-   - Create `spec/jira/` if it doesn't exist
-   - Write to `spec/jira/<TICKET-ID>.md` (e.g., `spec/jira/BW-10257.md`)
+   - Create `spec/` if it doesn't exist
+   - Write to `spec/jira-<TICKET-ID>.md` (e.g., `spec/jira-BW-10257.md`)
    - Include these sections:
 
    **Ticket**: ticket key, summary, status, priority, and link to the Jira ticket
@@ -59,4 +59,4 @@ Fetch the Jira ticket associated with the current branch, analyze the codebase t
    - Spec file path
    - Total number of tasks and estimated overall complexity
    - Top open questions that need answers before starting
-   - Suggest running `/implement-jira` or `/implement spec/jira/<TICKET-ID>.md` to begin implementation
+   - Suggest running `/implement-jira` or `/implement spec/jira-<TICKET-ID>.md` to begin implementation

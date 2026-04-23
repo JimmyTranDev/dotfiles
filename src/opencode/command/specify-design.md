@@ -1,6 +1,6 @@
 ---
 name: specify-design
-description: Analyze UI/UX design and suggest improvements for layout, responsiveness, accessibility, and visual consistency and write spec to `spec/design/`
+description: Analyze UI/UX design and suggest improvements for layout, responsiveness, accessibility, and visual consistency and write spec to `spec/`
 ---
 
 Usage: /specify-design [scope or focus area]
@@ -38,8 +38,8 @@ $ARGUMENTS
    - Flag any critical accessibility violations that need immediate attention (WCAG A/AA failures)
 
 5. Write findings to a spec file:
-   - Create the `spec/design/` directory if it doesn't exist (using `mkdir -p spec/design/`)
-   - Choose filename: if the user provided a scope or focus area, convert it to kebab-case and use it as the filename (e.g., `spec/design/responsive-layout.md`); otherwise use a timestamp (e.g., `spec/design/2024-01-15T14-30-00.md`)
-   - If a file with the chosen name already exists, append a timestamp suffix before the extension (e.g., `spec/design/responsive-layout-2024-01-15T14-30-00.md`)
+   - Create the `spec/` directory if it doesn't exist (using `mkdir -p spec/`)
+   - Choose filename: use the `design-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/design-responsive-layout.md`, `spec/design-accessibility-violations.md`)
+   - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/design-responsive-layout-2.md`)
    - Write all findings to the file using the same grouped-by-category format from step 4, including effort/impact estimates and framework citations for each item
    - Print a brief summary to chat: the file path, total number of findings, and the top 3 items

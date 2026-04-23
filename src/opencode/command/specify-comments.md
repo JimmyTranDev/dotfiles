@@ -1,6 +1,6 @@
 ---
 name: specify-comments
-description: Fetch unresolved PR review comments and provide a clear summary and explanation of what each reviewer is asking for and write spec to `spec/comments/`
+description: Fetch unresolved PR review comments and provide a clear summary and explanation of what each reviewer is asking for and write spec to `spec/`
 ---
 
 Fetch all unresolved review comments from the current branch's pull request and present a clear, organized explanation of what each reviewer is requesting.
@@ -40,7 +40,7 @@ Fetch all unresolved review comments from the current branch's pull request and 
    - For change requests, include a concrete description of what code change is needed so a `/fix` or `/implement` command can act on it
 
 6. Write findings to a spec file:
-   - Create the `spec/comments/` directory if it doesn't exist
-   - Use the PR number and branch name as the filename in kebab-case (e.g., `spec/comments/pr-123-feature-branch.md`). If a file with the same name already exists, append a timestamp suffix to avoid overwriting
+   - Create the `spec/` directory if it doesn't exist
+   - Use the `comments-` prefix followed by the PR number and branch name in kebab-case (e.g., `spec/comments-pr-123-feature-branch.md`). If a file with the same name already exists, append a numeric suffix
    - Write the full organized comment summary from steps 4 and 5 to the file
    - Print a brief summary to chat: the file path, total number of unresolved comments, and the top 3 most important items

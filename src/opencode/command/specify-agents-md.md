@@ -1,6 +1,6 @@
 ---
 name: specify-agents-md
-description: Analyze repository structure and report AGENTS.md improvements needed without making changes and write spec to `spec/agents-md/`
+description: Analyze repository structure and report AGENTS.md improvements needed without making changes and write spec to `spec/`
 ---
 
 Usage: /specify-agents-md $ARGUMENTS
@@ -68,8 +68,8 @@ Analyze the current repository and identify where AGENTS.md files should be crea
    - **reviewer**: Verify proposed AGENTS.md content is accurate and follows conventions
 
 10. Write findings to a spec file:
-    - Create the `spec/agents-md/` directory if it doesn't exist
-    - Choose the filename: if the user provided a scope description, convert it to kebab-case and use it as the filename (e.g., `src-directory.md`); otherwise use a timestamp (`YYYY-MM-DDTHH-MM-SS.md`)
-    - If a file with the chosen name already exists, append a timestamp suffix before the extension
+    - Create the `spec/` directory if it doesn't exist
+    - Choose the filename: use the `agents-md-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/agents-md-src-directory.md`, `spec/agents-md-stale-references.md`)
+    - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/agents-md-src-directory-2.md`)
     - Write all findings to the file: locations needing AGENTS.md files, proposed content for each, stale reference fixes, and priority ranking
     - Print a brief summary to chat: the spec file path, total findings count, and the top 3 highest-priority items

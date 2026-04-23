@@ -1,6 +1,6 @@
 ---
 name: specify-devtools
-description: Analyze developer tooling setup and identify improvements to linting, formatting, CI/CD, scripts, git hooks, and DX and write spec to `spec/devtools/`
+description: Analyze developer tooling setup and identify improvements to linting, formatting, CI/CD, scripts, git hooks, and DX and write spec to `spec/`
 ---
 
 Usage: /specify-devtools [scope or description]
@@ -50,9 +50,8 @@ $ARGUMENTS
    - Flag any issues that could be fixed immediately with existing `/commands`
 
 8. Write findings to a spec file:
-   - Create the `spec/devtools/` directory if it doesn't exist
-   - If the user provided a scope or description, use it as the filename in kebab-case (e.g., `spec/devtools/ci-cd-pipeline.md`). Otherwise use a timestamp (e.g., `spec/devtools/2026-04-23.md`)
-   - If a file with the same name already exists, append a timestamp suffix to avoid overwriting
+   - Create the `spec/` directory if it doesn't exist
+   - Use the `devtools-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/devtools-ci-cd-pipeline.md`, `spec/devtools-eslint-config.md`). If a file with the same name already exists, append a numeric suffix
    - Write all findings using the same grouped-by-category format from step 7
    - Include each item's file location, description, estimated effort/impact, and suggested `/command`
    - Print a brief summary to chat: the file path, total number of findings, and the top 3 items
