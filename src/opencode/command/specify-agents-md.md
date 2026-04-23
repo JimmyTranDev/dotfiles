@@ -1,11 +1,11 @@
 ---
-name: improve-agents-md
-description: Create or update AGENTS.md files to accurately reflect the repository structure and conventions
+name: specify-agents-md
+description: Analyze repository structure and report AGENTS.md improvements needed without making changes and write spec to `spec/agents-md/`
 ---
 
-Usage: /improve-agents-md $ARGUMENTS
+Usage: /specify-agents-md $ARGUMENTS
 
-Analyze the current repository and create or update AGENTS.md files where they would provide value to AI agents. If $ARGUMENTS specifies a path or scope, focus on that area. Otherwise, analyze the entire repo.
+Analyze the current repository and identify where AGENTS.md files should be created or updated. If $ARGUMENTS specifies a path or scope, focus on that area. Otherwise, analyze the entire repo. Do NOT apply any changes — write all findings to a spec file.
 
 1. Load the **meta-agents-md** skill to understand AGENTS.md structure, content principles, and what belongs vs. what doesn't
 
@@ -36,7 +36,7 @@ Analyze the current repository and create or update AGENTS.md files where they w
    - Import conventions and module boundaries
    - Any non-obvious rules an agent would need to know
 
-5. **Draft each AGENTS.md** following these rules:
+5. **Draft each proposed AGENTS.md** following these rules:
    - Start with the no-comments policy if the repo follows it
    - Use `##` section headers, bullet lists, and tables — no prose paragraphs
    - Write rules as short imperative directives, not explanations
@@ -45,7 +45,7 @@ Analyze the current repository and create or update AGENTS.md files where they w
    - Do not duplicate content that belongs in skills or that a parent AGENTS.md already covers
    - Subdirectory AGENTS.md files should only contain rules specific to that directory
 
-6. **Auto-sync check** — cross-reference AGENTS.md content against the actual file system:
+6. **Auto-sync check** — cross-reference existing AGENTS.md content against the actual file system:
    - Verify every file and directory referenced in AGENTS.md actually exists (run `ls` or glob to confirm)
    - Verify every directory tree in AGENTS.md matches the real structure (check for added/removed files)
    - Flag any references to non-existent files, removed commands, deprecated skills, or stale paths
@@ -53,18 +53,23 @@ Analyze the current repository and create or update AGENTS.md files where they w
 
 7. **For existing AGENTS.md files**, diff the current content against what the codebase actually does:
    - Flag sections that are outdated (reference removed files, old patterns, wrong structure)
-   - Add missing sections for conventions the file doesn't cover
-   - Remove or update inaccurate information
-   - Preserve the existing section ordering where possible
+   - Identify missing sections for conventions the file doesn't cover
+   - Identify inaccurate information that should be removed or updated
 
-8. **Present changes to the user** before writing:
-   - For new files: show the proposed content and location
-   - For updates: show what will change and why
-   - Ask for confirmation before writing
+8. Present the analysis:
+   - Do NOT apply any changes — this command is analysis-only
+   - For each location, include whether it needs a new AGENTS.md or updates to an existing one
+   - Show the proposed content or diff for each file
+   - Group by priority: critical fixes (stale references, wrong info) > new files needed > minor improvements
 
-Important:
-- Never add domain knowledge that belongs in a skill — AGENTS.md is for behavioral rules and repo context only
-- Keep each AGENTS.md under 100 lines — concise directives are more effective than lengthy guides
-- Subdirectory AGENTS.md files should be much shorter than root — only directory-specific rules
-- Do not include secrets, credentials, or sensitive paths
-- Match the tone and style of any existing AGENTS.md files in the repo
+9. Delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
+
+   Agents to delegate to (launch independent agents in parallel):
+   - **reviewer**: Verify proposed AGENTS.md content is accurate and follows conventions
+
+10. Write findings to a spec file:
+    - Create the `spec/agents-md/` directory if it doesn't exist
+    - Choose the filename: if the user provided a scope description, convert it to kebab-case and use it as the filename (e.g., `src-directory.md`); otherwise use a timestamp (`YYYY-MM-DDTHH-MM-SS.md`)
+    - If a file with the chosen name already exists, append a timestamp suffix before the extension
+    - Write all findings to the file: locations needing AGENTS.md files, proposed content for each, stale reference fixes, and priority ranking
+    - Print a brief summary to chat: the spec file path, total findings count, and the top 3 highest-priority items

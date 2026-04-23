@@ -1,9 +1,9 @@
 ---
-name: scan-innovate
-description: Brainstorm new ideas, features, and creative improvements for the project
+name: specify-innovate
+description: Brainstorm new ideas, features, and creative improvements for the project and write spec to `spec/innovate/`
 ---
 
-Usage: /scan-innovate [focus area]
+Usage: /specify-innovate [focus area]
 
 Analyze the project and brainstorm fresh ideas — new features, user-facing enhancements, and creative improvements that would make the project better.
 
@@ -35,7 +35,10 @@ $ARGUMENTS
    - Within each category, rank by impact-to-effort ratio (quick wins first, then high-impact projects)
    - Highlight the top 3 "best bang for buck" ideas across all categories
 
-5. Output findings directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
-   - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
-   - Use the same grouped-by-category format from step 4
+5. Write findings to a spec file:
+   - Create the `spec/innovate/` directory if it doesn't exist
+   - If the user provided a focus area, use it as the filename in kebab-case (e.g., `spec/innovate/payment-features.md`). Otherwise use a timestamp (e.g., `spec/innovate/2026-04-23.md`)
+   - If a file with the same name already exists, append a timestamp suffix to avoid overwriting
+   - Write all findings using the same grouped-by-category format from step 4
    - Include effort/impact estimates and suggested `/command` for each item
+   - Print a brief summary to chat: the file path, total number of findings, and the top 3 items

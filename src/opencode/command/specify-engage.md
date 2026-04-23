@@ -1,9 +1,9 @@
 ---
-name: scan-engage
-description: Analyze product engagement and suggest behavioral improvements to increase retention and reduce friction
+name: specify-engage
+description: Analyze product engagement and suggest behavioral improvements to increase retention and reduce friction and write spec to `spec/engage/`
 ---
 
-Usage: /scan-engage [scope or focus area]
+Usage: /specify-engage [scope or focus area]
 
 Analyze the project's user-facing flows and suggest engagement improvements — habit formation, friction reduction, and persuasion techniques grounded in behavioral science.
 
@@ -36,7 +36,10 @@ $ARGUMENTS
    - Highlight the top 3 "best bang for buck" improvements across all categories
    - Flag any ethical guardrail concerns (fabricated scarcity, fake social proof, punitive mechanics, dark patterns)
 
-5. Output findings directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
-   - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
-   - Use the same grouped-by-category format from step 4
+5. Write findings to a spec file:
+   - Create the `spec/engage/` directory if it doesn't exist
+   - If the user provided a scope or focus area, use it as the filename in kebab-case (e.g., `spec/engage/onboarding-flow.md`). Otherwise use a timestamp (e.g., `spec/engage/2026-04-23.md`)
+   - If a file with the same name already exists, append a timestamp suffix to avoid overwriting
+   - Write all findings using the same grouped-by-category format from step 4
    - Include effort/impact estimates and framework citations for each item
+   - Print a brief summary to chat: the file path, total number of findings, and the top 3 items

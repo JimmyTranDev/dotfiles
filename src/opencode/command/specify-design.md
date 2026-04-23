@@ -1,9 +1,9 @@
 ---
-name: scan-design
-description: Analyze UI/UX design and suggest improvements for layout, responsiveness, accessibility, and visual consistency
+name: specify-design
+description: Analyze UI/UX design and suggest improvements for layout, responsiveness, accessibility, and visual consistency and write spec to `spec/design/`
 ---
 
-Usage: /scan-design [scope or focus area]
+Usage: /specify-design [scope or focus area]
 
 Analyze the project's UI/UX design and suggest improvements — component architecture, layout systems, responsive design, accessibility, theming, and animation patterns.
 
@@ -37,7 +37,9 @@ $ARGUMENTS
    - Highlight the top 3 "best bang for buck" improvements across all categories
    - Flag any critical accessibility violations that need immediate attention (WCAG A/AA failures)
 
-5. Output findings directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
-   - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
-   - Use the same grouped-by-category format from step 4
-   - Include effort/impact estimates and framework citations for each item
+5. Write findings to a spec file:
+   - Create the `spec/design/` directory if it doesn't exist (using `mkdir -p spec/design/`)
+   - Choose filename: if the user provided a scope or focus area, convert it to kebab-case and use it as the filename (e.g., `spec/design/responsive-layout.md`); otherwise use a timestamp (e.g., `spec/design/2024-01-15T14-30-00.md`)
+   - If a file with the chosen name already exists, append a timestamp suffix before the extension (e.g., `spec/design/responsive-layout-2024-01-15T14-30-00.md`)
+   - Write all findings to the file using the same grouped-by-category format from step 4, including effort/impact estimates and framework citations for each item
+   - Print a brief summary to chat: the file path, total number of findings, and the top 3 items

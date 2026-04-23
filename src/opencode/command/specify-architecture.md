@@ -1,9 +1,9 @@
 ---
-name: scan-architecture
-description: Analyze project architecture, module boundaries, and structural patterns without making changes
+name: specify-architecture
+description: Analyze project architecture, module boundaries, and structural patterns without making changes and write spec to `spec/architecture/`
 ---
 
-Usage: /scan-architecture [scope or description]
+Usage: /specify-architecture [scope or description]
 
 Analyze the project's architecture — structure, module boundaries, dependency direction, coupling, cohesion, and architectural patterns — without making any changes.
 
@@ -51,6 +51,10 @@ Load the **meta-structure**, **code-quality**, **strategy-pragmatic-programmer**
    - Highlight the top 3-5 most impactful architectural improvements
    - Include a dependency graph or module map if the project is complex enough to warrant one
 
-7. Output findings directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
-   - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
+7. Write findings to a spec file:
+   - Create the `spec/architecture/` directory if it doesn't exist
+   - If the user provided a scope or description, use it as the filename in kebab-case (e.g., `spec/architecture/api-layer.md`). Otherwise use a timestamp (e.g., `spec/architecture/2026-04-23.md`)
+   - If a file with the same name already exists, append a timestamp suffix to avoid overwriting
+   - Write all findings using the same grouped-by-dimension format from step 6
    - Include each item's file location, classification, description, and suggested `/command`
+   - Print a brief summary to chat: the file path, total number of findings, and the top 3 items

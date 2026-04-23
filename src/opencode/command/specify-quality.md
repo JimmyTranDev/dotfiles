@@ -1,11 +1,11 @@
 ---
-name: scan-quality
-description: Analyze code for quality issues and report refactoring opportunities without making changes
+name: specify-quality
+description: Analyze code for quality issues and report refactoring opportunities without making changes and write spec to `spec/quality/`
 ---
 
-Usage: /scan-quality [scope or description]
+Usage: /specify-quality [scope or description]
 
-Analyze the specified code for internal quality issues — structure, readability, and maintainability — and report refactoring opportunities without applying any changes.
+Analyze the specified code for internal quality issues — structure, readability, and maintainability — and report refactoring opportunities without applying any changes. Write all findings to a spec file.
 
 $ARGUMENTS
 
@@ -45,6 +45,9 @@ $ARGUMENTS
    - Highlight the top 3-5 highest-impact refactoring opportunities
    - Suggest which `/command` to run to address each finding (e.g., `/implement`, `/fix`, `/consolidate`)
 
-7. Output findings directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
-   - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
-   - Include each item's file location, description, estimated impact, violated principle, and suggested `/command`
+7. Write findings to a spec file:
+   - Create the `spec/quality/` directory if it doesn't exist
+   - Choose the filename: if the user provided a scope description, convert it to kebab-case and use it as the filename (e.g., `auth-module.md`); otherwise use a timestamp (`YYYY-MM-DDTHH-MM-SS.md`)
+   - If a file with the chosen name already exists, append a timestamp suffix before the extension (e.g., `auth-module-2025-01-15T10-30-00.md`)
+   - Write all findings to the file in the same structured format: grouped by category, ranked by impact, with file location, description, estimated impact, violated principle, and suggested `/command` for each item
+   - Print a brief summary to chat: the spec file path, total findings count, and the top 3 highest-impact items

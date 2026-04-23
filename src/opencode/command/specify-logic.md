@@ -1,11 +1,11 @@
 ---
-name: scan-logic
-description: Analyze code for logic errors, contradictions, invalid assumptions, and missing edge cases without making changes
+name: specify-logic
+description: Analyze code for logic errors, contradictions, invalid assumptions, and missing edge cases and write spec to `spec/logic/`
 ---
 
-Usage: /scan-logic [scope or description]
+Usage: /specify-logic [scope or description]
 
-Analyze the specified code for logical correctness — contradictions, invalid assumptions, impossible states, missing edge cases, and flawed reasoning — without applying any changes.
+Analyze the specified code for logical correctness — contradictions, invalid assumptions, impossible states, missing edge cases, and flawed reasoning — and write findings to a spec file.
 
 $ARGUMENTS
 
@@ -53,6 +53,10 @@ $ARGUMENTS
    - Highlight the most critical logic errors that need immediate attention
    - Suggest which `/command` to run to address each finding (e.g., `/fix`, `/implement`)
 
-7. Output findings directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
-   - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
+7. Write findings to a spec file:
+   - Create `spec/logic/` directory if it doesn't exist
+   - Choose filename: if a scope or description was given, convert it to kebab-case (e.g., `auth-flow.md`); otherwise use a timestamp (e.g., `2026-04-23T12-00-00.md`)
+   - If a file with the chosen name already exists, append a timestamp suffix before the extension (e.g., `auth-flow-2026-04-23T12-00-00.md`)
+   - Write all findings to the file in the same structured format: categories, severity rankings, Sound Logic section, Fragile Assumptions section, and verdict
    - Include each item's file location, severity, description, and suggested fix
+   - Print a brief summary to chat: the spec file path, total findings count, and the top 3 most critical items

@@ -1,9 +1,9 @@
 ---
-name: scan-test
-description: Run tests and add or improve test coverage for specified code
+name: specify-test
+description: Run tests and add or improve test coverage for specified code and write spec to `spec/test/`
 ---
 
-Usage: /scan-test [scope or description]
+Usage: /specify-test [scope or description]
 
 Run the project's test suite and add or improve test coverage for the specified area.
 
@@ -51,6 +51,19 @@ $ARGUMENTS
    - Summarize each test added: what behavior it covers, what gap it fills, and the test result
    - List any remaining coverage gaps that were out of scope but worth noting
 
-8. Output remaining coverage gaps directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
-   - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
-   - Include each item's description, estimated risk level, and suggested test approach
+8. Write coverage gap analysis to `spec/test/`:
+   - Create the `spec/test/` directory if it doesn't exist
+   - Choose the filename:
+     - If a scope or description was given, convert it to kebab-case and use as the filename (e.g., `spec/test/user-authentication.md`)
+     - If no scope was given, use a timestamp filename (e.g., `spec/test/2026-04-23T12-00-00.md`)
+     - If a file with the chosen name already exists, append a timestamp suffix before the extension (e.g., `spec/test/user-authentication-2026-04-23T12-00-00.md`)
+   - Write the spec file containing:
+     - Test results summary (total, passing, failing, skipped)
+     - Tests added in this run with descriptions
+     - Remaining coverage gaps with risk level and suggested test approach for each
+     - Areas needing more coverage grouped by category
+
+9. Print a brief summary to chat as the final response:
+   - Spec file path
+   - Number of tests added
+   - Number of remaining coverage gaps

@@ -56,18 +56,19 @@ src/opencode/
 │   ├── improve-security.md
 │   ├── init.md
 │   ├── merge.md
-│   ├── scan-architecture.md
-│   ├── scan-audit.md
-│   ├── scan-design.md
-│   ├── scan-devtools.md
-│   ├── scan-engage.md
-│   ├── scan-innovate.md
-│   ├── scan-logic.md
-│   ├── scan-quality.md
-│   ├── scan-review.md
-│   ├── scan-test.md
-│   ├── scan-useful.md
-│   ├── scan.md
+│   ├── specify-architecture.md
+│   ├── specify-audit.md
+│   ├── specify-comments.md
+│   ├── specify-design.md
+│   ├── specify-devtools.md
+│   ├── specify-engage.md
+│   ├── specify-innovate.md
+│   ├── specify-jira.md
+│   ├── specify-logic.md
+│   ├── specify-quality.md
+│   ├── specify-review.md
+│   ├── specify-test.md
+│   ├── specify-useful.md
 │   ├── pr-audit.md
 │   ├── pr-multiple.md
 │   ├── pr-sequential.md
@@ -135,7 +136,7 @@ src/opencode/
 
 | Prefix | Purpose | Makes Changes? |
 |--------|---------|----------------|
-| `scan-*` | Analysis, recommendations, findings | No |
+| `specify-*` | Analysis that writes structured specs to spec/ subfolders | Yes (spec files only) |
 | `improve-*` | Find issues and apply fixes/improvements | Yes |
 | `fix-*` | Diagnose and fix specific problems | Yes |
 | `implement-*` | Build new features or implement tasks | Yes |

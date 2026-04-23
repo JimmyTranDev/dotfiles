@@ -1,9 +1,9 @@
 ---
-name: scan-useful
-description: Identify practical features and improvements users would actually want based on real workflows and pain points
+name: specify-useful
+description: Identify practical features and improvements users would actually want based on real workflows and pain points and write spec to `spec/useful/`
 ---
 
-Usage: /scan-useful [focus area]
+Usage: /specify-useful [focus area]
 
 Analyze the project from a user's perspective and identify practical features, missing conveniences, and workflow improvements that solve real problems users face day-to-day.
 
@@ -38,7 +38,7 @@ $ARGUMENTS
    - Describe the user problem it solves and why a user would want it in 1-2 sentences
    - Estimate effort (small, medium, large) and impact (high, medium, low)
    - Suggest where in the codebase it would fit and which existing patterns to follow
-   - Suggest which `/command` to run to get started (e.g., `/implement`, `/fix`, `/design`, `/scan-innovate`)
+   - Suggest which `/command` to run to get started (e.g., `/implement`, `/fix`, `/design`, `/specify-innovate`)
 
 5. Present findings:
    - Group by category
@@ -46,7 +46,10 @@ $ARGUMENTS
    - Highlight the top 3 "most wanted" improvements across all categories — things users would thank you for
    - Flag any suggestions that could be addressed immediately with existing `/commands` or skills
 
-6. Output findings directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
-   - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
-   - Use the same grouped-by-category format from step 5
+6. Write findings to a spec file:
+   - Create the `spec/useful/` directory if it doesn't exist
+   - If the user provided a focus area, use it as the filename in kebab-case (e.g., `spec/useful/cli-ergonomics.md`). Otherwise use a timestamp (e.g., `spec/useful/2026-04-23.md`)
+   - If a file with the same name already exists, append a timestamp suffix to avoid overwriting
+   - Write all findings using the same grouped-by-category format from step 5
    - Include effort/impact estimates and suggested `/command` for each item
+   - Print a brief summary to chat: the file path, total number of findings, and the top 3 items

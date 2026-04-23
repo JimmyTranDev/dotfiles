@@ -1,7 +1,4 @@
 copilot-instructions.md
-**/bank-advisor-dashboard-app/src/main/resources/application-local*.yml
-**/bank-advisor-dashboard-app/src/main/resources/application-local*.yaml
-
 .project
 .classpath
 .settings/

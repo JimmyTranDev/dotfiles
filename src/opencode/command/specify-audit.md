@@ -1,9 +1,9 @@
 ---
-name: scan-audit
-description: Analyze application code for security vulnerabilities and report findings without making changes
+name: specify-audit
+description: Analyze application code for security vulnerabilities and write spec to `spec/audit/`
 ---
 
-Usage: /scan-audit [scope or description]
+Usage: /specify-audit [scope or description]
 
 Analyze the project's application code for security vulnerabilities — injection flaws, authentication weaknesses, authorization gaps, data exposure, and unsafe patterns — without making any changes. This focuses on code-level security, not package/dependency auditing (use `/pr-audit` for that).
 
@@ -52,6 +52,10 @@ Load the **security** and **code-conventions** skills in parallel.
    - Highlight the top 3-5 most critical vulnerabilities that need immediate attention
    - Flag any findings that could be exploited without authentication
 
-7. Output findings directly in chat as the final response. If the user specifies an output destination (file path, format, etc.), write there instead.
-   - When writing to a file, append a new section with a timestamp header (create the file if it doesn't exist)
-   - Include each item's file location, severity, description, and suggested `/command`
+7. Write findings to a spec file:
+   - Create the `spec/audit/` directory if it doesn't exist
+   - Choose filename: if the user provided a scope or description, use it in kebab-case (e.g., `spec/audit/auth-endpoints.md`); otherwise use today's date (e.g., `spec/audit/2026-04-23.md`)
+   - If a file with the chosen name already exists, append a timestamp suffix (e.g., `spec/audit/auth-endpoints-1682300000.md`)
+   - Write all findings to the file in the same structured format: each item's file location, severity, description, effort estimate, and suggested `/command`
+   - Group by category and rank by severity within each category
+   - Print a brief summary to chat: the spec file path, total findings count, and the top 3 most critical items

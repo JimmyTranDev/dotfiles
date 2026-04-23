@@ -1,6 +1,6 @@
 ---
-name: scan-comments
-description: Fetch unresolved PR review comments and provide a clear summary and explanation of what each reviewer is asking for
+name: specify-comments
+description: Fetch unresolved PR review comments and provide a clear summary and explanation of what each reviewer is asking for and write spec to `spec/comments/`
 ---
 
 Fetch all unresolved review comments from the current branch's pull request and present a clear, organized explanation of what each reviewer is requesting.
@@ -15,10 +15,14 @@ Fetch all unresolved review comments from the current branch's pull request and 
    - For each unresolved thread, collect: file path, line number, all comments in the thread (author, body, createdAt), and the diff hunk for context
    - Also run `gh pr view {pr_number} --json reviews --jq '.reviews[]'` to get top-level review comments that may contain feedback
 
-3. Filter out noise:
+3. Filter and classify comments:
    - Skip comments authored by the current user
    - Skip comments that are pure praise, acknowledgments, approvals, or automated bot messages
-   - Keep all comments that contain questions, concerns, change requests, or suggestions
+   - Skip comments that are replies to other comments (follow-up discussion) unless they contain a distinct change request
+   - Classify each remaining comment as:
+     - **Change request**: requests a specific code change (rename, fix, add error handling, remove unused code, update implementation)
+     - **Question/concern**: raises an issue but doesn't specify an exact change
+     - **Suggestion**: optional improvement, not blocking
 
 4. Present each unresolved comment with a clear explanation:
    - For each comment, display:
@@ -33,3 +37,10 @@ Fetch all unresolved review comments from the current branch's pull request and 
    - Total number of unresolved comments
    - Group comments by theme (e.g., "naming concerns", "error handling gaps", "performance suggestions", "logic issues")
    - Mention if any comments appear to be blocking vs. nice-to-have based on tone and phrasing
+   - For change requests, include a concrete description of what code change is needed so a `/fix` or `/implement` command can act on it
+
+6. Write findings to a spec file:
+   - Create the `spec/comments/` directory if it doesn't exist
+   - Use the PR number and branch name as the filename in kebab-case (e.g., `spec/comments/pr-123-feature-branch.md`). If a file with the same name already exists, append a timestamp suffix to avoid overwriting
+   - Write the full organized comment summary from steps 4 and 5 to the file
+   - Print a brief summary to chat: the file path, total number of unresolved comments, and the top 3 most important items
