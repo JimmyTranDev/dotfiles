@@ -1,11 +1,11 @@
 ---
 name: specify-review
-description: Review codebase for bugs, design issues, and correctness problems without making changes and write spec to `spec/review/`
+description: Review code for bugs, logic errors, design issues, and correctness problems and write spec to `spec/review/`
 ---
 
 Usage: /specify-review [scope or description]
 
-Analyze the specified code for bugs, design issues, and correctness problems — report findings and write them to a spec file.
+Analyze the specified code for bugs, logic errors, design issues, and correctness problems — report findings and write them to a spec file.
 
 $ARGUMENTS
 
@@ -19,25 +19,36 @@ $ARGUMENTS
 
 2. Load all applicable skills in parallel (**code-follower**, **code-logic-checker**, **code-soundness**, and optionally **code-conventions**, **strategy-pragmatic-programmer**, **ts-total-typescript**, **meta-shell-scripting**), then analyze the code for issues across these categories:
    - **Correctness**: Logic errors, wrong return values, incorrect conditionals, missing return paths, flawed comparisons
+   - **Internal consistency**: Contradictory conditions, mutually exclusive branches that overlap, impossible states that aren't prevented
+   - **Completeness**: Missing branches, unhandled enum variants, gaps in state transitions, switch/if chains that don't cover all cases
    - **Error handling**: Swallowed errors, missing try/catch, catch-all handlers that hide failures, unhandled promise rejections, missing error propagation
-   - **Edge cases**: Null/undefined access, empty collections, boundary values, zero-length strings, negative numbers, overflow
+   - **Edge cases**: Null/undefined access, empty collections, boundary values, zero-length strings, negative numbers, overflow, off-by-one errors
+   - **Boolean logic**: Flipped conditions, De Morgan's law violations, negation errors, short-circuit evaluation assumptions
+   - **Data flow**: Inputs that aren't validated, type narrowing lost across function boundaries, values that can be stale or undefined
    - **Race conditions**: Async ordering bugs, missing awaits, shared mutable state, stale closures, fire-and-forget calls that should be awaited
+   - **State management**: Impossible states, missing state transitions, stale state reads, derived state that can desync, terminal states with outgoing edges
    - **API contracts**: Mismatched types between caller and callee, undocumented assumptions about input shape, missing validation
-   - **State management**: Impossible states, missing state transitions, stale state reads, derived state that can desync
    - **Security**: Injection vectors, auth bypasses, sensitive data exposure, missing input sanitization
 
 3. For each finding:
    - Give it a short, clear name
    - Include the file path and line number
    - Describe the bug or issue and its potential impact in 1-2 sentences
-   - Classify severity (critical, major, minor, warning)
+   - Classify severity (critical, major, minor, warning) using these criteria:
+     - **Critical**: Corrupts data, causes security bypass, or crashes the system
+     - **Major**: Produces wrong results under common conditions
+     - **Minor**: Only manifests under rare edge cases
+     - **Warning**: Valid logic that is fragile and likely to break with future changes
    - Suggest a concrete fix
 
 4. Present the analysis:
    - Do NOT apply any changes — this command is analysis-only
    - Group findings by category from step 2
    - Within each category, rank by severity (critical first)
+   - Include a "Sound Logic" section noting what is correct and well-reasoned
+   - Include a "Fragile Assumptions" section for logic that works now but could break
    - Highlight the top 3-5 most critical findings across all categories
+   - End with a verdict: Sound / Minor issues / Fundamental flaws
 
 5. Delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
@@ -49,11 +60,11 @@ $ARGUMENTS
 6. Summarize the analysis:
    - Report total findings by category and severity
    - Highlight the most critical items that need immediate attention
-   - Suggest which `/command` to run to address each finding (e.g., `/fix`, `/implement`, `/improve-security`)
+   - Suggest which `/command` to run to address each finding (e.g., `/fix`, `/implement`)
 
 7. Write findings to a spec file:
    - Create the `spec/review/` directory if it doesn't exist
    - Choose the filename: if the user provided a scope description, use it in kebab-case (e.g., `spec/review/auth-module.md`); otherwise use today's date (e.g., `spec/review/2026-04-23.md`)
    - If a file with the chosen name already exists, append a timestamp suffix (e.g., `spec/review/auth-module-1682300000.md`)
-   - Write all findings to the file using the same structured format: grouped by category, ranked by severity, with file location, severity, description, and suggested fix for each item
+   - Write all findings to the file: grouped by category, ranked by severity, with file location, severity, description, suggested fix, Sound Logic section, Fragile Assumptions section, and verdict
    - Print a brief summary to chat: the spec file path, total findings count, and the top 3 most critical items

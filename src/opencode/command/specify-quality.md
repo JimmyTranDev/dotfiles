@@ -1,11 +1,11 @@
 ---
 name: specify-quality
-description: Analyze code for quality issues and report refactoring opportunities without making changes and write spec to `spec/quality/`
+description: Analyze code for quality issues, simplification opportunities, and refactoring candidates and write spec to `spec/quality/`
 ---
 
 Usage: /specify-quality [scope or description]
 
-Analyze the specified code for internal quality issues — structure, readability, and maintainability — and report refactoring opportunities without applying any changes. Write all findings to a spec file.
+Analyze the specified code for internal quality issues — structure, readability, maintainability, unnecessary complexity, and code smells — and report refactoring opportunities without applying any changes. Write all findings to a spec file.
 
 $ARGUMENTS
 
@@ -13,8 +13,10 @@ $ARGUMENTS
    - If the user specifies files or directories, focus on those
    - If the user describes an area or pattern, search the codebase to locate the relevant code
    - If no scope is given, analyze the full codebase
+   - Read all target files and their direct dependents (callers, importers)
+   - Map the public API surface — what do consumers actually use?
 
-2. Load all applicable skills in parallel (**code-follower**, **code-simplifier**, **code-deduplicator**, **strategy-pragmatic-programmer**, and optionally **code-consolidator**, **code-logic-checker**, **ts-total-typescript**, **tool-eslint-config**, and **meta-shell-scripting**), then analyze the code for internal quality issues across these categories:
+2. Load all applicable skills in parallel (**code-follower**, **code-simplifier**, **code-deduplicator**, **code-conventions**, **strategy-pragmatic-programmer**, and optionally **code-consolidator**, **code-logic-checker**, **ts-total-typescript**, **tool-eslint-config**, **meta-shell-scripting**), then analyze the code across these categories:
    - **Naming clarity**: vague variable/function names, inconsistent naming conventions, misleading identifiers
    - **Function design**: functions doing too much, unclear responsibilities, deeply nested logic, high cyclomatic complexity
    - **Duplication**: repeated patterns, copy-pasted logic, similar implementations that should be unified via DRY
@@ -23,6 +25,7 @@ $ARGUMENTS
    - **Dead code**: unused exports, unreachable branches, deprecated patterns still in place, vestigial parameters
    - **Module structure**: tight coupling, poor cohesion, circular dependencies, barrel file bloat, unclear dependency direction
    - **Architecture**: mixed abstraction levels, leaky abstractions, god objects, violation of single responsibility
+   - **Simplification**: deeply nested conditionals that could use early returns, imperative loops replaceable with declarative transforms, state management with unnecessary intermediaries, trivial single-use abstractions that add indirection
 
 3. Prioritize the findings:
    - Rank refactoring opportunities by code quality impact (high, medium, low) considering readability gain, maintenance burden reduction, and risk of change
@@ -43,7 +46,7 @@ $ARGUMENTS
 6. Summarize the analysis:
    - Report total findings by category and severity
    - Highlight the top 3-5 highest-impact refactoring opportunities
-   - Suggest which `/command` to run to address each finding (e.g., `/implement`, `/fix`, `/consolidate`)
+   - Suggest which `/command` to run to address each finding (e.g., `/implement`, `/fix`)
 
 7. Write findings to a spec file:
    - Create the `spec/quality/` directory if it doesn't exist
