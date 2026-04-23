@@ -15,6 +15,8 @@ When a user request is vague, ambiguous, or could be interpreted in multiple way
 - **Use zsh** — when executing shell commands via the Bash tool, always use `zsh` syntax and builtins. This environment runs zsh as the default shell.
 - **Todoist links** — when given a Todoist URL (`app.todoist.com/...`), always load the **tool-todoist-cli** skill and use the `td` CLI to interact with it (e.g., `td view <url>`, `td task view <url>`, `td task complete <url>`). Never use WebFetch or browser tools for Todoist URLs.
 - **Always continue** — if there are remaining tasks, todos, or steps left to complete, keep working without stopping to ask for permission to continue. Only pause for user input when you need clarification or a decision, not when you simply have more work to do.
+- **Java projects** — when working in a Java project, always load the **java-spring-senior** skill before making changes. Detect Java projects by the presence of `pom.xml`, `build.gradle`, `build.gradle.kts`, or `*.java` files.
+- **100% test coverage** — when writing or modifying code, always ensure 100% unit test coverage for all affected code. This includes new code, modified functions, and any code paths touched by the changes. Load the **test** skill, write or update tests, and run them to verify full coverage before considering the task complete.
 
 ## OpenCode Config Structure
 
