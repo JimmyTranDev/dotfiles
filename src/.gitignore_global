@@ -4,3 +4,4 @@ copilot-instructions.md
 .settings/
 .factorypath
 *.launch
+application-local.yml
