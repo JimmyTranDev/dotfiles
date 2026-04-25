@@ -78,6 +78,37 @@ If operation B does not depend on operation A's output, run them together in a s
 - **PR context gathering**: `gh pr view` + `git diff base...HEAD` + `git log base..HEAD`
 - **Multi-worktree**: push all branches in parallel, create all PRs in parallel
 
+## Batch File Processing (Fan-Out Pattern)
+
+When processing many files (e.g., vocabulary batches, migrations, data files), divide the workload across multiple parallel agents:
+
+1. **Count total files** and decide agent count + files-per-agent (e.g., 338 files ÷ 10 agents = ~34 each)
+2. **Launch all agents in a single message** — each receives its file range, the task instructions, and any loaded skill content
+3. **Each agent independently** reads its files, performs the work, writes back changes, and returns a per-file summary
+4. **Collect results** from all agents and merge into a combined report
+
+| Step | Parallel? | Example |
+|------|-----------|---------|
+| Load skills + list directory | Yes | Load 3 skills + `ls` in one message |
+| Launch N agents for N file ranges | Yes | 10 agents each handling 34 files |
+| Merge agent results into report | No | Depends on all agents completing |
+
+### Sizing Guidelines
+
+| Total Files | Agents | Files/Agent |
+|-------------|--------|-------------|
+| < 10 | 1–2 | All |
+| 10–50 | 3–5 | ~10 |
+| 50–200 | 5–8 | ~25 |
+| 200+ | 8–10 | ~30–35 |
+
+### Key Rules
+
+- Pass full skill/instruction content to each agent — do not summarize or paraphrase
+- Each agent's work must be independent (no shared state between agents)
+- Assign contiguous file ranges (e.g., batch_001–034) for simplicity
+- Include file count in each agent's prompt so it knows when it's done
+
 ## Anti-Patterns
 
 | Anti-Pattern | Fix |
