@@ -93,4 +93,5 @@ cask "transmission"
 cask "webtorrent"
 
 # Backend
+brew "cloud-sql-proxy"
 brew "postgresql@15"
