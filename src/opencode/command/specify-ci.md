@@ -9,7 +9,7 @@ Investigate failing GitHub Actions workflows on the current branch, identify the
 
 $ARGUMENTS
 
-Load the **code-follower** and **code-logic-checker** skills in parallel.
+Load skills: **code-follower** and **code-logic-checker**.
 
 1. Identify the current branch and fetch CI status (run in parallel):
    - `git branch --show-current`
@@ -41,21 +41,12 @@ Load the **code-follower** and **code-logic-checker** skills in parallel.
    - For configuration errors: inspect `.github/workflows/` YAML files
 
 6. Present the analysis:
-   - Do NOT apply any changes — this command is analysis-only
    - For each failure, include: workflow name, job name, error category, root cause description, file path and line number, and a concrete suggested fix
    - Flag flaky/infrastructure failures as non-actionable
    - Rank by severity: build-breaking > test failures > lint > configuration > flaky
 
-7. Delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
-
-   Agents to delegate to (launch independent agents in parallel):
+7. Launch agents in parallel:
    - **fixer**: Investigate root causes of independent failures in parallel
    - **reviewer**: Verify root cause analysis is accurate
 
-8. Write findings to a spec file:
-   - Create the `spec/` directory if it doesn't exist
-   - Choose the filename: use the `ci-` prefix followed by a descriptive kebab-case name based on the branch or failure type (e.g., `spec/ci-feature-auth.md`, `spec/ci-lint-type-errors.md`); if a file with that name already exists, append a numeric suffix
-   - Write all findings to the file: table of failures with workflow name, job name, error category, root cause, file location, suggested fix, and status (actionable/flaky)
-   - Print a brief summary to chat: the spec file path, total failures found, and any build-breaking issues
-
-9. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.
+8. Write findings to a spec file using the `ci-` prefix per the `specify-*` conventions in AGENTS.md.

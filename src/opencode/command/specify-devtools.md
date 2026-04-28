@@ -15,11 +15,9 @@ $ARGUMENTS
    - Read package.json (or equivalent) for scripts, dependencies, and tooling configuration
    - Check for existing CI/CD config (.github/workflows, .gitlab-ci.yml, Jenkinsfile, etc.)
 
-2. If the user specifies a scope or focus area, narrow analysis to that. Otherwise analyze the full tooling setup.
+2. Load skills: **tool-eslint-config**, **code-conventions**, **git-workflows**, **meta-shell-scripting**, **git-gitignore**, and optionally **test**, **security-npm-vulnerabilities**, **ts-total-typescript**.
 
-3. Load all applicable skills in parallel (**tool-eslint-config**, **code-conventions**, **git-workflows**, **meta-shell-scripting**, **git-gitignore**, and optionally **test**, **security-npm-vulnerabilities**, **ts-total-typescript**).
-
-4. Analyze the project's developer tooling across these categories (only include categories that are relevant):
+3. Analyze the project's developer tooling across these categories (only include categories that are relevant):
    - **Linting and formatting**: ESLint config completeness, Prettier or formatting tool setup, rule coverage gaps, conflicting rules, missing plugins for the tech stack, typed linting enablement
    - **Type checking**: TypeScript strictness level, missing strict flags, `any` escape hatches in config, path aliases, project references for monorepos
    - **Git hooks**: Pre-commit hooks (lint-staged, husky, lefthook), commit message validation (commitlint), secret detection (TruffleHog), missing hooks that would prevent bad commits
@@ -31,29 +29,21 @@ $ARGUMENTS
    - **Documentation as tooling**: Missing CONTRIBUTING.md, missing architecture decision records, missing onboarding scripts or setup guides
    - **Monorepo tooling**: If applicable — workspace config, shared configs, dependency hoisting, task orchestration (turbo, nx, lerna)
 
-5. For each finding:
+4. For each finding:
    - Give it a short, clear name
    - Describe the gap or misconfiguration and why it matters for developer productivity
    - Estimate effort (small, medium, large) and impact (high, medium, low)
    - Include file paths and line numbers where applicable
    - Suggest which `/command` to run to address it (e.g., `/implement`, `/fix`, `/pr-audit`)
 
-6. Delegate to specialized agents where applicable — launch independent agents in parallel:
+5. Launch agents in parallel:
    - **reviewer**: Analyze tooling configs for correctness issues and inconsistencies
    - **auditor**: Check for security gaps in CI/CD, missing secret scanning, exposed credentials in configs
 
-7. Present findings:
-   - Do NOT apply any changes — this command is analysis-only
-   - Group by category from step 4
+6. Present findings:
+   - Group by category from step 3
    - Within each category, rank by impact-to-effort ratio (quick wins first)
    - Highlight the top 3-5 highest-priority improvements across all categories
    - Flag any issues that could be fixed immediately with existing `/commands`
 
-8. Write findings to a spec file:
-   - Create the `spec/` directory if it doesn't exist
-   - Use the `devtools-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/devtools-ci-cd-pipeline.md`, `spec/devtools-eslint-config.md`). If a file with the same name already exists, append a numeric suffix
-   - Write all findings using the same grouped-by-category format from step 7
-   - Include each item's file location, description, estimated effort/impact, and suggested `/command`
-   - Print a brief summary to chat: the file path, total number of findings, and the top 3 items
-
-9. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.
+7. Write findings to a spec file using the `devtools-` prefix per the `specify-*` conventions in AGENTS.md.

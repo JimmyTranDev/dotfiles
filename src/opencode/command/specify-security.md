@@ -9,14 +9,9 @@ Scan the specified code for security vulnerabilities, classify severity, show ex
 
 $ARGUMENTS
 
-1. Understand the scope:
-   - If the user specifies files or directories, focus the scan on those
-   - If the user describes a concern (e.g., "auth flow", "API endpoints"), locate the relevant code
-   - If no scope is given, scan the entire project focusing on entry points, auth, data handling, and external inputs
-   - Explore the project structure, entry points, and key modules to understand the tech stack and attack surface
-   - Identify the framework, API layer, authentication system, and data storage approach
+1. Explore the project structure, entry points, and key modules to understand the tech stack and attack surface. Identify the framework, API layer, authentication system, and data storage approach.
 
-2. Load all applicable skills in parallel (**security**, **code-follower**, **code-conventions**, and optionally **security-npm-vulnerabilities**), then scan systematically across these categories (only include categories that are relevant):
+2. Load skills: **security**, **code-follower**, **code-conventions**, and optionally **security-npm-vulnerabilities**. Scan systematically across these categories (only include categories that are relevant):
    - **Injection**: SQL injection, NoSQL injection, command injection, LDAP injection, XPath injection, template injection — string concatenation in queries, unsanitized user input passed to shell commands, eval/Function constructors, dynamic template rendering
    - **Cross-site scripting (XSS)**: Reflected, stored, and DOM-based XSS — `dangerouslySetInnerHTML`, `innerHTML`, `document.write`, unsanitized URL parameters, missing output encoding
    - **Authentication**: Weak password policies, missing rate limiting on login, insecure token storage, missing token expiration, hardcoded credentials, timing attacks, missing MFA enforcement
@@ -39,23 +34,13 @@ $ARGUMENTS
    - Effort to fix (small, medium, large)
 
 4. Present the analysis:
-   - Do NOT apply any changes — this command is analysis-only
    - Group findings by category from step 2
    - Within each category, rank by severity (Critical > High > Medium > Low)
    - Highlight any critical or high severity issues that need immediate attention
    - Flag any findings that could be exploited without authentication
 
-5. Delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
-
-   Agents to delegate to (launch independent agents in parallel):
+5. Launch agents in parallel:
    - **auditor**: Deep scan for exploitable vulnerabilities with specific attack vectors
    - **reviewer**: Analyze code patterns for correctness issues that overlap with security (race conditions, error handling, input validation)
 
-6. Write findings to a spec file:
-   - Create the `spec/` directory if it doesn't exist
-   - Choose the filename: use the `security-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/security-auth-flow.md`, `spec/security-input-validation.md`)
-   - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/security-auth-flow-2.md`)
-   - Write all findings to the file: grouped by category, ranked by severity, with exploit scenario, severity classification, file location, effort estimate, and suggested fix for each item
-   - Print a brief summary to chat: the spec file path, total findings count, and any critical/high severity items
-
-7. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.
+6. Write findings to a spec file using the `security-` prefix per the `specify-*` conventions in AGENTS.md.

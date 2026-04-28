@@ -20,7 +20,7 @@ $ARGUMENTS
    - Identify whether this is a logic error, type error, missing edge case, race condition, or configuration issue
    - Document the full call chain from symptom to root cause
 
-3. Load all applicable skills in parallel (**code-follower**, **code-logic-checker**, **code-soundness**, and optionally **code-conventions**, **ts-total-typescript**, **meta-shell-scripting**), then analyze the bug across these dimensions:
+3. Load skills: **code-follower**, **code-logic-checker**, **code-soundness**, and optionally **code-conventions**, **ts-total-typescript**, **meta-shell-scripting**. Analyze the bug across these dimensions:
    - **Root cause**: What is fundamentally wrong and why does it manifest as this symptom
    - **Blast radius**: What other code paths, features, or users are affected by this bug
    - **Regression risk**: What could break if the fix is applied incorrectly
@@ -38,24 +38,14 @@ $ARGUMENTS
    - Propose a concrete fix with specific code changes needed
 
 5. Present the analysis:
-   - Do NOT apply any changes — this command is analysis-only
    - Start with a clear root cause summary
    - List all affected files and the changes each needs
    - Order proposed fixes by dependency (which changes must come first)
    - Include a "Verification Plan" section describing how to confirm the fix works (test commands, manual steps)
 
-6. Delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
-
-   Agents to delegate to (launch independent agents in parallel):
+6. Launch agents in parallel:
    - **fixer**: Investigate the root cause and propose the minimal surgical fix
    - **reviewer**: Review the proposed fix approach for correctness and unintended side effects
    - **auditor**: Check if the bug has security implications
 
-7. Write findings to a spec file:
-   - Create the `spec/` directory if it doesn't exist
-   - Choose the filename: use the `fix-` prefix followed by a descriptive kebab-case name based on the bug (e.g., `spec/fix-null-pointer-in-auth.md`, `spec/fix-race-condition-payment-flow.md`)
-   - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/fix-null-pointer-in-auth-2.md`)
-   - Write the full analysis: root cause, blast radius, all findings with severity, proposed fixes in dependency order, verification plan, and related issues
-   - Print a brief summary to chat: the spec file path, root cause in one sentence, severity, and number of files that need changes
-
-8. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.
+7. Write findings to a spec file using the `fix-` prefix per the `specify-*` conventions in AGENTS.md.

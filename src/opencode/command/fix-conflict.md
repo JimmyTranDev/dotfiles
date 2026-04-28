@@ -35,10 +35,6 @@ Load the **git-conflict-resolution** and **code-follower** skills in parallel.
    - Whether build/lint/test passed after resolution
    - What command the user should run next to complete the operation
 
-## Skill Improvement
-
-After completing the work, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during investigation.
-
 Important:
 - Never silently drop changes from either side
 - Do not run `git merge`, `git rebase`, or `git cherry-pick` — this command only resolves existing conflicts

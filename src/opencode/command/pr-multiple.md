@@ -27,48 +27,31 @@ Load the **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** 
 
 4. Derive a kebab-case branch name for each **group** (e.g., `feat-settings-improvements`, `fix-auth-and-redirect`). Use a name that summarizes the group's combined purpose. Keep them short and descriptive.
 
-5. Check for uncommitted changes (run in parallel):
-   - `git status --porcelain`
-   - `git diff --cached --stat`
-
-6. If there are staged or unstaged changes:
-   - Stash them with `git stash push -m "pr-multiple-stash"`
-
-7. Create all worktrees in parallel (one per group):
+5. Set up all worktrees per the `pr-*` conventions in AGENTS.md (one per group, created in parallel):
    - For each group: `git worktree add ~/Programming/wcreated/<branch-name> -b <branch-name>`
    - If any worktree creation fails, report the error for that group and continue with the rest
 
-8. Process all groups in parallel — launch a separate **general** agent for each group. Each agent handles the full lifecycle for its group independently:
+6. Process all groups in parallel — launch a separate **general** agent for each group. Each agent handles the full lifecycle for its group independently:
 
    a. **Implement**: Apply all tasks in the group sequentially within the same worktree. Stage and commit each task individually using the format from the **git-workflows** skill (one commit per task, so the PR history stays granular).
 
-   b. **Review**: Launch **reviewer**, **auditor**, and **tester** agents in parallel on the full diff from `git diff <base-branch>...HEAD`:
-      - **reviewer**: catches bugs, design issues, and code quality problems
-      - **auditor**: scans for security vulnerabilities and exploitable patterns
-      - **tester**: verifies test coverage and adds missing tests for the new changes
+   b. **Review**: Run the review-fix-verify cycle per the `pr-*` conventions in AGENTS.md
 
-   c. **Fix**: If issues were found, launch **fixer** to address them, then stage and commit: `git add -A && git commit -m "🐛 fix: address review and audit findings"`. Run **reviewer** once more to verify (max 2 iterations).
+   c. **Push**: Push the branch with `git push -u origin <branch-name>`
 
-   d. **Push**: Push the branch with `git push -u origin <branch-name>`
+   d. **Create PR**: Create the PR with `gh pr create` targeting the base branch. Title summarizes the group. Body lists each task as a checklist item with its individual commit hash.
 
-   e. **Create PR**: Create the PR with `gh pr create` targeting the base branch. Title summarizes the group. Body lists each task as a checklist item with its individual commit hash.
-
-   f. **Complete Todoist tasks**: For each task in the group that contains a Todoist URL (`app.todoist.com/...`), complete it: `td task complete <url>`
-
-   g. **Mark todos**: Mark each task's corresponding TodoWrite entry as `completed` on success or `pending` on failure
+   e. **Mark todos**: Mark each task's corresponding TodoWrite entry as `completed` on success or `pending` on failure
 
    Each agent works exclusively in its own worktree directory (`~/Programming/wcreated/<branch-name>/`). A failure in one group does not block others — all groups run to completion independently.
 
-9. Report outcome to the user:
+7. Report outcome to the user:
     - Table showing each group, its tasks, branch name, PR URL, and status (success/failed)
     - Count of PRs created vs failed
-    - If changes were stashed in step 6, remind the user to `git stash pop` in the main repo
+    - If changes were stashed during worktree setup, remind the user to `git stash pop` in the main repo
 
 Important:
-- All work happens in worktree directories, never in the main repo
 - Each group runs through its full lifecycle (implement, review, fix, push, create PR) independently in parallel
 - A failure in one group does not block others — all groups run to completion
-- If a stash pop has conflicts, notify the user and stop before creating worktrees
-- Do not modify the main repo's working tree
 - Grouping happens upfront to prevent conflicts, eliminating the need for post-hoc rebasing
 - Within a group, tasks are committed individually to preserve granular history in the PR

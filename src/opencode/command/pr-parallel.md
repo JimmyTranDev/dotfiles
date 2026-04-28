@@ -58,9 +58,7 @@ Load the **git-worktree-workflow**, **git-workflows**, **git-conflict-resolution
         | `a` | `ci` | `👷` |
         | `R` | `revert` | `⏪` |
 
-   b. **Review**: Launch **reviewer** and **auditor** agents in parallel on the diff from `git diff <base-branch>...HEAD`:
-      - **reviewer**: catches bugs, design issues, and code quality problems
-      - **auditor**: scans for security vulnerabilities and exploitable patterns
+   b. **Review**: Launch **reviewer** and **auditor** agents in parallel on the diff from `git diff <base-branch>...HEAD`
 
    c. **Fix**: If issues were found, launch **fixer** to address them, then stage and commit: `git add -A && git commit --no-verify -m "fix: 🐛 address review and audit findings"`. Run **reviewer** once more to verify (max 2 iterations).
 
@@ -77,39 +75,27 @@ Load the **git-worktree-workflow**, **git-workflows**, **git-conflict-resolution
 
 9. Collect results from all parallel agents. If all tasks failed, report the failures and stop.
 
-10. Final review on the integration worktree — launch **reviewer**, **auditor**, and **tester** agents in parallel on the full combined diff (`git diff <base-branch>...HEAD`):
-    - **reviewer**: catches integration issues across the combined changes
-    - **auditor**: scans the combined result for security vulnerabilities
-    - **tester**: verifies test coverage and adds missing tests for the combined changes
+10. **Integration review**: Launch **reviewer**, **auditor**, and **tester** agents in parallel on the full combined diff (`git diff <base-branch>...HEAD`) in the integration worktree. If issues are found, launch **fixer** to address them, stage and commit, then run **reviewer** once more to verify (max 2 iterations).
 
-11. If issues were found:
-    - Launch **fixer** to address them in the integration worktree
-    - Stage and commit: `git add -A && git commit --no-verify -m "fix: 🐛 address integration review findings"`
-    - Run **reviewer** once more to verify (max 2 iterations)
+11. Run pre-commit hooks: `git hook run pre-commit` in the integration worktree. If hooks modify files, stage and commit: `git add -A && git commit --no-verify -m "style: 💎 apply pre-commit hook fixes"`. If hooks fail with errors, launch **fixer** to address them, then re-run.
 
-12. Run pre-commit hooks: `git hook run pre-commit` in the integration worktree. If hooks modify files, stage and commit: `git add -A && git commit --no-verify -m "style: 💎 apply pre-commit hook fixes"`. If hooks fail with errors, launch **fixer** to address them, then re-run.
-
-13. Push the integration branch:
+12. Push the integration branch:
     - `git push -u origin <integration-branch>`
 
-14. Create the PR with `gh pr create` targeting the base branch:
+13. Create the PR with `gh pr create` targeting the base branch:
     - Title: a concise summary of the overall goal
     - Body: a summary section, followed by a checklist of all tasks with their status (checked if merged successfully, unchecked with a note if skipped due to conflicts). Include the task branch names as references.
 
-15. Complete Todoist tasks: for each successfully merged task that contains a Todoist URL (`app.todoist.com/...`), complete it: `td task complete <url>`
-
-16. Report outcome to the user:
+14. Report outcome to the user:
     - PR URL
     - Table showing each task, its task branch, merge status (merged / skipped / failed), and conflict summary if any
     - Count of tasks merged vs skipped vs failed
     - If changes were stashed in step 5, remind the user to `git stash pop` in the main repo
 
 Important:
-- All work happens in worktree directories, never in the main repo
 - Task implementation is fully parallel — each task gets its own worktree and agent
 - The integration worktree is the single point where all parallel work converges
 - Merges into the integration worktree happen sequentially to allow orderly conflict resolution
 - A failure in one task does not block others — failed tasks are skipped during integration
 - If a merge conflict cannot be resolved, that task branch is skipped and reported — the PR proceeds with the remaining tasks
 - Never silently drop code from either side during conflict resolution
-- Do not modify the main repo's working tree

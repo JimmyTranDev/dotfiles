@@ -9,15 +9,12 @@ Analyze the specified code for bugs, logic errors, design issues, and correctnes
 
 $ARGUMENTS
 
-1. Understand the scope:
-   - If the user specifies files or directories, focus on those
-   - If the user describes a feature or area, search the codebase to locate the relevant code
-   - If no scope is given, review the current branch's diff against the base branch:
-     - Check if `develop` branch exists locally or as `origin/develop` — if so, use it as the base; otherwise fall back to `main` (or `origin/main`)
-     - Run in parallel: `git diff <base-branch>...HEAD` and `git log --oneline <base-branch>..HEAD`
-     - If no commits exist on the branch beyond the base, notify the user and stop
+1. Determine the scope. If no scope is given, review the current branch's diff against the base branch:
+   - Check if `develop` branch exists locally or as `origin/develop` — if so, use it as the base; otherwise fall back to `main` (or `origin/main`)
+   - Run in parallel: `git diff <base-branch>...HEAD` and `git log --oneline <base-branch>..HEAD`
+   - If no commits exist on the branch beyond the base, notify the user and stop
 
-2. Load all applicable skills in parallel (**code-follower**, **code-logic-checker**, **code-soundness**, and optionally **code-conventions**, **strategy-pragmatic-programmer**, **ts-total-typescript**, **meta-shell-scripting**), then analyze the code for issues across these categories:
+2. Load skills: **code-follower**, **code-logic-checker**, **code-soundness**, and optionally **code-conventions**, **strategy-pragmatic-programmer**, **ts-total-typescript**, **meta-shell-scripting**. Analyze the code for issues across these categories:
    - **Correctness**: Logic errors, wrong return values, incorrect conditionals, missing return paths, flawed comparisons
    - **Internal consistency**: Contradictory conditions, mutually exclusive branches that overlap, impossible states that aren't prevented
    - **Completeness**: Missing branches, unhandled enum variants, gaps in state transitions, switch/if chains that don't cover all cases
@@ -42,7 +39,6 @@ $ARGUMENTS
    - Suggest a concrete fix
 
 4. Present the analysis:
-   - Do NOT apply any changes — this command is analysis-only
    - Group findings by category from step 2
    - Within each category, rank by severity (critical first)
    - Include a "Sound Logic" section noting what is correct and well-reasoned
@@ -50,9 +46,7 @@ $ARGUMENTS
    - Highlight the top 3-5 most critical findings across all categories
    - End with a verdict: Sound / Minor issues / Fundamental flaws
 
-5. Delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
-
-   Agents to delegate to (launch independent agents in parallel):
+5. Launch agents in parallel:
    - **reviewer**: Catches bugs, design issues, and provides actionable feedback
    - **auditor**: Scans for security vulnerabilities and exploitable bugs
    - **optimizer**: Identifies performance concerns if the code introduces potentially expensive operations
@@ -62,11 +56,4 @@ $ARGUMENTS
    - Highlight the most critical items that need immediate attention
    - Suggest which `/command` to run to address each finding (e.g., `/fix`, `/implement`)
 
-7. Write findings to a spec file:
-   - Create the `spec/` directory if it doesn't exist
-   - Choose the filename: use the `review-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/review-auth-module.md`, `spec/review-payment-error-handling.md`)
-   - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/review-auth-module-2.md`)
-   - Write all findings to the file: grouped by category, ranked by severity, with file location, severity, description, suggested fix, Sound Logic section, Fragile Assumptions section, and verdict
-   - Print a brief summary to chat: the spec file path, total findings count, and the top 3 most critical items
-
-8. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.
+7. Write findings to a spec file using the `review-` prefix per the `specify-*` conventions in AGENTS.md.

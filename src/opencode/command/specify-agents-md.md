@@ -5,7 +5,7 @@ description: Analyze repository structure and report AGENTS.md improvements need
 
 Usage: /specify-agents-md $ARGUMENTS
 
-Analyze the current repository and identify where AGENTS.md files should be created or updated. If $ARGUMENTS specifies a path or scope, focus on that area. Otherwise, analyze the entire repo. Do NOT apply any changes — write all findings to a spec file.
+Analyze the current repository and identify where AGENTS.md files should be created or updated. If $ARGUMENTS specifies a path or scope, focus on that area. Otherwise, analyze the entire repo.
 
 1. Load the **meta-agents-md** skill to understand AGENTS.md structure, content principles, and what belongs vs. what doesn't
 
@@ -57,21 +57,11 @@ Analyze the current repository and identify where AGENTS.md files should be crea
    - Identify inaccurate information that should be removed or updated
 
 8. Present the analysis:
-   - Do NOT apply any changes — this command is analysis-only
    - For each location, include whether it needs a new AGENTS.md or updates to an existing one
    - Show the proposed content or diff for each file
    - Group by priority: critical fixes (stale references, wrong info) > new files needed > minor improvements
 
-9. Delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
-
-   Agents to delegate to (launch independent agents in parallel):
+9. Launch agents in parallel:
    - **reviewer**: Verify proposed AGENTS.md content is accurate and follows conventions
 
-10. Write findings to a spec file:
-    - Create the `spec/` directory if it doesn't exist
-    - Choose the filename: use the `agents-md-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/agents-md-src-directory.md`, `spec/agents-md-stale-references.md`)
-    - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/agents-md-src-directory-2.md`)
-    - Write all findings to the file: locations needing AGENTS.md files, proposed content for each, stale reference fixes, and priority ranking
-    - Print a brief summary to chat: the spec file path, total findings count, and the top 3 highest-priority items
-
-11. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.
+10. Write findings to a spec file using the `agents-md-` prefix per the `specify-*` conventions in AGENTS.md.

@@ -39,10 +39,4 @@ Fetch all unresolved review comments from the current branch's pull request and 
    - Mention if any comments appear to be blocking vs. nice-to-have based on tone and phrasing
    - For change requests, include a concrete description of what code change is needed so a `/fix` or `/implement` command can act on it
 
-6. Write findings to a spec file:
-   - Create the `spec/` directory if it doesn't exist
-   - Use the `comments-` prefix followed by the PR number and branch name in kebab-case (e.g., `spec/comments-pr-123-feature-branch.md`). If a file with the same name already exists, append a numeric suffix
-   - Write the full organized comment summary from steps 4 and 5 to the file
-   - Print a brief summary to chat: the file path, total number of unresolved comments, and the top 3 most important items
-
-7. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.
+6. Write findings to a spec file using the `comments-` prefix followed by the PR number and branch name in kebab-case (e.g., `spec/comments-pr-123-feature-branch.md`) per the `specify-*` conventions in AGENTS.md.

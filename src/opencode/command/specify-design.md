@@ -13,9 +13,8 @@ $ARGUMENTS
    - Explore the project structure, entry points, and key modules to understand the tech stack (React, React Native/Expo, terminal UI, etc.)
    - Run `git log --oneline -30` to understand recent development direction and momentum
    - Read key config files, READMEs, or AGENTS.md to understand the project's purpose, audience, and platform targets
-   - If the user specifies a focus area, narrow analysis to that scope
 
-2. Load all applicable skills in parallel (**ui-designer**, **ui-accessibility**, **ui-animator**, and optionally **code-conventions**, **code-follower**, **strategy-engager**), then analyze the project for design opportunities across these categories:
+2. Load skills: **ui-designer**, **ui-accessibility**, **ui-animator**, and optionally **code-conventions**, **code-follower**, **strategy-engager**. Analyze the project for design opportunities across these categories:
    - **Component architecture**: Evaluate component composition, prop interfaces, compound patterns, and separation of layout vs content — flag overly monolithic components, prop drilling, and missing composition boundaries
    - **Layout and spacing**: Audit use of layout primitives (flexbox, grid, stack patterns), spacing consistency (design tokens vs magic numbers), and container/content separation — flag inconsistent gaps, hardcoded dimensions, and missing responsive breakpoints
    - **Responsive design**: Check breakpoint strategy, mobile-first vs desktop-first approach, fluid typography, container queries, and touch target sizing — flag layouts that break at common viewport widths or fail on mobile
@@ -37,11 +36,4 @@ $ARGUMENTS
    - Highlight the top 3 "best bang for buck" improvements across all categories
    - Flag any critical accessibility violations that need immediate attention (WCAG A/AA failures)
 
-5. Write findings to a spec file:
-   - Create the `spec/` directory if it doesn't exist (using `mkdir -p spec/`)
-   - Choose filename: use the `design-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/design-responsive-layout.md`, `spec/design-accessibility-violations.md`)
-   - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/design-responsive-layout-2.md`)
-   - Write all findings to the file using the same grouped-by-category format from step 4, including effort/impact estimates and framework citations for each item
-   - Print a brief summary to chat: the file path, total number of findings, and the top 3 items
-
-6. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.
+5. Write findings to a spec file using the `design-` prefix per the `specify-*` conventions in AGENTS.md.

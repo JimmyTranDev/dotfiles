@@ -9,12 +9,7 @@ Scan the codebase for duplicated patterns, over-separated code, missed abstracti
 
 $ARGUMENTS
 
-1. Understand the scope:
-   - If the user specifies files or directories, focus on those
-   - If the user describes a pattern or area, search the codebase to locate the relevant code
-   - If no scope is given, scan the full codebase
-
-2. Load all applicable skills in parallel (**code-deduplicator**, **code-consolidator**, **code-follower**, and optionally **code-simplifier**, **strategy-pragmatic-programmer**, **meta-structure**), then scan across these categories:
+1. Load skills: **code-deduplicator**, **code-consolidator**, **code-follower**, and optionally **code-simplifier**, **strategy-pragmatic-programmer**, **meta-structure**. Scan across these categories:
 
    **Duplication (code that should be shared):**
    - **Exact duplicates**: identical or near-identical code blocks appearing in multiple files
@@ -39,40 +34,30 @@ $ARGUMENTS
    - **Premature splits**: features split into files before complexity warrants it
    - **Trivial abstractions**: helpers called once with 1-3 line bodies
 
-3. For each finding, document:
+2. For each finding, document:
    - All locations where the pattern appears (file paths and line numbers)
    - The duplicated code, over-separated structure, or missing abstraction with a representative example
    - A concrete suggestion: the shared abstraction (where it would live, its API, how call sites would use it) or the merge target (what files combine, resulting structure)
    - Estimated impact: lines saved, maintenance burden reduced, consistency gained
    - Risk level: low (mechanical extraction/merge), medium (needs minor refactoring), high (requires interface changes)
 
-4. Evaluate consolidation candidates using the decision tree:
+3. Evaluate consolidation candidates using the decision tree:
    - Confirm the pieces are not independently consumed or tested by different parts of the codebase
    - Verify the merged result would stay under 200 lines
    - Check that merging would not combine genuinely different concerns (types vs. logic vs. constants)
    - Check that files don't have different change frequencies (stable types vs. volatile logic)
 
-5. Present the analysis:
-   - Do NOT apply any changes — this command is analysis-only
+4. Present the analysis:
    - Group findings by the three top-level categories (Duplication, Abstraction, Over-separation)
    - Within each category, rank by number of occurrences and estimated impact (high first)
    - Highlight the top 5 highest-impact opportunities across all categories
 
-6. Delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
-
-   Agents to delegate to (launch independent agents in parallel):
+5. Launch agents in parallel:
    - **reviewer**: Verify extraction and merge suggestions are correct and won't break existing behavior
 
-7. Summarize the analysis:
+6. Summarize the analysis:
    - Report total findings by category and estimated lines that could be deduplicated or consolidated
    - Highlight the top 3-5 highest-impact opportunities
    - Suggest which `/command` to run to address each finding (e.g., `/implement` to extract a utility or merge files)
 
-8. Write findings to a spec file:
-   - Create the `spec/` directory if it doesn't exist
-   - Choose the filename: use the `reuse-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/reuse-api-handlers.md`, `spec/reuse-validation-logic.md`)
-   - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/reuse-api-handlers-2.md`)
-   - Write all findings to the file: grouped by category, ranked by impact, with all locations, representative code, suggested abstraction or merge, estimated impact, and risk level for each item
-   - Print a brief summary to chat: the spec file path, total findings count, estimated deduplication potential, and the top 3 highest-impact items
-
-9. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.
+7. Write findings to a spec file using the `reuse-` prefix per the `specify-*` conventions in AGENTS.md.

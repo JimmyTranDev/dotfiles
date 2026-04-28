@@ -13,9 +13,8 @@ $ARGUMENTS
    - Explore the project structure, entry points, and key modules to understand what the project does
    - Run `git log --oneline -30` to understand recent development direction and momentum
    - Read key config files, READMEs, or AGENTS.md to understand the project's purpose and audience
-   - If the user specifies a focus area, narrow analysis to that scope
 
-2. Load all applicable skills in parallel (**strategy-engager**, **ui-designer**, **ui-gamification**, **ui-animator**, and optionally **ui-accessibility**, **code-follower**), then analyze the project for engagement opportunities across these categories:
+2. Load skills: **strategy-engager**, **ui-designer**, **ui-gamification**, **ui-animator**, and optionally **ui-accessibility**, **code-follower**. Analyze the project for engagement opportunities across these categories:
    - **Onboarding friction**: Time to first value, registration walls, empty states, cognitive load on first visit — apply the first-time user flow pattern (Entry → Immediate value → Micro-commitment → First success → Reward → Next action)
    - **Habit loop design**: Identify cue, craving, response, and reward for each core user action — find missing or weak phases and suggest strengthening them
    - **Friction audit**: Walk through key user flows and score each step (0-4 friction scale) — flag anything scoring 3+ as blocking and suggest fixes using progressive disclosure, smart defaults, and recognition over recall
@@ -36,11 +35,4 @@ $ARGUMENTS
    - Highlight the top 3 "best bang for buck" improvements across all categories
    - Flag any ethical guardrail concerns (fabricated scarcity, fake social proof, punitive mechanics, dark patterns)
 
-5. Write findings to a spec file:
-   - Create the `spec/` directory if it doesn't exist
-   - Use the `engage-` prefix followed by a descriptive kebab-case name based on the scope or key findings (e.g., `spec/engage-onboarding-flow.md`, `spec/engage-retention-hooks.md`). If a file with the same name already exists, append a numeric suffix
-   - Write all findings using the same grouped-by-category format from step 4
-   - Include effort/impact estimates and framework citations for each item
-   - Print a brief summary to chat: the file path, total number of findings, and the top 3 items
-
-6. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.
+5. Write findings to a spec file using the `engage-` prefix per the `specify-*` conventions in AGENTS.md.

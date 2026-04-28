@@ -172,3 +172,51 @@ Maximize parallel execution at every level to reduce latency and total task time
 ### Git Operations
 - Run independent git info commands in parallel (e.g., `git status`, `git diff`, `git log` can all run at once)
 - Only serialize git commands that mutate state and depend on ordering (e.g., `git add` before `git commit`)
+
+## `specify-*` Command Conventions
+
+All `specify-*` commands follow these shared conventions. Individual commands only need to define their analysis categories, skill list, agent list, and spec filename prefix.
+
+### Scope Detection
+When the command receives `$ARGUMENTS`:
+- If the user specifies files or directories, focus on those
+- If the user describes a feature or area, search the codebase to locate the relevant code
+- If no scope is given, analyze the full codebase (or the current branch's diff against the base branch if the command is review-oriented)
+
+### Analysis-Only Guard
+`specify-*` commands do NOT apply any changes — they are analysis-only. The only files they create are spec files.
+
+### Spec File Output
+After analysis, write findings to a spec file:
+- Create the `spec/` directory if it doesn't exist
+- Use the command's prefix followed by a descriptive kebab-case name (e.g., `spec/<prefix>-auth-module.md`)
+- If the filename already exists, append a numeric suffix (e.g., `spec/<prefix>-auth-module-2.md`)
+- Write findings grouped by category, ranked by severity/impact, with file locations and suggested fixes
+- Print a brief summary to chat: the spec file path, total findings count, and the top 3 most critical items
+
+## `pr-*` Command Conventions
+
+All `pr-*` commands follow these shared conventions. Individual commands only need to define their specific workflow.
+
+### Worktree Setup
+1. Load the **git-worktree-workflow** and **git-workflows** skills (plus any command-specific skills) in parallel
+2. Determine the base branch using the priority order from the **git-workflows** skill (`develop` > `main` > `master`)
+3. Derive a kebab-case branch name from the task description
+4. Check for uncommitted changes: `git status --porcelain` and `git diff --cached --stat` (in parallel)
+5. If there are staged or unstaged changes, stash them: `git stash push -m "<branch-name>"`
+6. Create the worktree: `git worktree add ~/Programming/wcreated/<branch-name> -b <branch-name>`
+7. If changes were stashed, apply in the worktree: `git stash pop`
+
+### Review-Fix-Verify Cycle
+After implementation, run this cycle:
+1. Launch **reviewer**, **auditor**, and **tester** agents in parallel on the diff
+2. If issues are found, launch **fixer** agents in parallel for independent fixes across different files
+3. Stage and commit fixes: `git add -A && git commit -m "🐛 fix: address review and audit findings"`
+4. Run **reviewer** once more to verify (max 2 iterations)
+
+### PR Rules
+- All work happens in the worktree directory, never in the main repo
+- Do not modify the main repo's working tree
+- If a stash pop has conflicts, notify the user and stop
+- If `gh pr create` fails, report the error and stop
+- If `$ARGUMENTS` contains a Todoist URL (`app.todoist.com/...`), complete the task: `td task complete <url>`

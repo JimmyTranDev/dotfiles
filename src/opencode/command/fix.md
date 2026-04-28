@@ -29,17 +29,14 @@ $ARGUMENTS
    - Check for regressions by running the broader test suite if available
    - If no tests exist for the fixed code path, note this but do not add tests unless the user asks
 
-5. Load applicable skills and delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
+5. Load applicable skills and delegate to agents:
 
-   Skills to load (load all applicable skills in a single parallel batch):
-   - **code-follower**: Always load to match existing codebase conventions
-   - **code-logic-checker**: Load when the bug involves complex business logic or state management
+   Skills to load:
+    - **code-follower**: Always load to match existing codebase conventions
+    - **code-logic-checker**: Load when the bug involves complex business logic or state management
 
    Agents to delegate to:
-   - **fixer**: Delegate the core investigation and fix — this is the primary agent for /fix
-   - **tester**: Launch after the fix is applied to verify test coverage and add tests if needed
-   - **reviewer**: Launch in parallel with tester to verify the fix is correct and doesn't introduce new issues
-
-6. After completing the investigation, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during investigation.
-
+    - **fixer**: Delegate the core investigation and fix — this is the primary agent for /fix
+    - **tester**: Launch after the fix is applied to verify test coverage and add tests if needed
+    - **reviewer**: Launch in parallel with tester to verify the fix is correct and doesn't introduce new issues
 Report what the root cause was, what was changed, and how it was verified.
