@@ -11,6 +11,7 @@ When a user request is vague, ambiguous, or could be interpreted in multiple way
 
 ## Universal Rules
 
+- **Match existing conventions** — before writing new code, examine the surrounding codebase and follow its patterns exactly. Never introduce new conventions without explicit instruction.
 - **Prefer editing over creating** — always modify existing files rather than creating new ones when possible.
 - **Use zsh** — when executing shell commands via the Bash tool, always use `zsh` syntax and builtins. This environment runs zsh as the default shell.
 - **Todoist links** — when given a Todoist URL (`app.todoist.com/...`), always load the **tool-todoist-cli** skill and use the `td` CLI to interact with it (e.g., `td view <url>`, `td task view <url>`, `td task complete <url>`). Never use WebFetch or browser tools for Todoist URLs.
