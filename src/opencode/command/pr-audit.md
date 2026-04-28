@@ -74,6 +74,10 @@ Load the **git-worktree-workflow**, **git-workflows**, and **security-npm-vulner
     - Count of age bypasses added and cleaned up
     - Audit vulnerabilities resolved
 
+## Skill Improvement
+
+After completing the work, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the audit.
+
 Important:
 - All work happens in the worktree directory, never in the main repo
 - Never force push

@@ -109,3 +109,7 @@ IMPROVEMENT: [X% faster / X MB saved]
 - Guess at bottlenecks — always profile
 
 Measure. Fix. Prove.
+
+## Skill Improvement
+
+After completing an optimization, load the **meta-skill-learnings** skill and improve any relevant skills with reusable performance patterns or bottleneck gotchas discovered during profiling.

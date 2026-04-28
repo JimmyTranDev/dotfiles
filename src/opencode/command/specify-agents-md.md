@@ -73,3 +73,5 @@ Analyze the current repository and identify where AGENTS.md files should be crea
     - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/agents-md-src-directory-2.md`)
     - Write all findings to the file: locations needing AGENTS.md files, proposed content for each, stale reference fixes, and priority ranking
     - Print a brief summary to chat: the spec file path, total findings count, and the top 3 highest-priority items
+
+11. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.

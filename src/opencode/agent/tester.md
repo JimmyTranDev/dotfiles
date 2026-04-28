@@ -87,3 +87,7 @@ test_exits_on_missing_dependency() {
 - Copy-paste tests — extract helpers instead
 
 Test behavior. Catch bugs. Enable refactoring.
+
+## Skill Improvement
+
+After writing or analyzing tests, load the **meta-skill-learnings** skill and improve any relevant skills with reusable testing patterns, edge case categories, or gotchas discovered during test creation.

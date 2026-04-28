@@ -54,3 +54,5 @@ $ARGUMENTS
    - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/quality-auth-module-2.md`)
    - Write all findings to the file in the same structured format: grouped by category, ranked by impact, with file location, description, estimated impact, violated principle, and suggested `/command` for each item
    - Print a brief summary to chat: the spec file path, total findings count, and the top 3 highest-impact items
+
+8. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.

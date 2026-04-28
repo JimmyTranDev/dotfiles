@@ -57,3 +57,5 @@ $ARGUMENTS
    - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/fix-null-pointer-in-auth-2.md`)
    - Write the full analysis: root cause, blast radius, all findings with severity, proposed fixes in dependency order, verification plan, and related issues
    - Print a brief summary to chat: the spec file path, root cause in one sentence, severity, and number of files that need changes
+
+8. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.

@@ -57,3 +57,5 @@ Load the **meta-structure**, **code-quality**, **strategy-pragmatic-programmer**
    - Write all findings using the same grouped-by-dimension format from step 6
    - Include each item's file location, classification, description, and suggested `/command`
    - Print a brief summary to chat: the file path, total number of findings, and the top 3 items
+
+8. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.

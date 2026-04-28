@@ -40,4 +40,6 @@ $ARGUMENTS
    - **tester**: Launch after the fix is applied to verify test coverage and add tests if needed
    - **reviewer**: Launch in parallel with tester to verify the fix is correct and doesn't introduce new issues
 
+6. After completing the investigation, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during investigation.
+
 Report what the root cause was, what was changed, and how it was verified.

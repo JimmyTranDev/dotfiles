@@ -42,3 +42,5 @@ $ARGUMENTS
    - Write all findings using the same grouped-by-category format from step 4
    - Include effort/impact estimates and framework citations for each item
    - Print a brief summary to chat: the file path, total number of findings, and the top 3 items
+
+6. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.

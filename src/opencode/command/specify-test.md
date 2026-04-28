@@ -66,3 +66,5 @@ $ARGUMENTS
    - Spec file path
    - Number of tests added
    - Number of remaining coverage gaps
+
+10. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.

@@ -57,3 +57,5 @@ Load the **code-follower** and **code-logic-checker** skills in parallel.
    - Choose the filename: use the `ci-` prefix followed by a descriptive kebab-case name based on the branch or failure type (e.g., `spec/ci-feature-auth.md`, `spec/ci-lint-type-errors.md`); if a file with that name already exists, append a numeric suffix
    - Write all findings to the file: table of failures with workflow name, job name, error category, root cause, file location, suggested fix, and status (actionable/flaky)
    - Print a brief summary to chat: the spec file path, total failures found, and any build-breaking issues
+
+9. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.

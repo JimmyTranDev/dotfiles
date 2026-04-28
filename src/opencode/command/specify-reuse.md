@@ -74,3 +74,5 @@ $ARGUMENTS
    - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/reuse-api-handlers-2.md`)
    - Write all findings to the file: grouped by category, ranked by impact, with all locations, representative code, suggested abstraction or merge, estimated impact, and risk level for each item
    - Print a brief summary to chat: the spec file path, total findings count, estimated deduplication potential, and the top 3 highest-impact items
+
+9. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.

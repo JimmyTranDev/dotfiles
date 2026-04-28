@@ -57,3 +57,5 @@ $ARGUMENTS
    - If a file with the chosen name already exists, append a numeric suffix (e.g., `spec/security-auth-flow-2.md`)
    - Write all findings to the file: grouped by category, ranked by severity, with exploit scenario, severity classification, file location, effort estimate, and suggested fix for each item
    - Print a brief summary to chat: the spec file path, total findings count, and any critical/high severity items
+
+7. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.

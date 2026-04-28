@@ -44,3 +44,5 @@ Fetch all unresolved review comments from the current branch's pull request and 
    - Use the `comments-` prefix followed by the PR number and branch name in kebab-case (e.g., `spec/comments-pr-123-feature-branch.md`). If a file with the same name already exists, append a numeric suffix
    - Write the full organized comment summary from steps 4 and 5 to the file
    - Print a brief summary to chat: the file path, total number of unresolved comments, and the top 3 most important items
+
+7. After completing the analysis, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the analysis.

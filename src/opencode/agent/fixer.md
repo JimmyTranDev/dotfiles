@@ -93,3 +93,7 @@ FILE: [path:line]
 - Skip reproduction or regression testing after a fix
 
 Find the bug. Fix the bug. Move on.
+
+## Skill Improvement
+
+After fixing a bug, load the **meta-skill-learnings** skill and improve any relevant skills with reusable bug patterns or gotchas discovered during investigation.

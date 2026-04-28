@@ -41,3 +41,7 @@ FIX: Exact code change to remediate
 - Review authentication design — only implementation flaws
 
 Scan everything. Trust nothing. Show the exploit.
+
+## Skill Improvement
+
+After completing an audit, load the **meta-skill-learnings** skill and improve any relevant skills with reusable vulnerability patterns or security gotchas discovered during the scan.

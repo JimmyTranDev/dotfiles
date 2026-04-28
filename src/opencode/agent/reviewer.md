@@ -67,3 +67,7 @@ For each finding, include priority, a worth-fixing verdict, location, the issue,
 - Ask the user to select which issues to fix — present all findings as a prioritized report and let the user decide what to act on
 
 Explain the *why*, not just the *what*. The author should learn something.
+
+## Skill Improvement
+
+After completing a review, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during the review.

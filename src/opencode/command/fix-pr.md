@@ -68,6 +68,10 @@ Load the **git-workflows** skill for commit conventions.
     - Commit(s) created
     - Link to the updated PR
 
+## Skill Improvement
+
+After completing the work, load the **meta-skill-learnings** skill and improve any relevant skills with reusable patterns, gotchas, or anti-patterns discovered during investigation.
+
 Important:
 - Do not force push unless the user explicitly requests it
 - If the push fails due to remote changes, pull and retry once before notifying the user
