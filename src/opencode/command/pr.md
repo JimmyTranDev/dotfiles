@@ -3,13 +3,26 @@ name: pr
 description: Implement changes in a worktree and create a PR
 ---
 
-Usage: /pr <description of what to implement>
-
-Implement the described changes in a new git worktree, then create a pull request.
+Usage: /pr [description or task list]
 
 $ARGUMENTS
 
-Load the **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** skills in parallel.
+## Mode Detection
+
+Parse `$ARGUMENTS` to determine the mode:
+- **Sequential mode** — any of: `--sequential` flag, phrases like "sequentially", "one by one", "one at a time", "in order", "step by step", or a numbered/bulleted list of ordered tasks
+- **Parallel mode** — any of: `--parallel` flag, phrases like "in parallel", "simultaneously", "at the same time", "concurrently", or explicit grouping of independent tasks
+- **Single mode** — everything else (a single task description)
+- If no arguments are provided, ask the user what they want to implement
+
+## Skill Loading
+
+Load skills based on mode:
+- **All modes**: Load **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** in parallel
+- **Sequential mode**: Also load the **pr-sequential** skill
+- **Parallel mode**: Also load the **pr-parallel** skill
+
+## Single Mode
 
 1. Set up the worktree per the `pr-*` conventions in AGENTS.md
 

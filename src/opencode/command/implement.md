@@ -3,11 +3,27 @@ name: implement
 description: Implement changes based on a description using skills and specialized agents
 ---
 
-Usage: /implement <description of what to implement>
-
-Implement the required changes described below:
+Usage: /implement [description or task list]
 
 $ARGUMENTS
+
+## Mode Detection
+
+Detect sequential mode from `$ARGUMENTS` using any of these signals:
+- Explicit flag: `--sequential`
+- Natural language: contains phrases like "sequentially", "one by one", "one at a time", "in order", "step by step"
+- List format: multiple numbered items (1. ... 2. ...) or bullet points with distinct tasks
+
+If sequential mode is detected:
+1. Load the **implement-sequential** and **git-workflows** skills (in parallel with other applicable skills below)
+2. Follow the sequential workflow defined in the **implement-sequential** skill
+3. Skip the single-task workflow below
+
+If no arguments are provided, ask the user what they want to implement.
+
+Otherwise, proceed with the single-task workflow.
+
+## Single-Task Workflow
 
 1. Parse the prompt to understand what needs to be implemented
 2. Check if the changes described are already present in the codebase

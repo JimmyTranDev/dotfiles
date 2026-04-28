@@ -3,9 +3,22 @@ name: tutorial
 description: Implement changes one step at a time, explaining each step before and after, pausing for questions between steps
 ---
 
-Usage: /tutorial <what to implement or change>
+Usage: /tutorial [description]
 
 Implement the requested changes one step at a time. Before each step, explain what you're about to do and why. After each step, show what changed and ask if the user has questions or wants to continue.
+
+## Mode Detection
+
+Detect Jira mode from `$ARGUMENTS` using any of these signals:
+- Explicit flag: `--jira`
+- Contains a Jira URL (e.g., `*.atlassian.net/browse/*`, `*/jira/*/browse/*`)
+- Natural language: phrases like "jira ticket", "from jira", "jira issue", "jira story"
+
+If Jira mode is detected, load the **tutorial-jira** skill and run its Jira Ticket Preamble before proceeding. The fetched ticket becomes the implementation description.
+
+If no arguments are provided, ask the user what they want to learn/implement.
+
+Otherwise, use `$ARGUMENTS` directly as the implementation description.
 
 $ARGUMENTS
 

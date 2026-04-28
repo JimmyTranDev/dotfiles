@@ -3,23 +3,43 @@ name: specify
 description: Generate implementation specs in plans/ — one file per task group, scaled to complexity
 ---
 
-Usage: /specify <feature or task description>
+Usage: /specify [category] [scope or description]
 
 Analyze the project and the user's request, then produce implementation specification files in `plans/` at the project root. For small features, write a single spec. For larger features with many tasks, split into multiple focused spec files — one per logical task group. Each spec contains everything needed to start building its piece without ambiguity. This command does NOT implement anything or launch agents. It produces planning documents only.
 
 $ARGUMENTS
 
-1. Understand the project (run independent commands in parallel):
-   - Explore the project structure, entry points, and key modules to understand the tech stack and architecture
-   - Run `git log --oneline -30` to understand recent development direction
-   - Read key config files, READMEs, or AGENTS.md to understand conventions, patterns, and constraints
-   - Identify the testing strategy, build system, and deployment approach
+1. Determine the category from `$ARGUMENTS`:
+   - If the first word is an exact category name, use it
+   - If the first word is a synonym, abbreviation, or close match, map it to the correct category:
+     - `sec`, `vuln`, `vulnerabilities` → `security`
+     - `perf`, `performance`, `speed` → `optimize`
+     - `tests`, `coverage`, `testing` → `test`
+     - `bugs`, `correctness`, `logic` → `review`
+     - `code-quality`, `smells`, `refactor` → `quality`
+     - `deps`, `dependencies`, `audit` → `security` (or `devtools` based on context)
+     - `ui`, `ux`, `accessibility`, `a11y` → `design`
+     - `dx`, `tooling`, `linting` → `devtools`
+     - `duplication`, `dry`, `dedup` → `reuse`
+     - `structure`, `modules`, `coupling` → `architecture`
+     - `ideas`, `features`, `brainstorm` → `innovate`
+     - `engagement`, `retention`, `habits` → `engage`
+     - `agents`, `agents.md` → `agents-md`
+     - `bug`, `error`, `crash`, `broken` → `fix`
+     - `pr`, `pr-comments`, `feedback` → `comments`
+     - `github-actions`, `pipeline`, `workflow` → `ci`
+     - `steps`, `walkthrough`, `how-to` → `tutorial`
+     - `ticket`, `jira` → `jira`
+   - If no category can be determined, present the list of categories using the question tool and ask the user to pick one
+   - The remaining text after the category becomes the scope/description
 
-2. Analyze the user's request (`$ARGUMENTS`) and break it down:
-   - What is the user asking to build or change?
-   - What existing code does this touch?
-   - What new code needs to be created?
-   - What are the inputs, outputs, and side effects?
+2. Load the **specify-{category}** skill. This skill defines:
+   - Spec filename prefix
+   - Skills to load
+   - Agents to launch
+   - Analysis categories and checklists
+   - Severity classification
+   - Any scope overrides or unique workflow steps
 
 3. Create the `plans/` directory at the project root if it doesn't exist.
 
