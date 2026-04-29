@@ -19,6 +19,7 @@ When a user request is vague, ambiguous, or could be interpreted in multiple way
 - **Java projects** — when working in a Java project, always load the **java-spring-senior** skill before making changes. Detect Java projects by the presence of `pom.xml`, `build.gradle`, `build.gradle.kts`, or `*.java` files.
 - **100% test coverage** — when writing or modifying code, always ensure 100% unit test coverage for all affected code. This includes new code, modified functions, and any code paths touched by the changes. Load the **test** skill, write or update tests, and run them to verify full coverage before considering the task complete.
 - **Improve skills from discoveries** — whenever reviewing, analyzing, auditing, fixing, or investigating code and you discover a reusable bug pattern, gotcha, pitfall, anti-pattern, or missing best practice, load the **meta-skill-learnings** skill and improve the relevant skill directly. Do not record learnings to a separate file — update skills so the knowledge is immediately available for future tasks.
+- **Save useful scripts to dotfiles** — when creating a reusable utility script during a task, save it to `etc/scripts/ai/` in the dotfiles repo (`~/Programming/JimmyTranDev/dotfiles/etc/scripts/ai/`) rather than leaving it in the project directory. Scripts must follow existing conventions: `set -e`, source `common/logging.sh`, function-based structure. This makes scripts available across all projects.
 
 ## OpenCode Config Structure
 

@@ -109,6 +109,16 @@ run = "cd ~/.config"
 desc = "Go to config directory"
 
 [[mgr.prepend_keymap]]
+on = [ "g", "s" ]
+run = "cd spec/"
+desc = "Go to spec folder"
+
+[[mgr.prepend_keymap]]
+on = [ "g", "S" ]
+run = "cd plans/"
+desc = "Go to plans folder"
+
+[[mgr.prepend_keymap]]
 on = [ "g", "." ]
 run = "cd ~/Programming/JimmyTranDev/dotfiles"
 desc = "Go to dotfiles"

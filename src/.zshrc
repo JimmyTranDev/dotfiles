@@ -61,13 +61,17 @@ alias e='zellij'
 alias d="$DOTFILES_DIR/etc/scripts/common/git_diff_commits.sh"
 alias c='clear'
 alias e='exit'
+OPENCODE_STATUS_FILE="/tmp/opencode-status-$$"
+
 o() {
+  if [[ -n $ZELLIJ ]]; then
+    printf "running" > "$OPENCODE_STATUS_FILE"
+    zellij_tab_name_update
+  fi
   opencode "$@"
   if [[ -n $ZELLIJ ]]; then
-    local current_tab_name=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=.*focus=true/ {match($0, /name="[^"]*"/); print substr($0, RSTART+6, RLENGTH-7); exit}')
-    if [[ -n $current_tab_name && $current_tab_name != *" *" ]]; then
-      zellij action rename-tab "${current_tab_name} *" 2>/dev/null
-    fi
+    printf "done" > "$OPENCODE_STATUS_FILE"
+    zellij_tab_name_update
   fi
 }
 alias g='rg'
@@ -243,6 +247,12 @@ zellij_tab_name_update() {
     local tab_name="${current_dir:0:$max_length}"
     local tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=/ {count++; if (/focus=true/) {print count; exit}}')
     [[ -n $tab_index ]] && tab_name="${tab_index}. ${tab_name}"
+    if [[ -f "$OPENCODE_STATUS_FILE" ]]; then
+      local ai_status=$(<"$OPENCODE_STATUS_FILE")
+      if [[ -n $ai_status ]]; then
+        tab_name="${tab_name} [${ai_status}]"
+      fi
+    fi
     zellij action rename-tab "$tab_name" 2>/dev/null
   fi
 }
@@ -259,10 +269,11 @@ zellij_tab_name_update
 chpwd_functions=(${chpwd_functions:#zellij_tab_name_update} zellij_tab_name_update)
 
 zellij_clear_tab_notification() {
-  if [[ -n $ZELLIJ ]]; then
-    local current_tab_name=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=.*focus=true/ {match($0, /name="[^"]*"/); print substr($0, RSTART+6, RLENGTH-7); exit}')
-    if [[ $current_tab_name == *" *" ]]; then
-      zellij action rename-tab "${current_tab_name% \*}" 2>/dev/null
+  if [[ -n $ZELLIJ && -f "$OPENCODE_STATUS_FILE" ]]; then
+    local ai_status=$(<"$OPENCODE_STATUS_FILE")
+    if [[ "$ai_status" == "done" ]]; then
+      rm -f "$OPENCODE_STATUS_FILE"
+      zellij_tab_name_update
     fi
   fi
 }
