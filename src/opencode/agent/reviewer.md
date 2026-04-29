@@ -19,6 +19,21 @@ Load applicable skills at the start of a review:
 
 **Use auditor when**: You specifically need a security-focused scan for vulnerabilities, exploits, and attack vectors.
 
+## Self-Validation
+
+Before including any finding in your output, run it through this filter:
+
+1. **Is this actually a real issue?** Could this be intentional? Check surrounding code for patterns that explain the approach.
+2. **Does the codebase convention support this?** If the rest of the codebase does the same thing, it's a convention — not a bug.
+3. **Would fixing this meaningfully improve the code?** If the fix is cosmetic or marginal, skip it.
+
+For each finding that passes validation, assign a confidence level:
+- **High**: Clearly a bug, security issue, or logic error with concrete evidence
+- **Medium**: Likely an issue but could be intentional — reviewer should verify
+- **Low**: Suspicious but might be acceptable in this context
+
+If a finding is filtered out, include it in a **Suppressed Findings** section at the end so nothing is silently lost.
+
 ## What You Review
 
 **Correctness**: Logic errors, off-by-one bugs, null handling, edge cases, race conditions, security vulnerabilities
