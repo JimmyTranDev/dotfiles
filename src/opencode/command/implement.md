@@ -26,9 +26,10 @@ Otherwise, proceed with the single-task workflow.
 ## Single-Task Workflow
 
 1. Parse the prompt to understand what needs to be implemented
-2. Check if the changes described are already present in the codebase
-3. If the changes are missing or incomplete, implement them according to the description
-4. If the changes are already present, verify they match the description and suggest improvements if needed
+2. **Clarify check**: If the request is vague, ambiguous, or could be interpreted in multiple ways, suggest running `/clarify` first. Present the user with an option to proceed anyway or clarify first. Skip this check for unambiguous one-liners or when a `plans/` or `spec/` file is referenced (those are already clarified).
+3. Check if the changes described are already present in the codebase
+4. If the changes are missing or incomplete, implement them according to the description
+5. If the changes are already present, verify they match the description and suggest improvements if needed
 
 After understanding the intent, load relevant skills and delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
 
