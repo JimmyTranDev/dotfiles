@@ -25,6 +25,12 @@ Load the **git-workflows** skill for commit conventions.
    - Identify which comments are resolved vs unresolved
    - If `$ARGUMENTS` was provided, prioritize those issues
    - If no `$ARGUMENTS` and no unresolved comments exist, run **reviewer** and **auditor** in parallel on the diff to find improvements
+   - For ambiguous review comments, ask the user what the reviewer meant before attempting a fix
+
+4. For each unresolved comment, present it and ask the user:
+   - **Fix it**: Apply the suggestion
+   - **Skip it**: Prompt for a reason, then append to `comments.md` in the project root with format: `## PR #<number> - <date>` / `### <comment summary>` / `<reason for skipping>`
+   - **Clarify it**: Ask the user what the reviewer meant before deciding
 
 4. Check for merge conflicts:
    - Run `git fetch origin` then `git merge origin/<base-branch> --no-commit --no-ff` to test for conflicts
@@ -72,4 +78,5 @@ Important:
 - Do not force push unless the user explicitly requests it
 - If the push fails due to remote changes, pull and retry once before notifying the user
 - If the PR has required checks failing, mention it in the summary
-- Resolve inline review comments by replying with `gh api` if the fix directly addresses the comment
+- After fixing a comment, draft a reply explaining what was done and show it to the user for approval before posting via `gh api`
+- Create `comments.md` with a `# PR Comment Decisions` header if it doesn't exist yet
