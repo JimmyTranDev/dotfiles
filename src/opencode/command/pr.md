@@ -38,6 +38,13 @@ Load skills based on mode:
    - `git push -u origin <branch-name>`
 
 6. Create the PR:
-   - Create the PR with `gh pr create` targeting the base branch, with a title matching the original commit message and a summary body
+   - Create the PR with `gh pr create` targeting the base branch, with a title matching the original commit message
+   - Generate a detailed PR body using a HEREDOC with these sections:
+     - `## Summary` — 1-3 bullet points explaining what changed and why
+     - `## Changes` — list of modified/created files grouped by area (e.g., backend, frontend, config)
+     - `## Testing` — how to verify the changes work (commands to run, manual steps)
+     - `## Notes` — any caveats, follow-up work, or reviewer guidance
+   - For trivial PRs (single file, <10 lines changed), use only the Summary section
+   - If a `plans/*.md` spec file was consumed, reference it in the Summary for context
 
 7. Report the PR URL to the user

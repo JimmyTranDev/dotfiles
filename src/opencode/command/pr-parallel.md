@@ -42,21 +42,7 @@ Load the **git-worktree-workflow**, **git-workflows**, **git-conflict-resolution
       - `git add -A`
       - `git commit --no-verify -m "<type>(<scope>): <emoji> <description>"`
       - Multiple commits are fine if the task warrants it
-      - Use the commit type/emoji mapping:
-
-        | Key | Type | Emoji |
-        |-----|------|-------|
-        | `f` | `feat` | `✨` |
-        | `F` | `fix` | `🐛` |
-        | `c` | `chore` | `🔧` |
-        | `r` | `refactor` | `🔨` |
-        | `d` | `docs` | `📚` |
-        | `s` | `style` | `💎` |
-        | `t` | `test` | `🧪` |
-        | `p` | `perf` | `🚀` |
-        | `b` | `build` | `📦` |
-        | `a` | `ci` | `👷` |
-        | `R` | `revert` | `⏪` |
+      - Use the commit type/emoji mapping from the **git-workflows** skill
 
    b. **Review**: Launch **reviewer** and **auditor** agents in parallel on the diff from `git diff <base-branch>...HEAD`
 

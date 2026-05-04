@@ -217,7 +217,9 @@ select_worktree() {
     selected=$(printf "%s\n" "${sorted_items[@]}" | fzf --prompt="Select worktree: ")
     if [[ -n "$selected" ]]; then
       printf "%s" "$selected" > "$last_file"
-      cd "${label_to_path[$selected]}"
+      local target_dir="${label_to_path[$selected]}"
+      [[ -f "$target_dir/.git" ]] && touch "$target_dir/.git" 2>/dev/null
+      cd "$target_dir"
       zle reset-prompt
     fi
   } &>/dev/null </dev/tty

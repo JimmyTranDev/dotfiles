@@ -85,3 +85,14 @@ $ARGUMENTS
    - Suggest which spec to start with
 
 Do NOT implement anything, launch agents, or apply changes — this command produces planning documents only.
+
+## Post-Specification Clarification
+
+After writing all spec files and presenting the summary, automatically iterate through all open questions across all specs:
+
+1. Collect all questions from the "Open questions" sections of the generated spec files
+2. For each question, present it to the user using the question tool with concrete options where possible
+3. Include a "Skip remaining" option in every question to let the user stop early
+4. After each answer, update the spec file inline — replace the open question with a "Decision: [answer]" statement
+5. If the user's answer invalidates an earlier task or architectural decision in the spec, update that section too
+6. After all questions are answered (or skipped), note how many decisions were recorded

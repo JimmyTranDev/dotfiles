@@ -13,6 +13,7 @@ Load the **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** 
 
 1. Parse the task list from `$ARGUMENTS`:
    - Split the input into individual change descriptions (separated by newlines, numbered lists, commas, or semicolons)
+   - If the input contains Jira URLs (e.g., `*.atlassian.net/browse/*`) or Jira ticket IDs (e.g., `ABC-123`), treat each ticket as a separate task. Fetch each ticket's details using `acli jira workitem view <TICKET-ID> --fields "summary,description,status,priority"` to get the full task description.
    - Each item is a discrete unit of work
    - If only one item is detected, notify the user and suggest using `/pr` instead, then stop
 
