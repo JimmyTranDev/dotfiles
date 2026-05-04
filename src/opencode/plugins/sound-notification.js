@@ -15,8 +15,8 @@ export const SoundNotification = async ({ $ }) => {
       let tabName = currentDir.slice(0, maxLength)
 
       try {
-        const layout = await $`zellij action dump-layout`
-        const lines = layout.stdout.split("\n")
+        const result = await $`zellij action dump-layout 2>/dev/null`.quiet()
+        const lines = result.stdout.split("\n")
         let count = 0
         for (const line of lines) {
           if (/^\s*tab\s/.test(line)) {
