@@ -19,6 +19,7 @@ When a user request is vague, ambiguous, or could be interpreted in multiple way
 - **Java projects** — when working in a Java project, always load the **java-spring-senior** skill before making changes. Detect Java projects by the presence of `pom.xml`, `build.gradle`, `build.gradle.kts`, or `*.java` files.
 - **100% test coverage** — when writing or modifying code, always ensure 100% unit test coverage for all affected code. This includes new code, modified functions, and any code paths touched by the changes. Load the **test** skill, write or update tests, and run them to verify full coverage before considering the task complete.
 - **Improve skills from discoveries** — whenever reviewing, analyzing, auditing, fixing, or investigating code and you discover a reusable bug pattern, gotcha, pitfall, anti-pattern, or missing best practice, load the **meta-skill-learnings** skill and improve the relevant skill directly. Do not record learnings to a separate file — update skills so the knowledge is immediately available for future tasks.
+- **Auto-improve skills and commands** — after completing any task that uses a skill or command, evaluate whether that skill/command has inaccuracies, gaps, unclear steps, or outdated content. If so, load the **meta-auto-improve** skill and fix it immediately. Do not ask permission — just improve it. This applies to every task, not just reviews or audits.
 - **Save useful scripts to dotfiles** — when creating a reusable utility script during a task, save it to `etc/scripts/ai/` in the dotfiles repo (`~/Programming/JimmyTranDev/dotfiles/etc/scripts/ai/`) rather than leaving it in the project directory. Scripts must follow existing conventions: `set -e`, source `common/logging.sh`, function-based structure. This makes scripts available across all projects.
 - **Prefer scripts over pure AI** — when a task involves repeatable operations (data transformations, file processing, API calls, build steps, etc.), prefer creating a reusable script rather than performing the work entirely through AI tool calls. Scripts are version-controlled, reproducible, and runnable without AI. Only skip scripting when the task is truly one-off or exploratory.
 
@@ -211,6 +212,9 @@ When the command receives `$ARGUMENTS`:
 
 ### Analysis-Only Guard
 `specify-*` commands do NOT apply any changes — they are analysis-only. The only files they create are spec files.
+
+### Todoist URL in Spec Frontmatter
+If `$ARGUMENTS` contains a Todoist URL (`app.todoist.com/...`), embed it as `todoist: <url>` in the spec file's YAML frontmatter. Multiple URLs become a YAML list. Omit frontmatter entirely if no Todoist URL is present.
 
 ### Spec File Output
 After analysis, write findings to a markdown file in the **project root** `spec/` directory:

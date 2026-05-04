@@ -84,6 +84,16 @@ $ARGUMENTS
    - Show which specs can be worked on in parallel vs which have ordering constraints
    - Suggest which spec to start with
 
+## Todoist URL Preservation
+
+If `$ARGUMENTS` contains a Todoist URL (`app.todoist.com/...`):
+1. Extract the URL(s) from the arguments
+2. Add YAML frontmatter to the generated spec file(s) with the `todoist` field:
+   - Single URL: `todoist: <url>`
+   - Multiple URLs: `todoist:` as a YAML list
+3. Place the frontmatter block (`---` delimiters) at the very top of the spec file, before the `#` heading
+4. If no Todoist URL is present, omit frontmatter entirely (no empty block)
+
 Do NOT implement anything, launch agents, or apply changes — this command produces planning documents only.
 
 ## Post-Specification Clarification

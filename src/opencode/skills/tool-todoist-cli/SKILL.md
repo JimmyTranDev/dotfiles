@@ -305,12 +305,12 @@ echo "Detailed notes here" | td comment add "Task name" --stdin
 
 `td task list` has no `--section` flag. To get tasks in a specific section:
 
-1. Find the section ID from the URL or via `td section list --project <name> --json --show-urls`
+1. Find the section ID from the URL or via `td section list <project-name> --json --show-urls`
 2. List all project tasks and filter by `sectionId` in JSON:
 
 ```bash
-# Find section ID
-td section list --project "Vocabulary" --json --show-urls
+# Find section ID — note: project name is a POSITIONAL arg, not --project
+td section list "Vocabulary" --json --show-urls
 
 # List tasks in that section, filtering by sectionId
 td task list --project "Vocabulary" --json --full --show-urls | \
@@ -321,6 +321,28 @@ for t in data.get('results', []):
     if t.get('sectionId') == 'SECTION_ID_HERE':
         print(f'{t[\"content\"]} | p{5 - t[\"priority\"]} | {t.get(\"url\", \"\")}')"
 ```
+
+### Finding which project owns a section URL
+
+Given a section URL like `https://app.todoist.com/app/section/dotfiles-6f29Fcgcv4993gQG`, there's no direct lookup. You must iterate projects:
+
+```bash
+# Extract the section ID from the URL (last segment after final -)
+# dotfiles-6f29Fcgcv4993gQG → 6f29Fcgcv4993gQG
+
+# Search across projects for the section
+for proj in "Tasks" "Inbox" "Work"; do
+  td section list "$proj" --json --show-urls 2>/dev/null | \
+    python3 -c "
+import sys, json
+data = json.loads(sys.stdin.read())
+for s in data.get('results', []):
+    if 'TARGET_SECTION_ID' in s.get('url', ''):
+        print(f'Found in project: {s[\"name\"]} | {s.get(\"id\",\"\")}')" 2>/dev/null
+done
+```
+
+**Gotcha**: `td section list` takes the project name as a **positional argument**, unlike `td task list` which uses `--project <name>`. Passing `--project` to `td section list` will fail silently or error.
 
 ### Filtering by priority in JSON
 
