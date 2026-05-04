@@ -1,9 +1,9 @@
 ---
-name: pr-multiple
+name: pr-group
 description: Group related changes to reduce conflicts, implement in parallel worktrees, and create a PR per group
 ---
 
-Usage: /pr-multiple <list of changes to implement>
+Usage: /pr-group <list of changes to implement>
 
 Parse individual tasks from `$ARGUMENTS`, group tasks that would touch overlapping files into the same PR, then implement each group in its own worktree and create one pull request per group.
 

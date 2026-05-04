@@ -27,10 +27,10 @@ Load the **git-workflows** skill for commit conventions.
    - If no `$ARGUMENTS` and no unresolved comments exist, run **reviewer** and **auditor** in parallel on the diff to find improvements
    - For ambiguous review comments, ask the user what the reviewer meant before attempting a fix
 
-4. For each unresolved comment, present it and ask the user:
-   - **Fix it**: Apply the suggestion
-   - **Skip it**: Prompt for a reason, then append to `comments.md` in the project root with format: `## PR #<number> - <date>` / `### <comment summary>` / `<reason for skipping>`
-   - **Clarify it**: Ask the user what the reviewer meant before deciding
+4. For each unresolved comment, present the comment text and file location, then ask the user to choose one of three actions:
+   - **Fix it**: Apply the suggested change (proceed to step 5)
+   - **Answer it**: Present 3-5 reply options as a multiple-choice list. Options should include contextual responses like "Already handled by X", "Intentional — here's why", "Will address in a follow-up PR", "Out of scope for this PR", or a custom response. Post the chosen reply via `gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies -f body="<reply>"`
+   - **Close it**: Present 3-5 dismissal options as a multiple-choice list. Options should include "Won't fix — acceptable trade-off", "Not applicable to this change", "Addressed in a different comment", "Disagree — here's the rationale", or a custom response. Post the chosen reply via `gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies -f body="<reply>"` and then resolve the thread if possible
 
 4. Check for merge conflicts:
    - Run `git fetch origin` then `git merge origin/<base-branch> --no-commit --no-ff` to test for conflicts
@@ -79,4 +79,3 @@ Important:
 - If the push fails due to remote changes, pull and retry once before notifying the user
 - If the PR has required checks failing, mention it in the summary
 - After fixing a comment, draft a reply explaining what was done and show it to the user for approval before posting via `gh api`
-- Create `comments.md` with a `# PR Comment Decisions` header if it doesn't exist yet

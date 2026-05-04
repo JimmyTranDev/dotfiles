@@ -73,7 +73,7 @@ src/opencode/
 │   ├── specify-test.md
 │   ├── specify-useful.md
 │   ├── pr-audit.md
-│   ├── pr-multiple.md
+│   ├── pr-group.md
 │   ├── pr-sequential.md
 │   ├── pr.md
 │   ├── review.md
