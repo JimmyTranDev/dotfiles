@@ -1,5 +1,6 @@
 ---
 name: commit
+model: claude-haiku-4.5
 description: Create a well-formatted git commit using conventional commit format
 ---
 
