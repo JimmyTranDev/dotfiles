@@ -3,8 +3,6 @@ name: strategy-engager
 description: Behavioral psychology for product engagement covering hook model, habit loops, dual process theory, UX friction reduction, persuasion principles, cognitive biases, virality frameworks, and ethical engagement patterns
 ---
 
-Behavioral science frameworks for designing products users return to naturally.
-
 ## Hook Model
 
 Based on Hooked (Eyal).

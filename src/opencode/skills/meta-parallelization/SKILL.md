@@ -3,7 +3,7 @@ name: meta-parallelization
 description: Patterns for maximizing parallel execution of tool calls, skill loading, agent delegation, codebase exploration, and git operations
 ---
 
-Maximize parallel execution at every level to reduce latency and total task time. Never serialize operations that could run concurrently.
+Maximize parallel execution at every level to reduce latency and total task time. Never serialize operations that could run concurrently. This skill expands on the Parallelization section in AGENTS.md with detailed patterns, sizing heuristics, and fan-out strategies.
 
 ## Core Principle
 

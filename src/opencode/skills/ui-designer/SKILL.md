@@ -3,7 +3,7 @@ name: ui-designer
 description: UI/UX design patterns covering component architecture, layout systems, responsive design, state handling, theming, design tokens, and platform-specific conventions for React, React Native/Expo, and terminal interfaces
 ---
 
-Reference for building polished, well-structured UI components across web, mobile, and terminal platforms. Covers design patterns, layout, responsiveness, theming, and state handling. For accessibility, see the `accessibility` skill. For animations, see the `ux-ui-animator` skill.
+For accessibility, see the **ui-accessibility** skill. For animations, see the **ui-animator** skill.
 
 ## Platform Component Primitives
 

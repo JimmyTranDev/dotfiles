@@ -3,8 +3,6 @@ name: tool-local-ai
 description: Local AI model setup with Ollama and LM Studio for use with OpenCode, covering installation, model selection, configuration, and performance expectations
 ---
 
-Set up and use local AI models with OpenCode for offline development, privacy-sensitive work, or reducing API costs.
-
 ## When to Use Local vs Cloud
 
 | Use Local | Use Cloud |

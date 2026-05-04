@@ -3,8 +3,6 @@ name: tool-psql
 description: PostgreSQL psql CLI patterns covering connection strings, schema inspection, common queries, data export, transactions, and Cloud SQL Proxy workflows
 ---
 
-PostgreSQL CLI reference for AI agents interacting with databases via `psql`.
-
 ## Connection
 
 | Method | Command |

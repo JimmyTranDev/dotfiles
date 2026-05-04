@@ -3,8 +3,6 @@ name: ui-animator
 description: UI animation patterns covering CSS transitions, keyframes, Framer Motion, React Native Reanimated, Gesture Handler, spring physics, scroll-driven animations, and reduced-motion handling
 ---
 
-Guide for implementing polished, performant UI animations that enhance user experience without sacrificing accessibility or performance.
-
 ## Animation Purpose Matrix
 
 | Purpose | Examples | Duration | Easing |

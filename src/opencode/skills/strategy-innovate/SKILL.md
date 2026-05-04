@@ -3,8 +3,6 @@ name: strategy-innovate
 description: Innovation frameworks, ideation techniques, feature brainstorming categories, and impact-effort evaluation for generating project improvement ideas
 ---
 
-Structured approach to generating, evaluating, and prioritizing project ideas.
-
 ## Ideation Frameworks
 
 | Framework | When to Use | How It Works |

@@ -139,7 +139,7 @@ Use the correct element for the job — avoid `<div>` and `<span>` when a semant
 
 ## Motion and Animation
 
-- Respect `prefers-reduced-motion` for all animations (see `ux-ui-animator` skill for implementation patterns)
+- Respect `prefers-reduced-motion` for all animations (see **ui-animator** skill for implementation patterns)
 - No auto-playing content that flashes more than 3 times per second
 - Provide pause/stop controls for moving content
 

@@ -3,8 +3,6 @@ name: security
 description: Security vulnerability categories, severity classification, attack vectors, and remediation patterns for code auditing
 ---
 
-Scan code for exploitable vulnerabilities. Classify severity, explain attack vectors, provide exact fixes.
-
 ## Vulnerability Categories
 
 ### Injection
