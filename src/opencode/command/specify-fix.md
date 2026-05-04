@@ -1,6 +1,6 @@
 ---
 name: specify-fix
-description: Investigate a bug or issue, analyze root cause, and write a fix spec to `spec/`
+description: Investigate a bug or issue, analyze root cause, and write a fix spec to `plans/`
 ---
 
 Usage: /specify-fix <description of the bug, error message, or failing test>

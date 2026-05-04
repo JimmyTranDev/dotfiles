@@ -1,11 +1,11 @@
 ---
 name: specify-jira
-description: Fetch the Jira ticket for the current branch and generate an implementation spec in spec/
+description: Fetch the Jira ticket for the current branch and generate an implementation spec in plans/
 ---
 
 Usage: /specify-jira
 
-Fetch the Jira ticket associated with the current branch, analyze the codebase to understand what needs to change, and produce a detailed implementation spec file in `spec/jira/`.
+Fetch the Jira ticket associated with the current branch, analyze the codebase to understand what needs to change, and produce a detailed implementation spec file in `plans/jira/`.
 
 1. Verify `acli` is installed:
    - Run `command -v acli` to check if the Atlassian CLI tool is available
@@ -36,8 +36,8 @@ Fetch the Jira ticket associated with the current branch, analyze the codebase t
    - Note any dependencies between tasks
 
 6. Write the spec file:
-   - Create `spec/` if it doesn't exist
-   - Write to `spec/jira-<TICKET-ID>.md` (e.g., `spec/jira-BW-10257.md`)
+   - Create `plans/` if it doesn't exist
+   - Write to `plans/jira-<TICKET-ID>.md` (e.g., `plans/jira-BW-10257.md`)
    - Include these sections:
 
    **Ticket**: ticket key, summary, status, priority, and link to the Jira ticket
@@ -59,4 +59,4 @@ Fetch the Jira ticket associated with the current branch, analyze the codebase t
    - Spec file path
    - Total number of tasks and estimated overall complexity
    - Top open questions that need answers before starting
-   - Suggest running `/implement-jira` or `/implement spec/jira-<TICKET-ID>.md` to begin implementation
+   - Suggest running `/implement-jira` or `/implement plans/jira-<TICKET-ID>.md` to begin implementation

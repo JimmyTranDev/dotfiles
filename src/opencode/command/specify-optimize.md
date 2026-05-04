@@ -1,6 +1,6 @@
 ---
 name: specify-optimize
-description: Profile code for performance bottlenecks and report optimization opportunities without making changes and write spec to `spec/`
+description: Profile code for performance bottlenecks and report optimization opportunities without making changes and write spec to `plans/`
 ---
 
 Usage: /specify-optimize [scope or description]

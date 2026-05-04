@@ -1,6 +1,6 @@
 ---
 name: specify-engage
-description: Analyze product engagement and suggest behavioral improvements to increase retention and reduce friction and write spec to `spec/`
+description: Analyze product engagement and suggest behavioral improvements to increase retention and reduce friction and write spec to `plans/`
 ---
 
 Usage: /specify-engage [scope or focus area]

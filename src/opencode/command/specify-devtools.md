@@ -1,6 +1,6 @@
 ---
 name: specify-devtools
-description: Analyze developer tooling setup and identify improvements to linting, formatting, CI/CD, scripts, git hooks, and DX and write spec to `spec/`
+description: Analyze developer tooling setup and identify improvements to linting, formatting, CI/CD, scripts, git hooks, and DX and write spec to `plans/`
 ---
 
 Usage: /specify-devtools [scope or description]

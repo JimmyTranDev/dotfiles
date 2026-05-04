@@ -1,6 +1,6 @@
 ---
 name: specify-test
-description: Analyze test coverage gaps and write findings to a spec file in `spec/`
+description: Analyze test coverage gaps and write findings to a spec file in `plans/`
 ---
 
 Usage: /specify-test [scope or description]

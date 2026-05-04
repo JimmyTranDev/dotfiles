@@ -1,6 +1,6 @@
 ---
 name: specify-quality
-description: Analyze code for quality issues, simplification opportunities, and refactoring candidates and write spec to `spec/`
+description: Analyze code for quality issues, simplification opportunities, and refactoring candidates and write spec to `plans/`
 ---
 
 Usage: /specify-quality [scope or description]

@@ -1,6 +1,6 @@
 ---
 name: specify-innovate
-description: Brainstorm new ideas, practical improvements, and workflow enhancements for the project and write spec to `spec/`
+description: Brainstorm new ideas, practical improvements, and workflow enhancements for the project and write spec to `plans/`
 ---
 
 Usage: /specify-innovate [focus area]

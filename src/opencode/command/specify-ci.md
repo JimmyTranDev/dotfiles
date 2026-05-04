@@ -1,6 +1,6 @@
 ---
 name: specify-ci
-description: Investigate failing GitHub Actions workflows on the current branch and report root causes without making changes and write spec to `spec/`
+description: Investigate failing GitHub Actions workflows on the current branch and report root causes without making changes and write spec to `plans/`
 ---
 
 Usage: /specify-ci [$ARGUMENTS]

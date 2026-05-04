@@ -5,10 +5,10 @@ description: Merge multiple spec files into a single consolidated specification
 
 Usage: /merge-specs [$ARGUMENTS]
 
-Merge multiple spec files from `spec/` into a single consolidated spec.
+Merge multiple spec files from `plans/` into a single consolidated spec.
 
 1. List available spec files:
-   - Run `ls spec/*.md` to find all spec files
+   - Run `ls plans/*.md` to find all spec files
    - If `$ARGUMENTS` specifies filenames, use those
    - If no arguments, present all spec files via the question tool with multi-select enabled
    - If only one spec file exists, warn and exit — nothing to merge
@@ -23,7 +23,7 @@ Merge multiple spec files from `spec/` into a single consolidated spec.
 
 4. Write the merged spec:
    - Ask the user for a name, or derive from the source filenames
-   - Write to `spec/<merged-name>.md`
+   - Write to `plans/<merged-name>.md`
    - If the filename already exists, append a numeric suffix
 
 5. Optionally delete originals:

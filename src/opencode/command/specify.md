@@ -1,11 +1,11 @@
 ---
 name: specify
-description: Generate implementation specs in spec/ — one file per task group, scaled to complexity
+description: Generate implementation specs in plans/ — one file per task group, scaled to complexity
 ---
 
 Usage: /specify [category] [scope or description]
 
-Analyze the project and the user's request, then produce implementation specification files in `spec/` at the project root. For small features, write a single spec. For larger features with many tasks, split into multiple focused spec files — one per logical task group. Each spec contains everything needed to start building its piece without ambiguity. This command does NOT implement anything or launch agents. It produces planning documents only.
+Analyze the project and the user's request, then produce implementation specification files in `plans/` at the project root. For small features, write a single spec. For larger features with many tasks, split into multiple focused spec files — one per logical task group. Each spec contains everything needed to start building its piece without ambiguity. This command does NOT implement anything or launch agents. It produces planning documents only.
 
 $ARGUMENTS
 
@@ -41,7 +41,7 @@ $ARGUMENTS
    - Severity classification
    - Any scope overrides or unique workflow steps
 
-3. Create the `spec/` directory at the project root if it doesn't exist.
+3. Create the `plans/` directory at the project root if it doesn't exist.
 
 4. Decide how many spec files to produce:
    - If the feature has ~10 or fewer tasks that form a single cohesive unit, write one spec file
@@ -50,10 +50,10 @@ $ARGUMENTS
 
 5. Choose descriptive filenames:
    - Derive from the task/group description using kebab-case
-   - For a single spec: e.g., `spec/csv-export-api.md`
-   - For multiple specs: use a shared prefix, e.g., `spec/checkout-db-schema.md`, `spec/checkout-api.md`, `spec/checkout-ui.md`
+   - For a single spec: e.g., `plans/csv-export-api.md`
+   - For multiple specs: use a shared prefix, e.g., `plans/checkout-db-schema.md`, `plans/checkout-api.md`, `plans/checkout-ui.md`
    - Keep names short (2-4 words) but specific enough to identify the scope at a glance
-   - Check `spec/` for existing files and avoid name collisions
+   - Check `plans/` for existing files and avoid name collisions
 
 6. Write each spec file with these sections:
    - **Overview**: 2-3 sentence summary of what this spec covers and why
@@ -77,7 +77,7 @@ $ARGUMENTS
      - Risks — potential breaking changes, performance concerns, or security implications
 
 7. Present the summary in chat:
-   - List all spec files written (e.g., `spec/checkout-db-schema.md`, `spec/checkout-api.md`)
+   - List all spec files written (e.g., `plans/checkout-db-schema.md`, `plans/checkout-api.md`)
    - State the total number of tasks across all specs and estimated overall complexity
    - Highlight the critical path (longest chain of dependent tasks, including cross-spec dependencies)
    - Note the number of open questions that need answers before starting

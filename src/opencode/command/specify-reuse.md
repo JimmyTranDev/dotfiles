@@ -1,6 +1,6 @@
 ---
 name: specify-reuse
-description: Find duplicated patterns, over-separated code, missed abstractions, and reuse opportunities and write spec to `spec/`
+description: Find duplicated patterns, over-separated code, missed abstractions, and reuse opportunities and write spec to `plans/`
 ---
 
 Usage: /specify-reuse [scope or description]

@@ -1,6 +1,6 @@
 ---
 name: specify-security
-description: Scan code for security vulnerabilities with exploit scenarios and severity classification and write spec to `spec/`
+description: Scan code for security vulnerabilities with exploit scenarios and severity classification and write spec to `plans/`
 ---
 
 Usage: /specify-security [scope or description]

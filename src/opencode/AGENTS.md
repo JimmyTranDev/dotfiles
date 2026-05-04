@@ -151,7 +151,7 @@ src/opencode/
 
 | Prefix | Purpose | Makes Changes? |
 |--------|---------|----------------|
-| `specify-*` | Analysis that writes structured specs to spec/ subfolders | Yes (spec files only) |
+| `specify-*` | Analysis that writes structured specs to plans/ subfolders | Yes (spec files only) |
 | `fix-*` | Diagnose and fix specific problems | Yes |
 | `implement-*` | Build new features or implement tasks | Yes |
 | `pr-*` | Create/manage pull requests with worktrees | Yes |
@@ -172,7 +172,7 @@ src/opencode/
 | `structure` | Analyze and display project directory layout |
 | `migration-check` | Verify database migrations are safe |
 | `merge-specs` | Combine multiple spec files into one |
-| `review-plans` | Review spec/plan files for quality and completeness |
+| `review-plans` | Review plans/spec files for quality and completeness |
 
 ## Parallelization
 
@@ -217,11 +217,11 @@ When the command receives `$ARGUMENTS`:
 If `$ARGUMENTS` contains a Todoist URL (`app.todoist.com/...`), embed it as `todoist: <url>` in the spec file's YAML frontmatter. Multiple URLs become a YAML list. Omit frontmatter entirely if no Todoist URL is present.
 
 ### Spec File Output
-After analysis, write findings to a markdown file in the **project root** `spec/` directory:
-- Create the `spec/` directory at the workspace root if it doesn't exist
-- Name the file with a clear, descriptive kebab-case name that communicates the analysis subject (e.g., `spec/review-auth-module.md`, `spec/security-payment-api.md`, `spec/quality-data-layer.md`)
+After analysis, write findings to a markdown file in the **project root** `plans/` directory:
+- Create the `plans/` directory at the workspace root if it doesn't exist
+- Name the file with a clear, descriptive kebab-case name that communicates the analysis subject (e.g., `plans/review-auth-module.md`, `plans/security-payment-api.md`, `plans/quality-data-layer.md`)
 - Use the command's prefix (the part after `specify-`) as the filename prefix
-- If the filename already exists, append a numeric suffix (e.g., `spec/review-auth-module-2.md`)
+- If the filename already exists, append a numeric suffix (e.g., `plans/review-auth-module-2.md`)
 - Write findings grouped by category, ranked by severity/impact, with file locations and suggested fixes
 - Print a brief summary to chat: the spec file path, total findings count, and the top 3 most critical items
 

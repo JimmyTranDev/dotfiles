@@ -1,6 +1,6 @@
 ---
 name: specify-design
-description: Analyze UI/UX design and suggest improvements for layout, responsiveness, accessibility, and visual consistency and write spec to `spec/`
+description: Analyze UI/UX design and suggest improvements for layout, responsiveness, accessibility, and visual consistency and write spec to `plans/`
 ---
 
 Usage: /specify-design [scope or focus area]

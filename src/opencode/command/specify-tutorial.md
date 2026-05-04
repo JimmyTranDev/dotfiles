@@ -1,6 +1,6 @@
 ---
 name: specify-tutorial
-description: Break a task into step-by-step instructions with before/after code examples and write spec to `spec/`
+description: Break a task into step-by-step instructions with before/after code examples and write spec to `plans/`
 ---
 
 Usage: /specify-tutorial <what to implement or change>

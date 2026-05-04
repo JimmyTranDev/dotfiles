@@ -11,7 +11,7 @@ $ARGUMENTS
 
 1. Locate plan files:
    - If the user specifies a directory or files, use those
-   - If no arguments provided, look for `spec/`, `plans/`, or `docs/` directories in the project root
+   - If no arguments provided, look for `plans/`, `plans/`, or `docs/` directories in the project root
    - If no plan files found, notify the user and stop
    - Read ALL plan files in parallel to understand the full scope
 

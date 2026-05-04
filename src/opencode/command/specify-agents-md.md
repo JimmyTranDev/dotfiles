@@ -1,6 +1,6 @@
 ---
 name: specify-agents-md
-description: Analyze repository structure and report AGENTS.md improvements needed without making changes and write spec to `spec/`
+description: Analyze repository structure and report AGENTS.md improvements needed without making changes and write spec to `plans/`
 ---
 
 Usage: /specify-agents-md $ARGUMENTS

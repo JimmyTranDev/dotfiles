@@ -1,6 +1,6 @@
 ---
 name: specify-architecture
-description: Analyze project architecture, module boundaries, and structural patterns without making changes and write spec to `spec/`
+description: Analyze project architecture, module boundaries, and structural patterns without making changes and write spec to `plans/`
 ---
 
 Usage: /specify-architecture [scope or description]

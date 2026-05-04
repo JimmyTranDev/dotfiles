@@ -1,6 +1,6 @@
 ---
 name: specify-review
-description: Review code for bugs, logic errors, design issues, and correctness problems and write spec to `spec/`
+description: Review code for bugs, logic errors, design issues, and correctness problems and write spec to `plans/`
 ---
 
 Usage: /specify-review [scope or description]

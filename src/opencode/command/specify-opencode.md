@@ -1,6 +1,6 @@
 ---
 name: specify-opencode
-description: Analyze OpenCode config (agents, commands, skills, AGENTS.md) for gaps, inconsistencies, and improvements and write spec to `spec/`
+description: Analyze OpenCode config (agents, commands, skills, AGENTS.md) for gaps, inconsistencies, and improvements and write spec to `plans/`
 ---
 
 Usage: /specify-opencode [scope or focus area]
