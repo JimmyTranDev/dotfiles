@@ -1,6 +1,6 @@
 ---
 name: tool-nextjs
-description: "Next.js patterns covering App Router, Server Components, middleware, API routes, ISR, caching, metadata, and deployment"
+description: "Next.js 16 patterns covering App Router, Server Components, Server Actions, async params, use cache directive, PPR, middleware, API routes, caching, and deployment"
 ---
 
 ## App Router Structure
@@ -229,3 +229,130 @@ import Image from 'next/image'
 | Env vars exposed to client without prefix | Use `NEXT_PUBLIC_` prefix |
 | Middleware doing heavy computation | Move logic to API route |
 | Not handling `params` as Promise (Next 15+) | Await params before use |
+
+## Next.js 16 Changes
+
+### Async Request APIs (Breaking)
+
+In Next.js 15+, `params`, `searchParams`, `cookies()`, `headers()` are now async:
+
+```tsx
+// Page component
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <div>{id}</div>;
+}
+
+// Layout
+export default async function Layout({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  return <div>{slug}</div>;
+}
+
+// generateMetadata
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return { title: `Item ${id}` };
+}
+```
+
+### Turbopack (Default in Dev)
+
+Next.js 16 uses Turbopack by default for `next dev`. Webpack is still used for production builds.
+
+```bash
+next dev              # Uses Turbopack (default)
+next dev --webpack    # Force Webpack
+```
+
+### Caching Changes (Next.js 15+)
+
+- `fetch()` is NOT cached by default (was cached in 14)
+- To cache: `fetch(url, { next: { revalidate: 3600 } })` or `cache: 'force-cache'`
+- Route handlers are NOT cached by default
+- `unstable_cache` is deprecated → use `use cache` directive
+
+### `use cache` Directive
+
+```tsx
+'use cache';
+
+export default async function Page() {
+  const data = await fetchData();
+  return <div>{data}</div>;
+}
+```
+
+Or per-function:
+```tsx
+async function getData() {
+  'use cache';
+  return await db.query('SELECT ...');
+}
+```
+
+### Server Actions (Stable)
+
+```tsx
+// In Server Component or separate file with 'use server'
+async function submitForm(formData: FormData) {
+  'use server';
+  const name = formData.get('name');
+  await db.insert({ name });
+  revalidatePath('/');
+}
+
+// Client Component usage
+<form action={submitForm}>
+  <input name="name" />
+  <button type="submit">Submit</button>
+</form>
+```
+
+### Partial Prerendering (PPR)
+
+Combine static shell with dynamic streaming:
+
+```tsx
+// next.config.ts
+export default { experimental: { ppr: true } };
+
+// page.tsx — static shell renders instantly, Suspense boundaries stream
+export default function Page() {
+  return (
+    <div>
+      <StaticHeader />
+      <Suspense fallback={<Skeleton />}>
+        <DynamicContent />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+### Instrumentation
+
+```tsx
+// instrumentation.ts (project root)
+export async function register() {
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    await import('./sentry.server.config');
+  }
+}
+```
+
+### next.config.ts (TypeScript Config)
+
+```ts
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  reactStrictMode: true,
+  experimental: {
+    ppr: true,
+    typedRoutes: true,
+  },
+};
+
+export default nextConfig;
+```
