@@ -26,7 +26,7 @@ Otherwise, proceed with the single-task workflow.
 ## Single-Task Workflow
 
 1. Parse the prompt to understand what needs to be implemented
-2. **Clarify check**: If the request is vague, ambiguous, or could be interpreted in multiple ways, suggest running `/clarify` first. Present the user with an option to proceed anyway or clarify first. Skip this check for unambiguous one-liners or when a `plans/` or `spec/` file is referenced (those are already clarified).
+2. **Clarify check**: If the request is vague, ambiguous, or could be interpreted in multiple ways, suggest running `/clarify` first. Present the user with an option to proceed anyway or clarify first. Skip this check for unambiguous one-liners or when a `spec/` file is referenced (those are already clarified).
 3. Check if the changes described are already present in the codebase
 4. If the changes are missing or incomplete, implement them according to the description
 5. If the changes are already present, verify they match the description and suggest improvements if needed
@@ -61,4 +61,4 @@ Workflow:
 3. Implement the changes in the current working directory, delegating to the appropriate specialized agents based on the work type — launch independent agents in parallel
 4. Run post-implementation agents in parallel where independent (e.g., **reviewer** + **auditor** together, **tester** + **optimizer** together)
 5. If the reviewer surfaces problems, use the **fixer** agent to address them (sequential — depends on reviewer output)
-6. **Spec cleanup**: If `$ARGUMENTS` references a file in `plans/` (path starts with `plans/` or contains a `.md` file inside `plans/`), ask the user for confirmation before deleting the consumed spec file. If confirmed and the file is tracked by git, use `git rm`; otherwise use `rm`. If the `plans/` directory is empty after deletion, remove it too. Note in the final summary: "Removed consumed spec: plans/xyz.md"
+6. **Spec cleanup**: If `$ARGUMENTS` references a file in `spec/` (path starts with `spec/` or contains a `.md` file inside `spec/`), ask the user for confirmation before deleting the consumed spec file. If confirmed and the file is tracked by git, use `git rm`; otherwise use `rm`. If the `spec/` directory is empty after deletion, remove it too. Note in the final summary: "Removed consumed spec: spec/xyz.md"

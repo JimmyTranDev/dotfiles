@@ -31,9 +31,11 @@ src/opencode/
 ├── tui.json                 # TUI appearance config
 ├── agent/                   # Specialized subagents
 │   ├── auditor.md
+│   ├── critic.md
 │   ├── designer.md
 │   ├── engager.md
 │   ├── fixer.md
+│   ├── fullstacker.md
 │   ├── git.md
 │   ├── implementer.md
 │   ├── optimizer.md
@@ -41,44 +43,50 @@ src/opencode/
 │   └── tester.md
 ├── command/                 # Slash commands (/name)
 │   ├── clarify.md
-│   ├── clarify-agents-md.md
-│   ├── clean-worktrees.md
 │   ├── close-dependabot.md
 │   ├── commit.md
-│   ├── fix-ci.md
-│   ├── fix-comments.md
 │   ├── fix-conflict.md
 │   ├── fix-pr.md
 │   ├── fix.md
-│   ├── implement-jira.md
+│   ├── fms.md
 │   ├── implement-sequential.md
 │   ├── implement.md
-│   ├── improve-agents-md.md
-│   ├── improve-consolidate.md
-│   ├── improve-optimize.md
-│   ├── improve-security.md
 │   ├── init.md
+│   ├── merge-specs.md
 │   ├── merge.md
+│   ├── migration-check.md
+│   ├── pr-audit.md
+│   ├── pr-group.md
+│   ├── pr-parallel.md
+│   ├── pr-sequential.md
+│   ├── pr.md
+│   ├── quiz.md
+│   ├── review-plans.md
+│   ├── review.md
+│   ├── specify-agents-md.md
 │   ├── specify-architecture.md
-│   ├── specify-audit.md
+│   ├── specify-ci.md
 │   ├── specify-comments.md
 │   ├── specify-design.md
 │   ├── specify-devtools.md
 │   ├── specify-engage.md
+│   ├── specify-fix.md
 │   ├── specify-innovate.md
 │   ├── specify-jira.md
-│   ├── specify-logic.md
+│   ├── specify-opencode.md
+│   ├── specify-optimize.md
 │   ├── specify-quality.md
+│   ├── specify-reuse.md
 │   ├── specify-review.md
+│   ├── specify-security.md
 │   ├── specify-test.md
-│   ├── specify-useful.md
-│   ├── pr-audit.md
-│   ├── pr-group.md
-│   ├── pr-sequential.md
-│   ├── pr.md
-│   ├── review.md
+│   ├── specify-tutorial.md
+│   ├── specify.md
+│   ├── structure.md
 │   ├── tutorial-implement-jira.md
 │   └── tutorial.md
+├── plugins/                 # Event-driven plugins
+│   └── sound-notification.js
 └── skills/                  # On-demand knowledge (auto-discovered)
     ├── code-consolidator/
     ├── code-conventions/
@@ -88,14 +96,13 @@ src/opencode/
     ├── code-quality/
     ├── code-simplifier/
     ├── code-soundness/
-    ├── comm-caveman/
     ├── comm-doc-writer/
-    ├── comm-fsrs/
     ├── comm-spec-writer/
     ├── git-conflict-resolution/
     ├── git-gitignore/
     ├── git-workflows/
     ├── git-worktree-workflow/
+    ├── java-spring-senior/
     ├── mcp-browser/
     ├── mcp-mobile/
     ├── meta-agents-md/
@@ -104,23 +111,26 @@ src/opencode/
     ├── meta-shell-scripting/
     ├── meta-skill-learnings/
     ├── meta-structure/
+    ├── review-backend/
     ├── security/
     ├── security-npm-vulnerabilities/
     ├── strategy-career/
+    ├── strategy-criticize/
     ├── strategy-engager/
     ├── strategy-founding-sales/
     ├── strategy-innovate/
     ├── strategy-pragmatic-programmer/
-    ├── strategy-criticize/
-    ├── strategy-usefulness-checker/
     ├── test/
     ├── test-android-db-inspector/
     ├── tool-drizzle-orm/
     ├── tool-eslint-config/
+    ├── tool-github-actions/
     ├── tool-knip/
+    ├── tool-local-ai/
+    ├── tool-posthog-cli/
+    ├── tool-psql/
     ├── tool-slack-cli/
     ├── tool-spring-boot/
-    ├── tool-sqlite-local-sync/
     ├── tool-storybook-mcp/
     ├── tool-todoist-cli/
     ├── ts-total-typescript/
@@ -141,13 +151,27 @@ src/opencode/
 | Prefix | Purpose | Makes Changes? |
 |--------|---------|----------------|
 | `specify-*` | Analysis that writes structured specs to spec/ subfolders | Yes (spec files only) |
-| `improve-*` | Find issues and apply fixes/improvements | Yes |
 | `fix-*` | Diagnose and fix specific problems | Yes |
 | `implement-*` | Build new features or implement tasks | Yes |
 | `pr-*` | Create/manage pull requests with worktrees | Yes |
 | `tutorial-*` | Step-by-step interactive implementation | Yes |
-| `clarify-*` | Ask targeted questions to refine requirements or config | No |
-| (no prefix) | Utility commands (`commit`, `merge`, `init`, `review`, `clarify`) | Varies |
+| (no prefix) | Utility commands (`commit`, `merge`, `init`, `review`, `clarify`, `quiz`, `fms`, `structure`, `migration-check`, `merge-specs`, `review-plans`) | Varies |
+
+### Utility Command Reference
+
+| Command | Purpose |
+|---------|---------|
+| `commit` | Create a well-formatted git commit |
+| `merge` | Merge current branch into base |
+| `init` | Initialize project config |
+| `review` | Review code for correctness |
+| `clarify` | Ask clarifying questions before implementation |
+| `quiz` | Generate quiz questions from a spec file |
+| `fms` | Generate FMS translation JSON (Norwegian/English i18n keys) |
+| `structure` | Analyze and display project directory layout |
+| `migration-check` | Verify database migrations are safe |
+| `merge-specs` | Combine multiple spec files into one |
+| `review-plans` | Review spec/plan files for quality and completeness |
 
 ## Parallelization
 
