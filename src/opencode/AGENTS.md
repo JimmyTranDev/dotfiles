@@ -20,6 +20,7 @@ When a user request is vague, ambiguous, or could be interpreted in multiple way
 - **100% test coverage** — when writing or modifying code, always ensure 100% unit test coverage for all affected code. This includes new code, modified functions, and any code paths touched by the changes. Load the **test** skill, write or update tests, and run them to verify full coverage before considering the task complete.
 - **Improve skills from discoveries** — whenever reviewing, analyzing, auditing, fixing, or investigating code and you discover a reusable bug pattern, gotcha, pitfall, anti-pattern, or missing best practice, load the **meta-skill-learnings** skill and improve the relevant skill directly. Do not record learnings to a separate file — update skills so the knowledge is immediately available for future tasks.
 - **Save useful scripts to dotfiles** — when creating a reusable utility script during a task, save it to `etc/scripts/ai/` in the dotfiles repo (`~/Programming/JimmyTranDev/dotfiles/etc/scripts/ai/`) rather than leaving it in the project directory. Scripts must follow existing conventions: `set -e`, source `common/logging.sh`, function-based structure. This makes scripts available across all projects.
+- **Prefer scripts over pure AI** — when a task involves repeatable operations (data transformations, file processing, API calls, build steps, etc.), prefer creating a reusable script rather than performing the work entirely through AI tool calls. Scripts are version-controlled, reproducible, and runnable without AI. Only skip scripting when the task is truly one-off or exploratory.
 
 ## OpenCode Config Structure
 
@@ -188,10 +189,11 @@ When the command receives `$ARGUMENTS`:
 `specify-*` commands do NOT apply any changes — they are analysis-only. The only files they create are spec files.
 
 ### Spec File Output
-After analysis, write findings to a spec file:
-- Create the `spec/` directory if it doesn't exist
-- Use the command's prefix followed by a descriptive kebab-case name (e.g., `spec/<prefix>-auth-module.md`)
-- If the filename already exists, append a numeric suffix (e.g., `spec/<prefix>-auth-module-2.md`)
+After analysis, write findings to a markdown file in the **project root** `spec/` directory:
+- Create the `spec/` directory at the workspace root if it doesn't exist
+- Name the file with a clear, descriptive kebab-case name that communicates the analysis subject (e.g., `spec/review-auth-module.md`, `spec/security-payment-api.md`, `spec/quality-data-layer.md`)
+- Use the command's prefix (the part after `specify-`) as the filename prefix
+- If the filename already exists, append a numeric suffix (e.g., `spec/review-auth-module-2.md`)
 - Write findings grouped by category, ranked by severity/impact, with file locations and suggested fixes
 - Print a brief summary to chat: the spec file path, total findings count, and the top 3 most critical items
 
