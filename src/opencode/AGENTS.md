@@ -22,6 +22,11 @@ When a user request is vague, ambiguous, or could be interpreted in multiple way
 - **Auto-improve skills and commands** — after completing any task that uses a skill or command, evaluate whether that skill/command has inaccuracies, gaps, unclear steps, or outdated content. If so, load the **meta-auto-improve** skill and fix it immediately. Do not ask permission — just improve it. This applies to every task, not just reviews or audits.
 - **Save useful scripts to dotfiles** — when creating a reusable utility script during a task, save it to `etc/scripts/ai/` in the dotfiles repo (`~/Programming/JimmyTranDev/dotfiles/etc/scripts/ai/`) rather than leaving it in the project directory. Scripts must follow existing conventions: `set -e`, source `common/logging.sh`, function-based structure. This makes scripts available across all projects.
 - **Prefer scripts over pure AI** — when a task involves repeatable operations (data transformations, file processing, API calls, build steps, etc.), prefer creating a reusable script rather than performing the work entirely through AI tool calls. Scripts are version-controlled, reproducible, and runnable without AI. Only skip scripting when the task is truly one-off or exploratory.
+- **Architecture decisions** — when making significant architectural decisions (technology choices, system design, data model changes), save them to an `architecture/` folder at the project root as ADR files. Use the format from the **comm-adr-writer** skill.
+- **Jira tab title** — when a task has an associated Jira URL or ticket code, set the terminal/tab title to the Jira ticket code (e.g., `PROJ-123`) so the user can identify which task each tab is working on.
+- **No emoji in commits** — never use emoji in commit messages. Use the format `<type>(<scope>): <description>` without any emoji characters.
+- **Spec file naming** — when creating spec files in `plans/`, use descriptive kebab-case names that communicate the subject. Do not prefix with Jira ticket codes — use meaningful names like `plans/auth-session-timeout.md` instead of `plans/PROJ-123-auth-session-timeout.md`.
+- **Cache invalidation** — Todoist and Jira caches in nvim should be auto-invalidated after 1 week. When interacting with stale cached data, refresh it.
 
 ## OpenCode Config Structure
 

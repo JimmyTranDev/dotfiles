@@ -25,9 +25,13 @@ Generate a JSON array of FMS translation objects from the provided keys or descr
    ]
    ```
 
-4. Copy to clipboard if possible:
+4. Write the JSON array to `FMS.json` at the project root:
+   - If `FMS.json` already exists, merge new keys with existing ones (avoid duplicates by key)
+   - If it doesn't exist, create it with the generated array
+
+5. Also copy to clipboard if possible:
    - On macOS: pipe to `pbcopy`
-   - Report that the JSON was copied
+   - Report that the JSON was written to `FMS.json` and copied
 
 Important:
 - Keys must be dot-notation format (e.g., `page.section.element`)

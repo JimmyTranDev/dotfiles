@@ -51,8 +51,10 @@ git rebase <branch-name>
 
 ```bash
 git worktree remove ~/Programming/wcreated/<branch-name>
-git branch -d <branch-name>
+git branch -D <branch-name>
 ```
+
+**Rule**: Worktree removal always deletes the associated branch. Use `-D` (force) since the branch may not be merged yet. If the branch has an open PR, warn before deleting.
 
 ## Cleanup Operations
 
