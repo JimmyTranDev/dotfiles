@@ -80,3 +80,7 @@ Ground rules:
 - If the PR has required checks failing, mention that in the summary
 - After fixing a comment, draft a friendly reply explaining what was done and show it to the user for approval before posting via `gh api`
 - Never close or resolve review comment threads — only reply to them. Let the original reviewer resolve their own threads.
+- Each reply must be specific to the comment it addresses — never post the same generic "Addressed in <sha>" message to multiple comments. Mention the exact change made (e.g., "Moved `getEquitySourceOptions` to `@/app/utils/equityUtils.ts`" not "Addressed in f8d72ecb").
+- When a reviewer asks to deduplicate or move code, search the entire codebase for ALL instances of that pattern before fixing. Do not fix one occurrence and miss others — reviewers will catch this and require another round.
+- When moving code to a new location, verify the destination file's existing conventions. Do not put functions in data-only files, logic in type files, etc.
+- After applying fixes, re-read the full review thread top-to-bottom to catch follow-up comments that build on earlier ones (e.g., "you also need to deduplicate X" after an initial dedup request).
