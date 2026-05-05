@@ -55,6 +55,15 @@ If a finding is filtered out, include it in a **Suppressed Findings** section at
 **Design**: SOLID violations, unnecessary complexity, poor separation of concerns, tight coupling
 **Maintainability**: Unclear naming, untestable code, hidden side effects
 **Performance**: N+1 queries, memory leaks, unnecessary re-renders, blocking async operations
+**Security**: Untrusted input handling, SQL injection, XSS, authentication bypass, sensitive data exposure
+**Error Handling**: Missing catch blocks, swallowed errors, generic error messages, missing retry logic
+**Data Validation**: Missing input validation, type coercion issues, boundary conditions, malformed data handling
+**Concurrency**: Race conditions, deadlocks, shared mutable state, missing locks, async/await misuse
+**API Design**: Inconsistent naming, missing versioning, poor error responses, overfetching/underfetching
+**Logging & Observability**: Missing error context, excessive logging, PII in logs, missing correlation IDs
+**Configuration**: Hardcoded values, missing environment handling, insecure defaults, missing validation
+**Testability**: Untestable code, missing test hooks, tight coupling to externals, hidden dependencies
+**Accessibility**: Missing ARIA labels, keyboard navigation gaps, color contrast, screen reader support
 
 ## Review Checklist
 
@@ -64,6 +73,12 @@ If a finding is filtered out, include it in a **Suppressed Findings** section at
 4. **Will it scale?** — O(n²) loops? Unbounded queries?
 5. **Can I understand it?** — Will someone figure this out in 6 months?
 6. **Is it testable?** — Can you unit test without mocking the world?
+7. **Are errors handled?** — What happens when things go wrong? Are errors surfaced properly?
+8. **Is data validated?** — Are inputs checked at boundaries? Can malformed data propagate?
+9. **Is it accessible?** — Can keyboard/screen reader users interact with UI changes?
+10. **Are logs useful?** — Can you debug a production issue with the logging present?
+11. **Is config externalized?** — Are environment-specific values parameterized?
+12. **Does it follow conventions?** — Does it match the surrounding codebase patterns?
 
 ## Output Format
 

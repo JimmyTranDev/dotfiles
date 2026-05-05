@@ -34,12 +34,12 @@ For each unresolved comment, show:
 Then present options using the question tool:
 
 - **Fix it** — launch the **fixer** agent to address the feedback. After fixing, draft a reply describing the exact change made and show it to the user for approval before posting.
-- **Reply** — present 4-5 contextual reply options based on the comment's content:
-  - "Good catch — addressed in this revision" (only if actually fixed)
-  - "This is intentional because [reason]" — ask user for the reason
-  - "Will address in a follow-up PR"
-  - "Already handled by [X]" — ask user what handles it
-  - Custom reply — let the user type their own
+- **Reply** — generate 3 response suggestions in different tones:
+  1. **[Formal]** — professional, complete sentence (e.g., "Thank you for catching this. I've addressed it by extracting the validation into a shared utility.")
+  2. **[Casual]** — friendly, concise (e.g., "Good catch! Moved it to a shared util now.")
+  3. **[Concise]** — minimal, direct (e.g., "Fixed — extracted to shared validation.")
+  
+  Present all 3 and let the user pick one, edit one, or write their own.
   Post the chosen reply via `gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies -f body="<reply>"`
 - **Skip** — move to the next comment without action
 - **Stop** — end triage, skip remaining comments
@@ -68,6 +68,7 @@ If any fixes were made, ask if the user wants to:
 
 - Never resolve or close review threads — only reply. Let the reviewer resolve their own threads.
 - Each reply must be specific — never post generic "Addressed in <sha>" messages.
+- Replies must feel personal and natural — vary phrasing, avoid repetitive patterns across comments. Reference the specific change made, not boilerplate responses.
 - Never force push unless explicitly asked.
 - Load **code-follower** skill before making fixes to match codebase conventions.
 - Load **git-workflows** skill for commit message formatting.

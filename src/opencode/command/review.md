@@ -13,7 +13,7 @@ Parse `$ARGUMENTS` to determine what to review:
 - **PR mode** — argument is a GitHub PR URL or PR number → fetch the PR diff
 - **Branch mode** — argument is a branch name → diff between that branch and base branch (`develop` > `main` > `master`)
 - **File/directory mode** — argument is an existing file or directory path → review only changes in that path
-- **Local mode** — no arguments → review the current branch's diff against the base branch (`develop` > `main` > `master`). This shows all committed + uncommitted changes on the feature branch.
+- **Local mode** — no arguments → review the last commit's diff (`git diff HEAD~1..HEAD`). If the current branch has uncommitted changes, include those too by diffing against `HEAD~1`.
 
 ## Tech Stack Detection
 
@@ -28,9 +28,9 @@ Load all applicable skills in a single parallel batch.
 
 ## Local Mode
 
-1. Determine the base branch (`develop` > `main` > `master`)
-2. Run `git diff <base-branch>...HEAD` to gather all changes on the current branch (committed and uncommitted)
-3. If no diff exists, notify the user and stop
+1. Get the last commit diff: `git diff HEAD~1..HEAD`
+2. If there are uncommitted changes (`git status --porcelain`), also include `git diff` in the review
+3. If no commits exist and no changes, notify the user and stop
 4. Launch the **reviewer** agent on the diff
 
 ## Branch Mode
