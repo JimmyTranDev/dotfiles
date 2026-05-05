@@ -1,5 +1,5 @@
 ---
-name: generate-config
+name: opencode
 description: Analyze the current project, suggest agents/commands/skills, and create or update AGENTS.md with project conventions
 ---
 

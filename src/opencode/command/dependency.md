@@ -1,5 +1,5 @@
 ---
-name: dependency-check
+name: dependency
 description: Analyze dependencies for outdated packages, security issues, and unused exports
 ---
 

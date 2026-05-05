@@ -1,5 +1,5 @@
 ---
-name: fix-conflict
+name: conflict
 description: Resolve conflict markers in all conflicted files
 ---
 
