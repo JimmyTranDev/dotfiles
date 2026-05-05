@@ -126,6 +126,8 @@ keybinds clear-defaults=true {
         bind "Alt r" { SwitchToMode "renametab"; TabNameInput 0; }
         bind "Alt n" { NewTab; SwitchToMode "locked"; }
         bind "Alt q" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/zellij_close_and_reindex.sh" { close_on_exit true; }; SwitchToMode "locked"; }
+        bind "Alt ," { GoToPreviousTab; }
+        bind "Alt ." { GoToNextTab; }
         bind "Alt i" { MoveTab "left"; }
         bind "Alt o" { MoveTab "right"; }
         bind "Alt u" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/zellij_update_tab_indexes.sh" { close_on_exit true; }; SwitchToMode "locked"; }
