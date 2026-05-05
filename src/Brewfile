@@ -88,6 +88,7 @@ cask "postman"
 cask "raycast"
 cask "slack-cli"
 cask "stremio"
+cask "tailscale"
 cask "transmission"
 cask "webtorrent"
 
