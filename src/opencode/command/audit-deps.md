@@ -1,9 +1,9 @@
 ---
-name: dependency
+name: audit-deps
 description: Analyze dependencies for outdated packages, security issues, and unused exports
 ---
 
-Usage: /dependency-check [scope]
+Usage: /audit-deps [scope]
 
 Analyze the project's dependencies for outdated versions, known security vulnerabilities, and unused packages.
 

@@ -156,6 +156,8 @@ src/opencode/
 | `implement-*` | Build new features or implement tasks | Yes |
 | `pr-*` | Create/manage pull requests with worktrees | Yes |
 | `tutorial-*` | Step-by-step interactive implementation | Yes |
+| `triage-*` | Interactive walk-through of items with per-item decisions | Yes |
+| `audit-*` | Analysis and reporting without producing spec files | No (output only) |
 | (no prefix) | Utility commands (`commit`, `merge`, `init`, `review`, `clarify`, `quiz`, `fms`, `structure`, `migration-check`, `merge-specs`, `review-plans`) | Varies |
 
 ### Utility Command Reference
