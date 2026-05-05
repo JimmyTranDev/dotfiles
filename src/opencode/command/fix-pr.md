@@ -5,77 +5,78 @@ description: Address PR review feedback, resolve merge conflicts, and update the
 
 Usage: /fix-pr [$ARGUMENTS]
 
-Address review feedback, update the PR description on GitHub, and resolve merge conflicts for the current branch's pull request. If `$ARGUMENTS` is provided, focus on those specific issues. Otherwise, gather all open review comments and fix everything.
+Take care of PR review feedback, clean up merge conflicts, and keep the PR description fresh. If `$ARGUMENTS` is given, focus on those specific things. Otherwise, go through all open review comments and handle them one by one.
 
 Load the **git-workflows** skill for commit conventions.
 
-1. Verify a PR exists for the current branch:
+1. Make sure there's actually a PR for this branch:
    - Run `gh pr view --json number,title,url,state,headRefName,baseRefName,reviewDecision`
-   - If no PR exists, notify the user and stop
-   - If the PR is already merged or closed, notify the user and stop
+   - If there's no PR, let the user know and stop
+   - If the PR is already merged or closed, let the user know and stop
 
-2. Gather context (run all in parallel):
-   - `gh pr view --json comments,reviews,reviewRequests` to get all PR-level comments and reviews
-   - `gh api repos/{owner}/{repo}/pulls/{number}/comments` to get inline review comments
-   - `git diff $(gh pr view --json baseRefName -q .baseRefName)...HEAD` to see the current diff
-   - `git log --oneline $(gh pr view --json baseRefName -q .baseRefName)..HEAD` to see commits on this branch
+2. Pull together all the context (run these in parallel):
+   - `gh pr view --json comments,reviews,reviewRequests` to grab PR-level comments and reviews
+   - `gh api repos/{owner}/{repo}/pulls/{number}/comments` to grab inline review comments
+   - `git diff $(gh pr view --json baseRefName -q .baseRefName)...HEAD` to see what's changed
+   - `git log --oneline $(gh pr view --json baseRefName -q .baseRefName)..HEAD` to see the commit history on this branch
 
-3. Analyze all feedback:
-   - Parse review comments, inline code comments, and requested changes
-   - Identify which comments are resolved vs unresolved
-   - If `$ARGUMENTS` was provided, prioritize those issues
-   - If no `$ARGUMENTS` and no unresolved comments exist, run **reviewer** and **auditor** in parallel on the diff to find improvements
-   - For ambiguous review comments, ask the user what the reviewer meant before attempting a fix
+3. Look through all the feedback:
+   - Go through review comments, inline code comments, and requested changes
+   - Figure out which ones are still unresolved
+   - If `$ARGUMENTS` was provided, focus on those first
+   - If there are no `$ARGUMENTS` and nothing unresolved, run **reviewer** and **auditor** in parallel on the diff to spot any improvements
+   - If a review comment is unclear, ask the user what the reviewer likely meant before trying to fix it
 
-4. For each unresolved comment, present the comment text and file location, then ask the user to choose one of three actions:
-   - **Fix it**: Apply the suggested change (proceed to step 5)
-   - **Answer it**: Present 3-5 reply options as a multiple-choice list. Options should include contextual responses like "Already handled by X", "Intentional — here's why", "Will address in a follow-up PR", "Out of scope for this PR", or a custom response. Post the chosen reply via `gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies -f body="<reply>"`
-   - **Close it**: Present 3-5 dismissal options as a multiple-choice list. Options should include "Won't fix — acceptable trade-off", "Not applicable to this change", "Addressed in a different comment", "Disagree — here's the rationale", or a custom response. Post the chosen reply via `gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies -f body="<reply>"` and then resolve the thread if possible
+4. Walk through each unresolved comment — show the comment text and file location, then let the user pick how to handle it:
+   - **Fix it**: Apply the suggested change (move on to step 5)
+   - **Answer it**: Offer 3-5 thoughtful reply options as a multiple-choice list. Include responses like "Already handled by X", "This is intentional — here's why", "Good catch, will address in a follow-up PR", "Out of scope for this change", or a custom response. Post the chosen reply via `gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies -f body="<reply>"`
+   - **Close it**: Offer 3-5 polite dismissal options as a multiple-choice list. Include responses like "Considered this — acceptable trade-off for now", "Not applicable to this particular change", "Covered by a different comment above", "Respectfully disagree — here's my reasoning", or a custom response. Post the chosen reply via `gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies -f body="<reply>"`
 
-4. Check for merge conflicts:
-   - Run `git fetch origin` then `git merge origin/<base-branch> --no-commit --no-ff` to test for conflicts
-   - If conflicts exist:
-     - List all conflicted files
-     - Resolve each conflict by analyzing both sides and choosing the correct resolution
+5. Check for merge conflicts:
+   - Run `git fetch origin` then `git merge origin/<base-branch> --no-commit --no-ff` to test
+   - If there are conflicts:
+     - Show all conflicted files
+     - Resolve each one by looking at both sides and picking the right resolution
      - Stage resolved files with `git add <file>`
-     - Complete the merge with `git commit -m "🔨 refactor: resolve merge conflicts with <base-branch>"`
-   - If no conflicts, abort the test merge with `git merge --abort`
+     - Wrap up with `git commit -m "🔨 refactor: resolve merge conflicts with <base-branch>"`
+   - If everything merges cleanly, abort the test merge with `git merge --abort`
 
-5. Plan the fixes:
-   - Group related issues together
-   - Present a summary of what will be fixed to the user
-   - Ask the user to confirm before proceeding
+6. Plan the fixes:
+   - Group related issues together so they make sense as a unit
+   - Show the user a summary of what's about to change
+   - Get a thumbs-up before moving forward
 
-6. Implement the fixes:
+7. Make the fixes:
    - Apply changes to address each issue
    - Launch **fixer** agents in parallel for independent fixes across different files
 
-7. Verify the fixes — launch **reviewer** and **auditor** in parallel:
-   - Both agents analyze the updated diff from `git diff <base-branch>...HEAD`
-   - If new issues are found, fix them (max 2 iterations)
+8. Double-check everything — launch **reviewer** and **auditor** in parallel:
+   - Both look at the updated diff from `git diff <base-branch>...HEAD`
+   - If they spot new issues, fix those too (up to 2 rounds)
 
-8. Stage and commit:
+9. Stage and commit:
    - `git add -A`
-   - `git commit -m "<emoji> <type>(<scope>): <description>"` using the format from the **git-workflows** skill
-   - Use a commit message that describes what was fixed (e.g., `🐛 fix(auth): address pr review feedback`)
+   - `git commit -m "<emoji> <type>(<scope>): <description>"` following the **git-workflows** skill format
+   - Write a commit message that captures what was fixed (e.g., `🐛 fix(auth): address pr review feedback`)
 
-9. Push the changes:
-   - `git push`
-   - If the push fails, notify the user with the error details
+10. Push it up:
+    - `git push`
+    - If the push fails, let the user know what went wrong
 
-10. Update the PR description on GitHub:
-    - Generate an updated PR body summarizing all commits on the branch: `git log --oneline $(gh pr view --json baseRefName -q .baseRefName)..HEAD`
-    - Include a summary section describing the overall changes
+11. Freshen up the PR description:
+    - Generate an updated PR body from the branch's commit history: `git log --oneline $(gh pr view --json baseRefName -q .baseRefName)..HEAD`
+    - Include a clear summary of the overall changes
     - Update with `gh pr edit <number> --body "<updated body>"`
 
-11. Report a summary:
-    - List of issues addressed
+12. Wrap up with a summary:
+    - What issues were addressed
     - Whether merge conflicts were resolved
-    - Commit(s) created
-    - Link to the updated PR
+    - Which commit(s) were created
+    - A link to the updated PR
 
-Important:
-- Do not force push unless the user explicitly requests it
-- If the push fails due to remote changes, pull and retry once before notifying the user
-- If the PR has required checks failing, mention it in the summary
-- After fixing a comment, draft a reply explaining what was done and show it to the user for approval before posting via `gh api`
+Ground rules:
+- Never force push unless the user explicitly asks for it
+- If a push fails because of remote changes, pull and retry once before flagging it
+- If the PR has required checks failing, mention that in the summary
+- After fixing a comment, draft a friendly reply explaining what was done and show it to the user for approval before posting via `gh api`
+- Never close or resolve review comment threads — only reply to them. Let the original reviewer resolve their own threads.
