@@ -240,15 +240,146 @@ fi
 bindkey '^f' select_project
 bindkey '^g' select_worktree
 
+select_projects_multi() {
+  {
+    local programming_dir="$HOME/Programming"
+    local items=()
+    while IFS= read -r org_dir; do
+      [[ ! -d "$org_dir" ]] && continue
+      local org_name="${org_dir%/}"
+      org_name="${org_name##*/}"
+      for dir in "$org_dir"/*/; do
+        [[ -d "$dir" ]] || continue
+        local dirname="${dir%/}"
+        dirname="${dirname##*/}"
+        items+=("[$org_name] $dirname")
+      done
+    done < <(get_org_dirs "$programming_dir")
+
+    if [[ ${#items[@]} -eq 0 ]]; then
+      zle -M "No projects found"
+      return 1
+    fi
+
+    local selected=()
+    while IFS= read -r line; do
+      [[ -n "$line" ]] && selected+=("$line")
+    done < <(printf "%s\n" "${items[@]}" | fzf --multi --prompt="Select projects (TAB to multi-select): ")
+
+    if [[ ${#selected[@]} -eq 0 ]]; then
+      return 0
+    fi
+
+    if [[ ${#selected[@]} -eq 1 ]]; then
+      local category="${selected[1]%%]*}"
+      category="${category#\[}"
+      local project="${selected[1]#*] }"
+      builtin cd "$HOME/Programming/$category/$project"
+      zle reset-prompt
+      return 0
+    fi
+
+    for item in "${selected[@]}"; do
+      local category="${item%%]*}"
+      category="${category#\[}"
+      local project="${item#*] }"
+      local target_dir="$HOME/Programming/$category/$project"
+      if [[ -n $ZELLIJ ]]; then
+        zellij action new-tab --cwd "$target_dir" --name "$project"
+      fi
+    done
+    zle reset-prompt
+  } &>/dev/null </dev/tty
+}
+zle -N select_projects_multi
+
+select_worktrees_multi() {
+  {
+    local created_dir="$HOME/Programming/wcreated"
+    local checkout_dir="$HOME/Programming/wcheckout"
+
+    zmodload -F zsh/stat b:zstat
+    typeset -A label_to_path
+    local entries=()
+    for dir in "$created_dir" "$checkout_dir"; do
+      [[ -d "$dir" ]] || continue
+      for wt_dir in "$dir"/*/(N); do
+        [[ -d "$wt_dir" ]] || continue
+        local git_file="$wt_dir.git"
+        [[ -f "$git_file" ]] || continue
+        local wt_name="${wt_dir%/}"
+        wt_name="${wt_name##*/}"
+        local gitdir="${$(<"$git_file")#gitdir: }"
+        local repo_root="${gitdir%/.git/worktrees/*}"
+        local project_name="${repo_root##*/}"
+        local label="[$project_name] $wt_name"
+        local mtime
+        mtime=$(zstat +mtime "$git_file" 2>/dev/null) || mtime=0
+        entries+=("$mtime $label")
+        label_to_path[$label]="${wt_dir%/}"
+      done
+    done
+
+    if [[ ${#entries[@]} -eq 0 ]]; then
+      zle -M "No worktrees found"
+      return 1
+    fi
+
+    local sorted_items=()
+    local line
+    while IFS= read -r line; do
+      sorted_items+=("${line#* }")
+    done < <(printf "%s\n" "${entries[@]}" | sort -rn)
+
+    local selected=()
+    while IFS= read -r line; do
+      [[ -n "$line" ]] && selected+=("$line")
+    done < <(printf "%s\n" "${sorted_items[@]}" | fzf --multi --prompt="Select worktrees (TAB to multi-select): ")
+
+    if [[ ${#selected[@]} -eq 0 ]]; then
+      return 0
+    fi
+
+    if [[ ${#selected[@]} -eq 1 ]]; then
+      local target_dir="${label_to_path[${selected[1]}]}"
+      [[ -f "$target_dir/.git" ]] && touch "$target_dir/.git" 2>/dev/null
+      cd "$target_dir"
+      zle reset-prompt
+      return 0
+    fi
+
+    for item in "${selected[@]}"; do
+      local target_dir="${label_to_path[$item]}"
+      if [[ -n $ZELLIJ && -n "$target_dir" ]]; then
+        local wt_name="${target_dir##*/}"
+        zellij action new-tab --cwd "$target_dir" --name "$wt_name"
+      fi
+    done
+    zle reset-prompt
+  } &>/dev/null </dev/tty
+}
+zle -N select_worktrees_multi
+
+bindkey '^[f' select_projects_multi
+bindkey '^[g' select_worktrees_multi
+
 zellij_tab_name_update() {
   if [[ -n $ZELLIJ ]]; then
-    local current_dir="${PWD##*/}"
-    [[ "$PWD" == "$HOME" ]] && current_dir="~"
-    current_dir="${current_dir#[A-Z]*-[0-9]*-}"
-    local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
-    local tab_name="${current_dir:0:$max_length}"
+    if [[ -z $ZELLIJ_TAB_WORD ]]; then
+      local words=(
+        aurora blaze cedar coral drift ember falcon glacier harbor iris
+        jade karma lotus maple nebula opal prism quartz ripple sage
+        thunder umbra velvet whisper xenon yarrow zenith arctic breeze
+        canyon delta echo flint grove helix indigo jasper kelp lunar
+        meadow nova orbit pine reef solar tidal unity vertex wren
+      )
+      local word_count=${#words[@]}
+      local random_index=$(( RANDOM % word_count + 1 ))
+      export ZELLIJ_TAB_WORD="${words[$random_index]}"
+    fi
+    local tab_name="$ZELLIJ_TAB_WORD"
     local tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=/ {count++; if (/focus=true/) {print count; exit}}')
-    [[ -n $tab_index ]] && tab_name="${tab_index}. ${tab_name}"
+    [[ -n $tab_index ]] && tab_name="${tab_index}.${tab_name}"
     if [[ -f "$OPENCODE_STATUS_FILE" ]]; then
       local ai_status=$(<"$OPENCODE_STATUS_FILE")
       if [[ -n $ai_status ]]; then

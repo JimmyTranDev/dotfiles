@@ -64,6 +64,14 @@ If a finding is filtered out, include it in a **Suppressed Findings** section at
 **Configuration**: Hardcoded values, missing environment handling, insecure defaults, missing validation
 **Testability**: Untestable code, missing test hooks, tight coupling to externals, hidden dependencies
 **Accessibility**: Missing ARIA labels, keyboard navigation gaps, color contrast, screen reader support
+**Type Safety**: Unsafe casts, `any` types, missing generics, type narrowing gaps, unchecked assertions
+**Resource Management**: Unclosed connections, missing cleanup in useEffect/lifecycle, leaked event listeners, orphan timers
+**Backwards Compatibility**: Breaking API changes, removed fields without deprecation, changed serialization formats, migration gaps
+**Dependency Hygiene**: Unused imports, circular dependencies, version conflicts, inappropriate transitive dependency usage
+**Internationalization**: Hardcoded user-facing strings, locale-dependent formatting (dates, numbers, currency), RTL layout issues
+**State Management**: Stale closures, derived state stored redundantly, prop drilling, inconsistent source of truth, missing optimistic rollback
+**Database**: Missing indexes for query patterns, unbounded queries, missing transactions for multi-step writes, schema drift
+**Resilience**: Missing timeouts on external calls, no circuit breaker, missing retries with backoff, silent failures on network errors
 
 ## Review Checklist
 
@@ -79,6 +87,12 @@ If a finding is filtered out, include it in a **Suppressed Findings** section at
 10. **Are logs useful?** — Can you debug a production issue with the logging present?
 11. **Is config externalized?** — Are environment-specific values parameterized?
 12. **Does it follow conventions?** — Does it match the surrounding codebase patterns?
+13. **Are types sound?** — Any `any` escape hatches, unsafe casts, or missing narrowing?
+14. **Are resources cleaned up?** — Connections closed, listeners removed, timers cleared?
+15. **Is it backwards compatible?** — Could this break existing clients, APIs, or stored data?
+16. **Are dependencies healthy?** — Circular imports? Unused deps? Version conflicts?
+17. **Is state consistent?** — Single source of truth? No stale closures or redundant derived state?
+18. **Is it resilient?** — Timeouts on external calls? Graceful degradation? Retry logic?
 
 ## Output Format
 
