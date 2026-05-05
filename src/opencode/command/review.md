@@ -89,7 +89,7 @@ Present findings with this structure:
 
 If any critical or important findings were reported, ask the user:
 - **Yes, fix all** — launch the **fixer** agent on each critical/important finding
-- **Yes, fix specific** — let the user pick which findings to fix
+- **Yes, walk through one by one** — present each critical/important finding individually using the question tool, letting the user choose "Fix this", "Skip", or "Stop" for each one. Only fix the ones the user approves.
 - **No** — end the review
 
 Do NOT auto-stage or commit anything — this is review-only unless the user opts into fixing.
