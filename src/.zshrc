@@ -365,19 +365,10 @@ bindkey '^[g' select_worktrees_multi
 
 zellij_tab_name_update() {
   if [[ -n $ZELLIJ ]]; then
-    if [[ -z $ZELLIJ_TAB_WORD ]]; then
-      local words=(
-        aurora blaze cedar coral drift ember falcon glacier harbor iris
-        jade karma lotus maple nebula opal prism quartz ripple sage
-        thunder umbra velvet whisper xenon yarrow zenith arctic breeze
-        canyon delta echo flint grove helix indigo jasper kelp lunar
-        meadow nova orbit pine reef solar tidal unity vertex wren
-      )
-      local word_count=${#words[@]}
-      local random_index=$(( RANDOM % word_count + 1 ))
-      export ZELLIJ_TAB_WORD="${words[$random_index]}"
-    fi
-    local tab_name="$ZELLIJ_TAB_WORD"
+    local current_dir="${PWD##*/}"
+    [[ "$PWD" == "$HOME" ]] && current_dir="~"
+    local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
+    local tab_name="${current_dir:0:$max_length}"
     local tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=/ {count++; if (/focus=true/) {print count; exit}}')
     [[ -n $tab_index ]] && tab_name="${tab_index}.${tab_name}"
     if [[ -f "$OPENCODE_STATUS_FILE" ]]; then
