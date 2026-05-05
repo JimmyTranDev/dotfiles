@@ -56,8 +56,8 @@ export const SoundNotification = async ({ $ }) => {
       if (event.type === "session.idle") {
         needsAttention = true
         await playSound("Glass")
-        const baseName = await getBaseTabName()
-        await renameTab(`${baseName} ✅`)
+        // const baseName = await getBaseTabName()
+        // await renameTab(`${baseName} ✅`)
         if (platform === "darwin") {
           try {
             await $`osascript -e 'display notification "Task completed" with title "OpenCode"'`
@@ -67,8 +67,8 @@ export const SoundNotification = async ({ $ }) => {
       if (event.type === "permission.asked") {
         needsAttention = true
         await playSound("Ping")
-        const baseName = await getBaseTabName()
-        await renameTab(`${baseName} ❓`)
+        // const baseName = await getBaseTabName()
+        // await renameTab(`${baseName} ❓`)
         if (platform === "darwin") {
           try {
             await $`osascript -e 'display notification "Waiting for input" with title "OpenCode"'`
@@ -77,8 +77,8 @@ export const SoundNotification = async ({ $ }) => {
       }
       if (event.type === "session.status" && needsAttention) {
         needsAttention = false
-        const baseName = await getBaseTabName()
-        await renameTab(baseName)
+        // const baseName = await getBaseTabName()
+        // await renameTab(baseName)
       }
     },
   }

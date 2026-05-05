@@ -6,7 +6,7 @@ current_dir="${PWD##*/}"
 [[ "$PWD" == "$HOME" ]] && current_dir="~"
 current_dir="${current_dir#[A-Z]*-[0-9]*-}"
 current_dir="${current_dir%% [✅❓]}"
-max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
+max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-8}"
 tab_name="${current_dir:0:$max_length}"
 
 tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]]/ {count++; if (/focus=true/) {print count; exit}}')
