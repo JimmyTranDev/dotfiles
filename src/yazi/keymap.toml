@@ -1,10 +1,8 @@
-# smart-filter.yazi
 [[mgr.prepend_keymap]]
 on   = "F"
 run  = "plugin smart-filter"
 desc = "Smart filter"
 
-# relative-motions.yazi
 [[mgr.prepend_keymap]]
 on = [ "1" ]
 run = "plugin relative-motions 1"
@@ -50,7 +48,6 @@ on = [ "9" ]
 run = "plugin relative-motions 9"
 desc = "Move in relative steps"
 
-# copy-file-contents.yazi
 [[mgr.prepend_keymap]]
 on = "<A-y>"
 run = ["plugin copy-file-contents"]
@@ -76,13 +73,11 @@ on = [ "b", "D" ]
 run = "plugin bookmarks delete_all"
 desc = "Delete all bookmarks"
 
-# smart-enter.yazi
 [[mgr.prepend_keymap]]
 on   = "l"
-run  = "plugin smart-enter"
-desc = "Enter the child directory, or open the file"
+run  = ["plugin smart-enter", "plugin skip-single"]
+desc = "Enter the child directory (skip single), or open the file"
 
-# Quick folder navigation
 [[mgr.prepend_keymap]]
 on = [ "g", "h" ]
 run = "cd ~"
@@ -99,7 +94,7 @@ run = "cd ~/Desktop"
 desc = "Go to Desktop"
 
 [[mgr.prepend_keymap]]
-on = [ "g", "d" ]
+on = [ "g", "c" ]
 run = "cd ~/.config"
 desc = "Go to config directory"
 
@@ -122,3 +117,28 @@ desc = "Go to storebrand-digital"
 on = [ "g", "w" ]
 run = "cd ~/Programming/wcreated"
 desc = "Go to worktrees"
+
+[[mgr.prepend_keymap]]
+on = [ "c", "m" ]
+run = "plugin chmod"
+desc = "Change file mode"
+
+[[mgr.prepend_keymap]]
+on = "<A-d>"
+run = "plugin diff"
+desc = "Diff selected with hovered file"
+
+[[mgr.prepend_keymap]]
+on = "T"
+run = "plugin toggle-pane max-preview"
+desc = "Toggle maximize preview pane"
+
+[[mgr.prepend_keymap]]
+on = "z"
+run = "cd --interactive"
+desc = "Jump to directory with zoxide"
+
+[[mgr.prepend_keymap]]
+on = "<C-f>"
+run = '''shell -- result=$(fd --type f --hidden --follow --exclude .git | fzf); [ -n "$result" ] && ya emit reveal "$result"'''
+desc = "Fuzzy find file with fzf"
