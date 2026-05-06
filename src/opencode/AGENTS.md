@@ -56,6 +56,7 @@ src/opencode/
 │   ├── implement-sequential.md
 │   ├── implement.md
 │   ├── init.md
+│   ├── jira-test-instructions.md
 │   ├── merge-specs.md
 │   ├── merge.md
 │   ├── migration-check.md
