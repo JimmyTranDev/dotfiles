@@ -34,13 +34,14 @@ For each unresolved comment, show:
 Then present options using the question tool:
 
 - **Fix it** — launch the **fixer** agent to address the feedback. After fixing, draft a reply describing the exact change made and show it to the user for approval before posting.
-- **Reply** — generate 3 response suggestions in different tones:
-  1. **[Formal]** — professional, complete sentence (e.g., "Thank you for catching this. I've addressed it by extracting the validation into a shared utility.")
-  2. **[Casual]** — friendly, concise (e.g., "Good catch! Moved it to a shared util now.")
-  3. **[Concise]** — minimal, direct (e.g., "Fixed — extracted to shared validation.")
-  
-  Present all 3 and let the user pick one, edit one, or write their own.
-  Post the chosen reply via `gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies -f body="<reply>"`
+- **Reply** — generate 3 context-aware response suggestions, then present them using the question tool with these options:
+   1. The first generated reply
+   2. The second generated reply
+   3. The third generated reply
+   4. **Skip** — move to the next comment without replying
+   
+   The `custom` flag on the question tool is enabled, so the user can also type their own reply.
+   Post the chosen reply via `gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies -f body="<reply>"`
 - **Skip** — move to the next comment without action
 - **Stop** — end triage, skip remaining comments
 
