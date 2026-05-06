@@ -99,26 +99,26 @@ run = "cd ~/Desktop"
 desc = "Go to Desktop"
 
 [[mgr.prepend_keymap]]
-on = [ "g", "p" ]
-run = "cd ~/Programming"
-desc = "Go to Programming folder"
-
-[[mgr.prepend_keymap]]
-on = [ "g", "c" ]
+on = [ "g", "d" ]
 run = "cd ~/.config"
 desc = "Go to config directory"
-
-[[mgr.prepend_keymap]]
-on = [ "g", "s" ]
-run = "cd spec/"
-desc = "Go to spec folder"
-
-[[mgr.prepend_keymap]]
-on = [ "g", "S" ]
-run = "cd plans/"
-desc = "Go to plans folder"
 
 [[mgr.prepend_keymap]]
 on = [ "g", "." ]
 run = "cd ~/Programming/JimmyTranDev/dotfiles"
 desc = "Go to dotfiles"
+
+[[mgr.prepend_keymap]]
+on = [ "g", "p" ]
+run = "cd ~/Programming/JimmyTranDev"
+desc = "Go to JimmyTranDev"
+
+[[mgr.prepend_keymap]]
+on = [ "g", "b" ]
+run = "cd ~/Programming/storebrand-digital"
+desc = "Go to storebrand-digital"
+
+[[mgr.prepend_keymap]]
+on = [ "g", "w" ]
+run = "cd ~/Programming/wcreated"
+desc = "Go to worktrees"
