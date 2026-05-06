@@ -240,13 +240,35 @@ After all open questions are resolved (or skipped), ask the user if they want to
    - **No, just keep the plans** — end the command
 2. If the user chooses to implement, invoke the `/implement` command with the spec file path(s) as arguments
 
+## AI Utility Scripts
+
+Reusable scripts in `~/Programming/JimmyTranDev/dotfiles/etc/scripts/ai/` replace common inline operations. Always prefer calling these scripts over reimplementing the same logic with multiple tool calls.
+
+| Script | Purpose | Usage |
+|--------|---------|-------|
+| `detect-stack.sh [dir]` | Full tech stack detection (project type, package manager, test runner, linter, CI, framework, monorepo, CSS, DB) | Replaces manual package.json/pom.xml inspection |
+| `git-branch-info.sh [dir]` | Branch context as KEY=VALUE (current/base branch, ahead/behind, uncommitted, staged) | Replaces multiple `git` calls for branch detection |
+| `install-deps.sh [--frozen] [dir]` | Auto-detect package manager and install dependencies | Replaces manual lockfile inspection + install |
+| `lint-check.sh [--fix] [dir]` | Auto-detect linter and run it (eslint/biome/ruff/clippy/checkstyle) | Replaces manual linter detection and execution |
+| `run-tests.sh [dir]` | Auto-detect test framework and run tests with coverage | Replaces manual test runner detection |
+| `check-deps.sh [dir]` | Dependency outdated check + security audit | Replaces manual `npm outdated` / `npm audit` calls |
+| `pr-status.sh [--mine]` | List open PRs with check/review/merge status | Replaces `gh pr list` + `gh pr view` chains |
+| `scaffold-spec.sh <prefix> <name> [--todoist url] [--dir path]` | Create plans/*.md with standard sections | Replaces manual spec file boilerplate |
+| `changelog.sh [from-ref] [to-ref]` | Generate grouped changelog from git history | Replaces manual commit categorization |
+| `security-scan.sh [dir]` | Combined secret scanning + dependency audit | Replaces manual security checks |
+| `validate-opencode.sh [opencode-dir]` | Validate skills, commands, agents, AGENTS.md refs, deprecated refs | Replaces manual config validation |
+
+All scripts output KEY=VALUE pairs to stdout, exit 0 on success, accept `--help`, and follow the `set -e` / `source common/logging.sh` / `main "$@"` convention.
+
+**When to use**: Any time a command or agent needs to detect the tech stack, find the base branch, run tests, run linting, install dependencies, or check PR status — call the script instead of reimplementing with multiple tool calls.
+
 ## `pr-*` Command Conventions
 
 All `pr-*` commands follow these shared conventions. Individual commands only need to define their specific workflow.
 
 ### Worktree Setup
 1. Load the **git-worktree-workflow** and **git-workflows** skills (plus any command-specific skills) in parallel
-2. Determine the base branch using the priority order from the **git-workflows** skill (`develop` > `main` > `master`)
+2. Determine the base branch by running `git-branch-info.sh` and reading the `BASE_BRANCH` output
 3. Derive a kebab-case branch name from the task description
 4. Check for uncommitted changes: `git status --porcelain` and `git diff --cached --stat` (in parallel)
 5. If there are staged or unstaged changes, stash them: `git stash push -m "<branch-name>"`

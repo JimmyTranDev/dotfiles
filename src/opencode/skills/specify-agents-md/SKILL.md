@@ -21,7 +21,7 @@ description: Specify skill for AGENTS.md analysis — defines analysis categorie
 
 - Read the repo root to identify major directories, languages, and frameworks
 - Check for existing AGENTS.md files at all levels (root and subdirectories)
-- Identify the tech stack from package.json, Cargo.toml, go.mod, pyproject.toml, or similar
+- Identify the tech stack by running `detect-stack.sh` or reading package.json, Cargo.toml, go.mod, pyproject.toml, or similar
 
 ### Placement Decision Tree
 
@@ -58,7 +58,7 @@ Skip directories that:
 
 ### Auto-Sync Check
 
-- Verify every file and directory referenced in AGENTS.md actually exists
+- Run `validate-opencode.sh` to verify every file and directory referenced in AGENTS.md actually exists
 - Verify every directory tree matches the real structure
 - Flag references to non-existent files, removed commands, deprecated skills, or stale paths
 - Check that listed skills, commands, or agents still exist in their expected locations

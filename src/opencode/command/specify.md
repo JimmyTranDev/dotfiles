@@ -41,7 +41,7 @@ $ARGUMENTS
    - Severity classification
    - Any scope overrides or unique workflow steps
 
-3. Create the `plans/` directory at the project root if it doesn't exist.
+3. Create the `plans/` directory at the project root if it doesn't exist. Use `scaffold-spec.sh` to generate spec file boilerplate when creating new spec files (e.g., `scaffold-spec.sh <prefix> <name> --todoist <url>`).
 
 4. Decide how many spec files to produce:
    - If the feature has ~10 or fewer tasks that form a single cohesive unit, write one spec file

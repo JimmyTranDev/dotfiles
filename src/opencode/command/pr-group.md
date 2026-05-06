@@ -17,7 +17,7 @@ Load the **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** 
    - Each item is a discrete unit of work
    - If only one item is detected, notify the user and suggest using `/pr` instead, then stop
 
-2. Determine the base branch using the priority order from the **git-workflows** skill (`develop` > `main` > `master`)
+2. Run `git-branch-info.sh` and use the `BASE_BRANCH` value
 
 3. Group tasks to reduce conflicts:
    - For each task, predict which files or directories it will modify based on the task description and codebase structure (use the **explore** agent if needed)

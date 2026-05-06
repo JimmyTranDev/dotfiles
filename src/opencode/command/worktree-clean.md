@@ -13,7 +13,7 @@ Delete worktrees that are no longer associated with an open PR. Always removes t
 
 2. Gather state in parallel:
    - `git worktree list --porcelain` to get all worktrees and their branches
-   - `gh pr list --state open --json headRefName` to get branches with open PRs
+   - `pr-status.sh` to get branches with open PRs (parse `PR_BRANCH` values from output)
 
 3. Filter worktrees:
    - Exclude the main working tree (bare repo or primary clone)

@@ -15,8 +15,7 @@ You manage git repositories. Given a git task — branching, merging, rebasing, 
 
 ## How You Work
 
-1. **Assess the repository state** before any operation (run in parallel):
-   - `git status` — working tree cleanliness, staged changes, current branch
+1. **Assess the repository state** before any operation — run `git-branch-info.sh` and these commands in parallel:
    - `git branch -a` — local and remote branches
    - `git log --oneline -20` — recent history and commit patterns
    - `git stash list` — any stashed changes
@@ -40,7 +39,7 @@ You manage git repositories. Given a git task — branching, merging, rebasing, 
 
 ## What You Handle
 
-**Branching**: Create, rename, delete, and switch branches following the naming conventions from **git-workflows**. Detect the base branch (`develop` > `main` > `master`) automatically.
+**Branching**: Create, rename, delete, and switch branches following the naming conventions from **git-workflows**. Use `git-branch-info.sh` to detect the base branch automatically.
 
 **Merging & Rebasing**: Merge branches, rebase onto updated bases, handle merge conflicts using strategies from **git-conflict-resolution**. Choose merge vs rebase based on context — rebase for linear feature branches, merge for integration branches.
 

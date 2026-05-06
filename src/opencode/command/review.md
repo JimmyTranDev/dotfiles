@@ -17,7 +17,7 @@ Parse `$ARGUMENTS` to determine what to review:
 
 ## Tech Stack Detection
 
-Detect the project's tech stack from the diff and load skills accordingly:
+Run `detect-stack.sh` to detect the project's tech stack and load skills accordingly:
 - Java files (`.java`, `pom.xml`, `build.gradle`) → load **review-backend**
 - TypeScript/React files (`.ts`, `.tsx`, `.jsx`) → load **review-frontend**
 - React Native (`react-native` in package.json) → load **review-mobile**
@@ -35,7 +35,7 @@ Load all applicable skills in a single parallel batch.
 
 ## Branch Mode
 
-1. Determine the base branch (`develop` > `main` > `master`)
+1. Run `git-branch-info.sh` and use the `BASE_BRANCH` value
 2. Run `git diff <base-branch>...<branch-name>` to gather the full feature diff
 3. Launch the **reviewer** agent on the diff
 

@@ -23,7 +23,7 @@ Load the **git-conflict-resolution** and **code-follower** skills in parallel.
 
 3. Verify the resolution:
    - Run `git diff --cached` to review the staged resolution
-   - Run build, lint, or test commands if available to confirm the resolution is correct
+   - Run `lint-check.sh` and `run-tests.sh` to confirm the resolution is correct
    - If verification fails, use **fixer** to address issues
 
 4. Do NOT commit or continue the merge/rebase automatically:

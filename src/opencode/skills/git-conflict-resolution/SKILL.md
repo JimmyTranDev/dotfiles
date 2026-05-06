@@ -171,8 +171,8 @@ Read both sides of the conflict:
 
 1. **Check no markers remain** — search for `<<<<<<<`, `=======`, `>>>>>>>` in resolved files
 2. **Run the build** — compile errors reveal missing imports or broken references
-3. **Run tests** — failing tests reveal dropped logic or incorrect merges
-4. **Run linter/formatter** — ensures merged code matches project style
+3. **Run `run-tests.sh`** — failing tests reveal dropped logic or incorrect merges
+4. **Run `lint-check.sh`** — ensures merged code matches project style
 5. **Review the diff** — `git diff <base-branch>...HEAD` to verify the full change set makes sense
 6. **Check import integrity** — ensure no dangling imports from deleted or moved code
 

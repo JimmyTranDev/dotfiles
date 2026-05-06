@@ -28,7 +28,7 @@ git worktree add ~/Programming/wcreated/<branch-name> -b <branch-name>
 ### 2. Work in the Worktree
 
 - All file reads, edits, and creates happen in `~/Programming/wcreated/<branch-name>/`, not the main repo
-- Install dependencies if `package.json` exists (auto-detect npm/pnpm/yarn from lockfile)
+- Install dependencies using `install-deps.sh` if a package manager is detected
 
 ### 3. Commit
 

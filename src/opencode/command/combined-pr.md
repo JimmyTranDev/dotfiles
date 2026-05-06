@@ -13,7 +13,7 @@ Create a temporary combined PR that merges multiple feature branches together fo
 
 1. Load the **git-worktree-workflow** and **git-workflows** skills in parallel
 
-2. Determine the base branch (`develop` > `main` > `master`)
+2. Run `git-branch-info.sh` and use the `BASE_BRANCH` value
 
 3. Determine which branches to combine:
    - If `$ARGUMENTS` lists specific branch names, use those

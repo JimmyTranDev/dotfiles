@@ -22,7 +22,7 @@ $ARGUMENTS
 
    b. If the merge fails due to merge conflicts, resolve and retry:
       - Load the **git-conflict-resolution** skill
-      - Determine the base branch the PR targets: `gh pr view <number> --json baseRefName --jq '.baseRefName'`
+       - Determine the base branch the PR targets: `gh pr view <number> --json baseRefName --jq '.baseRefName'` (or use `git-branch-info.sh` if the PR base is unknown)
       - Ensure the worktree exists for this PR's branch at `~/Programming/wcreated/<branch-name>` — if not, create it with `git worktree add ~/Programming/wcreated/<branch-name> <branch-name>`
       - In the worktree directory, fetch and merge the base branch: `git fetch origin <base-branch> && git merge origin/<base-branch>`
       - Identify conflicted files with `git diff --name-only --diff-filter=U`

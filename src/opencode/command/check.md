@@ -11,19 +11,15 @@ Run project quality checks (lint, test, build, typecheck) in parallel and report
 
 ## Workflow
 
-1. Auto-detect available checks from the project:
-   - Look for `package.json` scripts: `lint`, `test`, `build`, `typecheck`/`tsc`/`type-check`
-   - Look for `Makefile` targets: `lint`, `test`, `build`
-   - Look for `pom.xml`/`build.gradle`: `mvn verify`, `gradle check`
-   - Detect the package manager from lockfile (npm/pnpm/yarn)
+1. Run `detect-stack.sh` to identify the project type, package manager, test runner, and linter. Use the output to determine which checks are available.
+   - If `$ARGUMENTS` specifies particular checks, run only those. Otherwise run all detected checks.
 
-2. If `$ARGUMENTS` specifies particular checks, run only those. Otherwise run all detected checks.
+2. Run all applicable checks in parallel using the Bash tool:
+   - Lint: `lint-check.sh`
+   - Tests: `run-tests.sh`
+   - Build/typecheck: use the package manager detected by `detect-stack.sh`
 
-3. Run all applicable checks in parallel using the Bash tool:
-   - Each check runs as a separate parallel command
-   - Capture stdout/stderr and exit codes for each
-
-4. Report results:
+3. Report results:
    ```
    ## Check Results
    
@@ -43,7 +39,7 @@ Run project quality checks (lint, test, build, typecheck) in parallel and report
    [failed test names and output]
    ```
 
-5. If any checks fail, ask the user:
+4. If any checks fail, ask the user:
    - **Fix all** — launch the **fixer** agent on each failure
    - **Fix specific** — let the user pick which failures to fix
    - **Just report** — end without fixing

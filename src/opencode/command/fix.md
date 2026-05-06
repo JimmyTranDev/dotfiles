@@ -15,7 +15,7 @@ $ARGUMENTS
    - If the description is vague, search the codebase for related code before asking clarifying questions
 
 2. Reproduce and trace:
-   - Run the failing test or build command if one is available to confirm the issue
+   - Run the failing test or build command if one is available to confirm the issue (use `run-tests.sh` to auto-detect the test runner)
    - Trace from the symptom to the root cause — follow the data flow, check call sites, inspect types
    - Identify whether this is a logic error, type error, missing edge case, race condition, or configuration issue
 
@@ -26,7 +26,7 @@ $ARGUMENTS
 
 4. Verify the fix:
    - Run the failing test or build command again to confirm the fix resolves the issue
-   - Check for regressions by running the broader test suite if available
+   - Check for regressions by running `run-tests.sh` for the broader test suite if available
    - If no tests exist for the fixed code path, note this but do not add tests unless the user asks
 
 5. Load applicable skills and delegate to agents:

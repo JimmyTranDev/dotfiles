@@ -9,7 +9,7 @@ Execute a structured deployment workflow including pre-flight checks, build, pus
 
 $ARGUMENTS
 
-1. Detect the deployment configuration by checking for:
+1. Run `detect-stack.sh` and check for deployment configuration:
    - Dockerfile / docker-compose.yml
    - vercel.json / .vercel/
    - fly.toml
@@ -22,8 +22,8 @@ $ARGUMENTS
 4. Run pre-deployment checks in parallel:
    - Verify no uncommitted changes: `git status --porcelain`
    - Verify branch is up to date with remote: `git fetch && git status`
-   - Run tests: detect and execute the test command
-   - Run build: detect and execute the build command
+   - Run tests: `run-tests.sh`
+   - Run build: use the build command for the detected stack from `detect-stack.sh`
 5. If any pre-check fails, report which check failed and stop
 6. Ask the user for confirmation before proceeding with deployment
 7. Execute the deployment:

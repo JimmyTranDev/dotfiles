@@ -16,7 +16,7 @@ Load the **git-worktree-workflow**, **git-workflows**, **git-conflict-resolution
    - Each item is a discrete unit of work
    - If only one item is detected, notify the user and suggest using `/pr` instead, then stop
 
-2. Determine the base branch using the priority order from the **git-workflows** skill (`develop` > `main` > `master`)
+2. Run `git-branch-info.sh` and use the `BASE_BRANCH` value
 
 3. Derive branch names:
    - **Integration branch**: a kebab-case name summarizing the overall goal (e.g., `feat-user-settings-overhaul`)

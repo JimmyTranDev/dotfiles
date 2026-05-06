@@ -16,9 +16,10 @@ Load the **git-worktree-workflow**, **git-workflows**, and **security-npm-vulner
 
 2. Determine scope from `$ARGUMENTS`:
    - If `$ARGUMENTS` contains `--base=<branch>`, use it as the base branch
-   - Otherwise use the priority order from the **git-workflows** skill (`develop` > `main` > `master`)
+   - Otherwise run `git-branch-info.sh` and use the `BASE_BRANCH` value
 
 3. Check supply chain defenses using the **Supply Chain Attack Prevention** section of the **security-npm-vulnerabilities** skill:
+   - Run `detect-stack.sh` to identify the package manager
    - Verify all recommended defenses are in place for the detected package manager
    - Run `npm audit signatures` to verify registry signature integrity
    - Report any missing defenses and offer to add them before proceeding
@@ -43,7 +44,7 @@ Load the **git-worktree-workflow**, **git-workflows**, and **security-npm-vulner
    - If no overrides were removed, no bypasses were cleaned up, and audit fixes produced no file changes, remove the worktree and local branch, notify the user, and stop
 
 7. Run final validation in the worktree before creating the PR:
-   - Run lint, tests, and type checks
+   - Run `lint-check.sh`, `run-tests.sh`, and type checks in parallel
    - If any check fails, use **fixer** to resolve the issue, stage and commit the fix, then re-run the failing check
    - Do not proceed to PR creation until all three checks pass
 

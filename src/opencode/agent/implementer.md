@@ -43,7 +43,7 @@ You implement features and write production-ready code. Given a description of w
 
 5. **Verify before delivering**:
    - Run the build if a build system exists
-   - Run existing tests to confirm nothing is broken
+   - Run `run-tests.sh` to confirm nothing is broken
    - Check that new code follows the same patterns as surrounding code
    - Confirm all imports resolve and no circular dependencies were introduced
 

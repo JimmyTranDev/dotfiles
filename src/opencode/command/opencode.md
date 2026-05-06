@@ -9,12 +9,10 @@ Analyze the current project's tech stack, architecture, and workflows to suggest
 
 $ARGUMENTS
 
-1. Detect the project's tech stack (run in parallel):
-   - Read `package.json`, `pom.xml`, `build.gradle`, `Cargo.toml`, `go.mod`, `requirements.txt`, `Gemfile`, or similar manifest files
+1. Run `detect-stack.sh` to identify the project's tech stack, then gather additional context in parallel:
    - List top-level directories to understand project structure
    - Read any existing `.opencode/` config (agents, commands, skills) to avoid duplicates
    - Read `README.md` or similar for project context
-   - Check CI config (`.github/workflows/`, `Jenkinsfile`, `.gitlab-ci.yml`) for build/deploy patterns
    - Run `git log --oneline -20` to understand recent development activity
 
 2. Load skills: **meta-opencode-authoring**, **code-follower**. Analyze the project across these dimensions:
