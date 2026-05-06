@@ -89,7 +89,8 @@ src/opencode/
 │   ├── specify.md
 │   ├── structure.md
 │   ├── tutorial-implement-jira.md
-│   └── tutorial.md
+│   ├── tutorial.md
+│   └── weekly-summary.md
 ├── plugins/                 # Event-driven plugins
 │   └── sound-notification.js
 └── skills/                  # On-demand knowledge (auto-discovered)
@@ -179,6 +180,7 @@ src/opencode/
 | `migration-check` | Verify database migrations are safe |
 | `merge-specs` | Combine multiple spec files into one |
 | `review-plans` | Review plans/spec files for quality and completeness |
+| `weekly-summary` | Generate weekly standup summary from git commits and Jira tickets |
 
 ## Parallelization
 
@@ -256,6 +258,7 @@ Reusable scripts in `~/Programming/JimmyTranDev/dotfiles/etc/scripts/ai/` replac
 | `changelog.sh [from-ref] [to-ref]` | Generate grouped changelog from git history | Replaces manual commit categorization |
 | `security-scan.sh [dir]` | Combined secret scanning + dependency audit | Replaces manual security checks |
 | `validate-opencode.sh [opencode-dir]` | Validate skills, commands, agents, AGENTS.md refs, deprecated refs | Replaces manual config validation |
+| `weekly-summary.sh [--since date] [--dir path] [--json]` | Gather git commits across repos with Jira ticket extraction | Replaces manual git log + Jira lookups |
 
 All scripts output KEY=VALUE pairs to stdout, exit 0 on success, accept `--help`, and follow the `set -e` / `source common/logging.sh` / `main "$@"` convention.
 
