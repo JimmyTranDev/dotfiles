@@ -367,8 +367,13 @@ zellij_tab_name_update() {
   if [[ -n $ZELLIJ ]]; then
     local current_dir="${PWD##*/}"
     [[ "$PWD" == "$HOME" ]] && current_dir="~"
-    local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
-    local tab_name="${current_dir:0:$max_length}"
+    local tab_name
+    if [[ "$current_dir" =~ ^[A-Z]+-[0-9]+ ]]; then
+      tab_name="$MATCH"
+    else
+      local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
+      tab_name="${current_dir:0:$max_length}"
+    fi
     local tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=/ {count++; if (/focus=true/) {print count; exit}}')
     [[ -n $tab_index ]] && tab_name="${tab_index}.${tab_name}"
     if [[ -f "$OPENCODE_STATUS_FILE" ]]; then
