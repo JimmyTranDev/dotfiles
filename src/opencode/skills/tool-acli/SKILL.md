@@ -80,6 +80,6 @@ acli jira sprint list --board "Board Name"
 
 - The `--key` flag accepts a single key or comma-separated keys for bulk operations
 - Use `--ignore-errors` when operating on multiple items to skip failures
-- Comment body supports plain text — no markdown rendering in Jira comments (use ADF for rich formatting)
+- Comment body is plain text only — neither markdown (`##`, `**`, triple backticks) nor Jira wiki markup (`h2.`, `*bold*`, `{code}`) are rendered. They appear as raw characters. Use ALL CAPS for headers, dashes for lists, and indentation for structure. Use ADF JSON only if rich formatting is required.
 - Escape double quotes in `--body` strings with backslash
 - For multiline comments, prefer `--body-file` with a temp file or `--editor`

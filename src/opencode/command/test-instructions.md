@@ -52,7 +52,11 @@ Generate comprehensive manual testing instructions for QA engineers based on the
    - What doesn't need testing for this change
    ```
 
-4. Copy to clipboard if possible (macOS: `pbcopy`)
+4. Write the instructions to a plain text file in the project root:
+   - Name the file `test-instructions-<feature-kebab-case>.txt`
+   - Use plain text formatting (no markdown syntax — no #, *, `, etc.)
+   - Use dashes for lists, ALL CAPS for headers, and indentation for structure
+   - Print the file path in chat so the user can find it
 
 ## Rules
 
