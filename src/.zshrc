@@ -88,7 +88,7 @@ alias l="$DOTFILES_DIR/etc/scripts/select_git_folder_actx.sh"
 alias csv='git ls-files "*/core/*.csv" 2>/dev/null | fzf --preview "head -20 {}" | xargs -r vd --csv-delimiter "|"'
 
 if [[ "$(uname)" == "Darwin" ]]; then
-  alias t='yabai --restart-service; skhd --restart-service'
+  alias t='yabai --restart-service & skhd --restart-service & wait'
 fi
 
 alias F="$DOTFILES_DIR/etc/scripts/pull_repos.sh"
