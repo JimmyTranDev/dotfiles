@@ -29,5 +29,6 @@ Important:
 - Do NOT stage any additional files - only commit what is already staged
 - If no files are staged, notify the user and do not create a commit
 - Do NOT use emoji in commit messages
+- Before composing the commit message, run `git branch --show-current` to get the current branch name. Extract a Jira ticket key matching the pattern `[A-Z]+-[0-9]+` (e.g., `BW-10231`, `PROJ-456`). If found, include the ticket key after the colon-space in the commit message: `<type>(<scope>): TICKET-123 description`. If no ticket is found in the branch name, use the standard format without a ticket.
 
 Analyze the staged changes (git diff --cached -- . ':!*.csv') to understand the changes, then create the commit. Always exclude `*.csv` files from diff output — CSV diffs are large, noisy, and not useful for understanding changes.

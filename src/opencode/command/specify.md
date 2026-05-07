@@ -56,6 +56,7 @@ $ARGUMENTS
    - Check `plans/` for existing files and avoid name collisions
 
 6. Write each spec file with these sections:
+   - **TL;DR**: 3-5 bullet points summarizing: what area is analyzed, how many findings/tasks, the most critical items, and estimated effort. This section gives readers an immediate understanding of scope without reading the full spec. If no issues were found, state "No issues found" with a brief scope description.
    - **Overview**: 2-3 sentence summary of what this spec covers and why
    - **Architecture**: How this piece fits into the existing codebase — which layers it touches, where new code goes, how it connects to existing modules
    - **Data flow**: Step-by-step description of how data moves through the system for this piece — from input to storage to output

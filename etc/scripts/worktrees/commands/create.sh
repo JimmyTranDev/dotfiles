@@ -9,8 +9,50 @@ cmd_create() {
 		return 1
 	fi
 
-	local jira_ticket="$1"
-	local repo_name="$2"
+	local jira_ticket=""
+	local repo_name=""
+	local commit_type=""
+	local no_prompt=false
+
+	while [[ $# -gt 0 ]]; do
+		case "$1" in
+		--branch)
+			jira_ticket="$2"
+			shift 2
+			;;
+		--repo)
+			repo_name="$2"
+			shift 2
+			;;
+		--type)
+			commit_type="$2"
+			shift 2
+			;;
+		--no-prompt)
+			no_prompt=true
+			shift
+			;;
+		-h|--help)
+			echo "Usage: worktree create [OPTIONS] [jira-ticket] [repo-name]"
+			echo ""
+			echo "OPTIONS:"
+			echo "  --branch <name>     Branch name or Jira ticket (skips interactive input)"
+			echo "  --repo <name>       Repository name (skips fzf repo selection)"
+			echo "  --type <type>       Commit type: feat|fix|chore|... (skips fzf selection)"
+			echo "  --no-prompt         Skip all interactive prompts, use defaults"
+			echo "  -h, --help          Show this help"
+			return 0
+			;;
+		*)
+			if [[ -z "$jira_ticket" ]]; then
+				jira_ticket="$1"
+			elif [[ -z "$repo_name" ]]; then
+				repo_name="$1"
+			fi
+			shift
+			;;
+		esac
+	done
 
 	local main_repo
 	if [[ -n "$repo_name" ]]; then
@@ -81,6 +123,10 @@ cmd_create() {
 	fi
 
 	if [[ -z "$jira_ticket" ]]; then
+		if [[ "$no_prompt" == true ]]; then
+			print_color red "Error: --branch is required with --no-prompt"
+			return 1
+		fi
 		print_color cyan "Enter JIRA ticket (e.g., ABC-123) or leave empty to skip JIRA integration:"
 		read -r jira_ticket
 	fi
@@ -110,6 +156,10 @@ cmd_create() {
 		branch_name="$jira_ticket"
 		print_color yellow "Input doesn't match JIRA pattern. Using as branch name directly."
 	else
+		if [[ "$no_prompt" == true ]]; then
+			print_color red "Error: --branch is required with --no-prompt"
+			return 1
+		fi
 		print_color cyan "Enter branch name:"
 		read -r branch_name
 
@@ -129,26 +179,31 @@ cmd_create() {
 
 	print_color cyan "Creating worktree for branch: $branch_name"
 
-	print_color cyan "Select commit type:"
 	local commit_types=("feat" "fix" "docs" "style" "refactor" "test" "chore" "revert" "build" "ci" "perf")
-	local commit_type
 
-	if check_tool fzf; then
-		commit_type=$(printf '%s\n' "${commit_types[@]}" | fzf --prompt="Select commit type: " --height=40% --reverse)
-	else
-		echo "Available commit types:"
-		for i in "${!commit_types[@]}"; do
-			echo "$((i + 1)). ${commit_types[$i]}"
-		done
-		echo -n "Enter number (1-${#commit_types[@]}) or type name [default: feat]: "
-		read -r selection
-
-		if [[ "$selection" =~ ^[0-9]+$ ]] && [[ "$selection" -ge 1 ]] && [[ "$selection" -le "${#commit_types[@]}" ]]; then
-			commit_type="${commit_types[$selection]}"
-		elif [[ -n "$selection" ]]; then
-			commit_type="$selection"
-		else
+	if [[ -z "$commit_type" ]]; then
+		if [[ "$no_prompt" == true ]]; then
 			commit_type="feat"
+		else
+			print_color cyan "Select commit type:"
+			if check_tool fzf; then
+				commit_type=$(printf '%s\n' "${commit_types[@]}" | fzf --prompt="Select commit type: " --height=40% --reverse)
+			else
+				echo "Available commit types:"
+				for i in "${!commit_types[@]}"; do
+					echo "$((i + 1)). ${commit_types[$i]}"
+				done
+				echo -n "Enter number (1-${#commit_types[@]}) or type name [default: feat]: "
+				read -r selection
+
+				if [[ "$selection" =~ ^[0-9]+$ ]] && [[ "$selection" -ge 1 ]] && [[ "$selection" -le "${#commit_types[@]}" ]]; then
+					commit_type="${commit_types[$selection]}"
+				elif [[ -n "$selection" ]]; then
+					commit_type="$selection"
+				else
+					commit_type="feat"
+				fi
+			fi
 		fi
 	fi
 

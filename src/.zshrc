@@ -368,7 +368,11 @@ zellij_tab_name_update() {
     local current_dir="${PWD##*/}"
     [[ "$PWD" == "$HOME" ]] && current_dir="~"
     local tab_name
-    if [[ "$current_dir" =~ ^[A-Z]+-[0-9]+ ]]; then
+    local git_branch
+    git_branch=$(git branch --show-current 2>/dev/null)
+    if [[ -n "$git_branch" && "$git_branch" =~ ([A-Z]+-[0-9]+) ]]; then
+      tab_name="$MATCH"
+    elif [[ "$current_dir" =~ ^[A-Z]+-[0-9]+ ]]; then
       tab_name="$MATCH"
     else
       local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"

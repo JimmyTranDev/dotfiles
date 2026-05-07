@@ -95,3 +95,17 @@ If any critical, important, or suggestion findings were reported, use the questi
 - **No** — end the review
 
 Do NOT auto-stage or commit anything — this is review-only unless the user explicitly opts into fixing.
+
+## Post-Review Checks
+
+After the fix offer is resolved (or if no findings were reported), use the question tool to ask: "Run test, lint, and typecheck?" Options: "Yes, run all checks" / "No, skip checks".
+
+If yes:
+1. Run `detect-stack.sh` to determine available check commands
+2. Run the following in parallel where available:
+   - Tests: `run-tests.sh`
+   - Lint: `lint-check.sh`
+   - Typecheck: TypeScript projects use `npx tsc --noEmit`, Java projects use `mvn compile`, others skip
+3. Report pass/fail for each check
+4. If any check fails, update the review verdict to "fix first" and offer to fix the failures
+5. If a check tool is not detected (no test runner, no linter, no typecheck), skip it and report "not available"

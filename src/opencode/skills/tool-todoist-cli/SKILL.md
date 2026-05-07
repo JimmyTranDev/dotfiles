@@ -344,6 +344,20 @@ done
 
 **Gotcha**: `td section list` takes the project name as a **positional argument**, unlike `td task list` which uses `--project <name>`. Passing `--project` to `td section list` will fail silently or error.
 
+### Resolving TikTok links in tasks
+
+TikTok short URLs (`vt.tiktok.com/...`) can't be scraped — they return a generic "TikTok - Make Your Day" page. Use the oEmbed API instead:
+
+```bash
+# Returns JSON with title, author_name, author_url
+curl -s "https://www.tiktok.com/oembed?url=https://vt.tiktok.com/ZSHXEnE8d/" | python3 -c "
+import sys, json
+data = json.loads(sys.stdin.read())
+print(data.get('title', 'No title'))"
+```
+
+Use this when processing tasks containing TikTok links to extract the actual video title for renaming.
+
 ### Filtering by priority in JSON
 
 Remember priority is inverted in JSON. To find p4 (no priority) tasks:

@@ -42,9 +42,15 @@ COMMANDS:
                           Creates worktree in ~/Programming/wcreated with empty initial commit
                           Automatically installs dependencies if package.json exists
                           Deleting a created worktree also deletes its remote branch
+                          Options:
+                            --branch <name>   Branch name or Jira ticket (skips interactive input)
+                            --repo <name>     Repository name (skips fzf repo selection)
+                            --type <type>     Commit type: feat|fix|chore|... (skips fzf selection)
+                            --no-prompt       Skip all interactive prompts, use defaults
                           Examples:
                             worktree create ABC-123 my-repo
-                            worktree create ABC-123 (interactive repo selection)
+                            worktree create --branch ABC-123 --repo my-repo --type feat
+                            worktree create --branch ABC-123 --no-prompt
                             worktree create (interactive)
 
   checkout [branch]        Checkout existing remote branch as worktree
