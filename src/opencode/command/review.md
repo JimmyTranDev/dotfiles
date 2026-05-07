@@ -87,9 +87,11 @@ Present findings with this structure:
 
 ## Post-Review Fix Offer
 
-If any critical, important, or suggestion findings were reported, ask the user:
+IMPORTANT: Present all review findings first, then ask the user what to do. Wait for the user's response before making any edits. Never start fixing before the user has answered.
+
+If any critical, important, or suggestion findings were reported, use the question tool to ask the user:
 - **Yes, fix all** — launch the **fixer** agent on all findings (critical, important, and suggestions)
 - **Yes, walk through one by one** — present each finding individually (critical first, then important, then suggestions) using the question tool, letting the user choose "Fix this", "Skip", or "Stop" for each one. Only fix the ones the user approves.
 - **No** — end the review
 
-Do NOT auto-stage or commit anything — this is review-only unless the user opts into fixing.
+Do NOT auto-stage or commit anything — this is review-only unless the user explicitly opts into fixing.

@@ -1,9 +1,9 @@
 ---
-name: learn
+name: learn-opencode
 description: Extract learnings from the current chat and update OpenCode config (skills, agents, AGENTS.md)
 ---
 
-Usage: /learn [specific topic or "all"]
+Usage: /learn-opencode [specific topic or "all"]
 
 $ARGUMENTS
 
