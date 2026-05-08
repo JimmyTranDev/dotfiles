@@ -44,9 +44,9 @@ $ARGUMENTS
 3. Create the `plans/` directory at the project root if it doesn't exist. Use `scaffold-spec.sh` to generate spec file boilerplate when creating new spec files (e.g., `scaffold-spec.sh <prefix> <name> --todoist <url>`).
 
 4. Decide how many spec files to produce:
-   - If the feature has ~10 or fewer tasks that form a single cohesive unit, write one spec file
-   - If the feature has many tasks that naturally group into distinct areas (e.g., database layer, API endpoints, UI components, auth integration), split into one spec file per group
-   - Each spec file should be independently actionable — a developer can pick up one file and implement its tasks without reading the others first (though cross-references are fine)
+   - **Default: Always write a single spec file** unless the user explicitly requests splitting into multiple files
+   - Only split into multiple files if the user says something like "split this into separate specs" or "one spec per area"
+   - A single spec file can contain many tasks grouped by logical area using headings — splitting into multiple files is rarely necessary
 
 5. Choose descriptive filenames:
    - Derive from the task/group description using kebab-case
