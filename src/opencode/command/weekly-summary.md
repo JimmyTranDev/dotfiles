@@ -24,7 +24,11 @@ Generate a weekly summary of git activity and associated Jira tickets for standu
    - `acli jira workitem view --key "<KEY>" --json`
    - If `acli` is not available, skip Jira lookups and show commits only with a warning
 
-5. Format the output as a grouped summary:
+5. Query Jira for tickets transitioned to QA/Testable this week:
+   - `acli jira workitem search --jql "assignee = currentUser() AND status changed to 'Testable' after 'YYYY-MM-DD'"`
+   - Extract any ticket keys not already found in commits — these are "moved to QA" without commits this week
+
+6. Format the output as a grouped summary:
 
 ```
 ## Weekly Summary (since YYYY-MM-DD)
@@ -37,16 +41,19 @@ Generate a weekly summary of git activity and associated Jira tickets for standu
 #### [PROJ-456] Ticket summary — Status
 - `ghi9012` repo-name: commit message (YYYY-MM-DD)
 
+### Moved to QA (no commits this week)
+#### [PROJ-789] Ticket summary — Testable
+
 ### Unlinked Commits
 - `jkl3456` repo-name: commit message (YYYY-MM-DD)
 
 ### Totals
-- X tickets touched
-- Y commits
-- Z unlinked commits
+- X tickets touched (Y with commits, Z moved to QA only)
+- A commits
+- B unlinked commits
 ```
 
-6. Output the formatted summary to chat
+7. Output the formatted summary to chat
 
 ## Edge Cases
 
