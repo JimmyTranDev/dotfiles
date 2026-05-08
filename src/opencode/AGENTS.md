@@ -218,6 +218,13 @@ When the command receives `$ARGUMENTS`:
 - If the user describes a feature or area, search the codebase to locate the relevant code
 - If no scope is given, analyze the full codebase (or the current branch's diff against the base branch if the command is review-oriented)
 
+### Frontend vs Backend Sanity Check
+Before deep analysis, evaluate whether the task is better suited for frontend or backend implementation:
+- Consider where the logic naturally belongs (UI/UX vs data/business rules)
+- Flag if the task is being assigned to the wrong layer (e.g., complex validation in the frontend that belongs in the backend, or rendering logic leaking into the backend)
+- If the task spans both layers, note which parts belong where and call it out in the spec
+- Include a brief "Layer recommendation" section at the top of the spec file stating frontend, backend, or full-stack with a one-line rationale
+
 ### Analysis-Only Guard
 `specify-*` commands do NOT apply any changes — they are analysis-only. The only files they create are spec files.
 
