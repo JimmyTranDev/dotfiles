@@ -97,12 +97,35 @@ If `$ARGUMENTS` contains a Todoist URL (`app.todoist.com/...`):
 
 Do NOT implement anything, launch agents, or apply changes — this command produces planning documents only.
 
+## Pre-Analysis Clarification
+
+Before writing the spec, ask clarifying questions about the user's request to eliminate ambiguity early:
+
+1. **Scope boundaries**: If the request is vague, ask what is in scope vs out of scope. Present concrete options (e.g., "Should this cover just the API, or also the UI?")
+2. **Requirements**: For each distinct feature or behavior mentioned, ask about acceptance criteria — what does "done" look like?
+3. **Implementation preferences**: If there are multiple valid architectural approaches, present them and ask which the user prefers before committing to one in the spec
+4. **Existing constraints**: Ask whether there are existing patterns, libraries, or conventions the user wants to follow or avoid
+5. **Priority**: If the request contains multiple features, ask the user to rank them by importance
+
+Use the question tool with concrete options for each question. Group questions into a single batch where possible to reduce back-and-forth. Skip questions whose answers are obvious from context or the user's arguments.
+
+Only proceed to spec writing after these pre-analysis questions are answered (or skipped).
+
 ## Post-Specification Clarification
 
 After writing all spec files and presenting the summary, automatically iterate through all open questions across all specs:
 
 1. Collect all questions from the "Open questions" sections of the generated spec files
-2. For each question, present it to the user using the question tool with concrete options where possible
+2. Additionally, generate questions for each task in the spec:
+   - What are the acceptance criteria for this task?
+   - Are there edge cases or error conditions that need specific handling?
+   - Does this task have any backwards compatibility concerns?
+3. Ask about cross-cutting concerns that apply to the whole spec:
+   - Error handling strategy (fail fast, retry, degrade gracefully?)
+   - Logging and observability needs
+   - Backwards compatibility and migration path
+   - Rollback plan if something goes wrong
+4. For each question, present it to the user using the question tool with concrete options where possible
 3. Include a "Skip remaining" option in every question to let the user stop early
 4. After each answer, update the spec file inline — replace the open question with a "Decision: [answer]" statement
 5. If the user's answer invalidates an earlier task or architectural decision in the spec, update that section too

@@ -51,9 +51,22 @@ Generate a weekly summary of git activity and associated Jira tickets for standu
 - X tickets touched (Y with commits, Z moved to QA only)
 - A commits
 - B unlinked commits
+
+### Standup Script
+> I worked on [PROJ-123] — [brief description of what was done], it's currently [status].
+> I also worked on [PROJ-456] — [brief description], now in [status].
+> [One line per ticket, first-person, past tense for completed work, present tense for current status.]
+> [If there are unlinked commits, add: "I also did some work outside of tickets — [brief summary]."]
 ```
 
-7. Output the formatted summary to chat
+7. Generate the standup script:
+   - Include every ticket from the summary (both "By Ticket" and "Moved to QA" sections)
+   - Write one sentence per ticket in first-person: "I worked on [ticket] — [what was done], it's currently [status]."
+   - If there are unlinked commits, add a final sentence summarizing them
+   - Keep each line short enough to read aloud in ~10 seconds
+   - If there are no tickets (only unlinked commits), summarize the commits directly
+
+8. Output the formatted summary to chat
 
 ## Edge Cases
 

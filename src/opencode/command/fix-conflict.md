@@ -26,16 +26,23 @@ Load the **git-conflict-resolution** and **code-follower** skills in parallel.
    - Run `lint-check.sh` and `run-tests.sh` to confirm the resolution is correct
    - If verification fails, use **fixer** to address issues
 
-4. Do NOT commit or continue the merge/rebase automatically:
-   - Notify the user that conflicts are resolved and staged
-   - Tell them to run `git commit` (for merge) or `git rebase --continue` (for rebase) when ready
+4. Auto-continue the operation:
+   - Only proceed if verification (lint/tests) passed. If verification failed, stop and ask the user to decide.
+   - Detect the operation type from `git status`:
+     - If merge: run `git commit --no-edit`
+     - If rebase: run `git rebase --continue`
+     - If cherry-pick: run `git cherry-pick --continue`
+   - If the continue triggers new conflicts, loop back to step 2 (resolve the new conflicts)
+   - Keep looping until no more conflicts remain or a non-conflict error occurs
+   - If a non-conflict error occurs, report the error and offer to abort the operation (`git rebase --abort`, `git merge --abort`, or `git cherry-pick --abort`)
 
 5. Report a summary:
    - List of conflicted files and how each was resolved
    - Whether build/lint/test passed after resolution
-   - What command the user should run next to complete the operation
+   - Whether the operation was completed successfully or stopped due to an error
+   - Total number of conflict rounds resolved (for rebase)
 
 Important:
 - Never silently drop changes from either side
-- Do not run `git merge`, `git rebase`, or `git cherry-pick` — this command only resolves existing conflicts
-- Do not commit or continue the operation — leave that to the user
+- Do not run `git merge`, `git rebase`, or `git cherry-pick` — this command only resolves existing conflicts and continues in-progress operations
+- Only auto-continue if verification passes — if lint/tests fail, stop and ask the user
