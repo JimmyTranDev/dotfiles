@@ -61,7 +61,8 @@ Generate human-readable testing instructions from code changes associated with o
 7. Write output to a file:
    - If `--file <path>` is specified, use that path
    - Otherwise, write to `testing-instructions-YYYY-MM-DD.txt` in the current directory
-   - Use plain text format
+   - Use pure plain text format (no markdown syntax — no #, *, `, etc.)
+   - Use dashes for lists, ALL CAPS for headers, and indentation for structure
 
 8. Show the generated instructions in chat and ask the user for confirmation before posting to Jira
 
@@ -71,6 +72,8 @@ Generate human-readable testing instructions from code changes associated with o
    - If found, update it: write the new instructions to a temp file and run `acli jira workitem comment update --key "<JIRA-KEY>" --edit-last --body-file <tempfile>`
    - If not found, create a new comment: `acli jira workitem comment create --key "<JIRA-KEY>" --body-file <tempfile>`
    - Clean up the temp file
+
+10. After successfully posting to Jira, ask the user if they want to delete the local instructions file. If yes, remove it.
 
 ## Edge Cases
 
