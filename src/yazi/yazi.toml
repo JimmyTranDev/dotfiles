@@ -6,13 +6,13 @@ use = "catppuccin-mocha"
 
 [[plugin.prepend_fetchers]]
 id    = "git"
-name  = "*"
+url   = "*"
 run   = "git"
 group = "normal"
 
 [[plugin.prepend_fetchers]]
 id    = "git"
-name  = "*/"
+url   = "*/"
 run   = "git"
 group = "normal"
 
