@@ -4,7 +4,7 @@
 
 set -e
 
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../" && pwd)"
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../" && pwd)"
 SCRIPTS_DIR="$DOTFILES_DIR/etc/scripts"
 
 source "$SCRIPTS_DIR/utils/utility.sh"
