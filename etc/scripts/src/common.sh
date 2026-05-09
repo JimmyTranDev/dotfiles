@@ -38,6 +38,11 @@ fi
 echo "Syncing symbolic links..."
 "$SCRIPTS_DIR/src/sync_links.sh"
 
+if command -v ya >/dev/null 2>&1; then
+	echo "Installing yazi packages..."
+	ya pkg install || echo "Warning: ya pkg install failed (may need network)"
+fi
+
 SECRETS_ENV="$HOME/Programming/JimmyTranDev/secrets/env.sh"
 if [[ -f "$SECRETS_ENV" ]]; then
 	source "$SECRETS_ENV"

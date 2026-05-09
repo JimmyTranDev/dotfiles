@@ -91,10 +91,10 @@ if [[ "$(uname)" == "Darwin" ]]; then
   alias t='yabai --restart-service & skhd --restart-service & wait'
 fi
 
-alias F="$DOTFILES_DIR/etc/scripts/src/pull_repos.sh"
+alias P="$DOTFILES_DIR/etc/scripts/src/pull_repos.sh"
 alias I="$DOTFILES_DIR/etc/scripts/src/install.sh"
 alias L="$DOTFILES_DIR/etc/scripts/src/sync_links.sh"
-alias P="$DOTFILES_DIR/etc/scripts/src/slack_post_prs.sh"
+alias N="$DOTFILES_DIR/etc/scripts/src/slack_post_prs.sh"
 alias S="$DOTFILES_DIR/etc/scripts/src/sync_secrets.sh"
 alias C='find "$DOTFILES_DIR/etc/scripts" -type f -name "*.sh" -exec chmod +x {} \;'
 
@@ -456,8 +456,13 @@ if [[ -z "$ZELLIJ_AUTO_ATTACH" ]]; then
 fi
 
 # Google Cloud SDK
-source "/opt/homebrew/Caskroom/gcloud-cli/561.0.0/google-cloud-sdk/path.zsh.inc"
-source "/opt/homebrew/Caskroom/gcloud-cli/561.0.0/google-cloud-sdk/completion.zsh.inc"
+if [[ -d "/opt/homebrew/Caskroom/gcloud-cli" ]]; then
+  GCLOUD_SDK_DIR=(/opt/homebrew/Caskroom/gcloud-cli/*/google-cloud-sdk(N/))
+  if [[ ${#GCLOUD_SDK_DIR[@]} -gt 0 ]]; then
+    source "${GCLOUD_SDK_DIR[-1]}/path.zsh.inc"
+    source "${GCLOUD_SDK_DIR[-1]}/completion.zsh.inc"
+  fi
+fi
 
 # pnpm
 export PNPM_HOME="/Users/jimmy/Library/pnpm"

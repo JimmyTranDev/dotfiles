@@ -20,4 +20,20 @@ else
 	exit 1
 fi
 
+echo "Applying macOS system preferences..."
+
+defaults write com.apple.universalaccess reduceMotion -bool true
+
+defaults write NSGlobalDomain KeyRepeat -int 2
+defaults write NSGlobalDomain InitialKeyRepeat -int 15
+
+defaults write com.apple.dock orientation -string "left"
+defaults write com.apple.dock autohide -bool true
+killall Dock
+
+for i in {1..9}; do
+	defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add "$((17 + i))" \
+		"<dict><key>enabled</key><true/><key>value</key><dict><key>parameters</key><array><integer>$((48 + i))</integer><integer>$((17 + i))</integer><integer>262144</integer></array><key>type</key><string>standard</string></dict></dict>"
+done
+
 echo "macOS setup completed"
