@@ -5,14 +5,16 @@ show_hidden = true
 use = "catppuccin-mocha"
 
 [[plugin.prepend_fetchers]]
-id   = "git"
-name = "*"
-run  = "git"
+id    = "git"
+name  = "*"
+run   = "git"
+group = "normal"
 
 [[plugin.prepend_fetchers]]
-id   = "git"
-name = "*/"
-run  = "git"
+id    = "git"
+name  = "*/"
+run   = "git"
+group = "normal"
 
 [[plugin.prepend_previewers]]
 mime = "video/*"
