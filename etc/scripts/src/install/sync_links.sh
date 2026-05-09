@@ -1,11 +1,14 @@
 #!/bin/bash
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-
-source "$SCRIPT_DIR/../utils/utility.sh"
-source "$SCRIPT_DIR/../utils/logging.sh"
 set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+SCRIPTS_DIR="$DOTFILES_ROOT/etc/scripts"
+SECRETS_DIR="$HOME/Programming/JimmyTranDev/secrets"
+
+source "$SCRIPTS_DIR/utils/utility.sh"
+source "$SCRIPTS_DIR/utils/logging.sh"
 
 BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d_%H%M%S)"
 DRY_RUN=false
@@ -25,6 +28,11 @@ get_common_links() {
 		"$DOTFILES_ROOT/src/opencode|$HOME/.config/opencode"
 		"$DOTFILES_ROOT/src/git/hooks|$HOME/.config/git/hooks"
 		"$DOTFILES_ROOT/src/espanso|$HOME/.config/espanso"
+		"$SECRETS_DIR/ssh|$HOME/.ssh"
+		"$SECRETS_DIR/.gitconfig|$HOME/.gitconfig"
+		"$SECRETS_DIR/.npmrc|$HOME/.npmrc"
+		"$SECRETS_DIR/.m2|$HOME/.m2"
+		"$SECRETS_DIR/espanso/match/personal.yml|$HOME/.config/espanso/match/personal.yml"
 	)
 	printf '%s\n' "${links[@]}"
 }
@@ -157,6 +165,24 @@ create_links() {
 		log_info "Setting global git hooks path..."
 		git config --global core.hooksPath "$HOME/.config/git/hooks"
 		log_success "Global git hooks configured"
+
+		if [ -d "$HOME/.ssh" ]; then
+			log_info "Setting SSH directory permissions..."
+			chmod 700 "$HOME/.ssh"
+			if [ -f "$HOME/.ssh/id_ed25519" ]; then
+				chmod 600 "$HOME/.ssh/id_ed25519"
+			fi
+			if [ -f "$HOME/.ssh/id_ed25519.pub" ]; then
+				chmod 644 "$HOME/.ssh/id_ed25519.pub"
+			fi
+			if [ -f "$HOME/.ssh/config" ]; then
+				chmod 600 "$HOME/.ssh/config"
+			fi
+			if [ -f "$HOME/.ssh/known_hosts" ]; then
+				chmod 644 "$HOME/.ssh/known_hosts"
+			fi
+			log_success "SSH permissions configured"
+		fi
 	fi
 }
 

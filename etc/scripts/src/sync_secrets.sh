@@ -70,19 +70,6 @@ create_item_if_missing() {
 	log_success "Created Secure Note '$BW_ITEM_NAME'"
 }
 
-remove_existing_attachments() {
-	local item_id="$1"
-	local attachments
-	attachments=$(bw get item "$item_id" 2>/dev/null | jq -r '.attachments[]?.id // empty' 2>/dev/null)
-
-	if [[ -n "$attachments" ]]; then
-		while IFS= read -r att_id; do
-			[[ -z "$att_id" ]] && continue
-			bw delete attachment "$att_id" --itemid "$item_id" >/dev/null 2>&1
-		done <<< "$attachments"
-	fi
-}
-
 upload_secrets() {
 	if [[ ! -d "$SECRETS_DIR" ]]; then
 		log_error "Secrets directory not found: $SECRETS_DIR"
@@ -92,7 +79,7 @@ upload_secrets() {
 	local file_count=0
 	while IFS= read -r -d '' _; do
 		file_count=$((file_count + 1))
-	done < <(find "$SECRETS_DIR" -maxdepth 1 -type f -print0)
+	done < <(find "$SECRETS_DIR" -type f -not -path '*/.sync_tmp/*' -print0)
 
 	if [[ "$file_count" -eq 0 ]]; then
 		log_warning "No files found in $SECRETS_DIR"
@@ -105,18 +92,89 @@ upload_secrets() {
 	local item_id
 	item_id=$(get_item_id)
 
-	log_info "Removing existing attachments..."
-	remove_existing_attachments "$item_id"
+	local old_attachment_ids
+	old_attachment_ids=$(bw get item "$item_id" 2>/dev/null | jq -r '.attachments[]?.id // empty' 2>/dev/null)
+
+	local temp_dir="$SECRETS_DIR/.sync_tmp"
+	rm -rf "$temp_dir"
+	mkdir -p "$temp_dir"
 
 	local success_count=0
+	local upload_failed=0
+	local new_attachment_ids=""
+	local seen_safe_names=""
 	while IFS= read -r -d '' file; do
 		[[ -z "$file" ]] && continue
-		local filename
-		filename=$(basename "$file")
-		log_info "Uploading $filename..."
-		bw create attachment --file "$file" --itemid "$item_id" >/dev/null
+		local rel_path
+		rel_path="${file#"$SECRETS_DIR"/}"
+		local safe_name
+		safe_name="${rel_path//\//__SLASH__}"
+
+		if echo "$seen_safe_names" | grep -qxF "$safe_name"; then
+			log_error "Name collision detected for '$safe_name' (from '$rel_path') — aborting."
+			upload_failed=1
+			break
+		fi
+		seen_safe_names="${seen_safe_names}${safe_name}
+"
+
+		cp "$file" "$temp_dir/$safe_name"
+
+		local manifest_line="$safe_name	$rel_path"
+		echo "$manifest_line" >> "$temp_dir/.manifest"
+
+		log_info "Uploading $rel_path (as $safe_name)..."
+		local upload_output
+		if ! upload_output=$(bw create attachment --file "$temp_dir/$safe_name" --itemid "$item_id" 2>&1); then
+			log_error "Failed to upload $rel_path — aborting. Old attachments preserved."
+			upload_failed=1
+			break
+		fi
+		local new_att_id
+		new_att_id=$(echo "$upload_output" | jq -r '.attachments[-1].id // empty' 2>/dev/null)
+		if [[ -n "$new_att_id" ]]; then
+			new_attachment_ids="${new_attachment_ids}${new_att_id}
+"
+		fi
 		success_count=$((success_count + 1))
-	done < <(find "$SECRETS_DIR" -maxdepth 1 -type f -print0 | sort -z)
+	done < <(find "$SECRETS_DIR" -type f -not -path '*/.sync_tmp/*' -print0 | sort -z)
+
+	if [[ "$upload_failed" -eq 0 && -f "$temp_dir/.manifest" ]]; then
+		log_info "Uploading manifest..."
+		local upload_output
+		if ! upload_output=$(bw create attachment --file "$temp_dir/.manifest" --itemid "$item_id" 2>&1); then
+			log_error "Failed to upload manifest — aborting. Old attachments preserved."
+			upload_failed=1
+		else
+			local new_att_id
+			new_att_id=$(echo "$upload_output" | jq -r '.attachments[-1].id // empty' 2>/dev/null)
+			if [[ -n "$new_att_id" ]]; then
+				new_attachment_ids="${new_attachment_ids}${new_att_id}
+"
+			fi
+		fi
+	fi
+
+	rm -rf "$temp_dir"
+
+	if [[ "$upload_failed" -eq 1 ]]; then
+		if [[ -n "$new_attachment_ids" ]]; then
+			log_info "Cleaning up partially uploaded attachments..."
+			while IFS= read -r att_id; do
+				[[ -z "$att_id" ]] && continue
+				bw delete attachment "$att_id" --itemid "$item_id" >/dev/null 2>&1 || true
+			done <<< "$new_attachment_ids"
+		fi
+		exit 1
+	fi
+
+	if [[ -n "$old_attachment_ids" ]]; then
+		log_info "Removing old attachments..."
+		while IFS= read -r att_id; do
+			[[ -z "$att_id" ]] && continue
+			bw delete attachment "$att_id" --itemid "$item_id" >/dev/null 2>&1 || true
+		done <<< "$old_attachment_ids"
+	fi
 
 	log_success "Uploaded $success_count files to '$BW_ITEM_NAME'"
 }
@@ -140,6 +198,21 @@ download_secrets() {
 		exit 0
 	fi
 
+	local temp_dir="$SECRETS_DIR/.sync_tmp"
+	local backup_dir="$SECRETS_DIR/.sync_backup"
+	rm -rf "$temp_dir" "$backup_dir"
+	mkdir -p "$temp_dir"
+
+	local existing_trap
+	existing_trap=$(trap -p EXIT | sed "s/trap -- '//;s/' EXIT//")
+	cleanup_temp() {
+		rm -rf "$temp_dir" "$backup_dir"
+		if [[ -n "$existing_trap" ]]; then
+			eval "$existing_trap"
+		fi
+	}
+	trap cleanup_temp EXIT INT TERM
+
 	local success_count=0
 	while IFS= read -r att; do
 		[[ -z "$att" ]] && continue
@@ -147,10 +220,42 @@ download_secrets() {
 		att_id=$(echo "$att" | jq -r '.id')
 		att_name=$(echo "$att" | jq -r '.fileName')
 		log_info "Downloading $att_name..."
-		bw get attachment "$att_id" --itemid "$item_id" --output "$SECRETS_DIR/$att_name" >/dev/null
-		chmod 600 "$SECRETS_DIR/$att_name"
-		success_count=$((success_count + 1))
+		if ! bw get attachment "$att_id" --itemid "$item_id" --output "$temp_dir/$att_name" >/dev/null; then
+			log_error "Failed to download $att_name — aborting. Original files preserved."
+			exit 1
+		fi
+		if [[ "$att_name" != ".manifest" ]]; then
+			chmod 600 "$temp_dir/$att_name"
+			success_count=$((success_count + 1))
+		fi
 	done <<< "$attachments"
+
+	if [[ -d "$SECRETS_DIR" ]]; then
+		mkdir -p "$backup_dir"
+		find "$SECRETS_DIR" -maxdepth 1 -type f -exec cp {} "$backup_dir/" \;
+	fi
+
+	if [[ -f "$temp_dir/.manifest" ]]; then
+		while IFS=$'\t' read -r safe_name rel_path; do
+			[[ -z "$safe_name" || -z "$rel_path" ]] && continue
+			if [[ -f "$temp_dir/$safe_name" ]]; then
+				local dest_dir
+				dest_dir="$SECRETS_DIR/$(dirname "$rel_path")"
+				mkdir -p "$dest_dir"
+				mv -f "$temp_dir/$safe_name" "$SECRETS_DIR/$rel_path"
+			fi
+		done < "$temp_dir/.manifest"
+	else
+		log_warning "No manifest found — files will use attachment names (subdirectory paths cannot be restored)."
+		while IFS= read -r -d '' file; do
+			local filename
+			filename=$(basename "$file")
+			mv -f "$file" "$SECRETS_DIR/$filename"
+		done < <(find "$temp_dir" -type f -print0)
+	fi
+
+	rm -rf "$temp_dir" "$backup_dir"
+	trap - EXIT INT TERM
 
 	log_success "Downloaded $success_count files to $SECRETS_DIR"
 }

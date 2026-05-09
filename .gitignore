@@ -11,3 +11,4 @@ src/opencode/bun.lock
 
 .env
 secrets/
+src/espanso/match/personal.yml

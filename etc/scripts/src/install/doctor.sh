@@ -3,9 +3,10 @@
 set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+DOTFILES_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+SECRETS_DIR="$HOME/Programming/JimmyTranDev/secrets"
 
-source "$SCRIPT_DIR/../utils/logging.sh"
+source "$DOTFILES_ROOT/etc/scripts/utils/logging.sh"
 
 PASS=0
 FAIL=0
@@ -135,6 +136,11 @@ main() {
 		"$HOME/.config/espanso|$DOTFILES_ROOT/src/espanso"
 		"$HOME/.ideavimrc|$DOTFILES_ROOT/src/.ideavimrc"
 		"$HOME/.gitignore_global|$DOTFILES_ROOT/src/.gitignore_global"
+		"$HOME/.ssh|$SECRETS_DIR/ssh"
+		"$HOME/.gitconfig|$SECRETS_DIR/.gitconfig"
+		"$HOME/.npmrc|$SECRETS_DIR/.npmrc"
+		"$HOME/.m2|$SECRETS_DIR/.m2"
+		"$HOME/.config/espanso/match/personal.yml|$SECRETS_DIR/espanso/match/personal.yml"
 	)
 
 	if [ "$(uname)" = "Darwin" ]; then
@@ -193,6 +199,31 @@ main() {
 		check_pass "Global gitignore configured ($global_ignore)"
 	else
 		check_warn "Global gitignore not configured"
+	fi
+	echo
+
+	log_info "Checking SSH permissions..."
+	if [ -d "$HOME/.ssh" ]; then
+		local ssh_perms
+		ssh_perms=$(stat -Lf "%Lp" "$HOME/.ssh" 2>/dev/null || stat -Lc "%a" "$HOME/.ssh" 2>/dev/null)
+		if [ "$ssh_perms" = "700" ]; then
+			check_pass "SSH directory permissions correct (700)"
+		else
+			check_fail "SSH directory permissions incorrect ($ssh_perms, expected 700)"
+		fi
+		if [ -f "$HOME/.ssh/id_ed25519" ]; then
+			local key_perms
+			key_perms=$(stat -Lf "%Lp" "$HOME/.ssh/id_ed25519" 2>/dev/null || stat -Lc "%a" "$HOME/.ssh/id_ed25519" 2>/dev/null)
+			if [ "$key_perms" = "600" ]; then
+				check_pass "SSH private key permissions correct (600)"
+			else
+				check_fail "SSH private key permissions incorrect ($key_perms, expected 600)"
+			fi
+		else
+			check_warn "SSH private key not found"
+		fi
+	else
+		check_warn "SSH directory not found"
 	fi
 	echo
 
