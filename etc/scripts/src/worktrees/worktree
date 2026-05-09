@@ -15,8 +15,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/config.sh"
 
 # Source core libraries
-source "$SCRIPT_DIR/../../lib/worktree_core.sh"
-source "$SCRIPT_DIR/../../lib/jira.sh"
+source "$SCRIPT_DIR/../../utils/worktree_core.sh"
+source "$SCRIPT_DIR/../../utils/jira.sh"
 
 # Source all command modules
 source "$SCRIPT_DIR/commands/create.sh"

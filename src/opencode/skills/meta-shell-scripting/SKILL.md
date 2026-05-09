@@ -95,7 +95,7 @@ print_color green "Success"
 
 ## Logging Library
 
-Source `etc/scripts/lib/logging.sh` for standardized logging:
+Source `etc/scripts/utils/logging.sh` for standardized logging:
 ```bash
 log_info "message"       # Cyan + info emoji
 log_success "message"    # Green + checkmark

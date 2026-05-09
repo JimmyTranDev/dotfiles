@@ -1,6 +1,7 @@
 #!/bin/bash
 
-PROGRAMMING_EXCLUDED_DIRS=("Worktrees" "wcreated" "wcheckout" "secrets")
+_UTILITY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")" && pwd)"
+source "$_UTILITY_DIR/../consts/dirs.sh"
 
 require_tool() {
     local missing=0

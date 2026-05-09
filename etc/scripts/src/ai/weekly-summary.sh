@@ -2,8 +2,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../lib/logging.sh"
-source "$SCRIPT_DIR/../../lib/utility.sh"
+source "$SCRIPT_DIR/../../utils/logging.sh"
+source "$SCRIPT_DIR/../../utils/utility.sh"
 
 get_last_monday() {
     if [[ "$(uname)" == "Darwin" ]]; then

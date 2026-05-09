@@ -1,0 +1,14 @@
+#!/bin/bash
+
+[[ -n "${_CONSTS_EMOJI_LOADED:-}" ]] && return 0
+_CONSTS_EMOJI_LOADED=1
+
+EMOJI_SUCCESS="✓"
+EMOJI_ERROR="❌"
+EMOJI_WARNING="⚠️"
+EMOJI_INFO="ℹ️"
+EMOJI_ROCKET="🚀"
+EMOJI_LINK="🔗"
+EMOJI_TRASH="🗑"
+EMOJI_EYE="👁"
+EMOJI_CLOUD="☁️"

@@ -3,7 +3,7 @@
 set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
-source "$SCRIPT_DIR/../../lib/logging.sh"
+source "$SCRIPT_DIR/../utils/logging.sh"
 
 if ! command -v gh &>/dev/null; then
 	log_error "gh (GitHub CLI) is required but not installed"

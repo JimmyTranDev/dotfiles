@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
-source "$SCRIPT_DIR/../../lib/utility.sh"
+source "$SCRIPT_DIR/../utils/utility.sh"
 
 PROGRAMMING_DIR="${PROGRAMMING_DIR:-$HOME/Programming}"
 

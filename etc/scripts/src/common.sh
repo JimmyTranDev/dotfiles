@@ -4,10 +4,10 @@
 
 set -e
 
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../" && pwd)"
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../" && pwd)"
 SCRIPTS_DIR="$DOTFILES_DIR/etc/scripts"
 
-source "$SCRIPTS_DIR/common/utility.sh"
+source "$SCRIPTS_DIR/utils/utility.sh"
 
 echo "Running common setup..."
 
@@ -36,7 +36,7 @@ else
 fi
 
 echo "Syncing symbolic links..."
-"$SCRIPTS_DIR/sync_links.sh"
+"$SCRIPTS_DIR/src/sync_links.sh"
 
 SECRETS_ENV="$HOME/Programming/JimmyTranDev/secrets/env.sh"
 if [[ -f "$SECRETS_ENV" ]]; then

@@ -1,10 +1,10 @@
 #!/bin/bash
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+DOTFILES_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
-source "$SCRIPT_DIR/../../lib/utility.sh"
-source "$SCRIPT_DIR/../../lib/logging.sh"
+source "$SCRIPT_DIR/../utils/utility.sh"
+source "$SCRIPT_DIR/../utils/logging.sh"
 set -e
 
 BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d_%H%M%S)"

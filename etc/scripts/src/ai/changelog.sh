@@ -2,7 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../lib/logging.sh"
+source "$SCRIPT_DIR/../../utils/logging.sh"
 
 get_last_tag() {
     git describe --tags --abbrev=0 2>/dev/null || echo ""
