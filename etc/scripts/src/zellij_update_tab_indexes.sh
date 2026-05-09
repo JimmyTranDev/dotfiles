@@ -2,66 +2,86 @@
 
 set -e
 
+LOG_FILE="/tmp/zellij_reindex.log"
+
+log() {
+	echo "$(date '+%H:%M:%S') $*" >>"$LOG_FILE"
+}
+
 main() {
-	[[ -z "$ZELLIJ" ]] && exit 0
+	>"$LOG_FILE"
 
-	local layout
-	layout=$(zellij action dump-layout 2>/dev/null)
-	[[ -z "$layout" ]] && exit 0
+	if [[ -z "$ZELLIJ" ]]; then
+		log "Not in zellij, exiting"
+		exit 0
+	fi
 
-	local current_tab_name
-	current_tab_name=$(echo "$layout" | awk '/^[[:space:]]*tab[[:space:]].*name=.*focus=true/ {match($0, /name="[^"]*"/); print substr($0, RSTART+6, RLENGTH-7); exit}')
-	[[ -z "$current_tab_name" ]] && exit 0
-	local current_tab_base
-	current_tab_base=$(echo "$current_tab_name" | sed 's/^[0-9][0-9]*\.//')
+	local tabs_json
+	tabs_json=$(zellij action list-tabs --json 2>/dev/null)
+	if [[ -z "$tabs_json" ]]; then
+		log "Failed to get tab list"
+		exit 0
+	fi
 
-	local tab_lines
-	tab_lines=$(echo "$layout" | awk '/^[[:space:]]*tab[[:space:]].*name=/ {print NR": "$0}')
 	local tab_count
-	tab_count=$(echo "$tab_lines" | wc -l | tr -d ' ')
-	[[ "$tab_count" -eq 0 ]] && exit 0
+	tab_count=$(echo "$tabs_json" | python3 -c "import sys,json; print(len(json.load(sys.stdin)))")
+	log "Found $tab_count tabs"
+
+	if [[ "$tab_count" -eq 0 ]]; then
+		exit 0
+	fi
 
 	local needs_update=false
 	local idx=0
-	while IFS= read -r line; do
-		local tab_line
-		tab_line=$(echo "$line" | cut -d':' -f2-)
-		local current_name
-		current_name=$(echo "$tab_line" | sed -n 's/.*name="\([^"]*\)".*/\1/p')
 
-		local base_name
-		base_name=$(echo "$current_name" | sed 's/^[0-9][0-9]*\.//')
+	while IFS= read -r line; do
+		local tab_id name base_name
+		tab_id=$(echo "$line" | cut -d'|' -f1)
+		name=$(echo "$line" | cut -d'|' -f2)
+
+		base_name=$(echo "$name" | sed 's/^[0-9][0-9]*\.//')
 		base_name=$(echo "$base_name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-		[[ -z "$base_name" ]] && base_name="$current_name"
+		if [[ -z "$base_name" ]]; then
+			base_name="$name"
+		fi
 
 		if [[ -z "$base_name" ]] || [[ "$base_name" =~ ^[0-9]+\.?[[:space:]]*$ ]] || [[ "$base_name" =~ ^Tab\ #[0-9]+$ ]]; then
+			log "Skipping tab_id=$tab_id name='$name' (default/numeric name)"
 			continue
 		fi
 
 		((idx++)) || true
 		local expected_name="${idx}.${base_name}"
 
-		if [[ "$current_name" != "$expected_name" ]]; then
+		if [[ "$name" != "$expected_name" ]]; then
 			needs_update=true
+			log "Tab '$name' should be '$expected_name' — update needed"
 			break
 		fi
-	done <<<"$tab_lines"
+	done < <(echo "$tabs_json" | python3 -c "
+import sys, json
+tabs = json.load(sys.stdin)
+tabs.sort(key=lambda t: t['position'])
+for t in tabs:
+    print(f\"{t['tab_id']}|{t['name']}\")
+")
 
-	[[ "$needs_update" == false ]] && exit 0
+	if [[ "$needs_update" == false ]]; then
+		log "No update needed"
+		exit 0
+	fi
 
 	idx=0
-	local tab_pos=0
 	while IFS= read -r line; do
-		((tab_pos++)) || true
-		local tab_line
-		tab_line=$(echo "$line" | cut -d':' -f2-)
-		local current_name
-		current_name=$(echo "$tab_line" | sed -n 's/.*name="\([^"]*\)".*/\1/p')
+		local tab_id name base_name
+		tab_id=$(echo "$line" | cut -d'|' -f1)
+		name=$(echo "$line" | cut -d'|' -f2)
 
-		local base_name
-		base_name=$(echo "$current_name" | sed 's/^[0-9][0-9]*\.//')
+		base_name=$(echo "$name" | sed 's/^[0-9][0-9]*\.//')
 		base_name=$(echo "$base_name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-		[[ -z "$base_name" ]] && base_name="$current_name"
+		if [[ -z "$base_name" ]]; then
+			base_name="$name"
+		fi
 
 		if [[ -z "$base_name" ]] || [[ "$base_name" =~ ^[0-9]+\.?[[:space:]]*$ ]] || [[ "$base_name" =~ ^Tab\ #[0-9]+$ ]]; then
 			continue
@@ -70,29 +90,19 @@ main() {
 		((idx++)) || true
 		local new_name="${idx}.${base_name}"
 
-		if [[ "$current_name" != "$new_name" ]]; then
-			zellij action go-to-tab "$tab_pos" 2>/dev/null
-			sleep 0.03
-			zellij action rename-tab "$new_name" 2>/dev/null
+		if [[ "$name" != "$new_name" ]]; then
+			log "Renaming tab_id=$tab_id from '$name' to '$new_name'"
+			zellij action rename-tab-by-id "$tab_id" "$new_name" 2>/dev/null
 		fi
-	done <<<"$tab_lines"
+	done < <(echo "$tabs_json" | python3 -c "
+import sys, json
+tabs = json.load(sys.stdin)
+tabs.sort(key=lambda t: t['position'])
+for t in tabs:
+    print(f\"{t['tab_id']}|{t['name']}\")
+")
 
-	local target_idx=1
-	local tab_idx=0
-	while IFS= read -r line; do
-		((tab_idx++)) || true
-		local tab_line
-		tab_line=$(echo "$line" | cut -d':' -f2-)
-		local name
-		name=$(echo "$tab_line" | sed -n 's/.*name="\([^"]*\)".*/\1/p')
-		local base
-		base=$(echo "$name" | sed 's/^[0-9][0-9]*\.//')
-		if [[ "$base" == "$current_tab_base" ]]; then
-			target_idx="$tab_idx"
-			break
-		fi
-	done <<<"$tab_lines"
-	zellij action go-to-tab "$target_idx" 2>/dev/null
+	log "Reindex complete"
 }
 
 main "$@"
