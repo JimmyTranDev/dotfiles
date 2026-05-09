@@ -27,10 +27,6 @@ export HOMEBREW_AUTO_UPDATE_SECS=604800
 export HOMEBREW_API_AUTO_UPDATE_SECS=604800
 export PNPM_HOME="$HOME/Library/pnpm"
 
-if [[ -z "$ZELLIJ_AUTO_ATTACH" ]]; then
-  export ZELLIJ_AUTO_ATTACH="false"
-fi
-
 if [[ "$(uname)" == "Darwin" ]]; then
   export ANDROID_HOME="$HOME/Library/Android/sdk"
   export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.1.12297006"
@@ -91,7 +87,7 @@ alias c='clear'
 alias g='rg'
 alias n='nvim'
 alias y='yazi'
-alias e='zellij'
+alias z='zellij'
 alias a='eval "$(poetry env activate)"'
 alias d="$DOTFILES_DIR/etc/scripts/utils/git_diff_commits.sh"
 alias k="$DOTFILES_DIR/etc/scripts/src/kill_port.sh"
@@ -111,8 +107,6 @@ alias wC='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree clean'
 alias wr='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree rename'
 alias wu='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree update'
 
-alias zellij-enable-auto="export ZELLIJ_AUTO_ATTACH=true"
-alias zellij-disable-auto="export ZELLIJ_AUTO_ATTACH=false"
 alias zja="zellij attach"
 alias zjl="zellij list-sessions"
 
