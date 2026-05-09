@@ -17,9 +17,10 @@ cmd_update() {
 	local failed_count=0
 	local skipped_count=0
 
+	local worktree_name current_branch remote_branch local_commit remote_commit git_common_dir
 	for base_dir in "${all_worktree_dirs[@]}"; do
 		while IFS= read -r -d '' worktree_path; do
-			local worktree_name="${worktree_path##*/}"
+			worktree_name="${worktree_path##*/}"
 
 			print_color cyan "\n--- Processing worktree: $worktree_name ---"
 
@@ -29,7 +30,6 @@ cmd_update() {
 				continue
 			fi
 
-			local current_branch
 			current_branch=$(git -C "$worktree_path" rev-parse --abbrev-ref HEAD 2>/dev/null) || {
 				print_color red "Error: Failed to get current branch for $worktree_name"
 				((failed_count++))
@@ -50,7 +50,6 @@ cmd_update() {
 				continue
 			fi
 
-			local remote_branch
 			remote_branch=$(git -C "$worktree_path" rev-parse --abbrev-ref @{u} 2>/dev/null) || {
 				print_color yellow "Skipping $worktree_name: No remote tracking branch for $current_branch"
 				((skipped_count++))
@@ -66,7 +65,6 @@ cmd_update() {
 				continue
 			fi
 
-			local local_commit remote_commit
 			local_commit=$(git -C "$worktree_path" rev-parse HEAD)
 			remote_commit=$(git -C "$worktree_path" rev-parse @{u})
 
@@ -84,7 +82,6 @@ cmd_update() {
 				print_color red "Error: Failed to pull and rebase $worktree_name"
 				((failed_count++))
 
-				local git_common_dir
 				git_common_dir=$(git -C "$worktree_path" rev-parse --git-dir 2>/dev/null)
 				if [[ -d "$git_common_dir/rebase-merge" ]] || [[ -d "$git_common_dir/rebase-apply" ]]; then
 					print_color yellow "Aborting rebase for $worktree_name..."

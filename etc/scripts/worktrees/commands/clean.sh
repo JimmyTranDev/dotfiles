@@ -34,16 +34,15 @@ cmd_clean_worktrees() {
 	local worktrees_to_delete=()
 	local -A fetched_repos=()
 
+	local gitdir_line worktree_gitdir repo_root main_branch develop_branch branch_name old_pwd is_merged merged_into
 	for wt_path in "${available_worktrees[@]}"; do
 		if [[ ! -f "$wt_path/.git" ]]; then
 			print_color yellow "  Skipping corrupted worktree: $wt_path"
 			continue
 		fi
 
-		local gitdir_line
 		gitdir_line=$(head -n1 "$wt_path/.git" 2>/dev/null)
 
-		local worktree_gitdir
 		if [[ "$gitdir_line" =~ ^gitdir:\ (.*)$ ]]; then
 			worktree_gitdir="${match[1]}"
 		else
@@ -51,7 +50,6 @@ cmd_clean_worktrees() {
 			continue
 		fi
 
-		local repo_root
 		repo_root=$(dirname "$(dirname "$worktree_gitdir")")
 
 		if [[ ! -d "$repo_root" ]]; then
@@ -59,20 +57,19 @@ cmd_clean_worktrees() {
 			continue
 		fi
 
-		local main_branch
 		main_branch=$(find_main_branch "$repo_root") || {
 			print_color yellow "  Could not find main branch for: $wt_path"
 			continue
 		}
 
-		local develop_branch=""
+		develop_branch=""
 		if git -C "$repo_root" show-ref --verify --quiet refs/heads/develop 2>/dev/null ||
 			git -C "$repo_root" show-ref --verify --quiet refs/remotes/origin/develop 2>/dev/null; then
 			develop_branch="develop"
 		fi
 
-		local branch_name=""
-		local old_pwd="$PWD"
+		branch_name=""
+		old_pwd="$PWD"
 		cd "$wt_path" 2>/dev/null && {
 			branch_name=$(git branch --show-current 2>/dev/null)
 			cd "$old_pwd"
@@ -83,8 +80,8 @@ cmd_clean_worktrees() {
 			continue
 		fi
 
-		local is_merged=false
-		local merged_into=""
+		is_merged=false
+		merged_into=""
 
 		if [[ -z "${fetched_repos[$repo_root]:-}" ]]; then
 			git -C "$repo_root" fetch --quiet 2>/dev/null

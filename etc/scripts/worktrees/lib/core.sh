@@ -90,13 +90,14 @@ select_project() {
 	[[ -f "$last_proj_file" ]] && last_proj=$(<"$last_proj_file")
 
 	local all_projects=()
+	local org_name dirname
 	while IFS= read -r org_dir; do
 		[[ ! -d "$org_dir" ]] && continue
-		local org_name="${org_dir%/}"
+		org_name="${org_dir%/}"
 		org_name="${org_name##*/}"
 		for dir in "$org_dir"/*/; do
 			[[ -d "$dir" ]] || continue
-			local dirname="${dir%/}"
+			dirname="${dir%/}"
 			dirname="${dirname##*/}"
 			all_projects+=("$org_name/$dirname")
 		done
@@ -190,10 +191,11 @@ get_repository() {
 
 	local repos=()
 	local repo_labels=()
+	local category repo_path
 	for dir in "${search_dirs[@]}"; do
-		local category=$(basename "$dir")
+		category=$(basename "$dir")
 		while IFS= read -r -d '' git_dir; do
-			local repo_path="$(dirname "$git_dir")"
+			repo_path="$(dirname "$git_dir")"
 			repos+=("$repo_path")
 			repo_labels+=("[$category] $(basename "$repo_path")")
 		done < <(find "$dir" -maxdepth 2 -name ".git" -type d -print0 2>/dev/null)

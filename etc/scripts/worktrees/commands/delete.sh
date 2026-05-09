@@ -233,12 +233,12 @@ cmd_delete() {
 		fi
 
 		local labels=()
+		local wt_name project_name label
 		typeset -A label_to_path
 		for wt in "${available_worktrees[@]}"; do
-			local wt_name="${wt##*/}"
-			local project_name
+			wt_name="${wt##*/}"
 			project_name=$(get_worktree_project_name_zsh "$wt")
-			local label="[$project_name] $wt_name"
+			label="[$project_name] $wt_name"
 			labels+=("$label")
 			label_to_path[$label]="$wt"
 		done
@@ -274,40 +274,120 @@ cmd_delete() {
 		fi
 
 		local total_count=${#worktrees_to_delete[@]}
-		local tmpdir
-		tmpdir=$(mktemp -d)
-
-		local pids=()
-		for i in {1..$total_count}; do
-			local wt_path="${worktrees_to_delete[$i]}"
-			(
-				if delete_single_worktree "$wt_path"; then
-					echo 0 >"$tmpdir/result_$i"
-				else
-					echo 1 >"$tmpdir/result_$i"
-				fi
-			) >"$tmpdir/output_$i" 2>&1 &
-			pids+=($!)
-		done
-
-		for pid in "${pids[@]}"; do
-			wait "$pid" 2>/dev/null
-		done
-
 		local success_count=0
+		typeset -A remote_branches_by_repo
+
+		local wt_path should_delete_remote gitdir_line worktree_gitdir main_repo branch_name old_pwd worktree_list_output found_wt repo_key
 		for i in {1..$total_count}; do
-			local wt_path="${worktrees_to_delete[$i]}"
+			wt_path="${worktrees_to_delete[$i]}"
 			print_color cyan "Worktree $i/$total_count: $(basename "$wt_path")"
-			cat "$tmpdir/output_$i"
-			if [[ -f "$tmpdir/result_$i" && "$(cat "$tmpdir/result_$i")" == "0" ]]; then
-				((success_count++))
-			else
-				print_color red "Failed to delete worktree: $wt_path"
+
+			should_delete_remote=false
+			if is_wcreated_worktree "$wt_path"; then
+				should_delete_remote=true
 			fi
+
+			if [[ ! -d "$wt_path" ]]; then
+				print_color yellow "Worktree directory doesn't exist, skipping."
+				continue
+			fi
+
+			if [[ ! -f "$wt_path/.git" ]]; then
+				print_color yellow "Warning: corrupted worktree, force removing..."
+				rm -rf "$wt_path" || true
+				((success_count++))
+				continue
+			fi
+
+			gitdir_line=$(head -n1 "$wt_path/.git")
+			if [[ "$gitdir_line" =~ ^gitdir:\ (.*)$ ]]; then
+				worktree_gitdir="${match[1]}"
+			else
+				print_color red "Error: Could not parse .git file in $wt_path"
+				continue
+			fi
+
+			main_repo=$(dirname "$(dirname "$worktree_gitdir")")
+
+			branch_name=""
+			old_pwd="$PWD"
+			cd "$wt_path" 2>/dev/null && {
+				branch_name=$(git branch --show-current 2>/dev/null)
+				cd "$old_pwd"
+			}
+
+			if [[ -z "$branch_name" ]]; then
+				cd "$main_repo" 2>/dev/null || continue
+				worktree_list_output=$(git worktree list --porcelain 2>/dev/null)
+				found_wt=false
+				while IFS= read -r line; do
+					if [[ "$line" == "worktree $wt_path" ]]; then
+						found_wt=true
+					elif [[ "$found_wt" == true && "$line" =~ ^branch ]]; then
+						branch_name=$(echo "$line" | sed 's/^branch refs\/heads\///')
+						break
+					elif [[ "$found_wt" == true && "$line" =~ ^worktree ]]; then
+						break
+					fi
+				done <<<"$worktree_list_output"
+				cd "$old_pwd" 2>/dev/null
+			fi
+
+			cd "$main_repo" 2>/dev/null || continue
+
+			print_color yellow "Removing worktree: $wt_path"
+			if git worktree remove "$wt_path" 2>/dev/null; then
+				print_color green "Successfully removed worktree: $wt_path"
+			else
+				git worktree remove --force "$wt_path" 2>/dev/null || true
+			fi
+
+			if [[ -n "$branch_name" ]]; then
+				if git show-ref --verify --quiet "refs/heads/$branch_name"; then
+					if git branch -D "$branch_name" 2>/dev/null; then
+						print_color green "Deleted local branch: $branch_name"
+					fi
+				fi
+
+				if [[ "$should_delete_remote" == true ]]; then
+					if git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
+						repo_key="${main_repo}"
+						if [[ -n "${remote_branches_by_repo[$repo_key]}" ]]; then
+							remote_branches_by_repo[$repo_key]="${remote_branches_by_repo[$repo_key]} $branch_name"
+						else
+							remote_branches_by_repo[$repo_key]="$branch_name"
+						fi
+					fi
+				fi
+			fi
+
+			if [[ -d "$wt_path" ]]; then
+				rm -rf "$wt_path" || true
+			fi
+
+			((success_count++))
+			cd "$old_pwd" 2>/dev/null || true
 			echo
 		done
 
-		rm -rf "$tmpdir"
+		local branches
+		for repo_path in ${(k)remote_branches_by_repo}; do
+			branches=(${=remote_branches_by_repo[$repo_path]})
+			if [[ ${#branches[@]} -gt 0 ]]; then
+				print_color yellow "Deleting ${#branches[@]} remote branches from $(basename "$repo_path")..."
+				cd "$repo_path" 2>/dev/null || continue
+				if git push origin --delete "${branches[@]}" 2>/dev/null; then
+					print_color green "Successfully deleted remote branches: ${branches[*]}"
+				else
+					print_color red "Failed to batch-delete remote branches, trying individually..."
+					for branch in "${branches[@]}"; do
+						git push origin --delete "$branch" 2>/dev/null && \
+							print_color green "Deleted remote: $branch" || \
+							print_color red "Failed to delete remote: $branch"
+					done
+				fi
+			fi
+		done
 
 		if [[ $success_count -eq $total_count ]]; then
 			print_color green "Successfully deleted all $total_count worktrees."
