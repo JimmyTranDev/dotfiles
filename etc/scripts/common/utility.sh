@@ -2,6 +2,17 @@
 
 PROGRAMMING_EXCLUDED_DIRS=("Worktrees" "wcreated" "wcheckout" "secrets")
 
+require_tool() {
+    local missing=0
+    for tool in "$@"; do
+        if ! command -v "$tool" &>/dev/null; then
+            echo "Error: required tool '$tool' not found" >&2
+            missing=1
+        fi
+    done
+    return $missing
+}
+
 get_org_dirs() {
 	local programming_dir="${1:-$HOME/Programming}"
 	for dir in "$programming_dir"/*/; do

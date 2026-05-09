@@ -57,7 +57,7 @@ cmd_clean_worktrees() {
 			continue
 		fi
 
-		main_branch=$(find_main_branch "$repo_root") || {
+		main_branch=$(find_base_branch "$repo_root") || {
 			print_color yellow "  Could not find main branch for: $wt_path"
 			continue
 		}

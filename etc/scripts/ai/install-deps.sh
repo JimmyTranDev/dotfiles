@@ -3,28 +3,13 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../common/logging.sh"
-
-detect_package_manager() {
-    local dir="${1:-.}"
-
-    if [[ -f "$dir/pnpm-lock.yaml" ]]; then
-        echo "pnpm"
-    elif [[ -f "$dir/yarn.lock" ]]; then
-        echo "yarn"
-    elif [[ -f "$dir/bun.lockb" ]] || [[ -f "$dir/bun.lock" ]]; then
-        echo "bun"
-    elif [[ -f "$dir/package-lock.json" ]] || [[ -f "$dir/package.json" ]]; then
-        echo "npm"
-    else
-        echo ""
-    fi
-}
+source "$SCRIPT_DIR/../common/detect.sh"
 
 install_node() {
     local dir="${1:-.}"
     local frozen="${2:-false}"
     local pm
-    pm=$(detect_package_manager "$dir")
+    pm=$(detect_node_package_manager "$dir")
 
     log_info "Package manager: $pm"
 

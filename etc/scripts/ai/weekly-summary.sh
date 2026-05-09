@@ -3,6 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../common/logging.sh"
+source "$SCRIPT_DIR/../common/utility.sh"
 
 get_last_monday() {
     if [[ "$(uname)" == "Darwin" ]]; then
@@ -13,16 +14,6 @@ get_last_monday() {
     else
         date -d "last monday" +%Y-%m-%d
     fi
-}
-
-find_git_repos() {
-    local base_dir="$1"
-    local max_depth="${2:-3}"
-
-    find "$base_dir" -maxdepth "$max_depth" -name ".git" -type d 2>/dev/null | \
-        while read -r gitdir; do
-            dirname "$gitdir"
-        done
 }
 
 gather_commits() {
@@ -214,13 +205,13 @@ main() {
 
     if [[ -n "$base_dir" ]]; then
         local repos
-        repos=$(find_git_repos "$base_dir")
+        repos=$(find_git_repos "$base_dir" 3)
         while IFS= read -r repo; do
             if [[ -z "$repo" ]]; then
                 continue
             fi
             local repo_commits
-            repo_commits=$(gather_commits "$repo" "$since" "$author")
+            repo_commits=$(gather_commits "${base_dir%/}/$repo" "$since" "$author")
             if [[ -n "$repo_commits" ]]; then
                 if [[ -n "$all_commits" ]]; then
                     all_commits="${all_commits}

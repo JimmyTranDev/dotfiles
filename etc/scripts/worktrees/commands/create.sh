@@ -72,7 +72,7 @@ cmd_create() {
 	print_color yellow "Repository path: $main_repo"
 
 	local main_branch
-	main_branch=$(find_main_branch "$main_repo") || {
+	main_branch=$(find_base_branch "$main_repo") || {
 		print_color red "Error: Could not find main branch in $main_repo"
 		return 1
 	}

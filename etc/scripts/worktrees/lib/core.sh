@@ -1,5 +1,9 @@
 #!/bin/zsh
 
+source "${0:A:h}/../../common/utility.sh"
+source "${0:A:h}/../../common/detect.sh"
+source "${0:A:h}/../../common/git.sh"
+
 check_tool() {
 	local tool="${1:-}"
 	if [[ -z "$tool" ]]; then
@@ -23,21 +27,10 @@ print_color() {
 	fi
 }
 
-slugify() {
-	echo "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//'
-}
-
 select_fzf() {
 	local prompt="$1"
 	shift
 	[[ $# -gt 0 ]] && printf "%s\n" "$@" | fzf --prompt="$prompt" || fzf --prompt="$prompt"
-}
-
-detect_package_manager() {
-	[[ -f pnpm-lock.yaml ]] && echo "pnpm" && return
-	[[ -f package-lock.json ]] && echo "npm" && return
-	[[ -f yarn.lock ]] && echo "yarn" && return
-	echo ""
 }
 
 resolve_unique_dir() {
@@ -137,7 +130,7 @@ install_dependencies() {
 	}
 
 	local pm
-	pm=$(detect_package_manager)
+	pm=$(detect_node_package_manager)
 
 	if [[ -n "$pm" ]]; then
 		print_color cyan "Running $pm install..."
@@ -148,30 +141,6 @@ install_dependencies() {
 	else
 		print_color yellow "No supported lockfile found. Skipping dependency installation."
 	fi
-}
-
-find_main_branch() {
-	local repo_dir="$1"
-
-	if [[ -z "$repo_dir" || ! -d "$repo_dir" ]]; then
-		print_color red "Error: Invalid repository directory"
-		return 1
-	fi
-
-	local main_branch=""
-	for branch in develop main master; do
-		if git -C "$repo_dir" rev-parse --verify "$branch" >/dev/null 2>&1; then
-			main_branch="$branch"
-			break
-		fi
-	done
-
-	if [[ -z "$main_branch" ]]; then
-		print_color red "Error: No main branch (main/master/develop) found"
-		return 1
-	fi
-
-	echo "$main_branch"
 }
 
 get_repository() {

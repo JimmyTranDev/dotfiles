@@ -3,19 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../common/logging.sh"
-
-find_base_branch() {
-    local dir="${1:-.}"
-
-    for branch in develop main master; do
-        if git -C "$dir" rev-parse --verify "$branch" &>/dev/null; then
-            echo "$branch"
-            return
-        fi
-    done
-
-    echo "unknown"
-}
+source "$SCRIPT_DIR/../common/git.sh"
 
 get_branch_info() {
     local dir="${1:-.}"

@@ -3,15 +3,15 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../common/logging.sh"
+source "$SCRIPT_DIR/../common/detect.sh"
 
 check_node_deps() {
     local dir="${1:-.}"
 
-    local pm="npm"
-    if [[ -f "$dir/pnpm-lock.yaml" ]]; then
-        pm="pnpm"
-    elif [[ -f "$dir/yarn.lock" ]]; then
-        pm="yarn"
+    local pm
+    pm=$(detect_node_package_manager "$dir")
+    if [[ -z "$pm" ]]; then
+        pm="npm"
     fi
 
     log_info "Package manager: $pm"

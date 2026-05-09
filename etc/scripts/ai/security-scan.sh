@@ -3,6 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../common/logging.sh"
+source "$SCRIPT_DIR/../common/detect.sh"
 
 scan_secrets_heuristic() {
     local dir="${1:-.}"
@@ -72,11 +73,10 @@ run_dep_audit() {
     log_header "Dependency Audit" "📦"
 
     if [[ -f "$dir/package.json" ]]; then
-        local pm="npm"
-        if [[ -f "$dir/pnpm-lock.yaml" ]]; then
-            pm="pnpm"
-        elif [[ -f "$dir/yarn.lock" ]]; then
-            pm="yarn"
+        local pm
+        pm=$(detect_node_package_manager "$dir")
+        if [[ -z "$pm" ]]; then
+            pm="npm"
         fi
         (cd "$dir" && $pm audit 2>/dev/null) || log_warning "Audit found vulnerabilities (see above)"
     elif [[ -f "$dir/pom.xml" ]]; then

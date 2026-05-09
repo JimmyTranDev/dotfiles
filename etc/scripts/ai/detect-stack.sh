@@ -3,6 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../common/logging.sh"
+source "$SCRIPT_DIR/../common/detect.sh"
 
 detect_project_type() {
     local dir="${1:-.}"
@@ -25,86 +26,6 @@ detect_project_type() {
         echo "rust"
     else
         echo "unknown"
-    fi
-}
-
-detect_package_manager() {
-    local dir="${1:-.}"
-
-    if [[ -f "$dir/pnpm-lock.yaml" ]]; then
-        echo "pnpm"
-    elif [[ -f "$dir/yarn.lock" ]]; then
-        echo "yarn"
-    elif [[ -f "$dir/bun.lockb" ]] || [[ -f "$dir/bun.lock" ]]; then
-        echo "bun"
-    elif [[ -f "$dir/package-lock.json" ]] || [[ -f "$dir/package.json" ]]; then
-        echo "npm"
-    elif [[ -f "$dir/pom.xml" ]]; then
-        echo "mvn"
-    elif [[ -f "$dir/build.gradle" ]] || [[ -f "$dir/build.gradle.kts" ]]; then
-        if [[ -f "$dir/gradlew" ]]; then
-            echo "./gradlew"
-        else
-            echo "gradle"
-        fi
-    elif [[ -f "$dir/pyproject.toml" ]]; then
-        echo "poetry"
-    elif [[ -f "$dir/requirements.txt" ]]; then
-        echo "pip"
-    elif [[ -f "$dir/go.mod" ]]; then
-        echo "go"
-    elif [[ -f "$dir/Cargo.toml" ]]; then
-        echo "cargo"
-    else
-        echo "unknown"
-    fi
-}
-
-detect_test_runner() {
-    local dir="${1:-.}"
-
-    if [[ -f "$dir/package.json" ]]; then
-        if grep -q '"vitest"' "$dir/package.json" 2>/dev/null; then
-            echo "vitest"
-        elif grep -q '"jest"' "$dir/package.json" 2>/dev/null; then
-            echo "jest"
-        elif grep -q '"mocha"' "$dir/package.json" 2>/dev/null; then
-            echo "mocha"
-        else
-            echo "npm-test"
-        fi
-    elif [[ -f "$dir/pom.xml" ]]; then
-        echo "maven-surefire"
-    elif [[ -f "$dir/build.gradle" ]] || [[ -f "$dir/build.gradle.kts" ]]; then
-        echo "gradle-test"
-    elif [[ -f "$dir/pyproject.toml" ]] || [[ -f "$dir/pytest.ini" ]]; then
-        echo "pytest"
-    elif [[ -f "$dir/go.mod" ]]; then
-        echo "go-test"
-    elif [[ -f "$dir/Cargo.toml" ]]; then
-        echo "cargo-test"
-    else
-        echo "unknown"
-    fi
-}
-
-detect_linter() {
-    local dir="${1:-.}"
-
-    if [[ -f "$dir/biome.json" ]] || [[ -f "$dir/biome.jsonc" ]]; then
-        echo "biome"
-    elif ls "$dir"/eslint.config.* 2>/dev/null | head -1 &>/dev/null; then
-        echo "eslint"
-    elif [[ -f "$dir/.eslintrc" ]] || [[ -f "$dir/.eslintrc.js" ]] || [[ -f "$dir/.eslintrc.json" ]]; then
-        echo "eslint"
-    elif [[ -f "$dir/pyproject.toml" ]] && grep -q "ruff" "$dir/pyproject.toml" 2>/dev/null; then
-        echo "ruff"
-    elif [[ -f "$dir/.golangci.yml" ]] || [[ -f "$dir/.golangci.yaml" ]]; then
-        echo "golangci-lint"
-    elif [[ -f "$dir/Cargo.toml" ]]; then
-        echo "clippy"
-    else
-        echo "none"
     fi
 }
 

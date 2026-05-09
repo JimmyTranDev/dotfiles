@@ -3,72 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../common/logging.sh"
-
-detect_package_manager() {
-    local dir="${1:-.}"
-
-    if [[ -f "$dir/pnpm-lock.yaml" ]]; then
-        echo "pnpm"
-    elif [[ -f "$dir/yarn.lock" ]]; then
-        echo "yarn"
-    elif [[ -f "$dir/bun.lockb" ]] || [[ -f "$dir/bun.lock" ]]; then
-        echo "bun"
-    else
-        echo "npx"
-    fi
-}
-
-detect_linter() {
-    local dir="${1:-.}"
-
-    if [[ -f "$dir/biome.json" ]] || [[ -f "$dir/biome.jsonc" ]]; then
-        echo "biome"
-        return
-    fi
-
-    if ls "$dir"/eslint.config.* 2>/dev/null | head -1 &>/dev/null; then
-        echo "eslint"
-        return
-    fi
-
-    if [[ -f "$dir/.eslintrc" ]] || [[ -f "$dir/.eslintrc.js" ]] || [[ -f "$dir/.eslintrc.json" ]] || [[ -f "$dir/.eslintrc.yml" ]]; then
-        echo "eslint"
-        return
-    fi
-
-    if [[ -f "$dir/pyproject.toml" ]] && grep -q "ruff" "$dir/pyproject.toml" 2>/dev/null; then
-        echo "ruff"
-        return
-    fi
-
-    if [[ -f "$dir/.golangci.yml" ]] || [[ -f "$dir/.golangci.yaml" ]]; then
-        echo "golangci-lint"
-        return
-    fi
-
-    if [[ -f "$dir/Cargo.toml" ]]; then
-        echo "clippy"
-        return
-    fi
-
-    if [[ -f "$dir/pom.xml" ]] && grep -q "checkstyle" "$dir/pom.xml" 2>/dev/null; then
-        echo "checkstyle-maven"
-        return
-    fi
-
-    if [[ -f "$dir/build.gradle" ]] || [[ -f "$dir/build.gradle.kts" ]]; then
-        local gradle_file="$dir/build.gradle"
-        if [[ -f "$dir/build.gradle.kts" ]]; then
-            gradle_file="$dir/build.gradle.kts"
-        fi
-        if grep -q "checkstyle" "$gradle_file" 2>/dev/null; then
-            echo "checkstyle-gradle"
-            return
-        fi
-    fi
-
-    echo "unknown"
-}
+source "$SCRIPT_DIR/../common/detect.sh"
 
 run_linter() {
     local dir="${1:-.}"
@@ -82,7 +17,7 @@ run_linter() {
     case "$linter" in
         eslint)
             local pm
-            pm=$(detect_package_manager "$dir")
+            pm=$(detect_node_runner "$dir")
             if [[ "$fix" == "true" ]]; then
                 (cd "$dir" && $pm eslint . --fix)
             else
@@ -91,7 +26,7 @@ run_linter() {
             ;;
         biome)
             local pm
-            pm=$(detect_package_manager "$dir")
+            pm=$(detect_node_runner "$dir")
             if [[ "$fix" == "true" ]]; then
                 (cd "$dir" && $pm biome check --write .)
             else
