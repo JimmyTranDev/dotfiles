@@ -11,6 +11,6 @@ ssh-add ~/.ssh/id_ed25519
 ## Install
 
 ```sh
-~/Programming/JimmyTranDev/dotfiles/etc/scripts/install/clone_essential_repos.sh
-~/Programming/JimmyTranDev/dotfiles/etc/scripts/install.sh
+~/Programming/JimmyTranDev/dotfiles/etc/scripts/src/install/clone_essential_repos.sh
+~/Programming/JimmyTranDev/dotfiles/etc/scripts/src/install/install.sh
 ```

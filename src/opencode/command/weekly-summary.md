@@ -14,8 +14,8 @@ Generate a weekly summary of git activity and associated Jira tickets for standu
 1. Load the **tool-acli** skill
 
 2. Run the weekly-summary script with JSON output:
-   - Default (current repo): `~/Programming/JimmyTranDev/dotfiles/etc/scripts/ai/weekly-summary.sh --json`
-   - Multi-repo: `~/Programming/JimmyTranDev/dotfiles/etc/scripts/ai/weekly-summary.sh --json --dir ~/Programming`
+   - Default (current repo): `~/Programming/JimmyTranDev/dotfiles/etc/scripts/src/ai/weekly-summary.sh --json`
+   - Multi-repo: `~/Programming/JimmyTranDev/dotfiles/etc/scripts/src/ai/weekly-summary.sh --json --dir ~/Programming`
    - Custom date: add `--since YYYY-MM-DD` if provided in `$ARGUMENTS`
 
 3. Parse the JSON output to get commits and ticket keys

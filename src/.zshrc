@@ -50,15 +50,15 @@ done
 [[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 [[ -f "$HOME/Programming/JimmyTranDev/secrets/env.sh" ]] && source "$HOME/Programming/JimmyTranDev/secrets/env.sh"
 
-alias wD='$DOTFILES_DIR/etc/scripts/worktrees/worktree delete'
-alias wC='$DOTFILES_DIR/etc/scripts/worktrees/worktree clean'
-alias wr='$DOTFILES_DIR/etc/scripts/worktrees/worktree rename'
-alias wu='$DOTFILES_DIR/etc/scripts/worktrees/worktree update'
+alias wD='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree delete'
+alias wC='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree clean'
+alias wr='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree rename'
+alias wu='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree update'
 
 alias nvm='fnm'
 alias a='eval "$(poetry env activate)"'
 alias e='zellij'
-alias d="$DOTFILES_DIR/etc/scripts/common/git_diff_commits.sh"
+alias d="$DOTFILES_DIR/etc/scripts/lib/git_diff_commits.sh"
 alias c='clear'
 alias e='exit'
 OPENCODE_STATUS_FILE="/tmp/opencode-status-$$"
@@ -78,44 +78,46 @@ alias g='rg'
 alias n='nvim'
 alias y='yazi'
 alias i='brew bundle --file=$DOTFILES_DIR/src/Brewfile --cleanup'
-alias k="$DOTFILES_DIR/etc/scripts/kill_port.sh"
-alias js="$DOTFILES_DIR/etc/scripts/sdk_select.sh"
-alias ji="$DOTFILES_DIR/etc/scripts/sdk_install.sh"
+alias k="$DOTFILES_DIR/etc/scripts/src/system/kill_port.sh"
+alias js="$DOTFILES_DIR/etc/scripts/src/dev/sdk_select.sh"
+alias ji="$DOTFILES_DIR/etc/scripts/src/dev/sdk_install.sh"
 alias knip='pnpm dlx knip'
 alias knipw='pnpm dlx knip --watch'
 alias loc='git ls-files | rg -v "(^|/)(assets|data)/" | xargs wc -l'
-alias l="$DOTFILES_DIR/etc/scripts/select_git_folder_actx.sh"
+alias l="$DOTFILES_DIR/etc/scripts/src/dev/select_git_folder_actx.sh"
 alias csv='git ls-files "*/core/*.csv" 2>/dev/null | fzf --preview "head -20 {}" | xargs -r vd --csv-delimiter "|"'
 
 if [[ "$(uname)" == "Darwin" ]]; then
   alias t='yabai --restart-service & skhd --restart-service & wait'
 fi
 
-alias F="$DOTFILES_DIR/etc/scripts/pull_repos.sh"
-alias I="$DOTFILES_DIR/etc/scripts/install.sh"
-alias L="$DOTFILES_DIR/etc/scripts/sync_links.sh"
-alias S="$DOTFILES_DIR/etc/scripts/slack_post_prs.sh"
+alias F="$DOTFILES_DIR/etc/scripts/src/dev/pull_repos.sh"
+alias I="$DOTFILES_DIR/etc/scripts/src/install/install.sh"
+alias L="$DOTFILES_DIR/etc/scripts/src/system/sync_links.sh"
+alias S="$DOTFILES_DIR/etc/scripts/src/dev/slack_post_prs.sh"
 alias C='find "$DOTFILES_DIR/etc/scripts" -type f -name "*.sh" -exec chmod +x {} \;'
 
 wn() {
-  local script_dir="$DOTFILES_DIR/etc/scripts/worktrees"
+  local script_dir="$DOTFILES_DIR/etc/scripts/src/worktrees"
+  local lib_dir="$DOTFILES_DIR/etc/scripts/lib"
   source "$script_dir/config.sh"
-  source "$script_dir/lib/core.sh" 
-  source "$script_dir/lib/jira.sh"
+  source "$lib_dir/worktree_core.sh" 
+  source "$lib_dir/jira.sh"
   source "$script_dir/commands/create.sh"
   cmd_create "$@"
 }
 
 wo() {
-  local script_dir="$DOTFILES_DIR/etc/scripts/worktrees"
+  local script_dir="$DOTFILES_DIR/etc/scripts/src/worktrees"
+  local lib_dir="$DOTFILES_DIR/etc/scripts/lib"
   source "$script_dir/config.sh"
-  source "$script_dir/lib/core.sh"
-  source "$script_dir/lib/jira.sh" 
+  source "$lib_dir/worktree_core.sh"
+  source "$lib_dir/jira.sh" 
   source "$script_dir/commands/checkout.sh"
   cmd_checkout "$@"
 }
 
-source "$DOTFILES_DIR/etc/scripts/common/utility.sh"
+source "$DOTFILES_DIR/etc/scripts/lib/utility.sh"
 
 select_project() {
   {
@@ -391,7 +393,7 @@ zellij_tab_name_update() {
 }
 
 zellij_update_tab_indexes() {
-  $DOTFILES_DIR/etc/scripts/zellij_update_tab_indexes.sh >/dev/null 2>&1
+  $DOTFILES_DIR/etc/scripts/src/terminal/zellij_update_tab_indexes.sh >/dev/null 2>&1
   zle reset-prompt
   return 0
 }
@@ -429,7 +431,7 @@ alias zellij-enable-auto="export ZELLIJ_AUTO_ATTACH=true"
 alias zellij-disable-auto="export ZELLIJ_AUTO_ATTACH=false"
 alias zja="zellij attach"
 alias zjl="zellij list-sessions"
-alias ghostty-use-script='sed -i "" "s|^#*initial-command.*|initial-command = $DOTFILES_DIR/etc/scripts/ghostty_zellij_startup.sh|" $DOTFILES_DIR/src/ghostty/config'
+alias ghostty-use-script='sed -i "" "s|^#*initial-command.*|initial-command = $DOTFILES_DIR/etc/scripts/src/terminal/ghostty_zellij_startup.sh|" $DOTFILES_DIR/src/ghostty/config'
 alias ghostty-use-zsh='sed -i "" "s|^initial-command.*|# initial-command = zsh|" $DOTFILES_DIR/src/ghostty/config'
 
 export FZF_DEFAULT_OPTS="\

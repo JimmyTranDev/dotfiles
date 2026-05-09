@@ -13,7 +13,7 @@ Use worktrees when the user explicitly mentions worktrees, asks to work in isola
 |------|---------|
 | `~/Programming/wcreated/<branch>` | All worktrees live here |
 | `~/Programming/{Org}/{Repo}` | Main repository clones |
-| `etc/scripts/worktrees/` | Worktree CLI scripts (zsh) |
+| `etc/scripts/src/worktrees/` | Worktree CLI scripts (zsh) |
 
 ## OpenCode Worktree Lifecycle
 

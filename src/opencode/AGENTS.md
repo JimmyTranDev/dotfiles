@@ -19,7 +19,7 @@ When a user request is vague, ambiguous, or could be interpreted in multiple way
 - **Always continue** — if there are remaining tasks, todos, or steps left to complete, keep working without stopping to ask for permission to continue. Only pause for user input when you need clarification or a decision, not when you simply have more work to do.
 - **Java projects** — when working in a Java project, always load the **java-spring-senior** skill before making changes. Detect Java projects by the presence of `pom.xml`, `build.gradle`, `build.gradle.kts`, or `*.java` files.
 - **100% test coverage** — when writing or modifying code, always ensure 100% unit test coverage for all affected code. This includes new code, modified functions, and any code paths touched by the changes. Load the **test** skill, write or update tests, and run them to verify full coverage before considering the task complete.
-- **Save useful scripts to dotfiles** — when creating a reusable utility script during a task, save it to `etc/scripts/ai/` in the dotfiles repo (`~/Programming/JimmyTranDev/dotfiles/etc/scripts/ai/`) rather than leaving it in the project directory. Scripts must follow existing conventions: `set -e`, source `common/logging.sh`, function-based structure. This makes scripts available across all projects.
+- **Save useful scripts to dotfiles** — when creating a reusable utility script during a task, save it to `etc/scripts/src/ai/` in the dotfiles repo (`~/Programming/JimmyTranDev/dotfiles/etc/scripts/src/ai/`) rather than leaving it in the project directory. Scripts must follow existing conventions: `set -e`, source `lib/logging.sh`, function-based structure. This makes scripts available across all projects.
 - **Prefer scripts over pure AI** — when a task involves repeatable operations (data transformations, file processing, API calls, build steps, etc.), prefer creating a reusable script rather than performing the work entirely through AI tool calls. Scripts are version-controlled, reproducible, and runnable without AI. Only skip scripting when the task is truly one-off or exploratory.
 - **Architecture decisions** — when making significant architectural decisions (technology choices, system design, data model changes), save them to an `architecture/` folder at the project root as ADR files. Use the format from the **comm-adr-writer** skill.
 - **Jira tab title** — when a task has an associated Jira URL or ticket code, set the terminal/tab title to the Jira ticket code (e.g., `PROJ-123`) so the user can identify which task each tab is working on.
@@ -251,7 +251,7 @@ After all open questions are resolved (or skipped), ask the user if they want to
 
 ## AI Utility Scripts
 
-Reusable scripts in `~/Programming/JimmyTranDev/dotfiles/etc/scripts/ai/` replace common inline operations. Always prefer calling these scripts over reimplementing the same logic with multiple tool calls.
+Reusable scripts in `~/Programming/JimmyTranDev/dotfiles/etc/scripts/src/ai/` replace common inline operations. Always prefer calling these scripts over reimplementing the same logic with multiple tool calls.
 
 | Script | Purpose | Usage |
 |--------|---------|-------|

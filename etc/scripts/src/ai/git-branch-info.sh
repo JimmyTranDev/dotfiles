@@ -2,8 +2,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../common/logging.sh"
-source "$SCRIPT_DIR/../common/git.sh"
+source "$SCRIPT_DIR/../../lib/logging.sh"
+source "$SCRIPT_DIR/../../lib/git.sh"
 
 get_branch_info() {
     local dir="${1:-.}"

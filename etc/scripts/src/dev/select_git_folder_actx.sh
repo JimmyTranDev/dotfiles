@@ -5,7 +5,7 @@
 
 # Source utility functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/common/utility.sh"
+source "$SCRIPT_DIR/../../lib/utility.sh"
 
 select_git_folder_actx() {
 	local programming_dir="$HOME/Programming"

@@ -1,8 +1,9 @@
 #!/bin/zsh
 
-source "${0:A:h}/../../common/utility.sh"
-source "${0:A:h}/../../common/detect.sh"
-source "${0:A:h}/../../common/git.sh"
+WORKTREE_CORE_LIB_DIR="${0:A:h}"
+source "$WORKTREE_CORE_LIB_DIR/utility.sh"
+source "$WORKTREE_CORE_LIB_DIR/detect.sh"
+source "$WORKTREE_CORE_LIB_DIR/git.sh"
 
 check_tool() {
 	local tool="${1:-}"

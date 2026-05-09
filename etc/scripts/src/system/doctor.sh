@@ -3,9 +3,9 @@
 set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+DOTFILES_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 
-source "$SCRIPT_DIR/common/logging.sh"
+source "$SCRIPT_DIR/../../lib/logging.sh"
 
 PASS=0
 FAIL=0
@@ -200,7 +200,7 @@ echo -e "  ${RED}${EMOJI_ERROR} Failed: $FAIL${NC}"
 echo
 
 if [ $FAIL -gt 0 ]; then
-	log_error "Some checks failed. Run the install script to fix: $DOTFILES_ROOT/etc/scripts/install.sh"
+	log_error "Some checks failed. Run the install script to fix: $DOTFILES_ROOT/etc/scripts/src/install/install.sh"
 	exit 1
 elif [ $WARN -gt 0 ]; then
 	log_warning "Some warnings found. Review the output above."
