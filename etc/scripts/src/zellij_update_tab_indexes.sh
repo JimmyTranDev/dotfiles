@@ -45,8 +45,8 @@ main() {
 			base_name="$name"
 		fi
 
-		if [[ -z "$base_name" ]] || [[ "$base_name" =~ ^[0-9]+\.?[[:space:]]*$ ]] || [[ "$base_name" =~ ^Tab\ #[0-9]+$ ]]; then
-			log "Skipping tab_id=$tab_id name='$name' (default/numeric name)"
+		if [[ -z "$base_name" ]]; then
+			log "Skipping tab_id=$tab_id name='$name' (empty name)"
 			continue
 		fi
 
@@ -83,7 +83,7 @@ for t in tabs:
 			base_name="$name"
 		fi
 
-		if [[ -z "$base_name" ]] || [[ "$base_name" =~ ^[0-9]+\.?[[:space:]]*$ ]] || [[ "$base_name" =~ ^Tab\ #[0-9]+$ ]]; then
+		if [[ -z "$base_name" ]]; then
 			continue
 		fi
 
