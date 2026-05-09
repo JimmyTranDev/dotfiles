@@ -36,18 +36,6 @@
       ],
       "enabled": false
     },
-    "stitch": {
-      "type": "local",
-      "command": [
-        "npx",
-        "@_davideast/stitch-mcp",
-        "proxy"
-      ],
-      "environment": {
-        "STITCH_API_KEY": "{file:~/Programming/JimmyTranDev/secrets/stitch-api-key}"
-      },
-      "enabled": false
-    },
     "playwright": {
       "type": "local",
       "command": [
