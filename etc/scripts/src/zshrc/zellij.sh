@@ -26,7 +26,7 @@ zellij_tab_name_update() {
 }
 
 zellij_update_tab_indexes() {
-  $DOTFILES_DIR/etc/scripts/src/zellij_update_tab_indexes.sh >/dev/null 2>&1
+  $DOTFILES_DIR/etc/scripts/src/zellij/update_tab_indexes.sh >/dev/null 2>&1
   zle reset-prompt
   return 0
 }

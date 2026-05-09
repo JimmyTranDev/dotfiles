@@ -12,7 +12,7 @@ main() {
 
 	sleep 0.1
 
-	"$SCRIPT_DIR/zellij_update_tab_indexes.sh"
+	"$SCRIPT_DIR/update_tab_indexes.sh"
 }
 
 main "$@"
