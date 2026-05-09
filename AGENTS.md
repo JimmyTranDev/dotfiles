@@ -14,7 +14,6 @@ dotfiles/
 │   ├── yazi/               # -> ~/.config/yazi/
 │   ├── zellij/             # -> ~/.config/zellij/
 │   ├── lazygit/            # -> ~/.config/lazygit/
-│   ├── btop/               # -> ~/.config/btop/
 │   ├── skhd/               # -> ~/.config/skhd/ (macOS only)
 │   ├── yabai/              # -> ~/.config/yabai/ (macOS only)
 │   ├── hypr/               # -> ~/.config/hypr/ (Linux only)

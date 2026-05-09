@@ -31,7 +31,6 @@ main() {
 			fzf
 			zoxide
 			shfmt
-			btop
 			tree
 
 			# --- Desktop Environment ---

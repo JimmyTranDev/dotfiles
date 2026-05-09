@@ -82,7 +82,6 @@ src/                   # Configuration files (symlinked to ~/.config or ~/)
 ├── .ideavimrc         # Vim keybindings for JetBrains IDEs
 ├── Brewfile           # Homebrew package definitions
 ├── starship.toml      # Cross-shell prompt configuration
-├── btop/              # System monitor with Catppuccin theme
 ├── ghostty/           # Terminal emulator config and themes
 ├── lazygit/           # Git TUI configuration
 ├── opencode/          # AI coding assistant (17 agents, 8 commands)

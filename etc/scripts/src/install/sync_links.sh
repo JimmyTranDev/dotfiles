@@ -22,7 +22,6 @@ get_common_links() {
 		"$DOTFILES_ROOT/src/.zshrc|$HOME/.zshrc"
 		"$DOTFILES_ROOT/src/.ideavimrc|$HOME/.ideavimrc"
 		"$DOTFILES_ROOT/src/.gitignore_global|$HOME/.gitignore_global"
-		"$DOTFILES_ROOT/src/btop|$HOME/.config/btop"
 		"$DOTFILES_ROOT/src/starship.toml|$HOME/.config/starship.toml"
 		"$DOTFILES_ROOT/src/kitty|$HOME/.config/kitty"
 		"$DOTFILES_ROOT/src/opencode|$HOME/.config/opencode"

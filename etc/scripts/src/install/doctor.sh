@@ -129,7 +129,6 @@ main() {
 		"$HOME/.config/yazi|$DOTFILES_ROOT/src/yazi"
 		"$HOME/.config/lazygit|$DOTFILES_ROOT/src/lazygit"
 		"$HOME/.config/starship.toml|$DOTFILES_ROOT/src/starship.toml"
-		"$HOME/.config/btop|$DOTFILES_ROOT/src/btop"
 		"$HOME/.config/opencode|$DOTFILES_ROOT/src/opencode"
 		"$HOME/.config/git/hooks|$DOTFILES_ROOT/src/git/hooks"
 		"$HOME/.config/kitty|$DOTFILES_ROOT/src/kitty"
