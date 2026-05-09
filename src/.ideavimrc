@@ -36,12 +36,6 @@ nnoremap <C-l> <Action>(NextSplitter)
 nnoremap <C-j> <Action>(NextSplitter)
 nnoremap <C-k> <Action>(PrevSplitter)
 
-nnoremap ] <Action>(GotoNextError)
-nnoremap [ <Action>(GotoPreviousError)
-
-nnoremap gP <Action>(SplitHorizontally)
-nnoremap gp <Action>(SplitVertically)
-
 nnoremap <S-J> <C-D>
 nnoremap <S-K> <C-U>
 vnoremap <S-J> <C-D>
@@ -50,100 +44,25 @@ vnoremap <S-K> <C-U>
 nnoremap <Leader>i <C-i>
 nnoremap <Leader>o <C-o>
 
-nnoremap <Leader>q <Action>(CloseContent)
-nnoremap <Leader>Q <Action>(CloseAllEditors)
-nnoremap <Leader>w <Action>(SaveDocument)
-nnoremap <Leader>W <Action>(SaveAll)
+nnoremap ] <Action>(GotoNextError)
+nnoremap [ <Action>(GotoPreviousError)
 
-nnoremap <leader>;df <Action>(ReformatCode)<Action>(OptimizeImports)
-nnoremap <leader>;de <Action>(Inspections.DevKit.Stability.FixAll)
-nnoremap <leader>;dc <Action>(CopyElementAction)
-nnoremap <leader>;dl <Action>(Rerun)
+nnoremap <leader>en <Action>(GotoNextError)
+nnoremap <leader>ep <Action>(GotoPreviousError)
+nnoremap <leader>el <Action>(ShowErrorDescription)
 
-nnoremap <Leader>;fs :set spell!<CR>
-nnoremap <leader>;fg <Action>(FindInPath)
-nnoremap <Leader>;v <Action>(Tool_External Tools_code)
+nmap s <Plug>(easymotion-overwin-f2)
+nmap S <Plug>(easymotion-overwin-t2)
 
-vnoremap <leader>;tr "zy<Action>(Replace)
-nnoremap <leader>;tR <Action>(ReplaceInPath)
+nnoremap <leader>/ :nohlsearch<CR>
 
-nnoremap <leader>ha <Action>(ActivateAIAssistantToolWindow)
-vnoremap <leader>ha <Action>(ActivateAIAssistantToolWindow)
-nnoremap <leader>hd <Action>(ShowErrorDescription)
-vnoremap <leader>hd <Action>(ShowErrorDescription)
-nnoremap <leader>hg <Action>(SearchEverywhere)
-vnoremap <leader>hg <Action>(SearchEverywhere)
-nnoremap <leader>hh <Action>(QuickJavaDoc)
-vnoremap <leader>hh <Action>(QuickJavaDoc)
+vnoremap < <gv
+vnoremap > >gv
 
-nnoremap <Leader>lg <Action>(OpenInBrowser)
-nnoremap <Leader>lp <Action>(Vcs.OpenRepositoryInBrowser)
-nnoremap <Leader>ls <Action>(OpenInBrowser)
-nnoremap <Leader>lt <Action>(OpenInBrowser)
+vnoremap J :m '>+1<CR>gv=gv
+vnoremap K :m '<-2<CR>gv=gv
 
-nnoremap <leader>zs <Action>(ShowSettings)
-nnoremap <leader>zu <Action>(CheckForUpdate)
-
-nnoremap <Leader>uc <Action>(OpenFile)
-nnoremap <Leader>uo <Action>(ShowFilePath)
-
-nnoremap <leader>e <Action>(ActivateProjectToolWindow)
-nnoremap <leader>E <Action>(SelectInProjectView)
-nnoremap <C-Up> <Action>(ActivateProjectToolWindow)
-
-nnoremap ' <Action>(ShowBookmarks)
-
-nnoremap <leader>T <Action>(EditorJoinLines)
-
-nnoremap <leader>ft <Action>(TodoView)
-nnoremap <leader>fT <Action>(TodoView)
-
-nnoremap <leader>gf <Action>(Git.Fetch)
-nnoremap <leader>gl <Action>(Vcs.Show.Log)
-nnoremap <leader>gs <Action>(Vcs.Show.Local.Changes)
-nnoremap <leader>gv <Action>(Vcs.Show.Local.Changes)
-
-nnoremap <leader>ghh <Action>(Git.Stash)
-nnoremap <leader>ghH <Action>(Git.Unstash)
-
-nnoremap <leader>gS <Action>(Vcs.OpenRepositoryInBrowser)
-nnoremap <leader>gF <Action>(Vcs.Push.Force)
-nnoremap <leader>gM <Action>(Git.Commit.And.Push.Executor)
-nnoremap <leader>gP <Action>(Vcs.Push)
-nnoremap <leader>gV <Action>(Git.Add)
-
-nnoremap <leader>ghc <Action>(Github.Create.Pull.Request)
-nnoremap <leader>ghp <Action>(Github.View.Pull.Request)
-nnoremap <leader>ghP <Action>(Github.Open.In.Browser)
-
-nnoremap <leader>gym <Action>(Git.Commit.And.Push.Executor)
-nnoremap <leader>gyy <Action>(Git.Commit.And.Push.Executor)
-
-nnoremap <leader>gL <Action>(CopyReferencePopup)
-
-nnoremap <leader>js <Action>(Vcs.RollbackChangedLines)
-nnoremap <leader>jr <Action>(Vcs.RollbackChangedLines)
-vnoremap <leader>js <Action>(Vcs.RollbackChangedLines)
-vnoremap <leader>jr <Action>(Vcs.RollbackChangedLines)
-nnoremap <leader>jS <Action>(ChangesView.AddUnversioned)
-nnoremap <leader>ju <Action>(Vcs.RollbackChangedLines)
-
-nnoremap <leader>m <Action>(Vcs.Show.Local.Changes)
-
-nnoremap gd <Action>(GotoDeclaration)
-nnoremap gD <Action>(GotoTypeDeclaration)
-nnoremap gi <Action>(GotoImplementation)
-nnoremap gr <Action>(FindUsages)
-nnoremap <leader>ca <Action>(ShowIntentionActions)
-nnoremap K <Action>(QuickJavaDoc)
-
-nnoremap gn <Action>(RenameElement)
-nnoremap gN <Action>(RenameElement)
-
-nnoremap gs <Action>(Replace)
-vnoremap gs <Action>(Replace)
-nnoremap gss <Action>(Replace)
-nnoremap gS <Action>(Replace)
+vnoremap p "_dP
 
 nnoremap <C-p> <Action>(GotoFile)
 nnoremap <C-S-p> <Action>(GotoAction)
@@ -151,24 +70,131 @@ nnoremap <leader>ff <Action>(GotoFile)
 nnoremap <leader>fg <Action>(FindInPath)
 nnoremap <leader>fs <Action>(GotoSymbol)
 nnoremap <leader>fc <Action>(GotoClass)
-
 nnoremap <leader>fb <Action>(RecentFiles)
 nnoremap <leader>fh <Action>(RecentFiles)
 nnoremap <leader>fr <Action>(ManageRecentProjects)
+nnoremap <leader>fp <Action>(ManageRecentProjects)
+nnoremap <leader>ft <Action>(TodoView)
+nnoremap <leader>fT <Action>(TodoView)
+
+nnoremap <leader>e <Action>(ActivateProjectToolWindow)
+nnoremap <leader>E <Action>(SelectInProjectView)
+nnoremap <C-Up> <Action>(ActivateProjectToolWindow)
+
+nnoremap ' <Action>(ShowBookmarks)
+nnoremap mm <Action>(ToggleBookmark)
+nnoremap mn <Action>(GotoNextBookmark)
+nnoremap mp <Action>(GotoPreviousBookmark)
+nnoremap ml <Action>(ShowBookmarks)
+
+nnoremap gd <Action>(GotoDeclaration)
+nnoremap gD <Action>(GotoTypeDeclaration)
+nnoremap gi <Action>(GotoImplementation)
+nnoremap gr <Action>(FindUsages)
+nnoremap gn <Action>(RenameElement)
+nnoremap K <Action>(QuickJavaDoc)
+nnoremap <leader>ca <Action>(ShowIntentionActions)
+
+nnoremap <leader>so <Action>(FileStructurePopup)
+nnoremap <leader>sp <Action>(QuickImplementations)
+
+nnoremap <leader>hd <Action>(ShowErrorDescription)
+vnoremap <leader>hd <Action>(ShowErrorDescription)
+nnoremap <leader>hg <Action>(SearchEverywhere)
+vnoremap <leader>hg <Action>(SearchEverywhere)
+nnoremap <leader>hh <Action>(QuickJavaDoc)
+vnoremap <leader>hh <Action>(QuickJavaDoc)
+nnoremap <leader>ha <Action>(ActivateAIAssistantToolWindow)
+vnoremap <leader>ha <Action>(ActivateAIAssistantToolWindow)
+
+nnoremap <leader>gf <Action>(Git.Fetch)
+nnoremap <leader>gl <Action>(Vcs.Show.Log)
+nnoremap <leader>gs <Action>(Vcs.Show.Local.Changes)
+nnoremap <leader>gv <Action>(Vcs.Show.Local.Changes)
+nnoremap <leader>gS <Action>(Vcs.OpenRepositoryInBrowser)
+nnoremap <leader>gF <Action>(Vcs.Push.Force)
+nnoremap <leader>gM <Action>(Git.Commit.And.Push.Executor)
+nnoremap <leader>gP <Action>(Vcs.Push)
+nnoremap <leader>gV <Action>(Git.Add)
+nnoremap <leader>gL <Action>(CopyReferencePopup)
+
+nnoremap <leader>ghh <Action>(Git.Stash)
+nnoremap <leader>ghH <Action>(Git.Unstash)
+nnoremap <leader>ghc <Action>(Github.Create.Pull.Request)
+nnoremap <leader>ghp <Action>(Github.View.Pull.Request)
+nnoremap <leader>ghP <Action>(Github.Open.In.Browser)
+
+nnoremap <leader>gym <Action>(Git.Commit.And.Push.Executor)
+
+nnoremap <leader>jr <Action>(Vcs.RollbackChangedLines)
+vnoremap <leader>jr <Action>(Vcs.RollbackChangedLines)
+nnoremap <leader>jS <Action>(ChangesView.AddUnversioned)
+
+nnoremap <leader>m <Action>(Vcs.Show.Local.Changes)
+
+nnoremap gs <Action>(Replace)
+vnoremap gs <Action>(Replace)
+nnoremap gss <Action>(Replace)
+vnoremap <leader>;tr "zy<Action>(Replace)
+nnoremap <leader>;tR <Action>(ReplaceInPath)
+nnoremap <leader>;fg <Action>(FindInPath)
+
+nnoremap <leader>rf <Action>(ReformatCode)
+nnoremap <leader>ri <Action>(OptimizeImports)
+nnoremap <leader>rr <Action>(RenameElement)
+nnoremap <leader>re <Action>(ExtractMethod)
+nnoremap <leader>rv <Action>(ExtractVariable)
+nnoremap <leader>rc <Action>(ExtractConstant)
+
+nnoremap <leader>cg <Action>(Generate)
+nnoremap <leader>ci <Action>(ImplementMethods)
+nnoremap <leader>co <Action>(OverrideMethods)
+
+nnoremap <leader>;df <Action>(ReformatCode)<Action>(OptimizeImports)
+nnoremap <leader>;de <Action>(Inspections.DevKit.Stability.FixAll)
+nnoremap <leader>;dc <Action>(CopyElementAction)
+nnoremap <leader>;dl <Action>(Rerun)
+nnoremap <Leader>;fs :set spell!<CR>
+nnoremap <Leader>;v <Action>(Tool_External Tools_code)
+
+nnoremap gP <Action>(SplitHorizontally)
+nnoremap gp <Action>(SplitVertically)
+
+nnoremap <Leader>q <Action>(CloseContent)
+nnoremap <Leader>Q <Action>(CloseAllEditors)
+nnoremap <leader>bo <Action>(CloseAllEditorsButActive)
+nnoremap <Leader>w <Action>(SaveDocument)
+nnoremap <Leader>W <Action>(SaveAll)
+
+nnoremap <Leader>uc <Action>(OpenFile)
+nnoremap <Leader>uo <Action>(ShowFilePath)
+nnoremap <leader>cp <Action>(CopyPaths)
+nnoremap <leader>cf <Action>(CopyFileName)
+
+nnoremap <Leader>lg <Action>(OpenInBrowser)
+nnoremap <Leader>lp <Action>(Vcs.OpenRepositoryInBrowser)
+nnoremap <Leader>ls <Action>(OpenInBrowser)
+nnoremap <Leader>lt <Action>(OpenInBrowser)
 
 nnoremap <leader>tt <Action>(ActivateTerminalToolWindow)
 nnoremap <leader>tr <Action>(Terminal.OpenInTerminal)
 nnoremap <C-\> <Action>(ActivateTerminalToolWindow)
 nnoremap <F12> <Action>(ActivateTerminalToolWindow)
 
-nnoremap : <Action>(GotoAction)
-nnoremap <leader>: <Action>(GotoAction)
-
 nnoremap <F9> <Action>(ToggleLineBreakpoint)
 nnoremap <F5> <Action>(Debug)
 nnoremap <F8> <Action>(StepOver)
 nnoremap <F7> <Action>(StepInto)
 nnoremap <S-F8> <Action>(StepOut)
+
+nnoremap <leader>tf <Action>(RunClass)
+nnoremap <leader>tl <Action>(Rerun)
+nnoremap <leader>ta <Action>(RunAllTests)
+
+nnoremap <leader>bb <Action>(BuildProject)
+nnoremap <leader>br <Action>(Run)
+nnoremap <leader>bd <Action>(Debug)
+nnoremap <leader>bs <Action>(Stop)
 
 nnoremap za <Action>(ExpandCollapseToggleAction)
 nnoremap zA <Action>(ExpandCollapseToggleAction)
@@ -181,10 +207,16 @@ nnoremap <A-j> <Action>(SelectNextOccurrence)
 nnoremap <A-k> <Action>(UnselectPreviousOccurrence)
 nnoremap <A-S-j> <Action>(SelectAllOccurrences)
 
-nnoremap mm <Action>(ToggleBookmark)
-nnoremap mn <Action>(GotoNextBookmark)
-nnoremap mp <Action>(GotoPreviousBookmark)
-nnoremap ml <Action>(ShowBookmarks)
+nnoremap <leader>T <Action>(EditorJoinLines)
+
+nnoremap : <Action>(GotoAction)
+nnoremap <leader>: <Action>(GotoAction)
+
+nnoremap <leader>zs <Action>(ShowSettings)
+nnoremap <leader>zu <Action>(CheckForUpdate)
+nnoremap <leader>zd <Action>(ToggleDistractionFreeMode)
+nnoremap <leader>zz <Action>(ToggleZenMode)
+nnoremap <leader>zf <Action>(ToggleFullScreen)
 
 nnoremap <leader>1 <Action>(ActivateProjectToolWindow)
 nnoremap <leader>2 <Action>(ActivateBookmarksToolWindow)
@@ -196,57 +228,6 @@ nnoremap <leader>7 <Action>(ActivateStructureToolWindow)
 nnoremap <leader>8 <Action>(ActivateServicesToolWindow)
 nnoremap <leader>9 <Action>(ActivateVersionControlToolWindow)
 nnoremap <leader>0 <Action>(ActivateTerminalToolWindow)
-
-nnoremap <leader>cg <Action>(Generate)
-nnoremap <leader>ci <Action>(ImplementMethods)
-nnoremap <leader>co <Action>(OverrideMethods)
-
-nnoremap <leader>tf <Action>(RunClass)
-nnoremap <leader>tl <Action>(Rerun)
-nnoremap <leader>ta <Action>(RunAllTests)
-
-nnoremap <leader>rf <Action>(ReformatCode)
-nnoremap <leader>ri <Action>(OptimizeImports)
-nnoremap <leader>rr <Action>(RenameElement)
-nnoremap <leader>re <Action>(ExtractMethod)
-nnoremap <leader>rv <Action>(ExtractVariable)
-nnoremap <leader>rc <Action>(ExtractConstant)
-
-vnoremap < <gv
-vnoremap > >gv
-
-vnoremap J :m '>+1<CR>gv=gv
-vnoremap K :m '<-2<CR>gv=gv
-
-nnoremap <leader>/ :nohlsearch<CR>
-
-vnoremap p "_dP
-
-nmap s <Plug>(easymotion-overwin-f2)
-nmap S <Plug>(easymotion-overwin-t2)
-
-nnoremap <leader>zd <Action>(ToggleDistractionFreeMode)
-nnoremap <leader>zz <Action>(ToggleZenMode)
-nnoremap <leader>zf <Action>(ToggleFullScreen)
-
-nnoremap <leader>fp <Action>(ManageRecentProjects)
-
-nnoremap <leader>so <Action>(FileStructurePopup)
-nnoremap <leader>sp <Action>(QuickImplementations)
-
-nnoremap <leader>en <Action>(GotoNextError)
-nnoremap <leader>ep <Action>(GotoPreviousError)
-nnoremap <leader>el <Action>(ShowErrorDescription)
-
-nnoremap <leader>bb <Action>(BuildProject)
-nnoremap <leader>br <Action>(Run)
-nnoremap <leader>bd <Action>(Debug)
-nnoremap <leader>bs <Action>(Stop)
-
-nnoremap <leader>bo <Action>(CloseAllEditorsButActive)
-
-nnoremap <leader>cp <Action>(CopyPaths)
-nnoremap <leader>cf <Action>(CopyFileName)
 
 inoremap <C-k> <Action>(ParameterInfo)
 inoremap <C-Space> <Action>(CodeCompletion)

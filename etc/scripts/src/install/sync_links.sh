@@ -16,7 +16,6 @@ get_common_links() {
 		"$DOTFILES_ROOT/src/yazi|$HOME/.config/yazi"
 		"$DOTFILES_ROOT/src/zellij|$HOME/.config/zellij"
 		"$DOTFILES_ROOT/src/lazygit|$HOME/.config/lazygit"
-		"$DOTFILES_ROOT/src/lazydocker|$HOME/Library/Application Support/jesseduffield/lazydocker"
 		"$DOTFILES_ROOT/src/.zshrc|$HOME/.zshrc"
 		"$DOTFILES_ROOT/src/.ideavimrc|$HOME/.ideavimrc"
 		"$DOTFILES_ROOT/src/.gitignore_global|$HOME/.gitignore_global"

@@ -1,104 +1,118 @@
-#!/bin/zsh
+#!/bin/bash
 
 set -eo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../utils/logging.sh"
 
-if ! command -v gh &>/dev/null; then
-	log_error "gh (GitHub CLI) is required but not installed"
-	exit 1
-fi
-
-if ! command -v fzf &>/dev/null; then
-	log_error "fzf is required but not installed"
-	exit 1
-fi
-
-if ! command -v jq &>/dev/null; then
-	log_error "jq is required but not installed"
-	exit 1
-fi
-
-if [[ -z "$SLACK_FRONTEND_WEBHOOK_URL" ]]; then
-	log_error "SLACK_FRONTEND_WEBHOOK_URL is not set"
-	log_info "Add it to ~/Programming/JimmyTranDev/secrets/env.sh"
-	exit 1
-fi
-
-if ! git rev-parse --is-inside-work-tree &>/dev/null; then
-	log_error "Not inside a git repository"
-	exit 1
-fi
-
-log_info "Fetching open PRs..."
-
-PR_JSON=$(gh pr list --author "@me" --state open --json number,title,url --limit 100 2>/dev/null) || {
-	log_error "Failed to fetch PRs. Run 'gh auth login' first."
-	exit 1
-}
-
-PR_COUNT=$(echo "$PR_JSON" | jq 'length') || {
-	log_error "Failed to parse PR data"
-	exit 1
-}
-
-if [[ "$PR_COUNT" -eq 0 ]]; then
-	log_warning "No open PRs found in this repo"
-	exit 0
-fi
-
-PR_DISPLAY=()
-while IFS= read -r line; do
-	PR_DISPLAY+=("$line")
-done < <(echo "$PR_JSON" | jq -r '.[] | "#\(.number) \(.title)"')
-
-SELECTED=$(printf "%s\n" "${PR_DISPLAY[@]}" | fzf --multi --prompt="Select PRs to post to Slack: ") || {
-	log_warning "No PRs selected"
-	exit 0
-}
-
-MESSAGE_LINES=()
-while IFS= read -r selected_line; do
-	PR_NUM="${selected_line%% *}"
-	PR_NUM="${PR_NUM#\#}"
-	if ! [[ "$PR_NUM" =~ ^[0-9]+$ ]]; then
-		log_warning "Skipping invalid PR number: $PR_NUM"
-		continue
+main() {
+	if ! command -v gh &>/dev/null; then
+		log_error "gh (GitHub CLI) is required but not installed"
+		exit 1
 	fi
-	PR_LINE=$(echo "$PR_JSON" | jq -r --arg num "$PR_NUM" '.[] | select(.number == ($num | tonumber)) | "- \(.title) (\(.url))"')
-	MESSAGE_LINES+=("$PR_LINE")
-done <<<"$SELECTED"
 
-if [[ ${#MESSAGE_LINES[@]} -eq 0 ]]; then
-	log_warning "No valid PRs to post"
-	exit 0
-fi
+	if ! command -v fzf &>/dev/null; then
+		log_error "fzf is required but not installed"
+		exit 1
+	fi
 
-MESSAGE=$(printf "%s\n" "${MESSAGE_LINES[@]}")
+	if ! command -v jq &>/dev/null; then
+		log_error "jq is required but not installed"
+		exit 1
+	fi
 
-log_info "Posting to Slack:"
-echo "$MESSAGE"
-echo ""
+	if [[ -z "$SLACK_FRONTEND_WEBHOOK_URL" ]]; then
+		log_error "SLACK_FRONTEND_WEBHOOK_URL is not set"
+		log_info "Add it to ~/Programming/JimmyTranDev/secrets/env.sh"
+		exit 1
+	fi
 
-PAYLOAD=$(jq -n --arg text "$MESSAGE" '{text: $text}')
+	if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+		log_error "Not inside a git repository"
+		exit 1
+	fi
 
-CURL_CONFIG=$(mktemp)
-RESPONSE_BODY=$(mktemp)
-trap 'rm -f "$CURL_CONFIG" "$RESPONSE_BODY"' EXIT
-printf 'url = "%s"\n' "$SLACK_FRONTEND_WEBHOOK_URL" >"$CURL_CONFIG"
-chmod 600 "$CURL_CONFIG"
+	log_info "Fetching open PRs..."
 
-HTTP_STATUS=$(curl -s -o "$RESPONSE_BODY" -w "%{http_code}" \
-	-X POST \
-	-H "Content-Type: application/json" \
-	-d "$PAYLOAD" \
-	--config "$CURL_CONFIG")
+	local pr_json
+	pr_json=$(gh pr list --author "@me" --state open --json number,title,url --limit 100 2>/dev/null) || {
+		log_error "Failed to fetch PRs. Run 'gh auth login' first."
+		exit 1
+	}
 
-if [[ "$HTTP_STATUS" == "200" ]]; then
-	log_success "Posted ${#MESSAGE_LINES[@]} PR(s) to Slack"
-else
-	BODY=$(<"$RESPONSE_BODY")
-	log_error "Failed to post to Slack (HTTP $HTTP_STATUS): $BODY"
-	exit 1
-fi
+	local pr_count
+	pr_count=$(echo "$pr_json" | jq 'length') || {
+		log_error "Failed to parse PR data"
+		exit 1
+	}
+
+	if [[ "$pr_count" -eq 0 ]]; then
+		log_warning "No open PRs found in this repo"
+		exit 0
+	fi
+
+	local pr_display=()
+	while IFS= read -r line; do
+		pr_display+=("$line")
+	done < <(echo "$pr_json" | jq -r '.[] | "#\(.number) \(.title)"')
+
+	local selected
+	selected=$(printf "%s\n" "${pr_display[@]}" | fzf --multi --prompt="Select PRs to post to Slack: ") || {
+		log_warning "No PRs selected"
+		exit 0
+	}
+
+	local message_lines=()
+	while IFS= read -r selected_line; do
+		local pr_num="${selected_line%% *}"
+		pr_num="${pr_num#\#}"
+		if ! [[ "$pr_num" =~ ^[0-9]+$ ]]; then
+			log_warning "Skipping invalid PR number: $pr_num"
+			continue
+		fi
+		local pr_line
+		pr_line=$(echo "$pr_json" | jq -r --arg num "$pr_num" '.[] | select(.number == ($num | tonumber)) | "- \(.title) (\(.url))"')
+		message_lines+=("$pr_line")
+	done <<<"$selected"
+
+	if [[ ${#message_lines[@]} -eq 0 ]]; then
+		log_warning "No valid PRs to post"
+		exit 0
+	fi
+
+	local message
+	message=$(printf "%s\n" "${message_lines[@]}")
+
+	log_info "Posting to Slack:"
+	echo "$message"
+	echo ""
+
+	local payload
+	payload=$(jq -n --arg text "$message" '{text: $text}')
+
+	local curl_config
+	curl_config=$(mktemp)
+	local response_body
+	response_body=$(mktemp)
+	trap 'rm -f "$curl_config" "$response_body"' EXIT
+	printf 'url = "%s"\n' "$SLACK_FRONTEND_WEBHOOK_URL" >"$curl_config"
+	chmod 600 "$curl_config"
+
+	local http_status
+	http_status=$(curl -s -o "$response_body" -w "%{http_code}" \
+		-X POST \
+		-H "Content-Type: application/json" \
+		-d "$payload" \
+		--config "$curl_config")
+
+	if [[ "$http_status" == "200" ]]; then
+		log_success "Posted ${#message_lines[@]} PR(s) to Slack"
+	else
+		local body
+		body=$(<"$response_body")
+		log_error "Failed to post to Slack (HTTP $http_status): $body"
+		exit 1
+	fi
+}
+
+main "$@"

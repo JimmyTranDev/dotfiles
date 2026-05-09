@@ -1,102 +1,107 @@
 #!/bin/bash
 
-# Arch Linux package installation
-
 set -e
 
-echo "Running Arch Linux setup..."
+INSTALL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$INSTALL_DIR/../utils/logging.sh"
 
-if command -v pacman >/dev/null 2>&1; then
-	packages=(
-		# --- Containers & DevOps ---
-		docker
-		docker-compose
+main() {
+	log_header "Running Arch Linux setup..."
 
-		# --- Version Control & Dev Tools ---
-		git
-		git-delta
-		github-cli
-		lazygit
-		starship
+	if command -v pacman >/dev/null 2>&1; then
+		packages=(
+			# --- Containers & DevOps ---
+			docker
+			docker-compose
 
-		# --- Editors ---
-		neovim
-		vim
+			# --- Version Control & Dev Tools ---
+			git
+			git-delta
+			github-cli
+			lazygit
+			starship
 
-		# --- Shell & Terminal ---
-		zsh
-		zellij
-		fzf
-		zoxide
-		shfmt
-		btop
-		tree
+			# --- Editors ---
+			neovim
+			vim
 
-		# --- Desktop Environment ---
-		hyprland
-		hyprlock
-		hypridle
-		hyprsunset
+			# --- Shell & Terminal ---
+			zsh
+			zellij
+			fzf
+			zoxide
+			shfmt
+			btop
+			tree
 
-		# --- File Management & Utilities ---
-		fd
-		ripgrep
-		bat
-		chafa
-		lsof
-		xclip
-		wget
-		curl
-		p7zip
-		poppler
-		ffmpegthumbnailer
-		imagemagick
-		jq
-		ntfs-3g
-		unarchiver
-		yazi
+			# --- Desktop Environment ---
+			hyprland
+			hyprlock
+			hypridle
+			hyprsunset
 
-		# --- Programming Languages & Tools ---
-		pnpm
-		yarn
-		maven
-		python
-		python-poetry
-		python-pipx
-		ruby
-		go
-		rust
-		luarocks
-		clang
-		gopls
-	)
+			# --- File Management & Utilities ---
+			fd
+			ripgrep
+			bat
+			chafa
+			lsof
+			xclip
+			wget
+			curl
+			p7zip
+			poppler
+			ffmpegthumbnailer
+			imagemagick
+			jq
+			ntfs-3g
+			unarchiver
+			yazi
 
-	echo "Updating system and installing packages..."
-	sudo pacman -Syu --noconfirm
-	for pkg in "${packages[@]}"; do
-		sudo pacman -S --needed --noconfirm "$pkg"
-	done
-else
-	echo "pacman not found. Please ensure you are running Arch Linux."
-	exit 1
-fi
+			# --- Programming Languages & Tools ---
+			pnpm
+			yarn
+			maven
+			python
+			python-poetry
+			python-pipx
+			ruby
+			go
+			rust
+			luarocks
+			clang
+			gopls
+		)
 
-if command -v yay >/dev/null 2>&1; then
-	aurs=(
-		android-studio
-		fnm
-		luacheck
-		stylua
-		trufflehog
-	)
-	echo "Installing AUR packages..."
-	yay -Syu --noconfirm
-	for aur in "${aurs[@]}"; do
-		yay -S --needed --noconfirm "$aur"
-	done
-else
-	echo "yay not found. Skipping AUR packages."
-	echo '  Install yay: https://github.com/Jguer/yay'
-fi
+		log_info "Updating system and installing packages..."
+		sudo pacman -Syu --noconfirm
+		for pkg in "${packages[@]}"; do
+			sudo pacman -S --needed --noconfirm "$pkg"
+		done
+	else
+		log_error "pacman not found. Please ensure you are running Arch Linux."
+		exit 1
+	fi
 
-echo "Arch Linux setup completed"
+	if command -v yay >/dev/null 2>&1; then
+		aurs=(
+			android-studio
+			fnm
+			luacheck
+			stylua
+			trufflehog
+		)
+		log_info "Installing AUR packages..."
+		yay -Syu --noconfirm
+		for aur in "${aurs[@]}"; do
+			yay -S --needed --noconfirm "$aur"
+		done
+	else
+		log_warning "yay not found. Skipping AUR packages."
+		log_info "Install yay: https://github.com/Jguer/yay"
+	fi
+
+	log_success "Arch Linux setup completed"
+}
+
+main "$@"

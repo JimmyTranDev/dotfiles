@@ -59,14 +59,3 @@ zellij() {
   return $ret
 }
 
-zellij_auto_start() {
-  if [[ -o interactive ]] && [[ -z "$ZELLIJ" ]] && [[ -z "$TMUX" ]] && command -v zellij >/dev/null 2>&1; then
-    if [[ "$ZELLIJ_AUTO_ATTACH" == "true" ]]; then
-      if zellij list-sessions >/dev/null 2>&1 && zellij list-sessions | grep -q .; then
-        exec zellij attach
-      else
-        exec zellij
-      fi
-    fi
-  fi
-}

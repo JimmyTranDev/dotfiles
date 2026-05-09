@@ -1,9 +1,17 @@
-#!/bin/zsh
+#!/bin/bash
 
-[[ -z $ZELLIJ ]] && exit 0
+set -e
 
-zellij action close-tab
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-sleep 0.1
+main() {
+	[[ -z "$ZELLIJ" ]] && exit 0
 
-"$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij_update_tab_indexes.sh"
+	zellij action close-tab
+
+	sleep 0.1
+
+	"$SCRIPT_DIR/zellij_update_tab_indexes.sh"
+}
+
+main "$@"

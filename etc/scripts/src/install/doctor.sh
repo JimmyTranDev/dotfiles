@@ -55,157 +55,163 @@ check_symlink() {
 	fi
 }
 
-log_header "Dotfiles Health Check" "$EMOJI_ROCKET"
-echo
+main() {
+	log_header "Dotfiles Health Check" "$EMOJI_ROCKET"
+	echo
 
-log_info "Checking shell environment..."
-if [ "$SHELL" = "$(which zsh 2>/dev/null)" ] || [[ "$SHELL" == */zsh ]]; then
-	check_pass "Default shell is zsh"
-else
-	check_warn "Default shell is $SHELL (expected zsh)"
-fi
-
-if [ -d "$HOME/.oh-my-zsh" ]; then
-	check_pass "Oh My Zsh installed"
-else
-	check_fail "Oh My Zsh not installed"
-fi
-echo
-
-log_info "Checking required tools..."
-REQUIRED_TOOLS=(
-	"git:Git"
-	"nvim:Neovim"
-	"fzf:FZF"
-	"rg:Ripgrep"
-	"fd:fd"
-	"starship:Starship"
-	"zellij:Zellij"
-	"yazi:Yazi"
-	"lazygit:Lazygit"
-	"bat:bat"
-	"jq:jq"
-)
-
-if [ "$(uname)" = "Darwin" ]; then
-	REQUIRED_TOOLS+=(
-		"brew:Homebrew"
-		"yabai:Yabai"
-		"skhd:skhd"
-	)
-fi
-
-for tool_entry in "${REQUIRED_TOOLS[@]}"; do
-	IFS=':' read -r cmd desc <<<"$tool_entry"
-	check_command "$cmd" "$desc"
-done
-
-OPTIONAL_TOOLS=(
-	"fnm:fnm (Node version manager)"
-	"zoxide:zoxide"
-	"trufflehog:TruffleHog"
-	"docker:Docker"
-	"espanso:Espanso"
-)
-
-echo
-log_info "Checking optional tools..."
-for tool_entry in "${OPTIONAL_TOOLS[@]}"; do
-	IFS=':' read -r cmd desc <<<"$tool_entry"
-	if command -v "$cmd" >/dev/null 2>&1; then
-		check_pass "$desc installed"
+	log_info "Checking shell environment..."
+	if [ "$SHELL" = "$(which zsh 2>/dev/null)" ] || [[ "$SHELL" == */zsh ]]; then
+		check_pass "Default shell is zsh"
 	else
-		check_warn "$desc not found (optional)"
+		check_warn "Default shell is $SHELL (expected zsh)"
 	fi
-done
-echo
 
-log_info "Checking symlinks..."
-SYMLINKS=(
-	"$HOME/.zshrc|$DOTFILES_ROOT/src/.zshrc"
-	"$HOME/.config/zellij|$DOTFILES_ROOT/src/zellij"
-	"$HOME/.config/yazi|$DOTFILES_ROOT/src/yazi"
-	"$HOME/.config/lazygit|$DOTFILES_ROOT/src/lazygit"
-	"$HOME/.config/starship.toml|$DOTFILES_ROOT/src/starship.toml"
-	"$HOME/.config/btop|$DOTFILES_ROOT/src/btop"
-	"$HOME/.config/opencode|$DOTFILES_ROOT/src/opencode"
-	"$HOME/.config/git/hooks|$DOTFILES_ROOT/src/git/hooks"
-	"$HOME/.config/kitty|$DOTFILES_ROOT/src/kitty"
-	"$HOME/.config/espanso|$DOTFILES_ROOT/src/espanso"
-	"$HOME/.ideavimrc|$DOTFILES_ROOT/src/.ideavimrc"
-	"$HOME/.gitignore_global|$DOTFILES_ROOT/src/.gitignore_global"
-)
-
-if [ "$(uname)" = "Darwin" ]; then
-	SYMLINKS+=(
-		"$HOME/.config/ghostty|$DOTFILES_ROOT/src/ghostty"
-		"$HOME/.config/skhd|$DOTFILES_ROOT/src/skhd"
-		"$HOME/.config/yabai|$DOTFILES_ROOT/src/yabai"
-	)
-elif [ "$(uname)" = "Linux" ]; then
-	SYMLINKS+=(
-		"$HOME/.config/hypr|$DOTFILES_ROOT/src/hypr"
-	)
-fi
-
-for link_entry in "${SYMLINKS[@]}"; do
-	IFS='|' read -r dest src <<<"$link_entry"
-	check_symlink "$dest" "$src"
-done
-echo
-
-log_info "Checking directories..."
-REQUIRED_DIRS=(
-	"$HOME/Programming:Programming directory"
-	"$DOTFILES_ROOT:Dotfiles repository"
-	"$HOME/Programming/JimmyTranDev/nvim:Neovim config"
-)
-
-for dir_entry in "${REQUIRED_DIRS[@]}"; do
-	IFS=':' read -r dir desc <<<"$dir_entry"
-	if [ -d "$dir" ]; then
-		check_pass "$desc exists"
+	if [ -d "$HOME/.oh-my-zsh" ]; then
+		check_pass "Oh My Zsh installed"
 	else
-		check_fail "$desc missing ($dir)"
+		check_fail "Oh My Zsh not installed"
 	fi
-done
+	echo
 
-if [ -d "$HOME/Programming/JimmyTranDev/secrets" ]; then
-	check_pass "Secrets directory exists"
-else
-	check_warn "Secrets directory missing ($HOME/Programming/JimmyTranDev/secrets)"
-fi
-echo
+	log_info "Checking required tools..."
+	REQUIRED_TOOLS=(
+		"git:Git"
+		"nvim:Neovim"
+		"fzf:FZF"
+		"rg:Ripgrep"
+		"fd:fd"
+		"starship:Starship"
+		"zellij:Zellij"
+		"yazi:Yazi"
+		"lazygit:Lazygit"
+		"bat:bat"
+		"jq:jq"
+	)
 
-log_info "Checking git configuration..."
-HOOKS_PATH=$(git config --global core.hooksPath 2>/dev/null || true)
-if [ "$HOOKS_PATH" = "$HOME/.config/git/hooks" ]; then
-	check_pass "Git hooks path configured"
-else
-	check_warn "Git hooks path not set (expected $HOME/.config/git/hooks, got '$HOOKS_PATH')"
-fi
+	if [ "$(uname)" = "Darwin" ]; then
+		REQUIRED_TOOLS+=(
+			"brew:Homebrew"
+			"yabai:Yabai"
+			"skhd:skhd"
+		)
+	fi
 
-GLOBAL_IGNORE=$(git config --global core.excludesFile 2>/dev/null || true)
-if [ -n "$GLOBAL_IGNORE" ]; then
-	check_pass "Global gitignore configured ($GLOBAL_IGNORE)"
-else
-	check_warn "Global gitignore not configured"
-fi
-echo
+	for tool_entry in "${REQUIRED_TOOLS[@]}"; do
+		IFS=':' read -r cmd desc <<<"$tool_entry"
+		check_command "$cmd" "$desc"
+	done
 
-log_header "Health Check Summary" "$EMOJI_INFO"
-echo -e "  ${GREEN}${EMOJI_SUCCESS} Passed: $PASS${NC}"
-echo -e "  ${YELLOW}${EMOJI_WARNING} Warnings: $WARN${NC}"
-echo -e "  ${RED}${EMOJI_ERROR} Failed: $FAIL${NC}"
-echo
+	OPTIONAL_TOOLS=(
+		"fnm:fnm (Node version manager)"
+		"zoxide:zoxide"
+		"trufflehog:TruffleHog"
+		"docker:Docker"
+		"espanso:Espanso"
+	)
 
-if [ $FAIL -gt 0 ]; then
-	log_error "Some checks failed. Run the install script to fix: $DOTFILES_ROOT/etc/scripts/src/install/install.sh"
-	exit 1
-elif [ $WARN -gt 0 ]; then
-	log_warning "Some warnings found. Review the output above."
-	exit 0
-else
-	log_success "All checks passed!"
-	exit 0
-fi
+	echo
+	log_info "Checking optional tools..."
+	for tool_entry in "${OPTIONAL_TOOLS[@]}"; do
+		IFS=':' read -r cmd desc <<<"$tool_entry"
+		if command -v "$cmd" >/dev/null 2>&1; then
+			check_pass "$desc installed"
+		else
+			check_warn "$desc not found (optional)"
+		fi
+	done
+	echo
+
+	log_info "Checking symlinks..."
+	SYMLINKS=(
+		"$HOME/.zshrc|$DOTFILES_ROOT/src/.zshrc"
+		"$HOME/.config/zellij|$DOTFILES_ROOT/src/zellij"
+		"$HOME/.config/yazi|$DOTFILES_ROOT/src/yazi"
+		"$HOME/.config/lazygit|$DOTFILES_ROOT/src/lazygit"
+		"$HOME/.config/starship.toml|$DOTFILES_ROOT/src/starship.toml"
+		"$HOME/.config/btop|$DOTFILES_ROOT/src/btop"
+		"$HOME/.config/opencode|$DOTFILES_ROOT/src/opencode"
+		"$HOME/.config/git/hooks|$DOTFILES_ROOT/src/git/hooks"
+		"$HOME/.config/kitty|$DOTFILES_ROOT/src/kitty"
+		"$HOME/.config/espanso|$DOTFILES_ROOT/src/espanso"
+		"$HOME/.ideavimrc|$DOTFILES_ROOT/src/.ideavimrc"
+		"$HOME/.gitignore_global|$DOTFILES_ROOT/src/.gitignore_global"
+	)
+
+	if [ "$(uname)" = "Darwin" ]; then
+		SYMLINKS+=(
+			"$HOME/.config/ghostty|$DOTFILES_ROOT/src/ghostty"
+			"$HOME/.config/skhd|$DOTFILES_ROOT/src/skhd"
+			"$HOME/.config/yabai|$DOTFILES_ROOT/src/yabai"
+		)
+	elif [ "$(uname)" = "Linux" ]; then
+		SYMLINKS+=(
+			"$HOME/.config/hypr|$DOTFILES_ROOT/src/hypr"
+		)
+	fi
+
+	for link_entry in "${SYMLINKS[@]}"; do
+		IFS='|' read -r dest src <<<"$link_entry"
+		check_symlink "$dest" "$src"
+	done
+	echo
+
+	log_info "Checking directories..."
+	REQUIRED_DIRS=(
+		"$HOME/Programming:Programming directory"
+		"$DOTFILES_ROOT:Dotfiles repository"
+		"$HOME/Programming/JimmyTranDev/nvim:Neovim config"
+	)
+
+	for dir_entry in "${REQUIRED_DIRS[@]}"; do
+		IFS=':' read -r dir desc <<<"$dir_entry"
+		if [ -d "$dir" ]; then
+			check_pass "$desc exists"
+		else
+			check_fail "$desc missing ($dir)"
+		fi
+	done
+
+	if [ -d "$HOME/Programming/JimmyTranDev/secrets" ]; then
+		check_pass "Secrets directory exists"
+	else
+		check_warn "Secrets directory missing ($HOME/Programming/JimmyTranDev/secrets)"
+	fi
+	echo
+
+	log_info "Checking git configuration..."
+	local hooks_path
+	hooks_path=$(git config --global core.hooksPath 2>/dev/null || true)
+	if [ "$hooks_path" = "$HOME/.config/git/hooks" ]; then
+		check_pass "Git hooks path configured"
+	else
+		check_warn "Git hooks path not set (expected $HOME/.config/git/hooks, got '$hooks_path')"
+	fi
+
+	local global_ignore
+	global_ignore=$(git config --global core.excludesFile 2>/dev/null || true)
+	if [ -n "$global_ignore" ]; then
+		check_pass "Global gitignore configured ($global_ignore)"
+	else
+		check_warn "Global gitignore not configured"
+	fi
+	echo
+
+	log_header "Health Check Summary" "$EMOJI_INFO"
+	log_success "Passed: $PASS"
+	log_warning "Warnings: $WARN"
+	log_error "Failed: $FAIL"
+	echo
+
+	if [ $FAIL -gt 0 ]; then
+		log_error "Some checks failed. Run the install script to fix: $DOTFILES_ROOT/etc/scripts/src/install/install.sh"
+		exit 1
+	elif [ $WARN -gt 0 ]; then
+		log_warning "Some warnings found. Review the output above."
+		exit 0
+	else
+		log_success "All checks passed!"
+		exit 0
+	fi
+}
+
+main "$@"

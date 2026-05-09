@@ -1,31 +1,31 @@
 #!/bin/bash
 
-# Dotfiles Installation Script
-# Detects the platform and runs common + platform-specific setup
-
 set -e
 
 INSTALL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$INSTALL_DIR/../utils/logging.sh"
 
-echo "Starting dotfiles installation..."
+main() {
+	log_header "Starting dotfiles installation..."
 
-# Run common setup (oh-my-zsh, nvim, symlinks)
-"$INSTALL_DIR/common.sh"
+	"$INSTALL_DIR/common.sh"
 
-# Detect platform and run platform-specific setup
-if [ "$(uname)" == "Darwin" ]; then
-	"$INSTALL_DIR/mac.sh"
-elif [ "$(uname)" == "Linux" ]; then
-	if [ -f /etc/arch-release ]; then
-		"$INSTALL_DIR/arch.sh"
+	if [ "$(uname)" == "Darwin" ]; then
+		"$INSTALL_DIR/mac.sh"
+	elif [ "$(uname)" == "Linux" ]; then
+		if [ -f /etc/arch-release ]; then
+			"$INSTALL_DIR/arch.sh"
+		else
+			log_error "Unsupported Linux distribution. Only Arch Linux is currently supported."
+			exit 1
+		fi
 	else
-		echo "Unsupported Linux distribution. Only Arch Linux is currently supported."
+		log_error "Unknown platform: $(uname)"
 		exit 1
 	fi
-else
-	echo "Unknown platform: $(uname)"
-	exit 1
-fi
 
-echo "Dotfiles installation completed successfully!"
-echo "Please restart your terminal or run 'source ~/.zshrc' to apply changes."
+	log_success "Dotfiles installation completed successfully!"
+	log_info "Please restart your terminal or run 'source ~/.zshrc' to apply changes."
+}
+
+main "$@"
