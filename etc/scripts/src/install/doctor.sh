@@ -200,7 +200,7 @@ echo -e "  ${RED}${EMOJI_ERROR} Failed: $FAIL${NC}"
 echo
 
 if [ $FAIL -gt 0 ]; then
-	log_error "Some checks failed. Run the install script to fix: $DOTFILES_ROOT/etc/scripts/src/install.sh"
+	log_error "Some checks failed. Run the install script to fix: $DOTFILES_ROOT/etc/scripts/src/install/install.sh"
 	exit 1
 elif [ $WARN -gt 0 ]; then
 	log_warning "Some warnings found. Review the output above."

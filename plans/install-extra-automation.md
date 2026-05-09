@@ -19,8 +19,8 @@ The "Install extra" section contains post-install tweaks that should run automat
 ## Architecture
 
 All changes go into existing scripts:
-- `etc/scripts/src/mac.sh` — macOS-specific system preferences
-- `etc/scripts/src/common.sh` — cross-platform tool setup
+- `etc/scripts/src/install/mac.sh` — macOS-specific system preferences
+- `etc/scripts/src/install/common.sh` — cross-platform tool setup
 
 No new files needed.
 
@@ -28,7 +28,7 @@ No new files needed.
 
 ### 1. Add `ya pkg install` to `common.sh`
 
-- **File**: `etc/scripts/src/common.sh`
+- **File**: `etc/scripts/src/install/common.sh`
 - **Change**: After symlinks are synced (line 39), add a block that runs `ya pkg install` if `ya` is available. This installs all yazi plugins defined in `src/yazi/package.toml`.
 - **Complexity**: small
 - **Parallel**: yes
@@ -42,7 +42,7 @@ fi
 
 ### 2. Add macOS defaults to `mac.sh`
 
-- **File**: `etc/scripts/src/mac.sh`
+- **File**: `etc/scripts/src/install/mac.sh`
 - **Change**: Add a section after the brew bundle block with the following defaults:
 - **Complexity**: small
 - **Parallel**: yes (all independent of each other)
@@ -83,7 +83,7 @@ Note: The mission control hotkeys use plist format. The modifier `262144` = Cont
 
 | Task | Status |
 |------|--------|
-| "or use bitwarden cli to get and sync secrets" | Already implemented in `etc/scripts/src/bootstrap.sh:57-84` (`setup_bitwarden_secrets` function) |
+| "or use bitwarden cli to get and sync secrets" | Already implemented in `etc/scripts/src/install/bootstrap.sh:57-84` (`setup_bitwarden_secrets` function) |
 | "acli formula warning" | Formula now works (`atlassian/acli/acli` installed successfully). Tap is in Brewfile line 4. |
 
 ## Edge Cases

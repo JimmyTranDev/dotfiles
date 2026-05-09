@@ -61,19 +61,7 @@ alias e='zellij'
 alias d="$DOTFILES_DIR/etc/scripts/utils/git_diff_commits.sh"
 alias c='clear'
 alias e='exit'
-OPENCODE_STATUS_FILE="/tmp/opencode-status-$$"
 
-o() {
-  if [[ -n $ZELLIJ ]]; then
-    printf "🤖" > "$OPENCODE_STATUS_FILE"
-    zellij_tab_name_update
-  fi
-  opencode "$@"
-  if [[ -n $ZELLIJ ]]; then
-    printf "✅" > "$OPENCODE_STATUS_FILE"
-    zellij_tab_name_update
-  fi
-}
 alias g='rg'
 alias n='nvim'
 alias y='yazi'
@@ -92,142 +80,22 @@ if [[ "$(uname)" == "Darwin" ]]; then
 fi
 
 alias P="$DOTFILES_DIR/etc/scripts/src/pull_repos.sh"
-alias I="$DOTFILES_DIR/etc/scripts/src/install.sh"
-alias L="$DOTFILES_DIR/etc/scripts/src/sync_links.sh"
+alias I="$DOTFILES_DIR/etc/scripts/src/install/install.sh"
+alias L="$DOTFILES_DIR/etc/scripts/src/install/sync_links.sh"
 alias N="$DOTFILES_DIR/etc/scripts/src/slack_post_prs.sh"
 alias S="$DOTFILES_DIR/etc/scripts/src/sync_secrets.sh"
 alias C='find "$DOTFILES_DIR/etc/scripts" -type f -name "*.sh" -exec chmod +x {} \;'
 
-wn() {
-  local script_dir="$DOTFILES_DIR/etc/scripts/src/worktrees"
-  local lib_dir="$DOTFILES_DIR/etc/scripts/utils"
-  source "$script_dir/config.sh"
-  source "$lib_dir/worktree_core.sh" 
-  source "$lib_dir/jira.sh"
-  source "$script_dir/commands/create.sh"
-  cmd_create "$@"
-}
-
-wo() {
-  local script_dir="$DOTFILES_DIR/etc/scripts/src/worktrees"
-  local lib_dir="$DOTFILES_DIR/etc/scripts/utils"
-  source "$script_dir/config.sh"
-  source "$lib_dir/worktree_core.sh"
-  source "$lib_dir/jira.sh" 
-  source "$script_dir/commands/checkout.sh"
-  cmd_checkout "$@"
-}
-
 source "$DOTFILES_DIR/etc/scripts/utils/utility.sh"
 
-select_project() {
-  {
-    local programming_dir="$HOME/Programming"
-    local last_file="$HOME/.last_project"
-    local last_sel=""
-    [[ -f "$last_file" ]] && last_sel=$(<"$last_file")
+source "$DOTFILES_DIR/etc/scripts/src/zshrc/opencode.sh"
+source "$DOTFILES_DIR/etc/scripts/src/zshrc/worktree_helpers.sh"
+source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_project.sh"
+source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_worktree.sh"
+source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_projects_multi.sh"
+source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_worktrees_multi.sh"
+source "$DOTFILES_DIR/etc/scripts/src/zshrc/zellij.sh"
 
-    local items=()
-    while IFS= read -r org_dir; do
-      [[ ! -d "$org_dir" ]] && continue
-      local org_name="${org_dir%/}"
-      org_name="${org_name##*/}"
-      for dir in "$org_dir"/*/; do
-        [[ -d "$dir" ]] || continue
-        local dirname="${dir%/}"
-        dirname="${dirname##*/}"
-        items+=("[$org_name] $dirname")
-      done
-    done < <(get_org_dirs "$programming_dir")
-
-    if [[ ${#items[@]} -eq 0 ]]; then
-      zle -M "No projects found"
-      return 1
-    fi
-
-    local sorted_items=()
-    if [[ -n "$last_sel" ]]; then
-      for i in "${items[@]}"; do [[ "$i" == "$last_sel" ]] && sorted_items=("$i"); done
-      for i in "${items[@]}"; do [[ "$i" != "$last_sel" ]] && sorted_items+=("$i"); done
-    else
-      sorted_items=("${items[@]}")
-    fi
-
-    local selected
-    selected=$(printf "%s\n" "${sorted_items[@]}" | fzf --prompt="Select project: ")
-    if [[ -n "$selected" ]]; then
-      printf "%s" "$selected" > "$last_file"
-      local category="${selected%%]*}"
-      category="${category#\[}"
-      local project="${selected#*] }"
-      builtin cd "$HOME/Programming/$category/$project"
-      zle reset-prompt
-    fi
-  } &>/dev/null </dev/tty
-}
-zle -N select_project
-
-select_worktree() {
-  {
-    local created_dir="$HOME/Programming/wcreated"
-    local checkout_dir="$HOME/Programming/wcheckout"
-    local last_file="$HOME/.last_worktree"
-    local last_sel=""
-    [[ -f "$last_file" ]] && last_sel=$(<"$last_file")
-
-    zmodload -F zsh/stat b:zstat
-    typeset -A label_to_path
-    local entries=()
-    for dir in "$created_dir" "$checkout_dir"; do
-      [[ -d "$dir" ]] || continue
-      for wt_dir in "$dir"/*/(N); do
-        [[ -d "$wt_dir" ]] || continue
-        local git_file="$wt_dir.git"
-        [[ -f "$git_file" ]] || continue
-        local wt_name="${wt_dir%/}"
-        wt_name="${wt_name##*/}"
-        local gitdir="${$(<"$git_file")#gitdir: }"
-        local repo_root="${gitdir%/.git/worktrees/*}"
-        local project_name="${repo_root##*/}"
-        local label="[$project_name] $wt_name"
-        local mtime
-        mtime=$(zstat +mtime "$git_file" 2>/dev/null) || mtime=0
-        entries+=("$mtime $label")
-        label_to_path[$label]="${wt_dir%/}"
-      done
-    done
-
-    if [[ ${#entries[@]} -eq 0 ]]; then
-      zle -M "No worktrees found"
-      return 1
-    fi
-
-    local sorted_items=()
-    local line
-    while IFS= read -r line; do
-      sorted_items+=("${line#* }")
-    done < <(printf "%s\n" "${entries[@]}" | sort -rn)
-
-    if [[ -n "$last_sel" && ${label_to_path[$last_sel]+set} == set ]]; then
-      local pinned=("$last_sel")
-      for item in "${sorted_items[@]}"; do
-        [[ "$item" != "$last_sel" ]] && pinned+=("$item")
-      done
-      sorted_items=("${pinned[@]}")
-    fi
-
-    local selected
-    selected=$(printf "%s\n" "${sorted_items[@]}" | fzf --prompt="Select worktree: ")
-    if [[ -n "$selected" ]]; then
-      printf "%s" "$selected" > "$last_file"
-      local target_dir="${label_to_path[$selected]}"
-      [[ -f "$target_dir/.git" ]] && touch "$target_dir/.git" 2>/dev/null
-      cd "$target_dir"
-      zle reset-prompt
-    fi
-  } &>/dev/null </dev/tty
-}
-zle -N select_worktree
 if command -v starship >/dev/null 2>&1; then
   eval "$(starship init zsh)"
 fi
@@ -242,191 +110,9 @@ fi
 
 bindkey '^f' select_project
 bindkey '^g' select_worktree
-
-select_projects_multi() {
-  {
-    local programming_dir="$HOME/Programming"
-    local items=()
-    while IFS= read -r org_dir; do
-      [[ ! -d "$org_dir" ]] && continue
-      local org_name="${org_dir%/}"
-      org_name="${org_name##*/}"
-      for dir in "$org_dir"/*/; do
-        [[ -d "$dir" ]] || continue
-        local dirname="${dir%/}"
-        dirname="${dirname##*/}"
-        items+=("[$org_name] $dirname")
-      done
-    done < <(get_org_dirs "$programming_dir")
-
-    if [[ ${#items[@]} -eq 0 ]]; then
-      zle -M "No projects found"
-      return 1
-    fi
-
-    local selected=()
-    while IFS= read -r line; do
-      [[ -n "$line" ]] && selected+=("$line")
-    done < <(printf "%s\n" "${items[@]}" | fzf --multi --prompt="Select projects (TAB to multi-select): ")
-
-    if [[ ${#selected[@]} -eq 0 ]]; then
-      return 0
-    fi
-
-    if [[ ${#selected[@]} -eq 1 ]]; then
-      local category="${selected[1]%%]*}"
-      category="${category#\[}"
-      local project="${selected[1]#*] }"
-      builtin cd "$HOME/Programming/$category/$project"
-      zle reset-prompt
-      return 0
-    fi
-
-    for item in "${selected[@]}"; do
-      local category="${item%%]*}"
-      category="${category#\[}"
-      local project="${item#*] }"
-      local target_dir="$HOME/Programming/$category/$project"
-      if [[ -n $ZELLIJ ]]; then
-        zellij action new-tab --cwd "$target_dir" --name "$project"
-      fi
-    done
-    zle reset-prompt
-  } &>/dev/null </dev/tty
-}
-zle -N select_projects_multi
-
-select_worktrees_multi() {
-  {
-    local created_dir="$HOME/Programming/wcreated"
-    local checkout_dir="$HOME/Programming/wcheckout"
-
-    zmodload -F zsh/stat b:zstat
-    typeset -A label_to_path
-    local entries=()
-    for dir in "$created_dir" "$checkout_dir"; do
-      [[ -d "$dir" ]] || continue
-      for wt_dir in "$dir"/*/(N); do
-        [[ -d "$wt_dir" ]] || continue
-        local git_file="$wt_dir.git"
-        [[ -f "$git_file" ]] || continue
-        local wt_name="${wt_dir%/}"
-        wt_name="${wt_name##*/}"
-        local gitdir="${$(<"$git_file")#gitdir: }"
-        local repo_root="${gitdir%/.git/worktrees/*}"
-        local project_name="${repo_root##*/}"
-        local label="[$project_name] $wt_name"
-        local mtime
-        mtime=$(zstat +mtime "$git_file" 2>/dev/null) || mtime=0
-        entries+=("$mtime $label")
-        label_to_path[$label]="${wt_dir%/}"
-      done
-    done
-
-    if [[ ${#entries[@]} -eq 0 ]]; then
-      zle -M "No worktrees found"
-      return 1
-    fi
-
-    local sorted_items=()
-    local line
-    while IFS= read -r line; do
-      sorted_items+=("${line#* }")
-    done < <(printf "%s\n" "${entries[@]}" | sort -rn)
-
-    local selected=()
-    while IFS= read -r line; do
-      [[ -n "$line" ]] && selected+=("$line")
-    done < <(printf "%s\n" "${sorted_items[@]}" | fzf --multi --prompt="Select worktrees (TAB to multi-select): ")
-
-    if [[ ${#selected[@]} -eq 0 ]]; then
-      return 0
-    fi
-
-    if [[ ${#selected[@]} -eq 1 ]]; then
-      local target_dir="${label_to_path[${selected[1]}]}"
-      [[ -f "$target_dir/.git" ]] && touch "$target_dir/.git" 2>/dev/null
-      cd "$target_dir"
-      zle reset-prompt
-      return 0
-    fi
-
-    for item in "${selected[@]}"; do
-      local target_dir="${label_to_path[$item]}"
-      if [[ -n $ZELLIJ && -n "$target_dir" ]]; then
-        local wt_name="${target_dir##*/}"
-        zellij action new-tab --cwd "$target_dir" --name "$wt_name"
-      fi
-    done
-    zle reset-prompt
-  } &>/dev/null </dev/tty
-}
-zle -N select_worktrees_multi
-
 bindkey '^[f' select_projects_multi
 bindkey '^[g' select_worktrees_multi
-
-zellij_tab_name_update() {
-  if [[ -n $ZELLIJ ]]; then
-    local current_dir="${PWD##*/}"
-    [[ "$PWD" == "$HOME" ]] && current_dir="~"
-    local tab_name
-    local git_branch
-    git_branch=$(git branch --show-current 2>/dev/null)
-    if [[ -n "$git_branch" && "$git_branch" =~ ([A-Z]+-[0-9]+) ]]; then
-      tab_name="$MATCH"
-    elif [[ "$current_dir" =~ ^[A-Z]+-[0-9]+ ]]; then
-      tab_name="$MATCH"
-    else
-      local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
-      tab_name="${current_dir:0:$max_length}"
-    fi
-    local tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=/ {count++; if (/focus=true/) {print count; exit}}')
-    [[ -n $tab_index ]] && tab_name="${tab_index}.${tab_name}"
-    if [[ -f "$OPENCODE_STATUS_FILE" ]]; then
-      local ai_status=$(<"$OPENCODE_STATUS_FILE")
-      if [[ -n $ai_status ]]; then
-        tab_name="${tab_name} [${ai_status}]"
-      fi
-    fi
-    zellij action rename-tab "$tab_name" 2>/dev/null
-  fi
-}
-
-zellij_update_tab_indexes() {
-  $DOTFILES_DIR/etc/scripts/src/zellij_update_tab_indexes.sh >/dev/null 2>&1
-  zle reset-prompt
-  return 0
-}
-zle -N zellij_update_tab_indexes
 bindkey '^u' zellij_update_tab_indexes
-
-zellij_tab_name_update
-chpwd_functions=(${chpwd_functions:#zellij_tab_name_update} zellij_tab_name_update)
-
-zellij_clear_tab_notification() {
-  if [[ -n $ZELLIJ && -f "$OPENCODE_STATUS_FILE" ]]; then
-    local ai_status=$(<"$OPENCODE_STATUS_FILE")
-    if [[ "$ai_status" == "✅" ]]; then
-      rm -f "$OPENCODE_STATUS_FILE"
-      zellij_tab_name_update
-    fi
-  fi
-}
-precmd_functions=(${precmd_functions:#zellij_clear_tab_notification} zellij_clear_tab_notification)
-
-zellij() {
-  command zellij "$@"
-  local ret=$?
-  if [[ $1 == "action" && -n $ZELLIJ ]]; then
-    case $2 in
-      new-tab|close-tab|go-to-tab|move-tab|toggle-tab|break-pane|break-pane-left|break-pane-right)
-        zellij_tab_name_update
-        ;;
-    esac
-  fi
-  return $ret
-}
 
 alias zellij-enable-auto="export ZELLIJ_AUTO_ATTACH=true"
 alias zellij-disable-auto="export ZELLIJ_AUTO_ATTACH=false"
@@ -439,23 +125,10 @@ export FZF_DEFAULT_OPTS="\
   --color=bg:#1e1e2e,fg:#cdd6f4,hl:#f38ba8 --color=fg+:#cdd6f4,bg+:#313244,hl+:#f38ba8 --color=info:#89b4fa,prompt:#fab387,spinner:#f9e2af --color=header:#cba6f7,marker:#89dceb --color=border:#6c7086 \
 "
 
-zellij_auto_start() {
-  if [[ -o interactive ]] && [[ -z "$ZELLIJ" ]] && [[ -z "$TMUX" ]] && command -v zellij >/dev/null 2>&1; then
-    if [[ "$ZELLIJ_AUTO_ATTACH" == "true" ]]; then
-      if zellij list-sessions >/dev/null 2>&1 && zellij list-sessions | grep -q .; then
-        exec zellij attach
-      else
-        exec zellij
-      fi
-    fi
-  fi
-}
-
 if [[ -z "$ZELLIJ_AUTO_ATTACH" ]]; then
   export ZELLIJ_AUTO_ATTACH="false"
 fi
 
-# Google Cloud SDK
 if [[ -d "/opt/homebrew/Caskroom/gcloud-cli" ]]; then
   GCLOUD_SDK_DIR=(/opt/homebrew/Caskroom/gcloud-cli/*/google-cloud-sdk(N/))
   if [[ ${#GCLOUD_SDK_DIR[@]} -gt 0 ]]; then
@@ -464,15 +137,10 @@ if [[ -d "/opt/homebrew/Caskroom/gcloud-cli" ]]; then
   fi
 fi
 
-# pnpm
 export PNPM_HOME="/Users/jimmy/Library/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
-# pnpm end
 
-# Added by LM Studio CLI (lms)
 export PATH="$PATH:/Users/jimmy/.lmstudio/bin"
-# End of LM Studio CLI section
-

@@ -100,7 +100,7 @@ main() {
 	setup_bitwarden_secrets
 
 	info "Running dotfiles install script..."
-	bash "$DOTFILES_DIR/etc/scripts/src/install.sh"
+	bash "$DOTFILES_DIR/etc/scripts/src/install/install.sh"
 
 	echo ""
 	success "Bootstrap complete! Restart your terminal or run: source ~/.zshrc"
