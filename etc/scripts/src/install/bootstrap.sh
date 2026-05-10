@@ -130,6 +130,22 @@ main() {
 	clone_dotfiles
 	setup_bitwarden_secrets
 
+	info "Switching dotfiles remote to SSH..."
+	git -C "$DOTFILES_DIR" remote set-url origin git@github.com:JimmyTranDev/dotfiles.git
+	success "Dotfiles remote switched to SSH"
+
+	if [[ ! -f "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
+		info "Installing SDKMAN..."
+		/opt/homebrew/bin/bash -c "$(curl -fsSL https://get.sdkman.io)" || {
+			warn "SDKMAN installation failed"
+		}
+		if [[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
+			success "SDKMAN installed"
+		fi
+	else
+		success "SDKMAN already installed"
+	fi
+
 	configure_macos_hotkeys
 
 	info "Running dotfiles install script..."
