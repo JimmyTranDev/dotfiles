@@ -73,6 +73,7 @@ cask "obs"
 cask "openmtp"
 cask "minisim"
 cask "stremio"
+cask "thunderbird"
 cask "transmission"
 cask "webtorrent"
 
