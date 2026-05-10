@@ -1,6 +1,7 @@
 export const SoundNotification = async ({ $ }) => {
   const platform = process.platform
   let needsAttention = false
+  let taskStartTime = Date.now()
 
   const getBaseTabName = async () => {
     try {
@@ -35,6 +36,30 @@ export const SoundNotification = async ({ $ }) => {
     }
   }
 
+  const formatDuration = (ms) => {
+    const seconds = Math.floor(ms / 1000)
+    if (seconds < 60) {
+      return `${seconds}s`
+    }
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    if (minutes < 60) {
+      return remainingSeconds > 0 ? `${minutes}m ${remainingSeconds}s` : `${minutes}m`
+    }
+    const hours = Math.floor(minutes / 60)
+    const remainingMinutes = minutes % 60
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`
+  }
+
+  const getProjectName = () => {
+    try {
+      const cwd = process.cwd()
+      return cwd.split("/").pop() || "OpenCode"
+    } catch {
+      return "OpenCode"
+    }
+  }
+
   const playSound = async (sound) => {
     try {
       if (platform === "darwin") {
@@ -56,29 +81,34 @@ export const SoundNotification = async ({ $ }) => {
       if (event.type === "session.idle") {
         needsAttention = true
         await playSound("Glass")
-        // const baseName = await getBaseTabName()
-        // await renameTab(`${baseName} ✅`)
         if (platform === "darwin") {
           try {
-            await $`osascript -e 'display notification "Task completed" with title "OpenCode"'`
+            const project = getProjectName()
+            let body = `${project}`
+            if (taskStartTime) {
+              const elapsed = formatDuration(Date.now() - taskStartTime)
+              body = `${project} - ${elapsed}`
+            }
+            taskStartTime = null
+            const escaped = body.replace(/"/g, '\\"')
+            await $`osascript -e ${"display notification \"" + escaped + "\" with title \"OpenCode\" subtitle \"Task completed\""}`
           } catch {}
         }
       }
       if (event.type === "permission.asked") {
         needsAttention = true
         await playSound("Ping")
-        // const baseName = await getBaseTabName()
-        // await renameTab(`${baseName} ❓`)
         if (platform === "darwin") {
           try {
-            await $`osascript -e 'display notification "Waiting for input" with title "OpenCode"'`
+            const project = getProjectName()
+            const escaped = project.replace(/"/g, '\\"')
+            await $`osascript -e ${"display notification \"" + escaped + "\" with title \"OpenCode\" subtitle \"Waiting for input\""}`
           } catch {}
         }
       }
       if (event.type === "session.status" && needsAttention) {
         needsAttention = false
-        // const baseName = await getBaseTabName()
-        // await renameTab(baseName)
+        taskStartTime = Date.now()
       }
     },
   }

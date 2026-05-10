@@ -15,12 +15,6 @@ zellij_tab_name_update() {
     fi
     local tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=/ {count++; if (/focus=true/) {print count; exit}}')
     [[ -n $tab_index ]] && tab_name="${tab_index}.${tab_name}"
-    if [[ -f "$OPENCODE_STATUS_FILE" ]]; then
-      local ai_status=$(<"$OPENCODE_STATUS_FILE")
-      if [[ -n $ai_status ]]; then
-        tab_name="${tab_name} [${ai_status}]"
-      fi
-    fi
     zellij action rename-tab "$tab_name" 2>/dev/null
   fi
 }
@@ -34,17 +28,6 @@ zle -N zellij_update_tab_indexes
 
 zellij_tab_name_update
 chpwd_functions=(${chpwd_functions:#zellij_tab_name_update} zellij_tab_name_update)
-
-zellij_clear_tab_notification() {
-  if [[ -n $ZELLIJ && -f "$OPENCODE_STATUS_FILE" ]]; then
-    local ai_status=$(<"$OPENCODE_STATUS_FILE")
-    if [[ "$ai_status" == "✅" ]]; then
-      rm -f "$OPENCODE_STATUS_FILE"
-      zellij_tab_name_update
-    fi
-  fi
-}
-precmd_functions=(${precmd_functions:#zellij_clear_tab_notification} zellij_clear_tab_notification)
 
 zellij() {
   command zellij "$@"
