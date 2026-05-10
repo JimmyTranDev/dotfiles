@@ -155,6 +155,9 @@ export const Notification = async ({ $ }) => {
         await playSound(permissionSound)
         const body = buildNotificationBody("permission")
         await sendNotification("Waiting for input", body)
+      } else if (event.type === "session.cancelled") {
+        taskStartTime = null
+        resetTrackingState()
       } else if (event.type === "session.status" && needsAttention) {
         needsAttention = false
         taskStartTime = Date.now()
