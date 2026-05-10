@@ -51,3 +51,9 @@ This will:
 1. System Settings > Keyboard > Keyboard Shortcuts > Mission Control
 2. Enable "Switch to Desktop 1" through "Switch to Desktop 10"
 3. Set shortcuts to ctrl+1 through ctrl+0
+
+### Turn Off Keyboard Backlight
+
+1. System Settings > Keyboard
+2. Set "Keyboard brightness" to 0
+3. Disable "Adjust keyboard brightness in low light"
