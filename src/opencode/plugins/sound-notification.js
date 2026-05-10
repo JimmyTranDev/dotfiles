@@ -3,38 +3,10 @@ export const SoundNotification = async ({ $ }) => {
   let needsAttention = false
   let taskStartTime = Date.now()
 
-  const getBaseTabName = async () => {
-    try {
-      const home = process.env.HOME || ""
-      const cwd = process.cwd()
-      let currentDir = cwd.split("/").pop() || ""
-      if (cwd === home) {
-        currentDir = "~"
-      }
-      currentDir = currentDir.replace(/^[A-Z]+-\d+-/, "")
-      const maxLength = parseInt(process.env.ZELLIJ_TAB_NAME_MAX_LENGTH || "20", 10)
-      let tabName = currentDir.slice(0, maxLength)
-
-      try {
-        const result = await $`zellij action dump-layout 2>/dev/null`.quiet()
-        const lines = result.stdout.split("\n")
-        let count = 0
-        for (const line of lines) {
-          if (/^\s*tab\s/.test(line)) {
-            count++
-            if (/focus=true/.test(line)) {
-              tabName = `${count}. ${tabName}`
-              break
-            }
-          }
-        }
-      } catch {}
-
-      return tabName
-    } catch {
-      return "OpenCode"
-    }
-  }
+  const idleSound = process.env.OPENCODE_SOUND_IDLE || "Glass"
+  const permissionSound = process.env.OPENCODE_SOUND_PERMISSION || "Ping"
+  const errorSound = process.env.OPENCODE_SOUND_ERROR || "Basso"
+  const volume = process.env.OPENCODE_SOUND_VOLUME || "0.3"
 
   const formatDuration = (ms) => {
     const seconds = Math.floor(ms / 1000)
@@ -60,19 +32,32 @@ export const SoundNotification = async ({ $ }) => {
     }
   }
 
+  const getElapsedBody = (project) => {
+    if (taskStartTime) {
+      const elapsed = formatDuration(Date.now() - taskStartTime)
+      return `${project} - ${elapsed}`
+    }
+    return project
+  }
+
   const playSound = async (sound) => {
     try {
       if (platform === "darwin") {
-        await $`afplay -v 0.3 /System/Library/Sounds/${sound}.aiff`
+        await $`afplay -v ${volume} /System/Library/Sounds/${sound}.aiff`
       } else if (platform === "linux") {
         await $`paplay /usr/share/sounds/freedesktop/stereo/complete.oga`
       }
     } catch {}
   }
 
-  const renameTab = async (name) => {
+  const sendNotification = async (subtitle, body) => {
     try {
-      await $`zellij action rename-tab ${name}`
+      if (platform === "darwin") {
+        const escaped = body.replace(/"/g, '\\"')
+        await $`osascript -e ${"display notification \"" + escaped + "\" with title \"OpenCode\" subtitle \"" + subtitle + "\""}`
+      } else if (platform === "linux") {
+        await $`notify-send "OpenCode" "${subtitle}: ${body}"`
+      }
     } catch {}
   }
 
@@ -80,33 +65,25 @@ export const SoundNotification = async ({ $ }) => {
     event: async ({ event }) => {
       if (event.type === "session.idle") {
         needsAttention = true
-        await playSound("Glass")
-        if (platform === "darwin") {
-          try {
-            const project = getProjectName()
-            let body = `${project}`
-            if (taskStartTime) {
-              const elapsed = formatDuration(Date.now() - taskStartTime)
-              body = `${project} - ${elapsed}`
-            }
-            taskStartTime = null
-            const escaped = body.replace(/"/g, '\\"')
-            await $`osascript -e ${"display notification \"" + escaped + "\" with title \"OpenCode\" subtitle \"Task completed\""}`
-          } catch {}
-        }
-      }
-      if (event.type === "permission.asked") {
+        await playSound(idleSound)
+        const project = getProjectName()
+        const body = getElapsedBody(project)
+        taskStartTime = null
+        await sendNotification("Task completed", body)
+      } else if (event.type === "session.error") {
         needsAttention = true
-        await playSound("Ping")
-        if (platform === "darwin") {
-          try {
-            const project = getProjectName()
-            const escaped = project.replace(/"/g, '\\"')
-            await $`osascript -e ${"display notification \"" + escaped + "\" with title \"OpenCode\" subtitle \"Waiting for input\""}`
-          } catch {}
-        }
-      }
-      if (event.type === "session.status" && needsAttention) {
+        await playSound(errorSound)
+        const project = getProjectName()
+        const body = getElapsedBody(project)
+        taskStartTime = null
+        await sendNotification("Task failed", body)
+      } else if (event.type === "permission.asked") {
+        needsAttention = true
+        await playSound(permissionSound)
+        const project = getProjectName()
+        const body = getElapsedBody(project)
+        await sendNotification("Waiting for input", body)
+      } else if (event.type === "session.status" && needsAttention) {
         needsAttention = false
         taskStartTime = Date.now()
       }
