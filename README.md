@@ -3,93 +3,103 @@
 [![Shell](https://img.shields.io/badge/Shell-Zsh-blue.svg?style=flat-square&logo=gnu-bash)](https://www.zsh.org)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat-square)](LICENSE)
 
-Cross-platform dotfiles for macOS, Linux, and WSL.
+One command to set up a fully configured development environment on macOS, Linux, or WSL — complete with tiling windows, AI-powered coding agents, and a unified Catppuccin Mocha theme across every tool.
 
-## Tech Stack
+## Quick Start
 
-| Component | Technologies |
-|-----------|--------------|
-| **Shell** | Zsh, Starship prompt |
-| **Terminal** | Ghostty, Zellij (multiplexer) |
-| **Package Management** | Homebrew (macOS), pacman/yay (Arch Linux) |
-| **Window Management** | Yabai + SKHD (macOS) |
-| **File Management** | Yazi (terminal file manager) |
-| **Git Tools** | Lazygit, custom worktree scripts |
-| **System Monitoring** | Btop |
-| **AI Development** | OpenCode (18 agents, 8 commands) |
-| **Theme** | Catppuccin (consistent across all tools) |
-| **Scripting** | Bash, Zsh |
+```bash
+git clone https://github.com/JimmyTranDev/dotfiles.git
+cd dotfiles
+./etc/scripts/install.sh
+```
 
-## Features
+The installer detects your platform, installs packages, symlinks configs, and sets up SDKs. Run `./etc/scripts/doctor.sh` afterward to verify everything is healthy.
 
-| Feature | Description |
-|---------|-------------|
-| **Automated Setup** | OS detection with platform-specific configurations |
-| **Package Management** | Homebrew (macOS) and pacman/yay (Arch Linux) |
-| **SDK Management** | Version management for Java, Go, and other SDKs |
-| **Catppuccin Theming** | Consistent theme across all tools |
+## What's Inside
+
+### Terminal & Shell
+
+| Tool | Role |
+|------|------|
+| **Ghostty** | GPU-accelerated terminal emulator |
+| **Zsh** | Shell with custom aliases, plugins, and completions |
+| **Starship** | Minimal, blazing-fast cross-shell prompt |
+| **Zellij** | Terminal multiplexer with custom layouts |
+
+### Development Tools
+
+| Tool | Role |
+|------|------|
+| **Lazygit** | Git TUI for staging, branching, and rebasing |
+| **Yazi** | Terminal file manager with preview and plugins |
+| **Btop** | System resource monitor |
+
+### Window Management
+
+| Platform | Tools |
+|----------|-------|
+| **macOS** | Yabai (tiling WM) + SKHD (hotkey daemon) |
+
+### Package Management
+
+| Platform | Manager |
+|----------|---------|
+| **macOS** | Homebrew (Brewfile included) |
+| **Arch Linux** | pacman + yay |
 
 ## AI-Powered Development
 
-OpenCode configuration with 18 custom agents and 8 slash commands for AI-assisted coding:
+The `src/opencode/` directory contains a full OpenCode configuration that turns your terminal into an AI development environment:
 
-| Type | Available |
-|------|-----------|
-| **Agents** | auditor, classless, designer, expo, fixer, follower, fsrs, optimizer, pragmatic, profile-reviewer, prompter, re-export-destroyer, reuser, reviewer, solver, sounder, structure, tester |
-| **Commands** | commit, continue, implement, refactor, test, update-commits |
+| Resource | Count | Highlights |
+|----------|-------|------------|
+| **Agents** | 17 | auditor, critic, designer, devops, fixer, implementer, optimizer, reviewer, tester, and more |
+| **Commands** | 44 | `/commit`, `/implement`, `/pr`, `/review`, `/specify`, `/fix`, `/quiz`, `/weekly-summary`, and more |
+| **Skills** | 95 | Code quality, security, testing, Spring Boot, Expo, Drizzle, Tailwind, system design, and more |
+
+Agents handle specialized tasks (code review, security audits, testing), commands orchestrate multi-step workflows (PR creation with worktrees, spec-driven implementation), and skills inject domain-specific knowledge on demand.
 
 ## Scripts
 
-| Script | Description |
-|--------|-------------|
-| **install.sh** | Main setup script (detects platform, runs common + platform-specific) |
-| **sync_links.sh** | Symlink management (supports --dry-run and backups) |
-| **sdk_install.sh** | SDK version installation |
-| **sdk_select.sh** | SDK version selection |
-| **doctor.sh** | Health check (validates symlinks, tools, environment) |
-| **worktrees/** | Git worktree management (checkout, create, delete, move, rename, update) |
+```bash
+./etc/scripts/install.sh       # Full setup (detects platform, installs everything)
+./etc/scripts/sync_links.sh    # Symlink configs (supports --dry-run)
+./etc/scripts/doctor.sh        # Health check (validates symlinks, tools, env)
+./etc/scripts/sdk_install.sh   # Install SDK versions (Java, Go, etc.)
+./etc/scripts/sdk_select.sh    # Switch between installed SDK versions
+```
 
-## Tools
-
-| Tool | Description |
-|------|-------------|
-| **Zellij** | Terminal multiplexer |
-| **Yazi** | File manager with plugins |
-| **Lazygit** | Git TUI |
-| **Yabai + SKHD** | Window management (macOS) |
-| **Btop** | System monitoring |
-| **Ghostty** | Terminal emulator |
-| **Starship** | Shell prompt |
+Reusable AI utility scripts live in `etc/scripts/src/ai/` — stack detection, branch info, test runners, linting, PR status, and more.
 
 ## Structure
 
 ```
-etc/
-├── docs/              # Platform-specific setup guides (macOS, WSL, common)
-├── scripts/           # Automation and utility scripts
-│   ├── install.sh     # Main entry point for installation
-│   ├── sync_links.sh  # Creates symlinks from src/ to home directory
-│   ├── doctor.sh        # Health check for environment validation
-│   ├── common/          # Shared utilities (logging, functions)
-│   ├── install/         # Platform-specific installers (common, mac, arch)
-│   ├── sdk_install.sh   # Installs SDK versions (Java, Go, etc.)
-│   ├── sdk_select.sh    # Switches between installed SDK versions
-│   └── worktrees/       # Git worktree utilities for branch management
-└── theme.conf         # Global Catppuccin theme configuration
+src/                     # Configs (symlinked to ~/.config or ~/)
+├── .zshrc               # Shell config
+├── .ideavimrc           # Vim keybindings for JetBrains
+├── Brewfile             # Homebrew packages
+├── starship.toml        # Prompt config
+├── ghostty/             # Terminal emulator
+├── lazygit/             # Git TUI
+├── opencode/            # AI coding (17 agents, 44 commands, 95 skills)
+├── skhd/                # Hotkeys (macOS)
+├── yabai/               # Tiling WM (macOS)
+├── yazi/                # File manager
+└── zellij/              # Multiplexer
 
-src/                   # Configuration files (symlinked to ~/.config or ~/)
-├── .zshrc             # Zsh shell configuration with aliases and plugins
-├── .ideavimrc         # Vim keybindings for JetBrains IDEs
-├── Brewfile           # Homebrew package definitions
-├── starship.toml      # Cross-shell prompt configuration
-├── ghostty/           # Terminal emulator config and themes
-├── lazygit/           # Git TUI configuration
-├── opencode/          # AI coding assistant (17 agents, 8 commands)
-├── skhd/              # Hotkey daemon for macOS
-├── yabai/             # Tiling window manager for macOS
-├── yazi/              # Terminal file manager with plugins
-└── zellij/            # Terminal multiplexer layouts and keybindings
+etc/
+├── scripts/             # Install, sync, health check, SDK management
+│   ├── common/          # Shared utilities (logging, git helpers)
+│   ├── install/         # Platform-specific installers
+│   └── src/ai/          # Reusable AI utility scripts
+├── templates/           # Template configs (.gitconfig, .npmrc)
+├── docs/                # Setup guides
+└── theme.conf           # Catppuccin Mocha reference
 ```
+
+## Theme
+
+Every tool uses **Catppuccin Mocha** — terminal, prompt, multiplexer, file manager, git TUI, window manager, and editor. One palette, zero visual friction.
 
 ## License
 
