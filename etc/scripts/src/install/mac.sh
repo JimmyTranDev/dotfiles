@@ -3,13 +3,13 @@
 set -e
 
 INSTALL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$INSTALL_DIR/../utils/logging.sh"
+source "$INSTALL_DIR/../../utils/logging.sh"
 
 main() {
 	log_header "Running macOS setup..."
 
 	if command -v brew >/dev/null 2>&1; then
-		read -rp "Run brew bundle install? [y/N] " answer
+		read -rp "Run brew bundle install? [y/N] " answer </dev/tty
 		if [[ "$answer" =~ ^[Yy]$ ]]; then
 			log_info "Installing Homebrew packages..."
 			brew bundle --file="$HOME/Brewfile" check ||

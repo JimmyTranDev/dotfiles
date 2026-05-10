@@ -3,7 +3,7 @@
 set -e
 
 INSTALL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$INSTALL_DIR/../utils/logging.sh"
+source "$INSTALL_DIR/../../utils/logging.sh"
 
 main() {
 	log_header "Starting dotfiles installation..."

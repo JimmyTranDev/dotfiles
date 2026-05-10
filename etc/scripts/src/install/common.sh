@@ -2,7 +2,7 @@
 
 set -e
 
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../" && pwd)"
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../../" && pwd)"
 SCRIPTS_DIR="$DOTFILES_DIR/etc/scripts"
 
 source "$SCRIPTS_DIR/utils/utility.sh"
@@ -33,7 +33,7 @@ main() {
 	fi
 
 	log_info "Syncing symbolic links..."
-	"$SCRIPTS_DIR/src/sync_links.sh"
+	"$SCRIPTS_DIR/src/install/sync_links.sh"
 
 	if command -v ya >/dev/null 2>&1; then
 		log_info "Installing yazi packages..."

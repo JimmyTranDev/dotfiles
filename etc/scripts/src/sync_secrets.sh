@@ -20,7 +20,7 @@ ensure_bw_unlocked() {
 
 	if [[ "$status" == "unauthenticated" ]]; then
 		log_info "Logging into Bitwarden..."
-		bw login
+		bw login </dev/tty
 		status=$(bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
 	fi
 
@@ -31,7 +31,7 @@ ensure_bw_unlocked() {
 			return
 		fi
 		log_info "Unlocking Bitwarden vault..."
-		BW_SESSION=$(bw unlock --raw)
+		BW_SESSION=$(bw unlock --raw </dev/tty)
 		export BW_SESSION
 	fi
 

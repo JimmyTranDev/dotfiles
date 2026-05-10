@@ -94,6 +94,26 @@ configure_macos_hotkeys() {
 	success "macOS hotkeys configured (Cmd+Space free for Raycast)"
 }
 
+start_macos_services() {
+	if [[ "$(uname)" != "Darwin" ]]; then
+		return
+	fi
+	if command -v yabai >/dev/null 2>&1; then
+		info "Starting yabai service..."
+		yabai --start-service
+		success "yabai service started"
+	else
+		warn "yabai not found, skipping service start"
+	fi
+	if command -v skhd >/dev/null 2>&1; then
+		info "Starting skhd service..."
+		skhd --start-service
+		success "skhd service started"
+	else
+		warn "skhd not found, skipping service start"
+	fi
+}
+
 main() {
 	echo ""
 	echo "================================================"
@@ -114,6 +134,8 @@ main() {
 
 	info "Running dotfiles install script..."
 	bash "$DOTFILES_DIR/etc/scripts/src/install/install.sh"
+
+	start_macos_services
 
 	echo ""
 	success "Bootstrap complete! Restart your terminal or run: source ~/.zshrc"
