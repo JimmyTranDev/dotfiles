@@ -14,6 +14,9 @@ main() {
 		"$INSTALL_DIR/mac.sh"
 	elif [ "$(uname)" == "Linux" ]; then
 		if [ -f /etc/arch-release ]; then
+			if grep -qi microsoft /proc/version 2>/dev/null; then
+				"$INSTALL_DIR/wsl.sh"
+			fi
 			"$INSTALL_DIR/arch.sh"
 		else
 			log_error "Unsupported Linux distribution. Only Arch Linux is currently supported."

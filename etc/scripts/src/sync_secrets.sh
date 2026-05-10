@@ -126,7 +126,7 @@ upload_secrets() {
 		while IFS= read -r att_id; do
 			[[ -z "$att_id" ]] && continue
 			bw delete attachment "$att_id" --itemid "$item_id" >/dev/null 2>&1 || true
-		done <<< "$old_attachment_ids"
+		done <<<"$old_attachment_ids"
 	fi
 
 	rm -rf "$temp_dir"

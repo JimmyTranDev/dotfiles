@@ -55,6 +55,7 @@ brew "pipx"
 brew "poetry"
 brew "ruby@3"
 brew "rust"
+brew "shellcheck"
 brew "shfmt"
 brew "stylua"
 

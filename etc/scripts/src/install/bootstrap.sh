@@ -68,30 +68,19 @@ setup_bitwarden_secrets() {
 			brew install bitwarden-cli
 		elif [[ -f /etc/arch-release ]]; then
 			info "Installing Bitwarden CLI..."
-			sudo pacman -S --needed --noconfirm bitwarden-cli 2>/dev/null || {
-				if command -v yay >/dev/null 2>&1; then
-					yay -S --needed --noconfirm bitwarden-cli
-				else
-					warn "Could not install bitwarden-cli. Install it manually and re-run."
-					return 1
-				fi
-			}
+			if command -v yay >/dev/null 2>&1; then
+				yay -S --needed --noconfirm bitwarden-cli
+			elif command -v paru >/dev/null 2>&1; then
+				paru -S --needed --noconfirm bitwarden-cli
+			else
+				warn "Could not install bitwarden-cli. Install yay or paru first, then re-run."
+				return 1
+			fi
 		fi
 	fi
 
 	info "Downloading secrets from Bitwarden..."
 	bash "$DOTFILES_DIR/etc/scripts/src/sync_secrets.sh" download
-}
-
-configure_macos_hotkeys() {
-	if [[ "$(uname)" != "Darwin" ]]; then
-		return
-	fi
-	info "Configuring macOS hotkeys (disabling Spotlight & emoji for Cmd+Space)..."
-	defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 '{ enabled = 0; value = { parameters = (32, 49, 1048576); type = standard; }; }'
-	defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 '{ enabled = 0; value = { parameters = (32, 49, 1048576); type = standard; }; }'
-	/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
-	success "macOS hotkeys configured (Cmd+Space free for Raycast)"
 }
 
 start_macos_services() {
@@ -125,6 +114,10 @@ main() {
 
 	if [[ "$(uname)" == "Darwin" ]]; then
 		install_homebrew
+	elif [[ -f /etc/arch-release ]]; then
+		info "Installing base dependencies for Arch Linux..."
+		sudo pacman -S --needed --noconfirm base-devel curl unzip
+		success "Arch base dependencies installed"
 	fi
 
 	clone_dotfiles
@@ -136,7 +129,7 @@ main() {
 
 	if [[ ! -f "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
 		info "Installing SDKMAN..."
-		/opt/homebrew/bin/bash -c "$(curl -fsSL https://get.sdkman.io)" || {
+		bash -c "$(curl -fsSL https://get.sdkman.io)" || {
 			warn "SDKMAN installation failed"
 		}
 		if [[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
@@ -145,8 +138,6 @@ main() {
 	else
 		success "SDKMAN already installed"
 	fi
-
-	configure_macos_hotkeys
 
 	info "Running dotfiles install script..."
 	bash "$DOTFILES_DIR/etc/scripts/src/install/install.sh"
