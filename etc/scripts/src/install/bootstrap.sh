@@ -83,6 +83,17 @@ setup_bitwarden_secrets() {
 	bash "$DOTFILES_DIR/etc/scripts/src/sync_secrets.sh" download
 }
 
+configure_macos_hotkeys() {
+	if [[ "$(uname)" != "Darwin" ]]; then
+		return
+	fi
+	info "Configuring macOS hotkeys (disabling Spotlight & emoji for Cmd+Space)..."
+	defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 '{ enabled = 0; value = { parameters = (32, 49, 1048576); type = standard; }; }'
+	defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 '{ enabled = 0; value = { parameters = (32, 49, 1048576); type = standard; }; }'
+	/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
+	success "macOS hotkeys configured (Cmd+Space free for Raycast)"
+}
+
 main() {
 	echo ""
 	echo "================================================"
@@ -98,6 +109,8 @@ main() {
 
 	clone_dotfiles
 	setup_bitwarden_secrets
+
+	configure_macos_hotkeys
 
 	info "Running dotfiles install script..."
 	bash "$DOTFILES_DIR/etc/scripts/src/install/install.sh"
