@@ -1,21 +1,26 @@
-ZSH_THEME=''
-export ZSH="$HOME/.oh-my-zsh"
+HISTFILE="${HOME}/.zsh_history"
+HISTSIZE=50000
+SAVEHIST=50000
+setopt EXTENDED_HISTORY
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_VERIFY
+setopt SHARE_HISTORY
 
-zstyle ':omz:update' mode auto
-zstyle ':omz:update' frequency 14
-
-COMPLETION_WAITING_DOTS="true"
-DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-HIST_STAMPS="dd/mm/yyyy"
-
-plugins=(
-  colored-man-pages
-  history
-)
+autoload -Uz compinit
+if [[ -n "${ZDOTDIR:-$HOME}/.zcompdump"(#qN.mh+24) ]]; then
+  compinit
+else
+  compinit -C
+fi
 
 DOTFILES_DIR="$HOME/Programming/JimmyTranDev/dotfiles"
-HOMEBREW_PREFIX="$(brew --prefix)"
+if [[ "$(uname -m)" == "arm64" ]]; then
+  HOMEBREW_PREFIX="/opt/homebrew"
+else
+  HOMEBREW_PREFIX="/usr/local"
+fi
 
 export BROWSER='"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
 export ARCHFLAGS="-arch $(uname -m)"

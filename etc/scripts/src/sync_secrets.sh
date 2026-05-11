@@ -89,7 +89,7 @@ upload_secrets() {
 	fi
 
 	local file_count
-	file_count=$(find "$SECRETS_DIR" -type f -not -path '*/.sync_tmp/*' | wc -l | tr -d ' ')
+	file_count=$(find "$SECRETS_DIR" -type f -not -path '*/.sync_tmp/*' \( -not -path '*/.m2/*' -o -path '*/.m2/settings.xml' \) | wc -l | tr -d ' ')
 
 	if [[ "$file_count" -eq 0 ]]; then
 		log_warning "No files found in $SECRETS_DIR"
@@ -101,7 +101,18 @@ upload_secrets() {
 	mkdir -p "$temp_dir"
 
 	log_info "Creating tarball of $file_count files..."
-	tar czf "$temp_dir/$TARBALL_NAME" -C "$SECRETS_DIR" --exclude='.sync_tmp' --exclude='.sync_backup' .
+	tar czf "$temp_dir/$TARBALL_NAME" -C "$SECRETS_DIR" \
+		--exclude='.sync_tmp' \
+		--exclude='.sync_backup' \
+		--exclude='.m2' \
+		.
+	if [[ -f "$SECRETS_DIR/.m2/settings.xml" ]]; then
+		local uncompressed="$temp_dir/secrets.tar"
+		gunzip "$temp_dir/$TARBALL_NAME"
+		tar rf "$uncompressed" -C "$SECRETS_DIR" .m2/settings.xml
+		gzip "$uncompressed"
+		mv "$uncompressed.gz" "$temp_dir/$TARBALL_NAME"
+	fi
 
 	ensure_bw_unlocked
 	create_item_if_missing
@@ -185,7 +196,7 @@ download_secrets() {
 	find "$SECRETS_DIR" -type f -not -path '*/.sync_tmp/*' -not -path '*/.sync_backup/*' -exec chmod 600 {} \;
 
 	local file_count
-	file_count=$(find "$SECRETS_DIR" -type f -not -path '*/.sync_tmp/*' -not -path '*/.sync_backup/*' | wc -l | tr -d ' ')
+	file_count=$(find "$SECRETS_DIR" -type f -not -path '*/.sync_tmp/*' -not -path '*/.sync_backup/*' \( -not -path '*/.m2/*' -o -path '*/.m2/settings.xml' \) | wc -l | tr -d ' ')
 
 	rm -rf "$temp_dir" "$backup_dir"
 	trap - EXIT INT TERM
