@@ -54,4 +54,4 @@ After all comments are processed (or user stops), present:
 
 - Never resolve or close review threads — only reply. Let the reviewer resolve their own threads.
 - Each reply must be specific — never post generic "Addressed in <sha>" messages.
-- Replies must feel personal and natural — vary phrasing, avoid repetitive patterns across comments.
+- Load **comm-natural-speech** skill before generating replies. Replies must feel personal and natural — vary phrasing, avoid repetitive patterns across comments.
