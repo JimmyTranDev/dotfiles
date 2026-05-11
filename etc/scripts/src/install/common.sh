@@ -40,6 +40,13 @@ main() {
 		ya pkg install || log_warning "ya pkg install failed (may need network)"
 	fi
 
+	if command -v pipx >/dev/null 2>&1; then
+		log_info "Installing pipx packages..."
+		pipx install diff-cover || log_warning "diff-cover install failed"
+	else
+		log_warning "pipx not found, skipping pipx packages"
+	fi
+
 	if command -v npm >/dev/null 2>&1; then
 		log_info "Installing global npm packages..."
 		npm install -g @doist/todoist-cli
