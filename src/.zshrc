@@ -22,7 +22,7 @@ else
   HOMEBREW_PREFIX="/usr/local"
 fi
 
-export BROWSER='"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
+export BROWSER='firefox'
 export ARCHFLAGS="-arch $(uname -m)"
 export MANPAGER='nvim +Man!'
 export MANWIDTH=999
