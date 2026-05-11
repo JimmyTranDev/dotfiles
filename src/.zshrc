@@ -17,7 +17,7 @@ plugins=(
 DOTFILES_DIR="$HOME/Programming/JimmyTranDev/dotfiles"
 HOMEBREW_PREFIX="$(brew --prefix)"
 
-export BROWSER=firefox
+export BROWSER=google-chrome
 export ARCHFLAGS="-arch $(uname -m)"
 export MANPAGER='nvim +Man!'
 export MANWIDTH=999
@@ -40,8 +40,8 @@ export FZF_DEFAULT_OPTS="\
 export PATH="$HOMEBREW_PREFIX/opt/postgresql@15/bin:$PATH"
 
 case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
+*":$PNPM_HOME:"*) ;;
+*) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 
 path_additions=(

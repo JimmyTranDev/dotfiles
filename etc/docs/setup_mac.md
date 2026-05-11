@@ -52,6 +52,11 @@ This will:
 2. Enable "Switch to Desktop 1" through "Switch to Desktop 10"
 3. Set shortcuts to ctrl+1 through ctrl+0
 
+### Default Browser
+
+1. Open Google Chrome
+2. Settings > Default browser > Make default
+
 ### Turn Off Keyboard Backlight
 
 1. System Settings > Keyboard
