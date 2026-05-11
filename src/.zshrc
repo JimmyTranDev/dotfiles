@@ -17,7 +17,7 @@ plugins=(
 DOTFILES_DIR="$HOME/Programming/JimmyTranDev/dotfiles"
 HOMEBREW_PREFIX="$(brew --prefix)"
 
-export BROWSER=google-chrome
+export BROWSER='"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
 export ARCHFLAGS="-arch $(uname -m)"
 export MANPAGER='nvim +Man!'
 export MANWIDTH=999
@@ -101,6 +101,7 @@ alias knip='pnpm dlx knip'
 alias knipw='pnpm dlx knip --watch'
 alias loc='git ls-files | rg -v "(^|/)(assets|data)/" | xargs wc -l'
 alias csv='git ls-files "*/core/*.csv" 2>/dev/null | fzf --preview "head -20 {}" | xargs -r vd --csv-delimiter "|"'
+alias google-chrome='"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
 
 alias wD='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree delete'
 alias wC='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree clean'
