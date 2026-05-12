@@ -1,6 +1,4 @@
 ## Critical Code Writing Rules
-**NO COMMENTS POLICY**: When writing, modifying, or generating code, do NOT add any comments. Write clean, self-documenting code with clear variable names, function names, and code structure that makes the intent obvious without explanatory comments. Comments clutter code, become outdated, and can mislead. Focus on readability through code structure, not comments.
-
 **ALWAYS USE BRACES**: Never write `if`/`else`/`for`/`while` statements without curly braces `{}`, even for single-line bodies. Braceless control flow is error-prone and fails linting.
 - Wrong: `if (!cachedLoans) return [];`
 - Right: `if (!cachedLoans) { return []; }`
@@ -289,7 +287,7 @@ All `pr-*` commands follow these shared conventions. Individual commands only ne
 After implementation, run this cycle:
 1. Launch **reviewer**, **auditor**, and **tester** agents in parallel on the diff
 2. If issues are found, launch **fixer** agents in parallel for independent fixes across different files
-3. Stage and commit fixes: `git add -A && git commit -m "🐛 fix: address review and audit findings"`
+3. Stage and commit fixes: `git add -A && git commit -m "fix: address review and audit findings"`
 4. Run **reviewer** once more to verify (max 2 iterations)
 
 ### PR Rules

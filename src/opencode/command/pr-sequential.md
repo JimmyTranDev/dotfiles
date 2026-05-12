@@ -41,7 +41,7 @@ Load the **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** 
 
     b. **Review**: Launch **reviewer**, **auditor**, and **tester** agents in parallel on the diff from `git diff HEAD~1...HEAD`
 
-     c. **Fix**: If issues were found, launch **fixer** agents in parallel for independent fixes across different files, then stage and commit: `git add -A && git commit --no-verify -m "🐛 fix: address review and audit findings"`. Run **reviewer** once more to verify (max 2 iterations).
+     c. **Fix**: If issues were found, launch **fixer** agents in parallel for independent fixes across different files, then stage and commit: `git add -A && git commit --no-verify -m "fix: address review and audit findings"`. Run **reviewer** once more to verify (max 2 iterations).
 
     d. **Push**: `git push`
 

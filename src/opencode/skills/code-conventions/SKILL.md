@@ -5,7 +5,8 @@ description: Coding conventions covering general principles, conditional complex
 
 ## General
 
-- Avoid nested `else if` chains — use early returns, guard clauses, or `switch` to reduce cognitive complexity
+- Avoid `else` blocks — use early returns and guard clauses instead, including inside `catch` blocks
+- Don't create intermediate variables that just alias another variable without transformation (e.g., `const displayError = localError`) — use the original name directly
 - Never swallow errors silently
 - Provide meaningful error messages
 
