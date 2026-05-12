@@ -10,7 +10,16 @@ Generate a JSON array of FMS translation objects from the provided keys or descr
 1. Parse input:
    - If `$ARGUMENTS` contains keys (dot-notation like `page.login.title`), use them directly
    - If `$ARGUMENTS` contains descriptions in one language, generate the key from the description and translate to the other language
-   - If no arguments provided, prompt the user for keys interactively
+   - If `$ARGUMENTS` contains "diff", "fallback", or "check" — use diff-detection mode (see below)
+   - If no arguments provided, prompt the user for keys interactively (include "Detect from git diff" as an option)
+
+### Diff-detection mode
+When triggered, automatically extract new/modified FMS keys from git diffs:
+1. Find fallback translation files: glob for `**/fallback-en.json` and `**/fallback-no.json`
+2. Run `git diff --cached` on those files first (staged changes); if empty, fall back to `git diff` (unstaged); if still empty, diff the last commit (`git diff HEAD~1`)
+3. Parse added lines (`+` prefix) to extract key-value pairs from both `en` and `no` files
+4. Match keys across both files to build the FMS objects
+5. Continue to step 2 with the extracted keys and translations
 
 2. For each key, generate an object with:
    - `key`: dot-notation path (e.g., `page.login.title`)
