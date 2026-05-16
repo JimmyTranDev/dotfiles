@@ -24,6 +24,7 @@ When a user request is vague, ambiguous, or could be interpreted in multiple way
 - **No emoji in commits** — never use emoji in commit messages. Use the format `<type>(<scope>): <description>` without any emoji characters.
 - **Spec file naming** — when creating spec files in `plans/`, use descriptive kebab-case names that communicate the subject. Do not prefix with Jira ticket codes — use meaningful names like `plans/auth-session-timeout.md` instead of `plans/PROJ-123-auth-session-timeout.md`.
 - **Cache invalidation** — Todoist and Jira caches in nvim should be auto-invalidated after 1 week. When interacting with stale cached data, refresh it.
+- **Updates folder** — when asked to create update/changelog files, place them in `updates/` at the project root with date-based filenames (`YYYY-MM-DD.md`). Always ensure `updates/.gitkeep` exists. The `updates/` content is globally gitignored (content only, not the folder).
 
 ## OpenCode Config Structure
 

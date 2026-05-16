@@ -1,13 +1,15 @@
 ---
 name: triage-todoist-section
-description: Clarify and consolidate Todoist tasks in a section by asking about each task then merging/reorganizing
+description: Clarify and consolidate Todoist tasks in a section by collecting all decisions then executing in batch
 ---
 
 Usage: /triage-todoist-section $ARGUMENTS
 
-Walk through all tasks in a Todoist section, ask clarifying questions about ambiguous or overlapping tasks, then consolidate duplicates, remove irrelevant items, and reorganize the section.
+Walk through all tasks in a Todoist section, collect decisions about each task, then execute all changes in batch.
 
 $ARGUMENTS should be a Todoist section URL, section name (with project), or project URL with section specified.
+
+## Setup
 
 1. Load the **tool-todoist-cli** skill.
 
@@ -21,34 +23,61 @@ $ARGUMENTS should be a Todoist section URL, section name (with project), or proj
    - Use `td task list --project "<project>" --json --full --show-urls` and filter by `sectionId`
    - Present the task list to the user with indices for reference
 
-4. Clarify ambiguous tasks:
-   - Group tasks that appear to be duplicates or overlapping
-   - For each ambiguous group or unclear task, ask the user:
-     - What does this task actually mean? Is it still relevant?
-     - Should duplicates be merged? Which title/description to keep?
-     - Should any tasks be broken down or combined?
-   - Use the question tool with concrete options where possible
-   - Process in batches of 3-5 tasks to avoid overwhelming the user
+## Phase 1: Collect Decisions
 
-5. Consolidate based on answers:
-   - **Merge duplicates**: Complete the duplicate tasks, update the surviving task with combined context
-   - **Remove irrelevant**: Complete or delete tasks the user says are no longer needed
-   - **Rewrite unclear**: Update task content/description to be clear and actionable
-   - **Reorder**: Move tasks to reflect priority (use `td task update` for order if needed)
-   - **Reparent**: If tasks should be subtasks of another, use `td task move --parent`
+For each task (or group of related/duplicate tasks), ask the user:
+- What does this task actually mean? Is it still relevant?
+- Should duplicates be merged? Which title/description to keep?
+- Should any tasks be broken down or combined?
 
-6. Execute changes:
-   - For each change, use the appropriate `td` command:
-     - `td task complete <ref>` for duplicates/irrelevant tasks
-     - `td task update <ref> --content "new title"` for rewrites
-     - `td task update <ref> --description "new desc"` for added context
-     - `td task move <ref> --parent <ref>` for reparenting
-     - `td task delete <ref>` only if user explicitly requests deletion
-   - Show a summary of all changes made
+Use the question tool with concrete options where possible. Common options:
+- **Keep as-is** — no changes
+- **Rewrite** — update title/description to be clearer
+- **Merge with [other task]** — combine duplicates
+- **Complete/remove** — task is done or no longer relevant
+- **Reparent** — make subtask of another task
+- **Move** — move to different section or project
+- **Change priority** — update priority level
+- **Skip** — move to next task
+- **Stop** — skip remaining tasks, proceed to Phase 2
 
-7. Present the final state:
-   - List the remaining tasks in the section after consolidation
-   - Show a before/after count
+Do NOT execute any changes during this phase.
+
+## Phase 2: Confirm Plan
+
+After all decisions are collected (or the user stops), present a summary:
+
+```
+## Consolidation Plan
+- X tasks to keep as-is
+- Y tasks to rewrite
+- Z tasks to complete/remove
+- W tasks to merge
+- V tasks to move/reparent
+
+### Changes:
+1. [task name] — [action description]
+2. [task name] — [action description]
+```
+
+Ask the user to confirm: **Execute plan**, **Revise** (go back and change decisions), or **Cancel**.
+
+## Phase 3: Execute
+
+After confirmation, execute all changes using the appropriate `td` commands:
+- `td task complete <ref>` for duplicates/irrelevant tasks
+- `td task update <ref> --content "new title"` for rewrites
+- `td task update <ref> --description "new desc"` for added context
+- `td task move <ref> --parent <ref>` for reparenting
+- `td task delete <ref>` only if user explicitly requests deletion
+- `td task update <ref> --priority <p>` for priority changes
+
+## Phase 4: Summary
+
+Present the final state:
+- List the remaining tasks in the section after consolidation
+- Show a before/after count
+- Summary of all changes made
 
 Do not delete tasks unless the user explicitly asks — prefer completing them to preserve history.
 Do not move tasks out of the section unless the user requests it.

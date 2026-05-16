@@ -1,13 +1,13 @@
 ---
 name: triage-comments
-description: Walk through PR review comments one by one and interactively decide how to handle each
+description: Walk through PR review comments one by one, collect decisions, then execute all fixes in batch
 ---
 
 Usage: /triage-comments [PR URL or number]
 
 $ARGUMENTS
 
-Fetch PR review comments and walk through each unresolved one interactively, letting the user decide the action for each.
+Fetch PR review comments and walk through each unresolved one interactively, collecting all decisions first, then executing fixes in batch.
 
 ## Setup
 
@@ -23,7 +23,7 @@ Fetch PR review comments and walk through each unresolved one interactively, let
 
 3. Filter to unresolved comments only. Group them by file, then present them in file order (top to bottom).
 
-## Triage Loop
+## Phase 1: Collect Decisions
 
 For each unresolved comment, show:
 - The reviewer's name
@@ -33,18 +33,45 @@ For each unresolved comment, show:
 
 Then present options using the question tool:
 
-- **Fix it** — launch the **fixer** agent to address the feedback
+- **Fix it** — mark for fixing in batch
+- **Reply only** — mark for reply without code change
 - **Skip** — move to the next comment without action
-- **Stop** — end triage, skip remaining comments
+- **Stop** — skip all remaining comments, proceed to Phase 2
 
-## After Each Fix
+Do NOT execute any fixes during this phase.
 
-1. Show what changed (brief diff summary)
+## Phase 2: Confirm Plan
 
-## Summary
+After all decisions are collected (or the user stops), present a summary:
 
-After all comments are processed (or user stops), present:
+```
+## Triage Plan
+- X comments to fix
+- Y comments to reply to
+- Z comments skipped
+
+### Will Fix:
+1. [file:line] — [comment summary]
+2. [file:line] — [comment summary]
+
+### Will Reply:
+1. [file:line] — [reply summary]
+```
+
+Ask the user to confirm: **Execute plan**, **Revise** (go back and change decisions), or **Cancel**.
+
+## Phase 3: Execute
+
+After confirmation:
+
+1. **Fixes**: Launch the **fixer** agent for each comment marked "Fix". Run independent fixes in parallel where they affect different files. Show what changed after each fix.
+2. **Replies**: Post reply comments for items marked "Reply only".
+
+## Phase 4: Summary
+
+Present final results:
 - X comments fixed
+- Y comments replied to
 - Z comments skipped
 
 If any fixes were made, ask if the user wants to:

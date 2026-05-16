@@ -44,6 +44,9 @@ brew "ripgrep"
 brew "unar"
 brew "zoxide"
 
+# Grammar
+brew "harper-ls"
+
 # Languages
 brew "cocoapods"
 brew "eslint"

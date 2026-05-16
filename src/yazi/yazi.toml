@@ -69,7 +69,13 @@ mime = "application/x-mach-binary"
 run  = "noop"
 
 [[opener.editor]]
-run   = '$EDITOR "$@"'
+run   = '''
+  if [ -n "$NVIM" ]; then
+    for f in "$@"; do nvim --server "$NVIM" --remote "$(realpath "$f")"; done
+  else
+    $EDITOR "$@"
+  fi
+'''
 block = true
 for   = "unix"
 

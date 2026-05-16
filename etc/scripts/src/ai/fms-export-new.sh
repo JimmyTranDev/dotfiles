@@ -4,8 +4,24 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
 
+show_help() {
+	cat <<'EOF'
+Usage: fms-export-new.sh [options] [directory]
+
+Extract new/modified FMS keys from git diffs of fallback translation files.
+
+OPTIONS:
+  --check-only    Report keys without generating fms.json
+  -h, --help      Show this help message
+
+ARGUMENTS:
+  directory       Project directory (default: current directory)
+EOF
+}
+
 generate_fms_export() {
 	local dir="${1:-.}"
+	local check_only="${2:-false}"
 	local no_file="$dir/src/fms-fallbacks/fallback-no.json"
 	local en_file="$dir/src/fms-fallbacks/fallback-en.json"
 
@@ -14,15 +30,41 @@ generate_fms_export() {
 		exit 1
 	fi
 
-	local new_keys
-	new_keys=$(git diff HEAD --unified=0 -- "$no_file" "$en_file" |
+	local new_keys=""
+
+	new_keys=$(git diff --cached --unified=0 -- "$no_file" "$en_file" 2>/dev/null |
 		grep '^+' |
 		grep -v '^+++' |
 		sed -n 's/^+[[:space:]]*"\([^"]*\)":.*/\1/p' |
 		sort -u)
 
 	if [[ -z "$new_keys" ]]; then
-		log_warning "No new FMS keys found in git diff"
+		new_keys=$(git diff --unified=0 -- "$no_file" "$en_file" 2>/dev/null |
+			grep '^+' |
+			grep -v '^+++' |
+			sed -n 's/^+[[:space:]]*"\([^"]*\)":.*/\1/p' |
+			sort -u)
+	fi
+
+	if [[ -z "$new_keys" ]]; then
+		new_keys=$(git diff HEAD~1 --unified=0 -- "$no_file" "$en_file" 2>/dev/null |
+			grep '^+' |
+			grep -v '^+++' |
+			sed -n 's/^+[[:space:]]*"\([^"]*\)":.*/\1/p' |
+			sort -u)
+	fi
+
+	if [[ -z "$new_keys" ]]; then
+		log_warning "No new FMS keys found in git diff (checked staged, unstaged, and last commit)"
+		exit 0
+	fi
+
+	local count
+	count=$(echo "$new_keys" | wc -l | tr -d ' ')
+
+	if [[ "$check_only" == "true" ]]; then
+		log_info "Found $count new FMS keys:"
+		echo "$new_keys"
 		exit 0
 	fi
 
@@ -44,9 +86,22 @@ with open('$outfile', 'w') as f:
 print(len(result))
 " <<<"$new_keys"
 
-	local count
-	count=$(wc -l <<<"$new_keys" | tr -d ' ')
 	log_success "Generated $outfile with $count new keys"
 }
 
-generate_fms_export "${1:-.}"
+main() {
+	local check_only=false
+	local dir="."
+
+	while [[ $# -gt 0 ]]; do
+		case "$1" in
+		--check-only) check_only=true; shift ;;
+		-h | --help) show_help; exit 0 ;;
+		*) dir="$1"; shift ;;
+		esac
+	done
+
+	generate_fms_export "$dir" "$check_only"
+}
+
+main "$@"

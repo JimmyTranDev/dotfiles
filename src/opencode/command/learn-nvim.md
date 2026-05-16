@@ -3,7 +3,7 @@ name: learn-nvim
 description: Extract learnings from the current chat and update Neovim config (AGENTS.md, plugin settings, keymaps)
 ---
 
-Usage: /learn-nvim [specific topic or "all"]
+Usage: /learn-nvim [specific topic or "all" or "--dry-run"]
 
 $ARGUMENTS
 
@@ -33,10 +33,37 @@ Analyze the current conversation for reusable learnings about Neovim and update 
    - Show each learning with its proposed destination file and location
    - Let the user approve, modify, or reject each one
 
-5. Apply approved learnings:
+5. Write a spec file to `plans/learn-nvim-<YYYY-MM-DD>.md` with all findings:
+
+   ```markdown
+   # Learnings from <date>
+
+   ## Applied
+
+   1. **[destination file]**: [description of what was learned and added]
+
+   ## Rejected
+
+   1. **[destination file]**: [description] — Reason: [user's reason]
+
+   ## Skipped
+
+   1. **[description]** — no clear destination
+   ```
+
+   If the file already exists (multiple runs on same day), append a numeric suffix (e.g., `learn-nvim-2025-01-15-2.md`).
+
+6. Apply approved learnings (unless `--dry-run`):
    - For AGENTS.md: create or update `~/Programming/JimmyTranDev/nvim/AGENTS.md`
    - For plugin/module notes: update the relevant lua file
    - Follow the conventions from **meta-skill-learnings**
+
+## Dry Run Mode
+
+If `$ARGUMENTS` contains `--dry-run`:
+- Generate the spec file in `plans/` with all findings
+- Do NOT apply any changes to config files
+- Report the spec file path so the user can review before applying
 
 ## Target Repository
 
@@ -71,3 +98,4 @@ Add new sections as needed based on the learnings discovered.
 - Prefer updating existing sections over creating new ones
 - If `$ARGUMENTS` is "all", extract everything. If a topic is specified, focus on that domain only.
 - Do not add code comments to lua files — save knowledge in AGENTS.md instead
+- Always generate the spec file, even when applying changes (serves as a record)

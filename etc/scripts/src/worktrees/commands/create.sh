@@ -236,34 +236,18 @@ cmd_create() {
 	print_color yellow "Creating initial commit..."
 	local commit_message
 
-	local emoji
-	case "$commit_type" in
-	"feat") emoji="✨" ;;
-	"fix") emoji="🐛" ;;
-	"docs") emoji="📚" ;;
-	"style") emoji="💎" ;;
-	"refactor") emoji="🔨" ;;
-	"test") emoji="🧪" ;;
-	"chore") emoji="🔧" ;;
-	"revert") emoji="⏪" ;;
-	"build") emoji="📦" ;;
-	"ci") emoji="👷" ;;
-	"perf") emoji="🚀" ;;
-	*) emoji="✨" ;;
-	esac
-
 	if [[ -n "$jira_ticket" && "$jira_ticket" =~ $JIRA_PATTERN ]]; then
 		if [[ -n "$summary" ]]; then
-			commit_message="$commit_type: $emoji $jira_ticket $summary"
+			commit_message="$commit_type: $jira_ticket $summary"
 		else
-			commit_message="$commit_type: $emoji $jira_ticket"
+			commit_message="$commit_type: $jira_ticket"
 		fi
 
 		commit_message="$commit_message
 
 Jira: https://${ORG_NAME}.atlassian.net/browse/${jira_ticket}"
 	else
-		commit_message="$commit_type: $emoji $original_input"
+		commit_message="$commit_type: $original_input"
 	fi
 
 	git -C "$worktree_dir" commit --allow-empty -m "$commit_message" || {
