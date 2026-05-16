@@ -3,6 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
+source "$SCRIPT_DIR/../../utils/json.sh"
 
 check_gh() {
 	if ! command -v gh &>/dev/null; then
@@ -27,57 +28,41 @@ list_prs() {
 
 	if [[ -z "$prs" ]] || [[ "$prs" == "[]" ]]; then
 		log_info "No open pull requests found"
+		json_output "$(json_obj_raw "total" "0" "mine" "$mine" "prs" "[]")"
 		return 0
 	fi
 
-	local count
-	count=$(echo "$prs" | jq length)
+	local result
+	result=$(echo "$prs" | jq -c --argjson mine "$mine" '{
+		total: length,
+		mine: $mine,
+		prs: [.[] | {
+			number: .number,
+			title: .title,
+			branch: .headRefName,
+			checks: (
+				if (.statusCheckRollup == null or .statusCheckRollup == []) then "NONE"
+				elif ([.statusCheckRollup[] | select(.conclusion == "FAILURE")] | length) > 0 then "FAILURE"
+				elif ([.statusCheckRollup[] | select(.status == "IN_PROGRESS" or .status == "QUEUED" or .conclusion == "")] | length) > 0 then "PENDING"
+				else "SUCCESS"
+				end
+			),
+			review: (.reviewDecision // "PENDING"),
+			mergeable: (.mergeable // "UNKNOWN")
+		}]
+	}')
 
-	for ((i = 0; i < count; i++)); do
-		local number title branch review_decision mergeable check_status
-
-		number=$(echo "$prs" | jq -r ".[$i].number")
-		title=$(echo "$prs" | jq -r ".[$i].title")
-		branch=$(echo "$prs" | jq -r ".[$i].headRefName")
-		review_decision=$(echo "$prs" | jq -r ".[$i].reviewDecision // \"PENDING\"")
-		mergeable=$(echo "$prs" | jq -r ".[$i].mergeable // \"UNKNOWN\"")
-
-		local checks_json
-		checks_json=$(echo "$prs" | jq -r ".[$i].statusCheckRollup")
-		check_status="NONE"
-
-		if [[ "$checks_json" != "null" ]] && [[ "$checks_json" != "[]" ]]; then
-			local has_failure has_pending
-			has_failure=$(echo "$checks_json" | jq '[.[] | select(.conclusion == "FAILURE")] | length')
-			has_pending=$(echo "$checks_json" | jq '[.[] | select(.status == "IN_PROGRESS" or .status == "QUEUED" or .conclusion == "")] | length')
-
-			if [[ "$has_failure" -gt 0 ]]; then
-				check_status="FAILURE"
-			elif [[ "$has_pending" -gt 0 ]]; then
-				check_status="PENDING"
-			else
-				check_status="SUCCESS"
-			fi
-		fi
-
-		echo "PR_NUMBER=$number"
-		echo "PR_TITLE=$title"
-		echo "PR_BRANCH=$branch"
-		echo "PR_CHECKS=$check_status"
-		echo "PR_REVIEW=$review_decision"
-		echo "PR_MERGEABLE=$mergeable"
-		echo "---"
-	done
+	json_output "$result"
 }
 
 show_help() {
-	echo "Usage: pr-status.sh [OPTIONS]"
-	echo ""
-	echo "List open PRs with check/review/merge status."
-	echo ""
-	echo "Options:"
-	echo "  --mine    Filter to current user's PRs only"
-	echo "  --help    Show this help message"
+	log_info "Usage: pr-status.sh [OPTIONS]"
+	log_info ""
+	log_info "List open PRs with check/review/merge status."
+	log_info ""
+	log_info "Options:"
+	log_info "  --mine    Filter to current user's PRs only"
+	log_info "  --help    Show this help message"
 }
 
 main() {

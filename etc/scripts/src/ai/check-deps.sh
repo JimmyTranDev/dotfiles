@@ -4,6 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
 source "$SCRIPT_DIR/../../utils/detect.sh"
+source "$SCRIPT_DIR/../../utils/json.sh"
 
 check_node_deps() {
 	local dir="${1:-.}"
@@ -17,28 +18,54 @@ check_node_deps() {
 	log_info "Package manager: $pm"
 
 	log_header "Outdated Dependencies" "📦"
-	(cd "$dir" && $pm outdated 2>/dev/null) || log_warning "Could not check outdated packages"
+	local outdated_output=""
+	local outdated_exit_code=0
+	outdated_output=$((cd "$dir" && $pm outdated 2>&1) || true)
+	outdated_exit_code=${PIPESTATUS[0]:-0}
 
 	log_header "Security Audit" "🔒"
+	local audit_output=""
+	local audit_exit_code=0
 	if [[ "$pm" == "pnpm" ]]; then
-		(cd "$dir" && pnpm audit 2>/dev/null) || log_warning "Audit found vulnerabilities (see above)"
+		audit_output=$((cd "$dir" && pnpm audit 2>&1) || true)
 	elif [[ "$pm" == "yarn" ]]; then
-		(cd "$dir" && yarn audit 2>/dev/null) || log_warning "Audit found vulnerabilities (see above)"
+		audit_output=$((cd "$dir" && yarn audit 2>&1) || true)
 	else
-		(cd "$dir" && npm audit 2>/dev/null) || log_warning "Audit found vulnerabilities (see above)"
+		audit_output=$((cd "$dir" && npm audit 2>&1) || true)
 	fi
+	audit_exit_code=${PIPESTATUS[0]:-0}
+
+	json_output "$(json_obj_raw \
+		"package_manager" "$(json_escape "$pm")" \
+		"outdated_output" "$(json_escape "$outdated_output")" \
+		"audit_output" "$(json_escape "$audit_output")" \
+		"outdated_exit_code" "$outdated_exit_code" \
+		"audit_exit_code" "$audit_exit_code")"
 }
 
 check_maven_deps() {
 	local dir="${1:-.}"
 
 	log_header "Outdated Dependencies" "📦"
-	(cd "$dir" && mvn versions:display-dependency-updates -q 2>/dev/null) || log_warning "Could not check Maven updates"
+	local outdated_output=""
+	local outdated_exit_code=0
+	outdated_output=$((cd "$dir" && mvn versions:display-dependency-updates -q 2>&1) || true)
+	outdated_exit_code=${PIPESTATUS[0]:-0}
 
 	log_header "Dependency Vulnerabilities" "🔒"
+	local audit_output=""
+	local audit_exit_code=0
 	if command -v mvn &>/dev/null; then
-		(cd "$dir" && mvn org.owasp:dependency-check-maven:check -q 2>/dev/null) || log_warning "OWASP check not configured"
+		audit_output=$((cd "$dir" && mvn org.owasp:dependency-check-maven:check -q 2>&1) || true)
+		audit_exit_code=${PIPESTATUS[0]:-0}
 	fi
+
+	json_output "$(json_obj_raw \
+		"package_manager" "$(json_escape "maven")" \
+		"outdated_output" "$(json_escape "$outdated_output")" \
+		"audit_output" "$(json_escape "$audit_output")" \
+		"outdated_exit_code" "$outdated_exit_code" \
+		"audit_exit_code" "$audit_exit_code")"
 }
 
 check_gradle_deps() {
@@ -49,27 +76,66 @@ check_gradle_deps() {
 	fi
 
 	log_header "Dependencies" "📦"
-	(cd "$dir" && $gradle_cmd dependencies --configuration compileClasspath --quiet 2>/dev/null) || log_warning "Could not list dependencies"
+	local outdated_output=""
+	local outdated_exit_code=0
+	outdated_output=$((cd "$dir" && $gradle_cmd dependencies --configuration compileClasspath --quiet 2>&1) || true)
+	outdated_exit_code=${PIPESTATUS[0]:-0}
+
+	json_output "$(json_obj_raw \
+		"package_manager" "$(json_escape "gradle")" \
+		"outdated_output" "$(json_escape "$outdated_output")" \
+		"audit_output" "$(json_escape "")" \
+		"outdated_exit_code" "$outdated_exit_code" \
+		"audit_exit_code" "0")"
 }
 
 check_python_deps() {
 	local dir="${1:-.}"
 
 	log_header "Outdated Dependencies" "📦"
-	(cd "$dir" && pip list --outdated 2>/dev/null) || log_warning "Could not check outdated packages"
+	local outdated_output=""
+	local outdated_exit_code=0
+	outdated_output=$((cd "$dir" && pip list --outdated 2>&1) || true)
+	outdated_exit_code=${PIPESTATUS[0]:-0}
 
 	log_header "Security Audit" "🔒"
+	local audit_output=""
+	local audit_exit_code=0
 	if command -v safety &>/dev/null; then
-		(cd "$dir" && safety check 2>/dev/null) || log_warning "Safety check found vulnerabilities"
+		audit_output=$((cd "$dir" && safety check 2>&1) || true)
+		audit_exit_code=${PIPESTATUS[0]:-0}
 	elif command -v pip-audit &>/dev/null; then
-		(cd "$dir" && pip-audit 2>/dev/null) || log_warning "pip-audit found vulnerabilities"
+		audit_output=$((cd "$dir" && pip-audit 2>&1) || true)
+		audit_exit_code=${PIPESTATUS[0]:-0}
 	else
 		log_warning "Install 'safety' or 'pip-audit' for vulnerability scanning"
 	fi
+
+	json_output "$(json_obj_raw \
+		"package_manager" "$(json_escape "pip")" \
+		"outdated_output" "$(json_escape "$outdated_output")" \
+		"audit_output" "$(json_escape "$audit_output")" \
+		"outdated_exit_code" "$outdated_exit_code" \
+		"audit_exit_code" "$audit_exit_code")"
 }
 
 main() {
-	local dir="${1:-.}"
+	local dir="."
+
+	while [[ $# -gt 0 ]]; do
+		case "$1" in
+		--help)
+			log_info "Usage: check-deps.sh [directory]"
+			log_info ""
+			log_info "Check for outdated dependencies and run security audit."
+			exit 0
+			;;
+		*)
+			dir="$1"
+			shift
+			;;
+		esac
+	done
 
 	log_header "Dependency Check"
 
@@ -83,6 +149,7 @@ main() {
 		check_python_deps "$dir"
 	else
 		log_error "Could not detect project type for dependency checking"
+		json_output '{"package_manager":"unknown","outdated_output":"","audit_output":"","outdated_exit_code":1,"audit_exit_code":1}'
 		return 1
 	fi
 }

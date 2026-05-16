@@ -3,6 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
+source "$SCRIPT_DIR/../../utils/json.sh"
 
 resolve_filename() {
 	local dir="$1"
@@ -101,18 +102,18 @@ TEMPLATE
 }
 
 show_help() {
-	echo "Usage: scaffold-spec.sh <prefix> <name> [OPTIONS]"
-	echo ""
-	echo "Create a plans/*.md file with standard section headers."
-	echo ""
-	echo "Arguments:"
-	echo "  prefix    Spec filename prefix (e.g., review, security)"
-	echo "  name      Descriptive kebab-case name (e.g., auth-module)"
-	echo ""
-	echo "Options:"
-	echo "  --todoist <url>    Add Todoist URL to YAML frontmatter"
-	echo "  --dir <path>      Plans directory (default: ./plans)"
-	echo "  --help             Show this help message"
+	log_info "Usage: scaffold-spec.sh <prefix> <name> [OPTIONS]"
+	log_info ""
+	log_info "Create a plans/*.md file with standard section headers."
+	log_info ""
+	log_info "Arguments:"
+	log_info "  prefix    Spec filename prefix (e.g., review, security)"
+	log_info "  name      Descriptive kebab-case name (e.g., auth-module)"
+	log_info ""
+	log_info "Options:"
+	log_info "  --todoist <url>    Add Todoist URL to YAML frontmatter"
+	log_info "  --dir <path>      Plans directory (default: ./plans)"
+	log_info "  --help             Show this help message"
 }
 
 main() {
@@ -158,7 +159,8 @@ main() {
 	filepath=$(create_spec "$prefix" "$name" "$todoist_url" "$plans_dir")
 
 	log_success "Created spec: $filepath"
-	echo "SPEC_FILE=$filepath"
+
+	json_output "$(json_obj "spec_file" "$filepath" "prefix" "$prefix" "name" "$name")"
 }
 
 main "$@"

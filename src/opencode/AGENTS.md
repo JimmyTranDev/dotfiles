@@ -252,10 +252,12 @@ After all open questions are resolved (or skipped), ask the user if they want to
 
 Reusable scripts in `~/Programming/JimmyTranDev/dotfiles/etc/scripts/src/ai/` replace common inline operations. Always prefer calling these scripts over reimplementing the same logic with multiple tool calls.
 
+All scripts output **minified JSON** to stdout, log to stderr via `log_*` helpers, exit 0 on success, accept `--help`, and follow the `set -e` / `source utils/logging.sh` / `main "$@"` convention.
+
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `detect-stack.sh [dir]` | Full tech stack detection (project type, package manager, test runner, linter, CI, framework, monorepo, CSS, DB) | Replaces manual package.json/pom.xml inspection |
-| `git-branch-info.sh [dir]` | Branch context as KEY=VALUE (current/base branch, ahead/behind, uncommitted, staged) | Replaces multiple `git` calls for branch detection |
+| `detect-stack.sh [dir]` | Full tech stack detection (project type, PM, test runner, linter, CI, framework, monorepo, CSS, DB) | Replaces manual package.json/pom.xml inspection |
+| `git-branch-info.sh [dir]` | Branch context (current/base branch, ahead/behind, uncommitted, staged) | Replaces multiple `git` calls for branch detection |
 | `install-deps.sh [--frozen] [dir]` | Auto-detect package manager and install dependencies | Replaces manual lockfile inspection + install |
 | `lint-check.sh [--fix] [dir]` | Auto-detect linter and run it (eslint/biome/ruff/clippy/checkstyle) | Replaces manual linter detection and execution |
 | `run-tests.sh [dir]` | Auto-detect test framework and run tests with coverage | Replaces manual test runner detection |
@@ -265,11 +267,22 @@ Reusable scripts in `~/Programming/JimmyTranDev/dotfiles/etc/scripts/src/ai/` re
 | `changelog.sh [from-ref] [to-ref]` | Generate grouped changelog from git history | Replaces manual commit categorization |
 | `security-scan.sh [dir]` | Combined secret scanning + dependency audit | Replaces manual security checks |
 | `validate-opencode.sh [opencode-dir]` | Validate skills, commands, agents, AGENTS.md refs, deprecated refs | Replaces manual config validation |
-| `weekly-summary.sh [--since date] [--dir path] [--json]` | Gather git commits across repos with Jira ticket extraction | Replaces manual git log + Jira lookups |
+| `weekly-summary.sh [--since date] [--dir path]` | Gather git commits across repos with Jira ticket extraction | Replaces manual git log + Jira lookups |
+| `fetch-pr-comments.sh [--resolved] [PR]` | Fetch PR review comments (inline + PR-level) | Replaces multiple `gh api` calls for PR comments |
+| `fms-export-new.sh [--check-only] [dir]` | Extract new/modified FMS translation keys from git diffs | Replaces manual FMS key extraction |
+| `nvim-open.sh <file...>` | Open files in existing nvim instance or start new one | Replaces manual nvim server detection |
+| `diff-summary.sh [--base branch] [dir]` | Structured diff summary against base branch | Replaces 3-4 separate git diff/log calls |
+| `fix-checks.sh [--pr number] [dir]` | Fetch failing CI checks with log content from GitHub | Replaces multiple `gh` API calls for CI failures |
+| `worktree-clean.sh [--dry-run] [--dir root]` | Scan and auto-clean stale git worktrees | Replaces manual worktree inspection and cleanup |
+| `pr-create.sh --branch name --title t --body b [--base] [--draft]` | Create worktree + push + PR via gh | Replaces multi-step git/gh PR creation plumbing |
+| `triage-todoist.sh <section-url> [--priority p1-p4]` | Fetch and filter Todoist tasks for triage | Replaces multiple `td` CLI calls |
+| `migration-check.sh [dir]` | Scan migration files for destructive SQL operations | Replaces manual migration file inspection |
+| `recover-pr.sh [--dir root]` | Match orphaned worktrees to PRs | Replaces manual worktree + PR matching |
+| `format-check.sh [--fix] [dir]` | Auto-detect and run formatter (prettier/biome/black/gofmt/rustfmt) | Replaces manual formatter detection |
+| `type-check.sh [dir]` | Auto-detect and run type checker (tsc/mypy/cargo check) | Replaces manual type checker detection |
+| `build-check.sh [dir]` | Auto-detect and run build command | Replaces manual build tool detection |
 
-All scripts output KEY=VALUE pairs to stdout, exit 0 on success, accept `--help`, and follow the `set -e` / `source common/logging.sh` / `main "$@"` convention.
-
-**When to use**: Any time a command or agent needs to detect the tech stack, find the base branch, run tests, run linting, install dependencies, or check PR status — call the script instead of reimplementing with multiple tool calls.
+**When to use**: Any time a command or agent needs to detect the tech stack, find the base branch, run tests, run linting, install dependencies, check PR status, or perform any operation listed above — call the script instead of reimplementing with multiple tool calls.
 
 ## `pr-*` Command Conventions
 
@@ -277,7 +290,7 @@ All `pr-*` commands follow these shared conventions. Individual commands only ne
 
 ### Worktree Setup
 1. Load the **git-worktree-workflow** and **git-workflows** skills (plus any command-specific skills) in parallel
-2. Determine the base branch by running `git-branch-info.sh` and reading the `BASE_BRANCH` output
+2. Determine the base branch by running `git-branch-info.sh` and reading the `base_branch` field from JSON output
 3. Derive a kebab-case branch name from the task description
 4. Check for uncommitted changes: `git status --porcelain` and `git diff --cached --stat` (in parallel)
 5. If there are staged or unstaged changes, stash them: `git stash push -m "<branch-name>"`

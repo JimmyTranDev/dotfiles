@@ -3,12 +3,14 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
+source "$SCRIPT_DIR/../../utils/json.sh"
 
 show_help() {
 	cat <<'EOF'
 Usage: fms-export-new.sh [options] [directory]
 
 Extract new/modified FMS keys from git diffs of fallback translation files.
+Outputs JSON to stdout.
 
 OPTIONS:
   --check-only    Report keys without generating fms.json
@@ -55,22 +57,36 @@ generate_fms_export() {
 	fi
 
 	if [[ -z "$new_keys" ]]; then
-		log_warning "No new FMS keys found in git diff (checked staged, unstaged, and last commit)"
+		log_warning "No new FMS keys found in git diff"
+		json_output $(json_obj_raw \
+			"keys_found" "0" \
+			"new_keys" "[]" \
+			"output_file" "$(json_escape "")" \
+			"check_only" "$check_only")
 		exit 0
 	fi
 
 	local count
 	count=$(echo "$new_keys" | wc -l | tr -d ' ')
 
-	if [[ "$check_only" == "true" ]]; then
-		log_info "Found $count new FMS keys:"
-		echo "$new_keys"
-		exit 0
-	fi
+	local keys_json=""
+	while IFS= read -r key; do
+		if [[ -n "$key" ]]; then
+			local escaped
+			escaped=$(json_escape "$key")
+			if [[ -n "$keys_json" ]]; then
+				keys_json="${keys_json},${escaped}"
+			else
+				keys_json="$escaped"
+			fi
+		fi
+	done <<<"$new_keys"
 
-	local outfile="$dir/fms.json"
+	local outfile=""
+	if [[ "$check_only" != "true" ]]; then
+		outfile="$dir/fms.json"
 
-	python3 -c "
+		python3 -c "
 import json, sys
 
 keys = sys.stdin.read().strip().split('\n')
@@ -82,11 +98,18 @@ result = [{'key': k, 'no': no.get(k, ''), 'en': en.get(k, '')} for k in keys]
 with open('$outfile', 'w') as f:
     json.dump(result, f, indent=2, ensure_ascii=False)
     f.write('\n')
-
-print(len(result))
 " <<<"$new_keys"
 
-	log_success "Generated $outfile with $count new keys"
+		log_success "Generated $outfile with $count new keys"
+	else
+		log_info "Check-only mode: found $count new FMS keys"
+	fi
+
+	json_output $(json_obj_raw \
+		"keys_found" "$count" \
+		"new_keys" "[${keys_json}]" \
+		"output_file" "$(json_escape "$outfile")" \
+		"check_only" "$check_only")
 }
 
 main() {

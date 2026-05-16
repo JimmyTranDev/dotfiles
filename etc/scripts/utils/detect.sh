@@ -164,3 +164,106 @@ detect_linter() {
 
 	echo "none"
 }
+
+detect_formatter() {
+	local dir="${1:-.}"
+
+	if [[ -f "$dir/biome.json" ]] || [[ -f "$dir/biome.jsonc" ]]; then
+		echo "biome"
+		return
+	fi
+
+	if [[ -f "$dir/package.json" ]]; then
+		if grep -q '"prettier"' "$dir/package.json" 2>/dev/null; then
+			echo "prettier"
+			return
+		fi
+	fi
+
+	if [[ -f "$dir/.prettierrc" ]] || [[ -f "$dir/.prettierrc.js" ]] || [[ -f "$dir/.prettierrc.json" ]] || [[ -f "$dir/.prettierrc.yml" ]] || [[ -f "$dir/prettier.config.js" ]] || [[ -f "$dir/prettier.config.mjs" ]]; then
+		echo "prettier"
+		return
+	fi
+
+	if [[ -f "$dir/pyproject.toml" ]] && grep -q "black" "$dir/pyproject.toml" 2>/dev/null; then
+		echo "black"
+		return
+	fi
+
+	if [[ -f "$dir/go.mod" ]]; then
+		echo "gofmt"
+		return
+	fi
+
+	if [[ -f "$dir/Cargo.toml" ]]; then
+		echo "rustfmt"
+		return
+	fi
+
+	echo "none"
+}
+
+detect_type_checker() {
+	local dir="${1:-.}"
+
+	if [[ -f "$dir/tsconfig.json" ]]; then
+		echo "tsc"
+		return
+	fi
+
+	if [[ -f "$dir/mypy.ini" ]] || [[ -f "$dir/setup.cfg" ]] && grep -q "mypy" "$dir/setup.cfg" 2>/dev/null; then
+		echo "mypy"
+		return
+	fi
+
+	if [[ -f "$dir/pyproject.toml" ]] && grep -q "mypy" "$dir/pyproject.toml" 2>/dev/null; then
+		echo "mypy"
+		return
+	fi
+
+	if [[ -f "$dir/Cargo.toml" ]]; then
+		echo "cargo-check"
+		return
+	fi
+
+	echo "none"
+}
+
+detect_build_command() {
+	local dir="${1:-.}"
+
+	if [[ -f "$dir/package.json" ]]; then
+		if grep -q '"build"' "$dir/package.json" 2>/dev/null; then
+			local pm
+			pm=$(detect_node_runner "$dir")
+			echo "$pm:build"
+			return
+		fi
+	fi
+
+	if [[ -f "$dir/pom.xml" ]]; then
+		echo "mvn:package"
+		return
+	fi
+
+	if [[ -f "$dir/build.gradle" ]] || [[ -f "$dir/build.gradle.kts" ]]; then
+		if [[ -f "$dir/gradlew" ]]; then
+			echo "./gradlew:build"
+		else
+			echo "gradle:build"
+		fi
+		return
+	fi
+
+	if [[ -f "$dir/Cargo.toml" ]]; then
+		echo "cargo:build"
+		return
+	fi
+
+	if [[ -f "$dir/go.mod" ]]; then
+		echo "go:build"
+		return
+	fi
+
+	echo "none"
+}

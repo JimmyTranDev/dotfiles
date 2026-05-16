@@ -3,13 +3,41 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
+source "$SCRIPT_DIR/../../utils/json.sh"
+
+TOTAL_ERRORS=0
+TOTAL_WARNINGS=0
+ISSUES_JSON=""
+SKILLS_COUNT=0
+COMMANDS_COUNT=0
+AGENTS_COUNT=0
+
+add_issue() {
+	local type="$1"
+	local category="$2"
+	local item="$3"
+	local message="$4"
+
+	local issue
+	issue=$(json_obj "type" "$type" "category" "$category" "item" "$item" "message" "$message")
+	if [[ -n "$ISSUES_JSON" ]]; then
+		ISSUES_JSON="${ISSUES_JSON},${issue}"
+	else
+		ISSUES_JSON="$issue"
+	fi
+
+	if [[ "$type" == "error" ]]; then
+		TOTAL_ERRORS=$((TOTAL_ERRORS + 1))
+	else
+		TOTAL_WARNINGS=$((TOTAL_WARNINGS + 1))
+	fi
+}
 
 validate_skills() {
 	local opencode_dir="$1"
 	local skills_dir="$opencode_dir/skills"
-	local errors=0
 
-	log_header "Validating Skills" "📚"
+	log_info "Validating skills"
 
 	if [[ ! -d "$skills_dir" ]]; then
 		log_warning "No skills directory found at $skills_dir"
@@ -28,10 +56,12 @@ validate_skills() {
 			continue
 		fi
 
+		SKILLS_COUNT=$((SKILLS_COUNT + 1))
+
 		local skill_file="$skill_dir/SKILL.md"
 		if [[ ! -f "$skill_file" ]]; then
 			log_error "Skill '$skill_name' missing SKILL.md"
-			errors=$((errors + 1))
+			add_issue "error" "skill" "$skill_name" "missing SKILL.md"
 			continue
 		fi
 
@@ -39,19 +69,16 @@ validate_skills() {
 		size=$(wc -c <"$skill_file" | tr -d ' ')
 		if [[ "$size" -lt 10 ]]; then
 			log_error "Skill '$skill_name' SKILL.md is empty or near-empty ($size bytes)"
-			errors=$((errors + 1))
+			add_issue "error" "skill" "$skill_name" "SKILL.md is empty or near-empty ($size bytes)"
 		fi
 	done
-
-	return $errors
 }
 
 validate_commands() {
 	local opencode_dir="$1"
 	local cmd_dir="$opencode_dir/command"
-	local errors=0
 
-	log_header "Validating Commands" "⚡"
+	log_info "Validating commands"
 
 	if [[ ! -d "$cmd_dir" ]]; then
 		log_warning "No command directory found at $cmd_dir"
@@ -65,28 +92,27 @@ validate_commands() {
 
 		local cmd_name
 		cmd_name=$(basename "$cmd_file" .md)
+		COMMANDS_COUNT=$((COMMANDS_COUNT + 1))
 
 		if ! head -5 "$cmd_file" | grep -q "^---" 2>/dev/null; then
 			log_warning "Command '$cmd_name' may be missing frontmatter"
+			add_issue "warning" "command" "$cmd_name" "may be missing frontmatter"
 		fi
 
 		local size
 		size=$(wc -c <"$cmd_file" | tr -d ' ')
 		if [[ "$size" -lt 10 ]]; then
 			log_error "Command '$cmd_name' file is empty or near-empty ($size bytes)"
-			errors=$((errors + 1))
+			add_issue "error" "command" "$cmd_name" "file is empty or near-empty ($size bytes)"
 		fi
 	done
-
-	return $errors
 }
 
 validate_agents() {
 	local opencode_dir="$1"
 	local agent_dir="$opencode_dir/agent"
-	local errors=0
 
-	log_header "Validating Agents" "🤖"
+	log_info "Validating agents"
 
 	if [[ ! -d "$agent_dir" ]]; then
 		log_warning "No agent directory found at $agent_dir"
@@ -100,24 +126,22 @@ validate_agents() {
 
 		local agent_name
 		agent_name=$(basename "$agent_file" .md)
+		AGENTS_COUNT=$((AGENTS_COUNT + 1))
 
 		local size
 		size=$(wc -c <"$agent_file" | tr -d ' ')
 		if [[ "$size" -lt 10 ]]; then
 			log_error "Agent '$agent_name' file is empty or near-empty ($size bytes)"
-			errors=$((errors + 1))
+			add_issue "error" "agent" "$agent_name" "file is empty or near-empty ($size bytes)"
 		fi
 	done
-
-	return $errors
 }
 
 validate_agents_md_refs() {
 	local opencode_dir="$1"
 	local agents_md="$opencode_dir/AGENTS.md"
-	local errors=0
 
-	log_header "Validating AGENTS.md References" "🔗"
+	log_info "Validating AGENTS.md references"
 
 	if [[ ! -f "$agents_md" ]]; then
 		log_warning "No AGENTS.md found"
@@ -134,25 +158,21 @@ validate_agents_md_refs() {
 		local skill_path="$opencode_dir/$ref"
 		if [[ ! -d "$skill_path" ]]; then
 			log_error "AGENTS.md references '$ref' but directory does not exist"
-			errors=$((errors + 1))
+			add_issue "error" "agents_md" "$ref" "referenced directory does not exist"
 		fi
 	done <<<"$referenced_skills"
-
-	return $errors
 }
 
 check_deprecated_refs() {
 	local opencode_dir="$1"
 	local agents_md="$opencode_dir/AGENTS.md"
-	local errors=0
 
-	log_header "Checking Deprecated References" "⚠️"
+	log_info "Checking deprecated references"
 
 	if [[ ! -f "$agents_md" ]]; then
 		return 0
 	fi
 
-	local deprecated_dirs=()
 	for dep_dir in "$opencode_dir"/*/_depreciated/; do
 		if [[ -d "$dep_dir" ]]; then
 			for item in "$dep_dir"*; do
@@ -160,8 +180,8 @@ check_deprecated_refs() {
 					local item_name
 					item_name=$(basename "$item" .md)
 					if grep -q "$item_name" "$agents_md" 2>/dev/null; then
-						log_warning "AGENTS.md references deprecated item: $item_name (in $dep_dir)"
-						errors=$((errors + 1))
+						log_warning "AGENTS.md references deprecated item: $item_name"
+						add_issue "warning" "deprecated" "$item_name" "referenced in AGENTS.md but deprecated"
 					fi
 				fi
 			done
@@ -174,16 +194,10 @@ check_deprecated_refs() {
 			skill_name=$(basename "$dep_dir")
 			if grep -q "$skill_name" "$agents_md" 2>/dev/null; then
 				log_warning "AGENTS.md references deprecated skill: $skill_name"
-				errors=$((errors + 1))
+				add_issue "warning" "deprecated" "$skill_name" "deprecated skill referenced in AGENTS.md"
 			fi
 		fi
 	done
-
-	if [[ "$errors" -eq 0 ]]; then
-		log_success "No deprecated references found"
-	fi
-
-	return $errors
 }
 
 show_help() {
@@ -211,23 +225,45 @@ main() {
 		esac
 	done
 
-	log_header "OpenCode Config Validation" "🔍"
+	log_info "Validating OpenCode config"
 
-	local total_errors=0
+	validate_skills "$opencode_dir"
+	validate_commands "$opencode_dir"
+	validate_agents "$opencode_dir"
+	validate_agents_md_refs "$opencode_dir"
+	check_deprecated_refs "$opencode_dir"
 
-	validate_skills "$opencode_dir" || total_errors=$((total_errors + $?))
-	validate_commands "$opencode_dir" || total_errors=$((total_errors + $?))
-	validate_agents "$opencode_dir" || total_errors=$((total_errors + $?))
-	validate_agents_md_refs "$opencode_dir" || total_errors=$((total_errors + $?))
-	check_deprecated_refs "$opencode_dir" || total_errors=$((total_errors + $?))
-
-	if [[ "$total_errors" -eq 0 ]]; then
+	if [[ "$TOTAL_ERRORS" -eq 0 ]] && [[ "$TOTAL_WARNINGS" -eq 0 ]]; then
 		log_success "All validations passed"
 	else
-		log_error "Found $total_errors issue(s)"
+		log_error "Found $TOTAL_ERRORS error(s) and $TOTAL_WARNINGS warning(s)"
 	fi
 
-	echo "TOTAL_ERRORS=$total_errors"
+	local errors_json=""
+	local warnings_json=""
+	if [[ -n "$ISSUES_JSON" ]]; then
+		errors_json=$(printf '%s' "$ISSUES_JSON" | python3 -c "
+import json, sys
+items = json.loads('[' + sys.stdin.read() + ']')
+errors = [i for i in items if i['type'] == 'error']
+warnings = [i for i in items if i['type'] == 'warning']
+print(json.dumps(errors, separators=(',',':')) + '|' + json.dumps(warnings, separators=(',',':')))
+" 2>/dev/null)
+		warnings_json="${errors_json#*|}"
+		errors_json="${errors_json%%|*}"
+	else
+		errors_json="[]"
+		warnings_json="[]"
+	fi
+
+	json_output $(json_obj_raw \
+		"total_errors" "$TOTAL_ERRORS" \
+		"total_warnings" "$TOTAL_WARNINGS" \
+		"errors" "$errors_json" \
+		"warnings" "$warnings_json" \
+		"skills_count" "$SKILLS_COUNT" \
+		"commands_count" "$COMMANDS_COUNT" \
+		"agents_count" "$AGENTS_COUNT")
 }
 
 main "$@"

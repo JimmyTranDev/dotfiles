@@ -4,6 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
 source "$SCRIPT_DIR/../../utils/detect.sh"
+source "$SCRIPT_DIR/../../utils/json.sh"
 
 run_linter() {
 	local dir="${1:-.}"
@@ -14,71 +15,87 @@ run_linter() {
 	log_header "Lint Check" "🔍"
 	log_info "Linter: $linter"
 
+	local cmd=""
+	local exit_code=0
+
 	case "$linter" in
 	eslint)
 		local pm
 		pm=$(detect_node_runner "$dir")
 		if [[ "$fix" == "true" ]]; then
-			(cd "$dir" && $pm eslint . --fix)
+			cmd="$pm eslint . --fix"
 		else
-			(cd "$dir" && $pm eslint .)
+			cmd="$pm eslint ."
 		fi
+		(cd "$dir" && eval "$cmd") || exit_code=$?
 		;;
 	biome)
 		local pm
 		pm=$(detect_node_runner "$dir")
 		if [[ "$fix" == "true" ]]; then
-			(cd "$dir" && $pm biome check --write .)
+			cmd="$pm biome check --write ."
 		else
-			(cd "$dir" && $pm biome check .)
+			cmd="$pm biome check ."
 		fi
+		(cd "$dir" && eval "$cmd") || exit_code=$?
 		;;
 	ruff)
 		if [[ "$fix" == "true" ]]; then
-			(cd "$dir" && ruff check --fix .)
+			cmd="ruff check --fix ."
 		else
-			(cd "$dir" && ruff check .)
+			cmd="ruff check ."
 		fi
+		(cd "$dir" && eval "$cmd") || exit_code=$?
 		;;
 	golangci-lint)
 		if [[ "$fix" == "true" ]]; then
-			(cd "$dir" && golangci-lint run --fix ./...)
+			cmd="golangci-lint run --fix ./..."
 		else
-			(cd "$dir" && golangci-lint run ./...)
+			cmd="golangci-lint run ./..."
 		fi
+		(cd "$dir" && eval "$cmd") || exit_code=$?
 		;;
 	clippy)
 		if [[ "$fix" == "true" ]]; then
-			(cd "$dir" && cargo clippy --fix --allow-dirty)
+			cmd="cargo clippy --fix --allow-dirty"
 		else
-			(cd "$dir" && cargo clippy)
+			cmd="cargo clippy"
 		fi
+		(cd "$dir" && eval "$cmd") || exit_code=$?
 		;;
 	checkstyle-maven)
-		(cd "$dir" && mvn checkstyle:check -q)
+		cmd="mvn checkstyle:check -q"
+		(cd "$dir" && mvn checkstyle:check -q) || exit_code=$?
 		;;
 	checkstyle-gradle)
 		local gradle_cmd="gradle"
 		if [[ -f "$dir/gradlew" ]]; then
 			gradle_cmd="./gradlew"
 		fi
-		(cd "$dir" && $gradle_cmd checkstyleMain --quiet)
+		cmd="$gradle_cmd checkstyleMain --quiet"
+		(cd "$dir" && $gradle_cmd checkstyleMain --quiet) || exit_code=$?
 		;;
 	*)
 		log_error "Could not detect linter"
 		return 1
 		;;
 	esac
+
+	json_output "$(json_obj_raw \
+		"linter" "$(json_escape "$linter")" \
+		"command" "$(json_escape "$cmd")" \
+		"exit_code" "$exit_code" \
+		"fix" "$fix")"
 }
 
 show_help() {
-	echo "Usage: lint-check.sh [OPTIONS] [directory]"
-	echo ""
-	echo "Auto-detect linter and run lint check."
-	echo ""
-	echo "Options:"
-	echo "  --fix     Auto-fix issues where supported"
-	echo "  --help    Show this help message"
+	log_info "Usage: lint-check.sh [OPTIONS] [directory]"
+	log_info ""
+	log_info "Auto-detect linter and run lint check."
+	log_info ""
+	log_info "Options:"
+	log_info "  --fix     Auto-fix issues where supported"
+	log_info "  --help    Show this help message"
 }
 
 main() {

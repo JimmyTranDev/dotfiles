@@ -4,6 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
 source "$SCRIPT_DIR/../../utils/utility.sh"
+source "$SCRIPT_DIR/../../utils/json.sh"
 
 get_last_monday() {
 	if [[ "$(uname)" == "Darwin" ]]; then
@@ -45,132 +46,16 @@ extract_ticket_keys() {
 	echo "$commits" | grep -oE '[A-Z]+-[0-9]+' | sort -u
 }
 
-fetch_jira_tickets() {
-	local keys="$1"
-
-	if ! command -v acli &>/dev/null; then
-		log_warning "acli not found, skipping Jira lookups"
-		return
-	fi
-
-	while IFS= read -r key; do
-		if [[ -z "$key" ]]; then
-			continue
-		fi
-		local info
-		info=$(acli jira workitem view --key "$key" --json 2>/dev/null || echo "")
-		if [[ -n "$info" ]]; then
-			echo "TICKET|${key}|${info}"
-		fi
-	done <<<"$keys"
-}
-
-output_human() {
-	local commits="$1"
-	local tickets="$2"
-	local since="$3"
-
-	log_header "Weekly Summary (since $since)"
-
-	if [[ -z "$commits" ]]; then
-		log_info "No commits found since $since"
-		return
-	fi
-
-	local commit_count
-	commit_count=$(echo "$commits" | wc -l | tr -d ' ')
-	local ticket_keys
-	ticket_keys=$(extract_ticket_keys "$commits")
-	local ticket_count=0
-	if [[ -n "$ticket_keys" ]]; then
-		ticket_count=$(echo "$ticket_keys" | wc -l | tr -d ' ')
-	fi
-
-	echo ""
-	echo "TOTAL_COMMITS=$commit_count"
-	echo "TOTAL_TICKETS=$ticket_count"
-	echo ""
-
-	if [[ -n "$ticket_keys" ]]; then
-		echo "--- Commits by Ticket ---"
-		while IFS= read -r key; do
-			if [[ -z "$key" ]]; then
-				continue
-			fi
-			echo ""
-			echo "[$key]"
-			echo "$commits" | grep "$key" | while IFS='|' read -r repo hash date message; do
-				echo "  $date $repo $hash $message"
-			done
-		done <<<"$ticket_keys"
-	fi
-
-	echo ""
-	echo "--- Unlinked Commits ---"
-	echo "$commits" | while IFS='|' read -r repo hash date message; do
-		if ! echo "$message" | grep -qE '[A-Z]+-[0-9]+'; then
-			echo "  $date $repo $hash $message"
-		fi
-	done
-}
-
-output_json() {
-	local commits="$1"
-	local since="$2"
-
-	echo "{"
-	echo "  \"since\": \"$since\","
-	echo "  \"commits\": ["
-
-	local first=true
-	if [[ -n "$commits" ]]; then
-		while IFS='|' read -r repo hash date message; do
-			if [[ "$first" == "true" ]]; then
-				first=false
-			else
-				echo ","
-			fi
-			local escaped_message
-			escaped_message=$(echo "$message" | sed 's/"/\\"/g')
-			printf '    {"repo": "%s", "hash": "%s", "date": "%s", "message": "%s"}' "$repo" "$hash" "$date" "$escaped_message"
-		done <<<"$commits"
-	fi
-
-	echo ""
-	echo "  ],"
-
-	echo "  \"ticket_keys\": ["
-	local keys
-	keys=$(extract_ticket_keys "$commits")
-	first=true
-	if [[ -n "$keys" ]]; then
-		while IFS= read -r key; do
-			if [[ -z "$key" ]]; then
-				continue
-			fi
-			if [[ "$first" == "true" ]]; then
-				first=false
-			else
-				echo ","
-			fi
-			printf '    "%s"' "$key"
-		done <<<"$keys"
-	fi
-	echo ""
-	echo "  ]"
-	echo "}"
-}
-
 show_help() {
 	cat <<'EOF'
 Usage: weekly-summary.sh [options]
 
 Gather this week's git commits across repos and extract Jira ticket keys.
+Outputs JSON to stdout.
 
 Options:
   --since <date>    Start date (default: last Monday, YYYY-MM-DD)
   --dir <path>      Base directory to scan for repos (default: current repo only)
-  --json            Output as JSON
   --help            Show this help message
 EOF
 }
@@ -178,7 +63,6 @@ EOF
 main() {
 	local since=""
 	local base_dir=""
-	local json_output=false
 
 	while [[ $# -gt 0 ]]; do
 		case "$1" in
@@ -189,10 +73,6 @@ main() {
 		--dir)
 			base_dir="$2"
 			shift 2
-			;;
-		--json)
-			json_output=true
-			shift
 			;;
 		--help)
 			show_help
@@ -241,11 +121,26 @@ ${repo_commits}"
 		all_commits=$(gather_commits "." "$since" "$author")
 	fi
 
-	if [[ "$json_output" == "true" ]]; then
-		output_json "$all_commits" "$since"
-	else
-		output_human "$all_commits" "" "$since"
+	# Build JSON safely using jq
+	local commits_json="[]"
+	if [[ -n "$all_commits" ]]; then
+		commits_json=$(echo "$all_commits" | while IFS='|' read -r repo hash date message; do
+			jq -nc --arg repo "$repo" --arg hash "$hash" --arg date "$date" --arg message "$message" \
+				'{repo: $repo, hash: $hash, date: $date, message: $message}'
+		done | jq -sc '.')
 	fi
+
+	local keys_json="[]"
+	if [[ -n "$all_commits" ]]; then
+		local keys
+		keys=$(extract_ticket_keys "$all_commits")
+		if [[ -n "$keys" ]]; then
+			keys_json=$(echo "$keys" | jq -R . | jq -sc '.')
+		fi
+	fi
+
+	jq -nc --arg since "$since" --argjson commits "$commits_json" --argjson keys "$keys_json" \
+		'{since: $since, commits: $commits, ticket_keys: $keys}'
 }
 
 main "$@"

@@ -3,6 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
+source "$SCRIPT_DIR/../../utils/json.sh"
 
 get_last_tag() {
 	git describe --tags --abbrev=0 2>/dev/null || echo ""
@@ -19,81 +20,43 @@ generate_changelog() {
 	local range
 	if [[ -n "$from_ref" ]]; then
 		range="${from_ref}..${to_ref}"
-		log_header "Changelog: $range" "📝"
+		log_info "Generating changelog: $range"
 	else
 		range="$to_ref"
-		log_header "Changelog: all commits to $to_ref" "📝"
+		log_info "Generating changelog: all commits to $to_ref"
 	fi
 
 	local commits
 	commits=$(git log "$range" --pretty=format:"%s" --no-merges 2>/dev/null || echo "")
 
+	local from_display="${from_ref:-}"
+
 	if [[ -z "$commits" ]]; then
-		log_info "No commits found in range"
+		json_output "{\"from\":$(json_escape "$from_display"),\"to\":$(json_escape "$to_ref"),\"entries\":[]}"
 		return 0
 	fi
 
-	local feats="" fixes="" chores="" refactors="" docs="" tests="" perfs="" others=""
-
-	while IFS= read -r line; do
-		case "$line" in
-		feat*) feats="${feats}- ${line}
-" ;;
-		fix*) fixes="${fixes}- ${line}
-" ;;
-		chore*) chores="${chores}- ${line}
-" ;;
-		refactor*) refactors="${refactors}- ${line}
-" ;;
-		docs*) docs="${docs}- ${line}
-" ;;
-		test*) tests="${tests}- ${line}
-" ;;
-		perf*) perfs="${perfs}- ${line}
-" ;;
-		*) others="${others}- ${line}
-" ;;
-		esac
-	done <<<"$commits"
-
-	if [[ -n "$feats" ]]; then
-		echo "### Features"
-		echo "$feats"
-	fi
-	if [[ -n "$fixes" ]]; then
-		echo "### Bug Fixes"
-		echo "$fixes"
-	fi
-	if [[ -n "$perfs" ]]; then
-		echo "### Performance"
-		echo "$perfs"
-	fi
-	if [[ -n "$refactors" ]]; then
-		echo "### Refactoring"
-		echo "$refactors"
-	fi
-	if [[ -n "$docs" ]]; then
-		echo "### Documentation"
-		echo "$docs"
-	fi
-	if [[ -n "$tests" ]]; then
-		echo "### Tests"
-		echo "$tests"
-	fi
-	if [[ -n "$chores" ]]; then
-		echo "### Chores"
-		echo "$chores"
-	fi
-	if [[ -n "$others" ]]; then
-		echo "### Other"
-		echo "$others"
-	fi
+	# Use jq to safely build JSON from commit messages
+	echo "$commits" | jq -R '{
+		type: (
+			if startswith("feat") then "feat"
+			elif startswith("fix") then "fix"
+			elif startswith("chore") then "chore"
+			elif startswith("refactor") then "refactor"
+			elif startswith("docs") then "docs"
+			elif startswith("test") then "test"
+			elif startswith("perf") then "perf"
+			else "other"
+			end
+		),
+		message: .
+	}' | jq -sc --arg from "$from_display" --arg to "$to_ref" '{from: $from, to: $to, entries: .}'
 }
 
 show_help() {
 	echo "Usage: changelog.sh [from-ref] [to-ref]"
 	echo ""
-	echo "Generate grouped changelog from git history."
+	echo "Generate grouped changelog from git history as JSON."
 	echo "Defaults: from last tag to HEAD."
 	echo ""
 	echo "Options:"

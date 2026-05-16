@@ -4,6 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
 source "$SCRIPT_DIR/../../utils/git.sh"
+source "$SCRIPT_DIR/../../utils/json.sh"
 
 get_branch_info() {
 	local dir="${1:-.}"
@@ -37,22 +38,23 @@ get_branch_info() {
 		diff_stat=$(git -C "$dir" diff --stat "$base_branch...$current_branch" 2>/dev/null | tail -1 || echo "")
 	fi
 
-	echo "CURRENT_BRANCH=$current_branch"
-	echo "BASE_BRANCH=$base_branch"
-	echo "AHEAD=$ahead"
-	echo "BEHIND=$behind"
-	echo "UNCOMMITTED=$uncommitted"
-	echo "STAGED=$staged"
-	echo "DIFF_STAT=$diff_stat"
+	json_output "$(json_obj_raw \
+		"current_branch" "$(json_escape "$current_branch")" \
+		"base_branch" "$(json_escape "$base_branch")" \
+		"ahead" "$ahead" \
+		"behind" "$behind" \
+		"uncommitted" "$uncommitted" \
+		"staged" "$staged" \
+		"diff_stat" "$(json_escape "$diff_stat")")"
 }
 
 show_help() {
-	echo "Usage: git-branch-info.sh [directory]"
-	echo ""
-	echo "Output git branch context as KEY=VALUE pairs."
-	echo ""
-	echo "Options:"
-	echo "  --help    Show this help message"
+	log_info "Usage: git-branch-info.sh [directory]"
+	log_info ""
+	log_info "Output git branch context as JSON."
+	log_info ""
+	log_info "Options:"
+	log_info "  --help    Show this help message"
 }
 
 main() {

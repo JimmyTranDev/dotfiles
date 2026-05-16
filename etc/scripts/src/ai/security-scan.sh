@@ -4,21 +4,36 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
 source "$SCRIPT_DIR/../../utils/detect.sh"
+source "$SCRIPT_DIR/../../utils/json.sh"
+
+SECRETS_FOUND=0
+ENV_FILES_JSON=""
+SECRET_PATTERNS_JSON=""
+SCAN_TOOL="heuristic"
+AUDIT_OUTPUT=""
+AUDIT_EXIT_CODE=0
 
 scan_secrets_heuristic() {
 	local dir="${1:-.}"
-	local found=0
 
-	log_header "Secret Scanning (heuristic)" "🔑"
+	log_info "Running heuristic secret scan"
 
 	local env_files
 	env_files=$(git -C "$dir" ls-files '*.env' '.env.*' 2>/dev/null | grep -v '.example' | grep -v '.template' || echo "")
 	if [[ -n "$env_files" ]]; then
-		log_warning "Tracked .env files found:"
-		echo "$env_files" | while IFS= read -r f; do
-			echo "  - $f"
-		done
-		found=1
+		log_warning "Tracked .env files found"
+		SECRETS_FOUND=1
+		while IFS= read -r f; do
+			if [[ -n "$f" ]]; then
+				local escaped
+				escaped=$(json_escape "$f")
+				if [[ -n "$ENV_FILES_JSON" ]]; then
+					ENV_FILES_JSON="${ENV_FILES_JSON},${escaped}"
+				else
+					ENV_FILES_JSON="$escaped"
+				fi
+			fi
+		done <<<"$env_files"
 	fi
 
 	local secret_patterns=(
@@ -36,31 +51,45 @@ scan_secrets_heuristic() {
 		local matches
 		matches=$(git -C "$dir" grep -rn -E "$pattern" -- ':(exclude)*.lock' ':(exclude)node_modules' ':(exclude)*.min.js' 2>/dev/null || echo "")
 		if [[ -n "$matches" ]]; then
-			log_warning "Potential secret pattern found ($pattern):"
-			echo "$matches" | head -5
-			found=1
+			log_warning "Potential secret pattern found ($pattern)"
+			SECRETS_FOUND=1
+			local match_obj
+			match_obj=$(json_obj "pattern" "$pattern" "sample" "$(echo "$matches" | head -1)")
+			if [[ -n "$SECRET_PATTERNS_JSON" ]]; then
+				SECRET_PATTERNS_JSON="${SECRET_PATTERNS_JSON},${match_obj}"
+			else
+				SECRET_PATTERNS_JSON="$match_obj"
+			fi
 		fi
 	done
 
-	if [[ "$found" -eq 0 ]]; then
+	if [[ "$SECRETS_FOUND" -eq 0 ]]; then
 		log_success "No secrets detected (heuristic scan)"
 	fi
-
-	return $found
 }
 
 scan_secrets_tool() {
 	local dir="${1:-.}"
 
 	if command -v trufflehog &>/dev/null; then
-		log_header "Secret Scanning (trufflehog)" "🔑"
-		(cd "$dir" && trufflehog filesystem --directory . --only-verified 2>/dev/null) || true
+		SCAN_TOOL="trufflehog"
+		log_info "Running trufflehog scan"
+		local output
+		output=$( (cd "$dir" && trufflehog filesystem --directory . --only-verified 2>/dev/null) || true)
+		if [[ -n "$output" ]]; then
+			SECRETS_FOUND=1
+		fi
 		return 0
 	fi
 
 	if command -v gitleaks &>/dev/null; then
-		log_header "Secret Scanning (gitleaks)" "🔑"
-		(cd "$dir" && gitleaks detect --source . 2>/dev/null) || true
+		SCAN_TOOL="gitleaks"
+		log_info "Running gitleaks scan"
+		local output
+		output=$( (cd "$dir" && gitleaks detect --source . 2>/dev/null) || true)
+		if [[ -n "$output" ]]; then
+			SECRETS_FOUND=1
+		fi
 		return 0
 	fi
 
@@ -70,7 +99,7 @@ scan_secrets_tool() {
 run_dep_audit() {
 	local dir="${1:-.}"
 
-	log_header "Dependency Audit" "📦"
+	log_info "Running dependency audit"
 
 	if [[ -f "$dir/package.json" ]]; then
 		local pm
@@ -78,21 +107,26 @@ run_dep_audit() {
 		if [[ -z "$pm" ]]; then
 			pm="npm"
 		fi
-		(cd "$dir" && $pm audit 2>/dev/null) || log_warning "Audit found vulnerabilities (see above)"
+		AUDIT_OUTPUT=$( (cd "$dir" && $pm audit 2>&1) || true)
+		AUDIT_EXIT_CODE=$?
 	elif [[ -f "$dir/pom.xml" ]]; then
 		if command -v mvn &>/dev/null; then
-			(cd "$dir" && mvn org.owasp:dependency-check-maven:check -q 2>/dev/null) || log_warning "OWASP check not configured or found vulnerabilities"
+			AUDIT_OUTPUT=$( (cd "$dir" && mvn org.owasp:dependency-check-maven:check -q 2>&1) || true)
+			AUDIT_EXIT_CODE=$?
 		fi
 	elif [[ -f "$dir/requirements.txt" ]] || [[ -f "$dir/pyproject.toml" ]]; then
 		if command -v pip-audit &>/dev/null; then
-			(cd "$dir" && pip-audit 2>/dev/null) || log_warning "pip-audit found vulnerabilities"
+			AUDIT_OUTPUT=$( (cd "$dir" && pip-audit 2>&1) || true)
+			AUDIT_EXIT_CODE=$?
 		elif command -v safety &>/dev/null; then
-			(cd "$dir" && safety check 2>/dev/null) || log_warning "Safety check found vulnerabilities"
+			AUDIT_OUTPUT=$( (cd "$dir" && safety check 2>&1) || true)
+			AUDIT_EXIT_CODE=$?
 		else
 			log_warning "Install pip-audit or safety for Python vulnerability scanning"
 		fi
 	elif [[ -f "$dir/go.mod" ]]; then
-		(cd "$dir" && go list -m -json all 2>/dev/null | go run golang.org/x/vuln/cmd/govulncheck@latest ./... 2>/dev/null) || log_warning "Go vulnerability check not available"
+		AUDIT_OUTPUT=$( (cd "$dir" && go list -m -json all 2>/dev/null | go run golang.org/x/vuln/cmd/govulncheck@latest ./... 2>&1) || true)
+		AUDIT_EXIT_CODE=$?
 	else
 		log_info "No supported package manager found for dependency audit"
 	fi
@@ -101,8 +135,7 @@ run_dep_audit() {
 show_help() {
 	echo "Usage: security-scan.sh [directory]"
 	echo ""
-	echo "Combined secret scanning and dependency audit."
-	echo "Uses trufflehog/gitleaks if available, falls back to heuristic patterns."
+	echo "Combined secret scanning and dependency audit. Outputs JSON."
 	echo ""
 	echo "Options:"
 	echo "  --help    Show this help message"
@@ -124,15 +157,23 @@ main() {
 		esac
 	done
 
-	log_header "Security Scan" "🛡️"
+	log_info "Starting security scan"
 
 	if ! scan_secrets_tool "$dir"; then
-		scan_secrets_heuristic "$dir" || true
+		scan_secrets_heuristic "$dir"
 	fi
 
 	run_dep_audit "$dir"
 
 	log_success "Security scan complete"
+
+	json_output $(json_obj_raw \
+		"secrets_found" "$SECRETS_FOUND" \
+		"env_files_tracked" "[${ENV_FILES_JSON}]" \
+		"secret_patterns_found" "[${SECRET_PATTERNS_JSON}]" \
+		"scan_tool" "$(json_escape "$SCAN_TOOL")" \
+		"audit_output" "$(json_escape "$AUDIT_OUTPUT")" \
+		"audit_exit_code" "$AUDIT_EXIT_CODE")
 }
 
 main "$@"

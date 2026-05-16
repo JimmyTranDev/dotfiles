@@ -4,6 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
 source "$SCRIPT_DIR/../../utils/detect.sh"
+source "$SCRIPT_DIR/../../utils/json.sh"
 
 detect_project_type() {
 	local dir="${1:-.}"
@@ -176,16 +177,16 @@ list_key_files() {
 		fi
 	done
 
-	printf "%s," "${found[@]}" | sed 's/,$//'
+	echo "${found[@]}"
 }
 
 show_help() {
-	echo "Usage: detect-stack.sh [directory]"
-	echo ""
-	echo "Full tech stack detection. Outputs KEY=VALUE pairs."
-	echo ""
-	echo "Options:"
-	echo "  --help    Show this help message"
+	log_info "Usage: detect-stack.sh [directory]"
+	log_info ""
+	log_info "Full tech stack detection. Outputs JSON to stdout."
+	log_info ""
+	log_info "Options:"
+	log_info "  --help    Show this help message"
 }
 
 main() {
@@ -204,22 +205,44 @@ main() {
 		esac
 	done
 
-	echo "PROJECT_TYPE=$(detect_project_type "$dir")"
-	echo "PACKAGE_MANAGER=$(detect_package_manager "$dir")"
-	echo "TEST_RUNNER=$(detect_test_runner "$dir")"
-	echo "LINTER=$(detect_linter "$dir")"
-	echo "CI=$(detect_ci "$dir")"
-	echo "FRAMEWORK=$(detect_framework "$dir")"
-	echo "MONOREPO=$(detect_monorepo "$dir")"
-	echo "CSS_FRAMEWORK=$(detect_css_framework "$dir")"
-	echo "DATABASE=$(detect_database "$dir")"
-	echo "KEY_FILES=$(list_key_files "$dir")"
+	local project_type package_manager test_runner linter ci framework monorepo css_framework database
+	project_type=$(detect_project_type "$dir")
+	package_manager=$(detect_package_manager "$dir")
+	test_runner=$(detect_test_runner "$dir")
+	linter=$(detect_linter "$dir")
+	ci=$(detect_ci "$dir")
+	framework=$(detect_framework "$dir")
+	monorepo=$(detect_monorepo "$dir")
+	css_framework=$(detect_css_framework "$dir")
+	database=$(detect_database "$dir")
 
+	local key_files_raw
+	IFS=',' read -ra key_files_raw <<<"$(list_key_files "$dir")"
+	# Remove empty entries
+	local key_files_clean=()
+	for kf in "${key_files_raw[@]}"; do
+		[[ -n "$kf" ]] && key_files_clean+=("$kf")
+	done
+	local key_files_json
+	key_files_json=$(json_arr "${key_files_clean[@]}")
+
+	local git_branch="null"
 	if [[ -d "$dir/.git" ]] || [[ -f "$dir/.git" ]]; then
-		local branch
-		branch=$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
-		echo "GIT_BRANCH=$branch"
+		git_branch=$(json_escape "$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")")
 	fi
+
+	json_output "$(json_obj_raw \
+		"project_type" "$(json_escape "$project_type")" \
+		"package_manager" "$(json_escape "$package_manager")" \
+		"test_runner" "$(json_escape "$test_runner")" \
+		"linter" "$(json_escape "$linter")" \
+		"ci" "$(json_escape "$ci")" \
+		"framework" "$(json_escape "$framework")" \
+		"monorepo" "$(json_escape "$monorepo")" \
+		"css_framework" "$(json_escape "$css_framework")" \
+		"database" "$(json_escape "$database")" \
+		"key_files" "$key_files_json" \
+		"git_branch" "$git_branch")"
 }
 
 main "$@"

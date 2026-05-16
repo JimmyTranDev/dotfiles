@@ -4,6 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
 source "$SCRIPT_DIR/../../utils/detect.sh"
+source "$SCRIPT_DIR/../../utils/json.sh"
 
 install_node() {
 	local dir="${1:-.}"
@@ -13,22 +14,40 @@ install_node() {
 
 	log_info "Package manager: $pm"
 
+	local cmd
 	if [[ "$frozen" == "true" ]]; then
 		case "$pm" in
-		pnpm) (cd "$dir" && pnpm install --frozen-lockfile) ;;
-		yarn) (cd "$dir" && yarn install --frozen-lockfile) ;;
-		bun) (cd "$dir" && bun install --frozen-lockfile) ;;
-		npm) (cd "$dir" && npm ci) ;;
+		pnpm) cmd="pnpm install --frozen-lockfile" ;;
+		yarn) cmd="yarn install --frozen-lockfile" ;;
+		bun) cmd="bun install --frozen-lockfile" ;;
+		npm) cmd="npm ci" ;;
 		esac
 	else
-		(cd "$dir" && $pm install)
+		cmd="$pm install"
 	fi
+
+	local exit_code=0
+	(cd "$dir" && eval "$cmd") || exit_code=$?
+
+	json_output "$(json_obj_raw \
+		"package_manager" "$(json_escape "$pm")" \
+		"command" "$(json_escape "$cmd")" \
+		"exit_code" "$exit_code" \
+		"frozen" "$frozen")"
 }
 
 install_maven() {
 	local dir="${1:-.}"
 	log_info "Build tool: mvn"
-	(cd "$dir" && mvn dependency:resolve -q)
+	local cmd="mvn dependency:resolve -q"
+	local exit_code=0
+	(cd "$dir" && mvn dependency:resolve -q) || exit_code=$?
+
+	json_output "$(json_obj_raw \
+		"package_manager" "$(json_escape "maven")" \
+		"command" "$(json_escape "$cmd")" \
+		"exit_code" "$exit_code" \
+		"frozen" "false")"
 }
 
 install_gradle() {
@@ -38,43 +57,78 @@ install_gradle() {
 		gradle_cmd="./gradlew"
 	fi
 	log_info "Build tool: $gradle_cmd"
-	(cd "$dir" && $gradle_cmd dependencies --quiet)
+	local cmd="$gradle_cmd dependencies --quiet"
+	local exit_code=0
+	(cd "$dir" && $gradle_cmd dependencies --quiet) || exit_code=$?
+
+	json_output "$(json_obj_raw \
+		"package_manager" "$(json_escape "gradle")" \
+		"command" "$(json_escape "$cmd")" \
+		"exit_code" "$exit_code" \
+		"frozen" "false")"
 }
 
 install_python() {
 	local dir="${1:-.}"
+	local cmd=""
+	local pm=""
 	if [[ -f "$dir/pyproject.toml" ]] && command -v poetry &>/dev/null; then
-		log_info "Build tool: poetry"
-		(cd "$dir" && poetry install)
+		pm="poetry"
+		cmd="poetry install"
 	elif [[ -f "$dir/requirements.txt" ]]; then
-		log_info "Build tool: pip"
-		(cd "$dir" && pip install -r requirements.txt)
+		pm="pip"
+		cmd="pip install -r requirements.txt"
 	else
 		log_error "No requirements.txt or pyproject.toml found"
 		return 1
 	fi
+	log_info "Build tool: $pm"
+	local exit_code=0
+	(cd "$dir" && eval "$cmd") || exit_code=$?
+
+	json_output "$(json_obj_raw \
+		"package_manager" "$(json_escape "$pm")" \
+		"command" "$(json_escape "$cmd")" \
+		"exit_code" "$exit_code" \
+		"frozen" "false")"
 }
 
 install_go() {
 	local dir="${1:-.}"
 	log_info "Build tool: go"
-	(cd "$dir" && go mod download)
+	local cmd="go mod download"
+	local exit_code=0
+	(cd "$dir" && go mod download) || exit_code=$?
+
+	json_output "$(json_obj_raw \
+		"package_manager" "$(json_escape "go")" \
+		"command" "$(json_escape "$cmd")" \
+		"exit_code" "$exit_code" \
+		"frozen" "false")"
 }
 
 install_rust() {
 	local dir="${1:-.}"
 	log_info "Build tool: cargo"
-	(cd "$dir" && cargo fetch)
+	local cmd="cargo fetch"
+	local exit_code=0
+	(cd "$dir" && cargo fetch) || exit_code=$?
+
+	json_output "$(json_obj_raw \
+		"package_manager" "$(json_escape "cargo")" \
+		"command" "$(json_escape "$cmd")" \
+		"exit_code" "$exit_code" \
+		"frozen" "false")"
 }
 
 show_help() {
-	echo "Usage: install-deps.sh [OPTIONS] [directory]"
-	echo ""
-	echo "Auto-detect package manager and install dependencies."
-	echo ""
-	echo "Options:"
-	echo "  --frozen    Use lockfile-only install (CI mode)"
-	echo "  --help      Show this help message"
+	log_info "Usage: install-deps.sh [OPTIONS] [directory]"
+	log_info ""
+	log_info "Auto-detect package manager and install dependencies."
+	log_info ""
+	log_info "Options:"
+	log_info "  --frozen    Use lockfile-only install (CI mode)"
+	log_info "  --help      Show this help message"
 }
 
 main() {

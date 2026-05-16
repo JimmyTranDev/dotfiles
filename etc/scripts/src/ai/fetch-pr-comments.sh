@@ -3,16 +3,16 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../utils/logging.sh"
+source "$SCRIPT_DIR/../../utils/json.sh"
 
 show_help() {
 	cat <<'EOF'
 Usage: fetch-pr-comments.sh [options] [PR number or URL]
 
-Fetch PR review comments and output structured data.
+Fetch PR review comments and output JSON.
 
 OPTIONS:
   --resolved      Include resolved comments (default: unresolved only)
-  --json          Output as JSON (default: human-readable table)
   -h, --help      Show this help message
 
 ARGUMENTS:
@@ -52,7 +52,6 @@ get_repo_info() {
 fetch_comments() {
 	local pr_number="$1"
 	local include_resolved="$2"
-	local json_output="$3"
 	local repo_info
 	repo_info=$(get_repo_info)
 
@@ -73,7 +72,7 @@ import json, sys
 inline = json.loads('''$inline_comments''') if '''$inline_comments''' != '[]' else []
 pr_data = json.loads('''$pr_comments''')
 include_resolved = '$include_resolved' == 'true'
-json_output = '$json_output' == 'true'
+pr_number = int('$pr_number')
 
 results = []
 
@@ -106,22 +105,8 @@ for r in pr_data.get('reviews', []):
             'created_at': r.get('submittedAt', '')
         })
 
-if not results:
-    if json_output:
-        print(json.dumps({'results': [], 'count': 0}))
-    else:
-        print('No comments found')
-    sys.exit(0)
-
-if json_output:
-    print(json.dumps({'results': results, 'count': len(results)}, indent=2))
-else:
-    for r in results:
-        loc = f\"{r['file']}:{r['line']}\" if r['file'] else '(PR-level)'
-        print(f\"[{r['state']}] {r['reviewer']} | {loc}\")
-        for line in r['body'].split(chr(10)):
-            print(f\"  {line}\")
-        print()
+output = {'pr_number': pr_number, 'count': len(results), 'comments': results}
+print(json.dumps(output, separators=(',', ':')))
 " 2>/dev/null
 
 }
@@ -129,12 +114,10 @@ else:
 main() {
 	local pr_ref=""
 	local include_resolved=false
-	local json_output=false
 
 	while [[ $# -gt 0 ]]; do
 		case "$1" in
 		--resolved) include_resolved=true; shift ;;
-		--json) json_output=true; shift ;;
 		-h | --help) show_help; exit 0 ;;
 		*) pr_ref="$1"; shift ;;
 		esac
@@ -144,7 +127,7 @@ main() {
 	pr_number=$(get_pr_number "$pr_ref")
 	log_info "Fetching comments for PR #$pr_number..."
 
-	fetch_comments "$pr_number" "$include_resolved" "$json_output"
+	fetch_comments "$pr_number" "$include_resolved"
 }
 
 main "$@"
