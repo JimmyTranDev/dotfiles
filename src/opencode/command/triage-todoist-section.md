@@ -14,13 +14,14 @@ $ARGUMENTS should be a Todoist section URL, section name (with project), or proj
 1. Load the **tool-todoist-cli** skill.
 
 2. Identify the section:
-   - If `$ARGUMENTS` is a section URL, extract the section ID from the URL (last segment after final `-`)
-   - If `$ARGUMENTS` is a section name, ask for the project name if not provided
+   - If `$ARGUMENTS` is a section URL, use it directly
+   - If `$ARGUMENTS` is a section name, ask for the project name if not provided, then construct the URL
    - If no arguments, ask the user which project and section to triage
 
-3. List all tasks in the section:
-   - Use `td section list "<project>" --json --show-urls` to find the section ID
-   - Use `td task list --project "<project>" --json --full --show-urls` and filter by `sectionId`
+3. Fetch tasks using the `triage-todoist.sh` script:
+   - Run: `~/Programming/JimmyTranDev/dotfiles/etc/scripts/src/ai/triage-todoist.sh "<section-url>" [--priority <p1|p2|p3|p4>]`
+   - If a priority token (`p1`-`p4`) appears in `$ARGUMENTS`, pass it via `--priority`
+   - The script outputs JSON with `{ section_id, total, tasks: [{ id, content, priority, labels, due_date, description, url }] }`
    - Present the task list to the user with indices for reference
 
 ## Phase 1: Collect Decisions
