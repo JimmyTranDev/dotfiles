@@ -363,7 +363,13 @@ return {
 
     {
       '<leader>ff',
-      function() Snacks.picker.smart({ hidden = true, ignored = true, filter = { cwd = true } }) end,
+      function()
+        Snacks.picker.smart({
+          hidden = true,
+          filter = { cwd = true },
+          args = { '--no-ignore-vcs' },
+        })
+      end,
       desc = '󰈙 Smart Find Files',
     },
     {

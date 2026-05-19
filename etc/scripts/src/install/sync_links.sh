@@ -26,6 +26,7 @@ get_common_links() {
 		"$DOTFILES_ROOT/src/kitty|$HOME/.config/kitty"
 		"$DOTFILES_ROOT/src/opencode|$HOME/.config/opencode"
 		"$DOTFILES_ROOT/src/git/hooks|$HOME/.config/git/hooks"
+		"$DOTFILES_ROOT/src/fd|$HOME/.config/fd"
 		"$DOTFILES_ROOT/src/espanso|$HOME/.config/espanso"
 		"$SECRETS_DIR/ssh|$HOME/.ssh"
 		"$SECRETS_DIR/.gitconfig|$HOME/.gitconfig"

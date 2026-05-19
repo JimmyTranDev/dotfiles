@@ -1,0 +1,20 @@
+# Global fd ignore — mirrors .gitignore_global but keeps plans/ and updates/
+copilot-instructions.md
+.project
+.classpath
+.settings/
+.factorypath
+*.launch
+application-local.yml
+
+# Common build artifacts
+node_modules/
+.git/
+dist/
+build/
+target/
+.next/
+.gradle/
+.idea/
+*.class
+*.jar
