@@ -563,6 +563,18 @@ function M.list_org_repos_and_open()
 
   frequency_cache.sort_by_frequency('org_repos', items, function(item) return item.org .. '/' .. item.name end)
 
+  -- Move current repo to the top
+  local cwd = vim.fn.getcwd()
+  local cwd_org = vim.fn.fnamemodify(cwd, ':h:t')
+  local cwd_repo = vim.fn.fnamemodify(cwd, ':t')
+  for i, item in ipairs(items) do
+    if item.org == cwd_org and item.name == cwd_repo then
+      table.remove(items, i)
+      table.insert(items, 1, item)
+      break
+    end
+  end
+
   if #items == 0 then
     vim.notify('No repositories found in ~/Programming', vim.log.levels.ERROR)
     return
