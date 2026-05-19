@@ -105,7 +105,7 @@ main() {
 	OPTIONAL_TOOLS=(
 		"fnm:fnm (Node version manager)"
 		"zoxide:zoxide"
-		"trufflehog:TruffleHog"
+		"gitleaks:gitleaks"
 		"docker:Docker"
 		"espanso:Espanso"
 	)
