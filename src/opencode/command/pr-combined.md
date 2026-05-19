@@ -1,9 +1,9 @@
 ---
-name: combined-pr
+name: pr-combined
 description: Create a combined PR merging multiple worktree feature branches for test/deploy testing
 ---
 
-Usage: /combined-pr [branch names or "all"]
+Usage: /pr-combined [branch names or "all"]
 
 $ARGUMENTS
 

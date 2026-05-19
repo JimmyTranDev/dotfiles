@@ -1,9 +1,9 @@
 ---
-name: scan-style
+name: audit-style
 description: Scan a codebase to detect coding conventions and generate a skill file capturing the project's style
 ---
 
-Usage: /scan-style [directory] [--name skill-name] [--output path]
+Usage: /audit-style [directory] [--name skill-name] [--output path]
 
 $ARGUMENTS
 

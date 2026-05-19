@@ -1,9 +1,9 @@
 ---
-name: open-worktrees
+name: worktree-open
 description: Open multiple worktrees in separate Zellij tabs
 ---
 
-Usage: /open-worktrees [branch names or PR numbers]
+Usage: /worktree-open [branch names or PR numbers]
 
 $ARGUMENTS
 
@@ -26,6 +26,6 @@ Open one or more worktrees in separate Zellij tabs for parallel work.
 
 ## Edge Cases
 
-- If a worktree path doesn't exist, offer to recover it via `/recover-pr`
+- If a worktree path doesn't exist, offer to recover it via `/pr-recover`
 - If Zellij is not running, fall back to reporting the paths for manual navigation
 - If no worktrees exist, notify the user

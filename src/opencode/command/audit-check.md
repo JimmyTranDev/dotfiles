@@ -1,9 +1,9 @@
 ---
-name: check
+name: audit-check
 description: Run lint, test, build, and typecheck in parallel and report combined results
 ---
 
-Usage: /check [specific checks]
+Usage: /audit-check [specific checks]
 
 $ARGUMENTS
 

@@ -1,9 +1,9 @@
 ---
-name: migration-check
+name: audit-migration
 description: Check for pending Flyway database migrations in the current project
 ---
 
-Usage: /migration-check
+Usage: /audit-migration
 
 Check for new or pending Flyway database migrations in the current Java Spring project.
 

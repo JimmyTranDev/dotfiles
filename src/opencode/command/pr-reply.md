@@ -1,9 +1,9 @@
 ---
-name: reply-comments
+name: pr-reply
 description: Walk through PR review comments and interactively reply to each one
 ---
 
-Usage: /reply-comments [PR URL or number]
+Usage: /pr-reply [PR URL or number]
 
 $ARGUMENTS
 

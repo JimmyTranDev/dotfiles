@@ -1,9 +1,9 @@
 ---
-name: recover-pr
+name: pr-recover
 description: Recover a PR by recreating its worktree from the remote branch
 ---
 
-Usage: /recover-pr [PR URL or number]
+Usage: /pr-recover [PR URL or number]
 
 $ARGUMENTS
 
