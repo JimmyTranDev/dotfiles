@@ -30,6 +30,7 @@ The installer detects your platform, installs packages, symlinks configs, and se
 
 | Tool | Role |
 |------|------|
+| **Neovim** | Editor with LSP, completion, treesitter, and 40+ plugins |
 | **Lazygit** | Git TUI for staging, branching, and rebasing |
 | **Yazi** | Terminal file manager with preview and plugins |
 | **Btop** | System resource monitor |
@@ -81,6 +82,7 @@ src/                     # Configs (symlinked to ~/.config or ~/)
 ├── starship.toml        # Prompt config
 ├── ghostty/             # Terminal emulator
 ├── lazygit/             # Git TUI
+├── nvim/                # Neovim (LSP, completion, treesitter, plugins)
 ├── opencode/            # AI coding (17 agents, 44 commands, 95 skills)
 ├── skhd/                # Hotkeys (macOS)
 ├── yabai/               # Tiling WM (macOS)

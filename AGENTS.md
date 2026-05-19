@@ -8,6 +8,7 @@
 ```
 dotfiles/
 ├── src/                    # Config files (symlinked to their destinations)
+│   ├── nvim/               # -> ~/.config/nvim/
 │   ├── opencode/           # -> ~/.config/opencode/
 │   ├── ghostty/            # -> ~/.config/ghostty/
 │   ├── kitty/              # -> ~/.config/kitty/
