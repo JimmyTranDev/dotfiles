@@ -1,0 +1,3 @@
+# Make plans/ visible to OpenCode tools (grep, glob, @ picker)
+# even though plans/ content is gitignored
+!plans/

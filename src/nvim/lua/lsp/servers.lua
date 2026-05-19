@@ -40,6 +40,14 @@ M.servers = {
   rust_analyzer = {},
   kotlin_language_server = {},
   sqls = {},
+  harper_ls = {
+    filetypes = { 'markdown', 'text', 'gitcommit' },
+    settings = {
+      ['harper-ls'] = {
+        dialect = 'American',
+      },
+    },
+  },
 }
 
 return M

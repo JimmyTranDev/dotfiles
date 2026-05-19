@@ -414,6 +414,16 @@ return {
       desc = '󰓕 Notification History',
     },
     {
+      '<leader>fN',
+      function()
+        Snacks.picker.files({
+          dirs = { vim.fn.expand('~/Programming/JimmyTranDev/notes') },
+          hidden = true,
+        })
+      end,
+      desc = '󰎞 Find Notes Files',
+    },
+    {
       '<leader>fc',
       function() Snacks.picker.commands() end,
       desc = '󰘳 Commands',
