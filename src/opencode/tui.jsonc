@@ -1,0 +1,16 @@
+{
+  "$schema": "https://opencode.ai/tui.json",
+
+  // Catppuccin Mocha — unified theme across all tools
+  "theme": "catppuccin",
+
+  // Lines scrolled per wheel tick
+  "scroll_speed": 3,
+
+  "scroll_acceleration": {
+    "enabled": true
+  },
+
+  // "auto" picks side-by-side when terminal is wide enough, inline otherwise
+  "diff_style": "auto"
+}

@@ -1,9 +1,15 @@
 {
   "$schema": "https://opencode.ai/config.json",
+
+  // Primary model used for all conversations and task execution
   "model": "github-copilot/claude-opus-4.6",
+
+  // Additional markdown files injected as system instructions
   "instructions": [
     "AGENTS.md"
   ],
+
+  // All permissions set to "allow" for unrestricted autonomous operation
   "permission": {
     "edit": "allow",
     "bash": "allow",
@@ -12,12 +18,16 @@
     "doom_loop": "allow",
     "external_directory": "allow"
   },
+
+  // MCP servers — disabled by default, enable per-project as needed
   "mcp": {
+    // Figma design-to-code via local proxy
     "Figma": {
       "type": "remote",
       "url": "http://127.0.0.1:3845/mcp",
       "enabled": false
     },
+    // Browser automation for web scraping and testing
     "Browser": {
       "type": "local",
       "command": [
@@ -27,6 +37,7 @@
       ],
       "enabled": false
     },
+    // iOS simulator and Android emulator interaction
     "mobile-mcp": {
       "type": "local",
       "command": [
@@ -36,6 +47,7 @@
       ],
       "enabled": false
     },
+    // Playwright-based browser control with accessibility snapshots
     "playwright": {
       "type": "local",
       "command": [
@@ -44,6 +56,7 @@
       ],
       "enabled": false
     },
+    // Storybook component docs and preview
     "storybook": {
       "type": "remote",
       "url": "http://localhost:6006/mcp",
