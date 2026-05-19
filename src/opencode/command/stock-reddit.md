@@ -1,9 +1,9 @@
 ---
-name: reddit-summary
+name: stock-reddit
 description: Summarize today's top posts from investment-related subreddits
 ---
 
-Usage: /reddit-summary $ARGUMENTS
+Usage: /stock-reddit $ARGUMENTS
 
 Fetch and summarize today's top/hot posts from the following subreddits, grouped by category.
 

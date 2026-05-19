@@ -1,10 +1,10 @@
 ---
-name: research-stock
+name: stock-research
 description: Research a stock ticker with fundamentals, technicals, peer comparison, and timeframe-based ratings
 agent: stock-researcher
 ---
 
-Usage: /research-stock $ARGUMENTS
+Usage: /stock-research $ARGUMENTS
 
 $ARGUMENTS
 

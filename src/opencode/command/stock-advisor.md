@@ -1,9 +1,9 @@
 ---
-name: financial-advisor
+name: stock-advisor
 description: Provide personal finance guidance on budgeting, investing, and financial planning
 ---
 
-Usage: /financial-advisor $ARGUMENTS
+Usage: /stock-advisor $ARGUMENTS
 
 $ARGUMENTS
 
