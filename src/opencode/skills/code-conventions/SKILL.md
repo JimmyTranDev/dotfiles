@@ -260,6 +260,244 @@ function add(a: number, b: number): number {
 - Infer return types for internal/private functions
 - Return early for invalid inputs — don't nest the happy path
 
+## Function Style
+
+### Declaration vs Arrow
+
+- Use named `function` declarations for top-level and exported functions
+- Use arrow functions for callbacks, inline handlers, and short expressions
+- Never mix — be consistent within a file
+
+```ts
+// Good — named declaration for top-level
+export function formatCurrency(amount: number, currency: string): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(amount);
+}
+
+// Good — arrow for callback
+const activeUsers = users.filter((user) => user.isActive);
+
+// Good — arrow for inline handler
+<button onClick={() => setOpen(true)}>Open</button>
+
+// Bad — arrow for top-level export
+export const formatCurrency = (amount: number, currency: string): string => {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(amount);
+};
+```
+
+### Implicit Returns
+
+- Use implicit return for single-expression arrow functions
+- Switch to explicit return (with braces) when the expression spans multiple lines or has side effects
+
+```ts
+// Good — single expression, implicit return
+const double = (n: number) => n * 2;
+const names = users.map((u) => u.name);
+const isAdmin = (user: User) => user.role === "admin";
+
+// Good — multiline expression, explicit return
+const getFullName = (user: User) => {
+  return `${user.firstName} ${user.lastName}`;
+};
+
+// Good — side effect, explicit return
+const handleClick = (id: string) => {
+  track("clicked", { id });
+  setSelected(id);
+};
+
+// Bad — complex implicit return is hard to read
+const getUser = (id: string) => users.find((u) => u.id === id) ?? { id, name: "Unknown", role: "guest" as const };
+```
+
+### Function Length
+
+- Aim for max ~30 lines per function body
+- If a function exceeds 30 lines, extract helper functions
+- If a function has more than 2 levels of nesting, refactor
+
+### Single-Purpose Functions
+
+```ts
+// Good — each function does one thing
+function validateEmail(email: string): boolean {
+  return EMAIL_REGEX.test(email);
+}
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function processEmail(email: string): Result<string> {
+  const normalized = normalizeEmail(email);
+  if (!validateEmail(normalized)) {
+    return { ok: false, error: new Error("Invalid email") };
+  }
+  return { ok: true, data: normalized };
+}
+
+// Bad — one function doing validation + normalization + error handling + side effects
+function handleEmail(email: string): string {
+  // ... 50 lines of mixed concerns
+}
+```
+
+---
+
+## Object & Array Style
+
+### Property Shorthand
+
+- Use shorthand when the variable name matches the property name
+- Use explicit syntax when renaming or computing properties
+
+```ts
+// Good — shorthand for matching names
+const name = "Alice";
+const email = "alice@example.com";
+const user = { name, email, role: "admin" };
+
+// Good — explicit for renamed/different
+const user = {
+  displayName: rawName,
+  emailAddress: email,
+  createdAt: new Date(),
+};
+
+// Bad — redundant explicit
+const user = { name: name, email: email };
+```
+
+### Destructuring
+
+Use destructuring pragmatically — when it improves readability, not dogmatically.
+
+```ts
+// Good — destructure in function params
+function greet({ name, title }: User): string {
+  return `Hello, ${title} ${name}`;
+}
+
+// Good — destructure when accessing multiple properties
+const { data, error, isLoading } = useQuery({ queryKey: ["users"], queryFn: fetchUsers });
+
+// Good — dot access when only one property or when context matters
+const userName = response.data.user.name;
+logger.info(event.type);
+
+// Bad — destructuring when dot access is clearer
+const { data: { user: { name } } } = response; // deeply nested destructuring hurts readability
+```
+
+### Spread Patterns
+
+```ts
+// Good — shallow clone with override
+const updated = { ...user, name: "Bob" };
+
+// Good — merge arrays
+const allItems = [...existingItems, ...newItems];
+
+// Good — rest for excluding props
+const { password, ...safeUser } = user;
+
+// Bad — spread in a loop (performance issue)
+let result: Item[] = [];
+for (const batch of batches) {
+  result = [...result, ...batch]; // O(n^2)
+}
+
+// Good — use flat/concat instead
+const result = batches.flat();
+```
+
+### Array Methods
+
+```ts
+// Prefer declarative array methods
+const activeEmails = users
+  .filter((user) => user.isActive)
+  .map((user) => user.email);
+
+// Use reduce sparingly — prefer map/filter chains
+// Good — clear intent
+const total = items.reduce((sum, item) => sum + item.price, 0);
+
+// Bad — complex reduce that should be a loop
+const grouped = items.reduce((acc, item) => {
+  // ... 10 lines of grouping logic
+}, {});
+
+// Good — use a plain loop for complex accumulation
+const grouped: Record<string, Item[]> = {};
+for (const item of items) {
+  const key = item.category;
+  if (!grouped[key]) {
+    grouped[key] = [];
+  }
+  grouped[key].push(item);
+}
+
+// Good — use Object.groupBy when available
+const grouped = Object.groupBy(items, (item) => item.category);
+```
+
+### Multiline Formatting
+
+```ts
+// Objects: one property per line when 3+ properties or any line > 80 chars
+const config = {
+  apiUrl: "https://api.example.com",
+  timeout: 5000,
+  retries: 3,
+};
+
+// Short objects can be inline
+const point = { x: 10, y: 20 };
+
+// Arrays: inline if short, multiline if long
+const colors = ["red", "green", "blue"];
+
+const routes = [
+  { path: "/", component: Home },
+  { path: "/users", component: UserList },
+  { path: "/users/:id", component: UserDetail },
+];
+
+// Trailing commas always — makes diffs cleaner
+const user = {
+  name: "Alice",
+  email: "alice@example.com", // <-- trailing comma
+};
+```
+
+### Ternaries
+
+```ts
+// Good — simple ternary inline
+const label = isActive ? "Active" : "Inactive";
+
+// Good — multiline for longer expressions
+const message = hasPermission
+  ? "You can edit this resource"
+  : "Contact an admin for access";
+
+// Bad — nested ternaries
+const color = isError ? "red" : isWarning ? "yellow" : isSuccess ? "green" : "gray";
+
+// Good — use a lookup or function instead
+const STATUS_COLORS: Record<Status, string> = {
+  error: "red",
+  warning: "yellow",
+  success: "green",
+  default: "gray",
+};
+```
+
+---
+
 ## What This Skill Does NOT Cover
 
 - React-specific component patterns — see **react-typescript** skill
