@@ -2,9 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/detect.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 SECRETS_FOUND=0
 ENV_FILES_JSON=""
@@ -167,13 +165,13 @@ main() {
 
 	log_success "Security scan complete"
 
-	json_output $(json_obj_raw \
+	json_output "$(json_obj_raw \
 		"secrets_found" "$SECRETS_FOUND" \
 		"env_files_tracked" "[${ENV_FILES_JSON}]" \
 		"secret_patterns_found" "[${SECRET_PATTERNS_JSON}]" \
 		"scan_tool" "$(json_escape "$SCAN_TOOL")" \
 		"audit_output" "$(json_escape "$AUDIT_OUTPUT")" \
-		"audit_exit_code" "$AUDIT_EXIT_CODE")
+		"audit_exit_code" "$AUDIT_EXIT_CODE")"
 }
 
 main "$@"

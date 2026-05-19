@@ -2,9 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/detect.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 run_linter() {
 	local dir="${1:-.}"
@@ -89,13 +87,15 @@ run_linter() {
 }
 
 show_help() {
-	log_info "Usage: lint-check.sh [OPTIONS] [directory]"
-	log_info ""
-	log_info "Auto-detect linter and run lint check."
-	log_info ""
-	log_info "Options:"
-	log_info "  --fix     Auto-fix issues where supported"
-	log_info "  --help    Show this help message"
+	cat <<'EOF' >&2
+Usage: lint-check.sh [OPTIONS] [directory]
+
+Auto-detect linter and run lint check.
+
+Options:
+  --fix     Auto-fix issues where supported
+  --help    Show this help message
+EOF
 }
 
 main() {

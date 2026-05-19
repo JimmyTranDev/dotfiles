@@ -2,9 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/git.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 build_commits_json() {
 	local dir="$1"
@@ -27,12 +25,16 @@ build_files_json() {
 	local base="$2"
 	local current="$3"
 
+	local -A status_map
+	while IFS=$'\t' read -r status path; do
+		[[ -z "$path" ]] && continue
+		status_map["$path"]="$status"
+	done < <(git -C "$dir" diff --name-status "$base...$current" 2>/dev/null || true)
+
 	local files_arr=()
 	while IFS=$'\t' read -r ins del path; do
 		[[ -z "$path" ]] && continue
-		local status
-		status=$(git -C "$dir" diff --name-status "$base...$current" -- "$path" 2>/dev/null | head -1 | cut -f1 || echo "M")
-		[[ -z "$status" ]] && status="M"
+		local status="${status_map[$path]:-M}"
 		ins="${ins//-/0}"
 		del="${del//-/0}"
 		local obj

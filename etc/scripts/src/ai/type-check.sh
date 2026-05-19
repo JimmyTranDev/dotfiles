@@ -2,9 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
-source "$SCRIPT_DIR/../../utils/detect.sh"
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 run_type_checker() {
 	local dir="$1"

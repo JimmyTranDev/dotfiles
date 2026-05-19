@@ -2,9 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/detect.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 detect_project_type() {
 	local dir="${1:-.}"
@@ -181,12 +179,14 @@ list_key_files() {
 }
 
 show_help() {
-	log_info "Usage: detect-stack.sh [directory]"
-	log_info ""
-	log_info "Full tech stack detection. Outputs JSON to stdout."
-	log_info ""
-	log_info "Options:"
-	log_info "  --help    Show this help message"
+	cat <<'EOF' >&2
+Usage: detect-stack.sh [directory]
+
+Full tech stack detection. Outputs JSON to stdout.
+
+Options:
+  --help    Show this help message
+EOF
 }
 
 main() {
@@ -216,15 +216,12 @@ main() {
 	css_framework=$(detect_css_framework "$dir")
 	database=$(detect_database "$dir")
 
-	local key_files_raw
-	IFS=',' read -ra key_files_raw <<<"$(list_key_files "$dir")"
-	# Remove empty entries
-	local key_files_clean=()
-	for kf in "${key_files_raw[@]}"; do
-		[[ -n "$kf" ]] && key_files_clean+=("$kf")
-	done
+	local key_files_raw=()
+	while IFS= read -r kf; do
+		[[ -n "$kf" ]] && key_files_raw+=("$kf")
+	done < <(list_key_files "$dir" | tr ' ' '\n')
 	local key_files_json
-	key_files_json=$(json_arr "${key_files_clean[@]}")
+	key_files_json=$(json_arr "${key_files_raw[@]}")
 
 	local git_branch="null"
 	if [[ -d "$dir/.git" ]] || [[ -f "$dir/.git" ]]; then

@@ -2,18 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
-source "$SCRIPT_DIR/../../utils/utility.sh"
-
-WORKTREE_ROOT_DEFAULT="$HOME/Programming/wcreated"
-
-check_gh() {
-	if ! command -v gh &>/dev/null; then
-		log_error "gh CLI is required but not installed"
-		return 1
-	fi
-}
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 get_branch_from_worktree() {
 	local worktree_path="$1"
@@ -121,7 +110,7 @@ show_help() {
 }
 
 main() {
-	local worktree_root="$WORKTREE_ROOT_DEFAULT"
+	local worktree_root="$WORKTREE_ROOT"
 
 	while [[ $# -gt 0 ]]; do
 		case "$1" in
@@ -141,7 +130,7 @@ main() {
 		esac
 	done
 
-	check_gh
+	require_command "gh" "brew install gh"
 	recover_worktrees "$worktree_root"
 }
 

@@ -17,6 +17,8 @@ find_base_branch() {
 	return 1
 }
 
+WORKTREE_ROOT="${WORKTREE_ROOT:-$HOME/Programming/wcreated}"
+
 require_git_repo() {
 	local dir="${1:-.}"
 

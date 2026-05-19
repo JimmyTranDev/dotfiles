@@ -2,8 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 show_help() {
 	cat <<'EOF'
@@ -58,11 +57,11 @@ generate_fms_export() {
 
 	if [[ -z "$new_keys" ]]; then
 		log_warning "No new FMS keys found in git diff"
-		json_output $(json_obj_raw \
+		json_output "$(json_obj_raw \
 			"keys_found" "0" \
 			"new_keys" "[]" \
 			"output_file" "$(json_escape "")" \
-			"check_only" "$check_only")
+			"check_only" "$check_only")"
 		exit 0
 	fi
 
@@ -86,30 +85,26 @@ generate_fms_export() {
 	if [[ "$check_only" != "true" ]]; then
 		outfile="$dir/fms.json"
 
-		python3 -c "
-import json, sys
-
-keys = sys.stdin.read().strip().split('\n')
-no = json.load(open('$no_file'))
-en = json.load(open('$en_file'))
-
-result = [{'key': k, 'no': no.get(k, ''), 'en': en.get(k, '')} for k in keys]
-
-with open('$outfile', 'w') as f:
-    json.dump(result, f, indent=2, ensure_ascii=False)
-    f.write('\n')
-" <<<"$new_keys"
+		jq -n \
+			--rawfile keys_data /dev/stdin \
+			--slurpfile no_data "$no_file" \
+			--slurpfile en_data "$en_file" '
+			($keys_data | split("\n") | map(select(length > 0))) as $keys |
+			$no_data[0] as $no |
+			$en_data[0] as $en |
+			[$keys[] | {key: ., no: ($no[.] // ""), en: ($en[.] // "")}]
+		' <<<"$new_keys" >"$outfile"
 
 		log_success "Generated $outfile with $count new keys"
 	else
 		log_info "Check-only mode: found $count new FMS keys"
 	fi
 
-	json_output $(json_obj_raw \
+	json_output "$(json_obj_raw \
 		"keys_found" "$count" \
 		"new_keys" "[${keys_json}]" \
 		"output_file" "$(json_escape "$outfile")" \
-		"check_only" "$check_only")
+		"check_only" "$check_only")"
 }
 
 main() {

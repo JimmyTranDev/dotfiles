@@ -2,9 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
-source "$SCRIPT_DIR/../../utils/detect.sh"
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 run_build() {
 	local dir="$1"
@@ -66,7 +64,7 @@ run_build() {
 
 	local exit_code=0
 	SECONDS=0
-	(cd "$dir" && eval "$cmd") >&2 2>&1 || exit_code=$?
+	(cd "$dir" && eval "$cmd") 2>&1 >&2 || exit_code=$?
 	local duration=$SECONDS
 
 	json_output "$(json_obj_raw \

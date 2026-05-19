@@ -2,8 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 TOTAL_ERRORS=0
 TOTAL_WARNINGS=0
@@ -239,31 +238,22 @@ main() {
 		log_error "Found $TOTAL_ERRORS error(s) and $TOTAL_WARNINGS warning(s)"
 	fi
 
-	local errors_json=""
-	local warnings_json=""
+	local errors_json="[]"
+	local warnings_json="[]"
 	if [[ -n "$ISSUES_JSON" ]]; then
-		errors_json=$(printf '%s' "$ISSUES_JSON" | python3 -c "
-import json, sys
-items = json.loads('[' + sys.stdin.read() + ']')
-errors = [i for i in items if i['type'] == 'error']
-warnings = [i for i in items if i['type'] == 'warning']
-print(json.dumps(errors, separators=(',',':')) + '|' + json.dumps(warnings, separators=(',',':')))
-" 2>/dev/null)
-		warnings_json="${errors_json#*|}"
-		errors_json="${errors_json%%|*}"
-	else
-		errors_json="[]"
-		warnings_json="[]"
+		local all_issues="[$ISSUES_JSON]"
+		errors_json=$(printf '%s' "$all_issues" | jq -c '[.[] | select(.type == "error")]')
+		warnings_json=$(printf '%s' "$all_issues" | jq -c '[.[] | select(.type == "warning")]')
 	fi
 
-	json_output $(json_obj_raw \
+	json_output "$(json_obj_raw \
 		"total_errors" "$TOTAL_ERRORS" \
 		"total_warnings" "$TOTAL_WARNINGS" \
 		"errors" "$errors_json" \
 		"warnings" "$warnings_json" \
 		"skills_count" "$SKILLS_COUNT" \
 		"commands_count" "$COMMANDS_COUNT" \
-		"agents_count" "$AGENTS_COUNT")
+		"agents_count" "$AGENTS_COUNT")"
 }
 
 main "$@"

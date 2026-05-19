@@ -2,15 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
-
-check_gh() {
-	if ! command -v gh &>/dev/null; then
-		log_error "gh CLI is required but not installed"
-		return 1
-	fi
-}
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 list_prs() {
 	local mine="${1:-false}"
@@ -56,13 +48,15 @@ list_prs() {
 }
 
 show_help() {
-	log_info "Usage: pr-status.sh [OPTIONS]"
-	log_info ""
-	log_info "List open PRs with check/review/merge status."
-	log_info ""
-	log_info "Options:"
-	log_info "  --mine    Filter to current user's PRs only"
-	log_info "  --help    Show this help message"
+	cat <<'EOF' >&2
+Usage: pr-status.sh [OPTIONS]
+
+List open PRs with check/review/merge status.
+
+Options:
+  --mine    Filter to current user's PRs only
+  --help    Show this help message
+EOF
 }
 
 main() {
@@ -82,7 +76,7 @@ main() {
 		esac
 	done
 
-	check_gh
+	require_command "gh" "brew install gh"
 	list_prs "$mine"
 }
 

@@ -229,6 +229,19 @@ detect_type_checker() {
 	echo "none"
 }
 
+require_command() {
+	local cmd="$1"
+	local hint="${2:-}"
+	if ! command -v "$cmd" &>/dev/null; then
+		local msg="Required command '$cmd' not found"
+		if [[ -n "$hint" ]]; then
+			msg="$msg. Install: $hint"
+		fi
+		echo "$msg" >&2
+		return 1
+	fi
+}
+
 detect_build_command() {
 	local dir="${1:-.}"
 

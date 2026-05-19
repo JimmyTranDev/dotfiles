@@ -2,15 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
-
-check_gh() {
-	if ! command -v gh &>/dev/null; then
-		log_error "gh CLI is required but not installed"
-		return 1
-	fi
-}
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 get_pr_number() {
 	local dir="$1"
@@ -114,7 +106,7 @@ main() {
 		esac
 	done
 
-	check_gh
+	require_command "gh" "brew install gh"
 
 	if [[ -z "$pr_num" ]]; then
 		pr_num=$(get_pr_number "$dir")

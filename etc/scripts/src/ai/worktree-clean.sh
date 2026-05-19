@@ -2,16 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
-source "$SCRIPT_DIR/../../utils/git.sh"
-
-check_gh() {
-	if ! command -v gh &>/dev/null; then
-		log_error "gh CLI is required but not installed"
-		return 1
-	fi
-}
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 get_pr_state() {
 	local branch="$1"
@@ -37,12 +28,12 @@ scan_worktrees() {
 
 	if [[ ! -d "$worktree_root" ]]; then
 		log_error "Worktree root does not exist: $worktree_root"
-		json_output $(json_obj_raw \
+		json_output "$(json_obj_raw \
 			"worktree_root" "$(json_escape "$worktree_root")" \
 			"total" "0" \
 			"cleaned" "0" \
 			"stale" "[]" \
-			"active" "[]")
+			"active" "[]")"
 		return 0
 	fi
 
@@ -126,14 +117,17 @@ scan_worktrees() {
 }
 
 show_help() {
-	echo "Usage: worktree-clean.sh [--dry-run] [--dir <worktree-root>]"
-	echo ""
-	echo "Scan and clean stale git worktrees as JSON."
-	echo ""
-	echo "Options:"
-	echo "  --dry-run              List stale worktrees without removing"
-	echo "  --dir <worktree-root>  Worktree root directory (default: ~/Programming/wcreated)"
-	echo "  --help                 Show this help message"
+	cat <<'EOF' >&2
+Usage: worktree-clean.sh [--dry-run] [--execute] [--dir <worktree-root>]
+
+Scan and clean stale git worktrees as JSON.
+
+Options:
+  --dry-run              List stale worktrees without removing (default)
+  --execute              Actually remove stale worktrees
+  --dir <worktree-root>  Worktree root directory (default: ~/Programming/wcreated)
+  --help                 Show this help message
+EOF
 }
 
 main() {
@@ -150,6 +144,10 @@ main() {
 			dry_run="true"
 			shift
 			;;
+		--execute)
+			dry_run="false"
+			shift
+			;;
 		--dir)
 			worktree_root="$2"
 			shift 2
@@ -160,7 +158,7 @@ main() {
 		esac
 	done
 
-	check_gh
+	require_command "gh" "brew install gh"
 	scan_worktrees "$worktree_root" "$dry_run"
 }
 

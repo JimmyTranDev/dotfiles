@@ -2,9 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/detect.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 run_tests() {
 	local dir="${1:-.}"
@@ -88,9 +86,11 @@ main() {
 	while [[ $# -gt 0 ]]; do
 		case "$1" in
 		--help)
-			log_info "Usage: run-tests.sh [directory]"
-			log_info ""
-			log_info "Auto-detect test framework and run tests."
+			cat <<'EOF' >&2
+Usage: run-tests.sh [directory]
+
+Auto-detect test framework and run tests.
+EOF
 			exit 0
 			;;
 		*)

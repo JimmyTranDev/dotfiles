@@ -2,9 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/detect.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 install_node() {
 	local dir="${1:-.}"
@@ -122,13 +120,15 @@ install_rust() {
 }
 
 show_help() {
-	log_info "Usage: install-deps.sh [OPTIONS] [directory]"
-	log_info ""
-	log_info "Auto-detect package manager and install dependencies."
-	log_info ""
-	log_info "Options:"
-	log_info "  --frozen    Use lockfile-only install (CI mode)"
-	log_info "  --help      Show this help message"
+	cat <<'EOF' >&2
+Usage: install-deps.sh [OPTIONS] [directory]
+
+Auto-detect package manager and install dependencies.
+
+Options:
+  --frozen    Use lockfile-only install (CI mode)
+  --help      Show this help message
+EOF
 }
 
 main() {

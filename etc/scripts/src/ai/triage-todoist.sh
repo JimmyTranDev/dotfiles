@@ -2,15 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
-
-check_td() {
-	if ! command -v td &>/dev/null; then
-		log_error "td CLI is required but not installed"
-		return 1
-	fi
-}
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 extract_section_id() {
 	local url="$1"
@@ -129,7 +121,7 @@ main() {
 		return 1
 	fi
 
-	check_td
+	require_command "td" "pip install todoist-cli"
 	fetch_tasks "$section_url" "$priority"
 }
 

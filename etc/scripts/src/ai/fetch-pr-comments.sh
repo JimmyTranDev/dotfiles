@@ -2,8 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 show_help() {
 	cat <<'EOF'
@@ -66,49 +65,55 @@ fetch_comments() {
 	local pr_comments
 	pr_comments=$(gh pr view "$pr_number" --json comments,reviews 2>/dev/null || echo '{"comments":[],"reviews":[]}')
 
-	python3 -c "
-import json, sys
+	local result
+	result=$(jq -n \
+		--argjson inline "$inline_comments" \
+		--argjson pr_data "$pr_comments" \
+		--argjson include_resolved "$(if [[ "$include_resolved" == "true" ]]; then echo "true"; else echo "false"; fi)" \
+		--argjson pr_num "$pr_number" '
+		{
+			pr_number: $pr_num,
+			count: 0,
+			comments: []
+		} | .comments = (
+			[
+				($inline | if type == "array" then .[] else empty end |
+					select(type == "object") |
+					{
+						resolved: ((.position == null) and (.line == null)),
+						data: .
+					} |
+					select($include_resolved or (.resolved | not)) |
+					{
+						type: "inline",
+						reviewer: (.data.user.login // "unknown"),
+						file: (.data.path // ""),
+						line: (.data.line // .data.original_line // 0),
+						body: (.data.body // ""),
+						state: (if .resolved then "resolved" else "pending" end),
+						url: (.data.html_url // ""),
+						created_at: (.data.created_at // "")
+					}
+				),
+				($pr_data.reviews // [] | .[] |
+					select(type == "object") |
+					select(.body != null and .body != "") |
+					{
+						type: "review",
+						reviewer: (.author.login // "unknown"),
+						file: "",
+						line: 0,
+						body: (.body // ""),
+						state: ((.state // "PENDING") | ascii_downcase),
+						url: "",
+						created_at: (.submittedAt // "")
+					}
+				)
+			]
+		) | .count = (.comments | length)
+	')
 
-inline = json.loads('''$inline_comments''') if '''$inline_comments''' != '[]' else []
-pr_data = json.loads('''$pr_comments''')
-include_resolved = '$include_resolved' == 'true'
-pr_number = int('$pr_number')
-
-results = []
-
-for c in inline:
-    if isinstance(c, dict):
-        resolved = c.get('position') is None and c.get('line') is None
-        if not include_resolved and resolved:
-            continue
-        results.append({
-            'type': 'inline',
-            'reviewer': c.get('user', {}).get('login', 'unknown'),
-            'file': c.get('path', ''),
-            'line': c.get('line') or c.get('original_line', 0),
-            'body': c.get('body', ''),
-            'state': 'resolved' if resolved else 'pending',
-            'url': c.get('html_url', ''),
-            'created_at': c.get('created_at', '')
-        })
-
-for r in pr_data.get('reviews', []):
-    if isinstance(r, dict) and r.get('body'):
-        results.append({
-            'type': 'review',
-            'reviewer': r.get('author', {}).get('login', 'unknown'),
-            'file': '',
-            'line': 0,
-            'body': r.get('body', ''),
-            'state': r.get('state', 'PENDING').lower(),
-            'url': '',
-            'created_at': r.get('submittedAt', '')
-        })
-
-output = {'pr_number': pr_number, 'count': len(results), 'comments': results}
-print(json.dumps(output, separators=(',', ':')))
-" 2>/dev/null
-
+	printf '%s\n' "$result"
 }
 
 main() {

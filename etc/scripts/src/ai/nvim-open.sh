@@ -1,9 +1,8 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 DESCRIPTION="Open files in an existing nvim instance or start a new one"
 
@@ -76,10 +75,10 @@ main() {
 		for file in "$@"; do
 			nvim --server "${NVIM}" --remote "$(realpath "${file}")"
 		done
-		json_output $(json_obj_raw \
+		json_output "$(json_obj_raw \
 			"opened" "true" \
 			"files" "[${files_json}]" \
-			"mode" "$(json_escape "$mode")")
+			"mode" "$(json_escape "$mode")")"
 		return
 	fi
 
@@ -92,20 +91,20 @@ main() {
 		for file in "$@"; do
 			nvim --server "${socket}" --remote "$(realpath "${file}")"
 		done
-		json_output $(json_obj_raw \
+		json_output "$(json_obj_raw \
 			"opened" "true" \
 			"files" "[${files_json}]" \
-			"mode" "$(json_escape "$mode")")
+			"mode" "$(json_escape "$mode")")"
 		return
 	fi
 
 	mode="new"
 	log_info "No running nvim found, starting new instance"
 	nvim "$@"
-	json_output $(json_obj_raw \
+	json_output "$(json_obj_raw \
 		"opened" "true" \
 		"files" "[${files_json}]" \
-		"mode" "$(json_escape "$mode")")
+		"mode" "$(json_escape "$mode")")"
 }
 
 main "$@"

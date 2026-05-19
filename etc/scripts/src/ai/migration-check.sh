@@ -2,8 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 detect_migration_tool() {
 	local dir="$1"
@@ -60,11 +59,11 @@ scan_migrations() {
 	local detection
 	detection=$(detect_migration_tool "$dir") || {
 		log_error "No migration framework detected in $dir"
-		json_output $(json_obj_raw \
+		json_output "$(json_obj_raw \
 			"migration_tool" "$(json_escape "unknown")" \
 			"migration_dir" "$(json_escape "$dir")" \
 			"total_files" "0" \
-			"files" "[]")
+			"files" "[]")"
 		return 0
 	}
 

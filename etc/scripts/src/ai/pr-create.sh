@@ -2,18 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
-source "$SCRIPT_DIR/../../utils/json.sh"
-source "$SCRIPT_DIR/../../utils/git.sh"
-
-WORKTREE_ROOT="$HOME/Programming/wcreated"
-
-check_gh() {
-	if ! command -v gh &>/dev/null; then
-		log_error "gh CLI is required but not installed"
-		return 1
-	fi
-}
+source "$SCRIPT_DIR/../../utils/common.sh"
 
 create_pr() {
 	local branch="$1"
@@ -50,12 +39,14 @@ create_pr() {
 	fi
 
 	log_info "Creating PR..."
+	local pr_url
+	pr_url=$(gh "${gh_args[@]}" 2>/dev/null)
+
 	local pr_json
-	pr_json=$(gh "${gh_args[@]}" --json number,url 2>/dev/null)
+	pr_json=$(gh pr view "$branch" --json number,url 2>/dev/null)
 
 	local pr_number
 	pr_number=$(echo "$pr_json" | jq -r '.number')
-	local pr_url
 	pr_url=$(echo "$pr_json" | jq -r '.url')
 
 	json_output "$(json_obj_raw \
@@ -127,7 +118,7 @@ main() {
 		exit 1
 	fi
 
-	check_gh
+	require_command "gh" "brew install gh"
 	create_pr "$branch" "$title" "$body" "$base" "$draft"
 }
 
