@@ -1,0 +1,115 @@
+local git_actions = require('custom.actions.git')
+
+return {
+  'tpope/vim-fugitive',
+  event = 'VeryLazy',
+  dependencies = {
+    'akinsho/nvim-toggleterm.lua',
+  },
+  keys = {
+    { mode = 'n', '<Leader>ghc', git_actions.create_pr_from_branch, desc = '󰊤 Create PR from branch', silent = true },
+    -- { mode = 'n', '<Leader>ghP', github_actions.select_and_open_pr, desc = '󰊤 View Repo Summary', silent = true },
+    -- { mode = 'n', '<Leader>ghp', github_actions.open_current_repo_prs, desc = '󰊤 View PRs in Current Repo', silent = true },
+
+    { mode = 'n', '<Leader>gf', ':Git fetch --prune --all<CR>', desc = '󰏫 Fetch prune', silent = true },
+    { mode = 'n', '<Leader>gl', ':split <Bar> :terminal git --no-pager log<CR>', desc = '󰋫 Log All', silent = true },
+    { mode = 'n', '<Leader>gs', ':Git status<CR>', desc = '󰘻 Status', silent = true },
+    -- { mode = 'n', '<Leader>gv', git_actions.git_add_patch(), desc = '󰜘 Git add patch', silent = true },
+    -- { mode = 'n', '<Leader>gp', git_actions.git_add_patch('--ignore-all-space'), desc = '󰜘 Git add patch ignore whitespace', silent = true },
+
+    -- { mode = 'n', '<Leader>ghh', git_actions.stash_all_changes, desc = '󰘻 Stash all changes', silent = true },
+    -- { mode = 'n', '<Leader>ghk', git_actions.stash_keep_changes, desc = '󰘻 Stash keeping staged changes', silent = true },
+    -- { mode = 'n', '<Leader>ghH', git_actions.select_and_pop_stash, desc = '󰘻 Select and pop stash', silent = true },
+
+    -- { mode = 'n', '<Leader>gS', git_actions.open_or_create_pull_request, desc = '󰊤 Open GitHub PR', silent = true },
+    -- { mode = 'n', '<Leader>gI', git_actions.init_repo_and_push, desc = '󰜘 Init repo, create private GitHub repo & push', silent = true },
+    { mode = 'n', '<Leader>gF', ':Git push --force-with-lease<CR>', desc = '󰏫 Push force', silent = true },
+    { mode = 'n', '<Leader>gH', ':Git branch -D holding <Bar> Git branch holding<CR>', desc = '󰘬 Recreate holding branch', silent = true },
+    { mode = 'n', '<Leader>gM', ':Git commit --amend --no-verify --no-edit<CR>', desc = '󰜘 Amend', silent = true },
+    { mode = 'n', '<Leader>gP', ':Git push<CR>', desc = '󰏫 Push', silent = true },
+    -- { mode = 'n', '<Leader>gV', ':Git add .<CR>', desc = '󰜘 Add all', silent = true },
+
+    {
+      mode = 'n',
+      '<Leader>gym',
+      ':Git commit --amend --no-verify --no-edit <Bar> :Git push --force-with-lease<CR>',
+      desc = '󰜘 Amend and push',
+      silent = true,
+    },
+    {
+      mode = 'n',
+      '<Leader>gyy',
+      function()
+        vim.cmd('Git add .')
+        git_actions.quick_commit_update()
+        vim.cmd('Git push')
+      end,
+      desc = '󰜘 Commit and push',
+      silent = true,
+    },
+
+    -- { mode = 'n', '<Leader>grC', git_actions.reset_all_with_confirm, desc = '󰑓 Reset ALL with confirm', silent = true },
+    -- { mode = 'n', '<Leader>grr', ':Git reset .<CR>', desc = '󰑓 Reset patch', silent = true },
+    -- { mode = 'n', '<Leader>grR', git_actions.reset_to_reflog, desc = '󰑓 Reset to reflog', silent = true },
+    -- { mode = 'n', '<Leader>grX', ':Git clean -fd<CR>', desc = '󰑓 Remove all unstaged files', silent = true },
+
+    -- { mode = 'n', '<Leader>gbP', ':Git pull --rebase<CR>', desc = '󰏫 Branch pull rebase', silent = true },
+    -- { mode = 'n', '<Leader>gbM', ':Git pull --no-rebase<CR>', desc = '󰏫 Branch pull merge', silent = true },
+    -- { mode = 'n', '<Leader>gbp', ':Git pull<CR>', desc = '󰏫 Branch pull', silent = true },
+    -- { mode = 'n', '<Leader>gbO', git_actions.rebase_choose_ours, desc = '󰜘 Rebase choose ours', silent = true },
+
+    -- { mode = 'n', '<Leader>gnC', git_actions.create_branch('ci'), desc = '󰘬 Branch CI' },
+    -- { mode = 'n', '<Leader>gnb', git_actions.create_branch('build'), desc = '󰘬 Branch Build' },
+    -- { mode = 'n', '<Leader>gnc', git_actions.create_branch('chore'), desc = '󰘬 Branch Chore' },
+    -- { mode = 'n', '<Leader>gnd', git_actions.create_branch('docs'), desc = '󰘬 Branch Docs' },
+    -- { mode = 'n', '<Leader>gnf', git_actions.create_branch('feature'), desc = '󰘬 Branch Feature' },
+    -- { mode = 'n', '<Leader>gnp', git_actions.create_branch('perf'), desc = '󰘬 Branch Perf' },
+    -- { mode = 'n', '<Leader>gnr', git_actions.create_branch('refactor'), desc = '󰘬 Branch Refactor' },
+    -- { mode = 'n', '<Leader>gns', git_actions.create_branch('style'), desc = '󰘬 Branch Style' },
+    -- { mode = 'n', '<Leader>gnt', git_actions.create_branch('test'), desc = '󰘬 Branch Test' },
+    -- { mode = 'n', '<Leader>gnF', git_actions.create_branch('fix'), desc = '󰘬 Branch Fix' },
+    -- { mode = 'n', '<Leader>gnR', git_actions.create_branch('revert'), desc = '󰘬 Branch Revert' },
+
+    { mode = 'n', '<Leader>gCa', git_actions.create_commit('ci', '', true), desc = '󰜘 Commit actions' },
+    { mode = 'n', '<Leader>gCb', git_actions.create_commit('build', '', true), desc = '󰜘 Commit build' },
+    { mode = 'n', '<Leader>gCc', git_actions.create_commit('chore', '', true), desc = '󰜘 Commit chore' },
+    { mode = 'n', '<Leader>gCd', git_actions.create_commit('docs', '', true), desc = '󰜘 Commit docs' },
+    { mode = 'n', '<Leader>gCf', git_actions.create_commit('feat', '', true), desc = '󰜘 Commit feat' },
+    { mode = 'n', '<Leader>gCn', git_actions.create_commit(nil, nil, true), desc = '󰜘 Commit none' },
+    { mode = 'n', '<Leader>gCp', git_actions.create_commit('perf', '', true), desc = '󰜘 Commit perf' },
+    { mode = 'n', '<Leader>gCr', git_actions.create_commit('refactor', '', true), desc = '󰜘 Commit refactor' },
+    { mode = 'n', '<Leader>gCs', git_actions.create_commit('style', '', true), desc = '󰜘 Commit style' },
+    { mode = 'n', '<Leader>gCt', git_actions.create_commit('test', '', true), desc = '󰜘 Commit test' },
+    { mode = 'n', '<Leader>gCF', git_actions.create_commit('fix', '', true), desc = '󰜘 Commit fix' },
+    { mode = 'n', '<Leader>gCR', git_actions.create_commit('revert', '', true), desc = '󰜘 Commit revert' },
+    { mode = 'n', '<Leader>gCu', git_actions.create_commit('feat', '', true, true), desc = '󰜘 Commit update' },
+    { mode = 'n', '<Leader>gcy', git_actions.quick_commit_update, desc = '󰜘 Quick commit update', silent = true },
+
+    { mode = 'n', '<Leader>gca', git_actions.create_commit('ci', ''), desc = '󰜘 Commit actions' },
+    { mode = 'n', '<Leader>gcb', git_actions.create_commit('build', ''), desc = '󰜘 Commit build' },
+    { mode = 'n', '<Leader>gcc', git_actions.create_commit('chore', ''), desc = '󰜘 Commit chore' },
+    { mode = 'n', '<Leader>gcd', git_actions.create_commit('docs', ''), desc = '󰜘 Commit docs' },
+    { mode = 'n', '<Leader>gcf', git_actions.create_commit('feat', ''), desc = '󰜘 Commit feat' },
+    { mode = 'n', '<Leader>gcn', git_actions.create_commit(), desc = '󰜘 Commit none' },
+    { mode = 'n', '<Leader>gcp', git_actions.create_commit('perf', ''), desc = '󰜘 Commit perf' },
+    { mode = 'n', '<Leader>gcr', git_actions.create_commit('refactor', ''), desc = '󰜘 Commit refactor' },
+    { mode = 'n', '<Leader>gcs', git_actions.create_commit('style', ''), desc = '󰜘 Commit style' },
+    { mode = 'n', '<Leader>gct', git_actions.create_commit('test', ''), desc = '󰜘 Commit test' },
+    { mode = 'n', '<Leader>gcF', git_actions.create_commit('fix', ''), desc = '󰜘 Commit fix' },
+    { mode = 'n', '<Leader>gcR', git_actions.create_commit('revert', ''), desc = '󰜘 Commit revert' },
+    { mode = 'n', '<Leader>gcu', git_actions.create_commit('feat', '', false, true), desc = '󰜘 Commit update' },
+    { mode = 'n', '<Leader>gcx', git_actions.create_commit_from_branch_name, desc = '󰜘 Commit from branch name', silent = true },
+    { mode = 'n', '<Leader>gco', function() vim.cmd("TermExec5 cmd='opencode /commit'") end, desc = '󰌪 OpenCode commit', silent = true },
+
+    -- { mode = 'n', '<Leader>gwa', git_actions.create_worktree('ci'), desc = '󰘴 Worktree CI' },
+    -- { mode = 'n', '<Leader>gwb', git_actions.create_worktree('build'), desc = '󰘴 Worktree Build' },
+    -- { mode = 'n', '<Leader>gwd', git_actions.create_worktree('docs'), desc = '󰘴 Worktree Docs' },
+    -- { mode = 'n', '<Leader>gwf', git_actions.create_worktree('feature'), desc = '󰘴 Worktree Feature' },
+    -- { mode = 'n', '<Leader>gwp', git_actions.create_worktree('perf'), desc = '󰘴 Worktree Perf' },
+    -- { mode = 'n', '<Leader>gwr', git_actions.create_worktree('refactor'), desc = '󰘴 Worktree Refactor' },
+    -- { mode = 'n', '<Leader>gws', git_actions.create_worktree('style'), desc = '󰘴 Worktree Style' },
+    -- { mode = 'n', '<Leader>gwt', git_actions.create_worktree('test'), desc = '󰘴 Worktree Test' },
+    -- { mode = 'n', '<Leader>gwF', git_actions.create_worktree('fix'), desc = '󰘴 Worktree Fix' },
+    -- { mode = 'n', '<Leader>gwR', git_actions.create_worktree('revert'), desc = '󰘴 Worktree Revert' },
+  },
+}

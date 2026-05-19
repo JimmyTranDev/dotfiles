@@ -20,16 +20,10 @@ main() {
 		log_info "Oh My Zsh already installed"
 	fi
 
-	if [ ! -d "$HOME/Programming/JimmyTranDev/nvim" ]; then
-		log_info "Cloning nvim configuration..."
-		mkdir -p "$HOME/Programming/JimmyTranDev"
-		if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
-			git clone git@github.com:JimmyTranDev/nvim-config.git "$HOME/Programming/JimmyTranDev/nvim"
-		else
-			git clone https://github.com/JimmyTranDev/nvim-config.git "$HOME/Programming/JimmyTranDev/nvim"
-		fi
+	if [ ! -d "$DOTFILES_ROOT/src/nvim" ]; then
+		log_warning "Nvim config not found at $DOTFILES_ROOT/src/nvim — it should be part of dotfiles"
 	else
-		log_info "Nvim config already exists"
+		log_info "Nvim config exists in dotfiles"
 	fi
 
 	log_info "Syncing symbolic links..."

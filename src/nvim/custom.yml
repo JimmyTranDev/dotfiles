@@ -1,0 +1,5 @@
+---
+name: custom
+globals:
+  Snacks:
+    any: true

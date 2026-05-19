@@ -1,0 +1,24 @@
+# .stylua.toml — Neovim Lua style
+
+# Code width
+column_width = 160
+
+# Indentation
+indent_type = "Spaces"
+indent_width = 2
+
+# Line endings
+line_endings = "Unix"
+
+# Quotes
+quote_style = "AutoPreferSingle"
+
+# Function call parentheses
+call_parentheses = "Input"
+
+# Collapse simple statements when they fit comfortably
+collapse_simple_statement = "Always"
+
+# Never auto-sort requires (order matters in Neovim configs)
+[sort_requires]
+enabled = false

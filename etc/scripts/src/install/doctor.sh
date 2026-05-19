@@ -164,7 +164,7 @@ main() {
 	REQUIRED_DIRS=(
 		"$HOME/Programming:Programming directory"
 		"$DOTFILES_ROOT:Dotfiles repository"
-		"$HOME/Programming/JimmyTranDev/nvim:Neovim config"
+		"$DOTFILES_ROOT/src/nvim:Neovim config"
 	)
 
 	for dir_entry in "${REQUIRED_DIRS[@]}"; do

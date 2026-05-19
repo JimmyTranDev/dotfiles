@@ -38,7 +38,7 @@ dotfiles/
 
 ## How Symlinks Work
 
-`etc/scripts/src/install/sync_links.sh` maps each `src/` entry to its destination via `ln -s`. Run it directly or via `install.sh`. Platform detection (`uname`) determines which links apply (macOS includes skhd/yabai/ghostty/Brewfile; Linux includes hypr). Neovim config lives in a separate repo at `~/Programming/JimmyTranDev/nvim` and is linked to `~/.config/nvim`.
+`etc/scripts/src/install/sync_links.sh` maps each `src/` entry to its destination via `ln -s`. Run it directly or via `install.sh`. Platform detection (`uname`) determines which links apply (macOS includes skhd/yabai/ghostty/Brewfile; Linux includes hypr). Neovim config lives at `src/nvim` and is linked to `~/.config/nvim`.
 
 ## Working with This Repo
 

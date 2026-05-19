@@ -1,0 +1,8 @@
+std = "vim+custom"
+
+[lints]
+bad_string_escape = "allow"
+global_usage = "allow"
+mixed_table = "allow"
+multiple_statements = "allow"
+unscoped_variables = "allow"

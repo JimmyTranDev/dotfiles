@@ -7,7 +7,7 @@ Usage: /learn-nvim [specific topic or "all" or "--dry-run"]
 
 $ARGUMENTS
 
-Analyze the current conversation for reusable learnings about Neovim and update the relevant configuration files in `~/Programming/JimmyTranDev/nvim`.
+Analyze the current conversation for reusable learnings about Neovim and update the relevant configuration files in `~/Programming/JimmyTranDev/dotfiles/src/nvim`.
 
 ## Workflow
 
@@ -54,7 +54,7 @@ Analyze the current conversation for reusable learnings about Neovim and update 
    If the file already exists (multiple runs on same day), append a numeric suffix (e.g., `learn-nvim-2025-01-15-2.md`).
 
 6. Apply approved learnings (unless `--dry-run`):
-   - For AGENTS.md: create or update `~/Programming/JimmyTranDev/nvim/AGENTS.md`
+   - For AGENTS.md: create or update `~/Programming/JimmyTranDev/dotfiles/src/nvim/AGENTS.md`
    - For plugin/module notes: update the relevant lua file
    - Follow the conventions from **meta-skill-learnings**
 
@@ -67,7 +67,7 @@ If `$ARGUMENTS` contains `--dry-run`:
 
 ## Target Repository
 
-All changes target `~/Programming/JimmyTranDev/nvim` unless the learning is cross-cutting (then escalate to dotfiles AGENTS.md).
+All changes target `~/Programming/JimmyTranDev/dotfiles/src/nvim` unless the learning is cross-cutting (then escalate to dotfiles AGENTS.md).
 
 ## AGENTS.md Structure
 
