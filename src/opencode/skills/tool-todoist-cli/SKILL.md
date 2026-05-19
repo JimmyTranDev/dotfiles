@@ -22,7 +22,11 @@ td auth status          # check auth
 td auth logout          # remove token
 ```
 
-`TODOIST_API_TOKEN` env var overrides stored token.
+`TODOIST_API_TOKEN` env var overrides stored token. In this environment, the token is available as `PRI_TODOIST_API_TOKEN` — export it as `TODOIST_API_TOKEN` before running `td` commands:
+
+```bash
+export TODOIST_API_TOKEN="$PRI_TODOIST_API_TOKEN"
+```
 
 ## Quick Add vs Structured Add
 

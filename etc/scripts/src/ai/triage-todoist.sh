@@ -7,10 +7,8 @@ source "$SCRIPT_DIR/../../utils/common.sh"
 extract_section_id() {
 	local url="$1"
 	local section_id
-	section_id=$(echo "$url" | grep -oE '[0-9]+$' || echo "")
-	if [[ -z "$section_id" ]]; then
-		section_id=$(echo "$url" | grep -oE 'section/[0-9]+' | grep -oE '[0-9]+' || echo "")
-	fi
+	# Section URLs: .../section/name-ID where ID is alphanumeric (e.g., 6f29FXGQfv24xCqG)
+	section_id=$(echo "$url" | grep -oE '[A-Za-z0-9]+$' || echo "")
 	if [[ -z "$section_id" ]]; then
 		log_error "Could not extract section ID from URL: $url"
 		return 1

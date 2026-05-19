@@ -276,6 +276,7 @@ All scripts output **minified JSON** to stdout, log to stderr via `log_*` helper
 | `worktree-clean.sh [--dry-run] [--dir root]` | Scan and auto-clean stale git worktrees | Replaces manual worktree inspection and cleanup |
 | `pr-create.sh --branch name --title t --body b [--base] [--draft]` | Create worktree + push + PR via gh | Replaces multi-step git/gh PR creation plumbing |
 | `triage-todoist.sh <section-url> [--priority p1-p4]` | Fetch and filter Todoist tasks for triage | Replaces multiple `td` CLI calls |
+| `move-todoist-tasks.sh <source-url> <dest-url>` | Move all tasks from one Todoist section to another | Replaces manual task-by-task moving |
 | `migration-check.sh [dir]` | Scan migration files for destructive SQL operations | Replaces manual migration file inspection |
 | `recover-pr.sh [--dir root]` | Match orphaned worktrees to PRs | Replaces manual worktree + PR matching |
 | `format-check.sh [--fix] [dir]` | Auto-detect and run formatter (prettier/biome/black/gofmt/rustfmt) | Replaces manual formatter detection |
