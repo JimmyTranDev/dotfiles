@@ -20,25 +20,18 @@ fi
 
 show_help() {
 	cat <<'EOF'
-Usage: bootstrap.sh [options]
+Usage: bootstrap.sh
 
 Set up a full development environment on Termux (Android).
-
-OPTIONS:
-  --minimal     Install only core tools (git, zsh, nvim, starship)
-  --skip-ssh    Skip SSH key generation
-  -h, --help    Show this help message
 EOF
 }
 
 install_packages() {
-	local minimal="$1"
-
 	log_header "Installing core packages..."
 	pkg update -y
 	pkg upgrade -y
 
-	local core_packages=(
+	local packages=(
 		git
 		zsh
 		openssh
@@ -51,22 +44,15 @@ install_packages() {
 		starship
 		python
 		jq
+		nodejs-lts
+		yazi
+		bat
+		zoxide
+		lazygit
+		git-delta
 	)
 
-	pkg install -y "${core_packages[@]}"
-
-	if [[ "$minimal" != "true" ]]; then
-		log_header "Installing additional packages..."
-		local extra_packages=(
-			nodejs-lts
-			yazi
-			bat
-			zoxide
-			lazygit
-			git-delta
-		)
-		pkg install -y "${extra_packages[@]}"
-	fi
+	pkg install -y "${packages[@]}"
 }
 
 setup_storage() {
@@ -100,13 +86,6 @@ setup_shell() {
 }
 
 setup_ssh() {
-	local skip_ssh="$1"
-
-	if [[ "$skip_ssh" == "true" ]]; then
-		log_info "Skipping SSH setup"
-		return
-	fi
-
 	log_header "Setting up SSH..."
 
 	if [[ ! -f "$HOME/.ssh/id_ed25519" ]]; then
@@ -277,17 +256,10 @@ set_script_permissions() {
 }
 
 main() {
-	local minimal=false
-	local skip_ssh=false
-
-	while [[ $# -gt 0 ]]; do
-		case "$1" in
-		--minimal) minimal=true; shift ;;
-		--skip-ssh) skip_ssh=true; shift ;;
-		-h | --help) show_help; exit 0 ;;
-		*) log_error "Unknown option: $1"; show_help; exit 1 ;;
-		esac
-	done
+	if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+		show_help
+		exit 0
+	fi
 
 	echo ""
 	echo "================================================"
@@ -295,19 +267,16 @@ main() {
 	echo "================================================"
 	echo ""
 
-	install_packages "$minimal"
+	install_packages
 	setup_storage
-	setup_ssh "$skip_ssh"
+	setup_ssh
 	clone_dotfiles
 	switch_remote_to_ssh
 	set_script_permissions
 	setup_bitwarden_secrets
 	setup_shell
 	symlink_configs
-
-	if [[ "$minimal" != "true" ]]; then
-		setup_tools
-	fi
+	setup_tools
 
 	log_success "Bootstrap complete!"
 	log_info "Restart Termux to use zsh as your default shell."
