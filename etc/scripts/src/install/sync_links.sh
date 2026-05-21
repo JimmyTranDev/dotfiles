@@ -60,8 +60,36 @@ get_linux_links() {
 	printf '%s\n' "${links[@]}"
 }
 
+get_termux_links() {
+	local links=(
+		"$DOTFILES_ROOT/src/nvim|$HOME/.config/nvim"
+		"$DOTFILES_ROOT/src/yazi|$HOME/.config/yazi"
+		"$DOTFILES_ROOT/src/lazygit|$HOME/.config/lazygit"
+		"$DOTFILES_ROOT/src/.zshrc|$HOME/.zshrc"
+		"$DOTFILES_ROOT/src/.gitignore_global|$HOME/.gitignore_global"
+		"$DOTFILES_ROOT/src/starship.toml|$HOME/.config/starship.toml"
+		"$DOTFILES_ROOT/src/opencode|$HOME/.config/opencode"
+		"$DOTFILES_ROOT/src/fd|$HOME/.config/fd"
+		"$DOTFILES_ROOT/src/git/hooks|$HOME/.config/git/hooks"
+	)
+	if [ -d "$SECRETS_DIR" ]; then
+		links+=(
+			"$SECRETS_DIR/ssh|$HOME/.ssh"
+			"$SECRETS_DIR/.gitconfig|$HOME/.gitconfig"
+			"$SECRETS_DIR/.npmrc|$HOME/.npmrc"
+		)
+	fi
+	printf '%s\n' "${links[@]}"
+}
+
+is_termux() {
+	[ -n "$TERMUX_VERSION" ] || [[ "${PREFIX:-}" == *com.termux* ]]
+}
+
 get_platform_links() {
-	if [ "$(uname)" == "Darwin" ]; then
+	if is_termux; then
+		get_termux_links
+	elif [ "$(uname)" == "Darwin" ]; then
 		get_macos_links
 	elif [ "$(uname)" == "Linux" ]; then
 		get_linux_links

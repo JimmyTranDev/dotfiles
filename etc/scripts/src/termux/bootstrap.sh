@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+DOTFILES_REPO="https://github.com/JimmyTranDev/dotfiles.git"
+DOTFILES_DIR="$HOME/Programming/JimmyTranDev/dotfiles"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOGGING_SH="$SCRIPT_DIR/../../utils/logging.sh"
 if [[ -f "$LOGGING_SH" ]]; then
@@ -61,11 +64,6 @@ install_packages() {
 			git-delta
 		)
 		pkg install -y "${extra_packages[@]}"
-
-		if command -v npm &>/dev/null; then
-			hash -r
-			npm install -g pnpm opencode
-		fi
 	fi
 }
 
@@ -82,26 +80,20 @@ setup_storage() {
 
 setup_shell() {
 	log_header "Setting up zsh..."
+
 	if [[ "$SHELL" != *zsh ]]; then
 		chsh -s zsh
+		log_success "Default shell set to zsh"
+	else
+		log_info "zsh is already the default shell"
 	fi
 
-	if [[ ! -f "$HOME/.zshrc" ]]; then
-		cat >"$HOME/.zshrc" <<'ZSHRC'
-export TERMUX=true
-export EDITOR=nvim
-export VISUAL=nvim
-
-eval "$(starship init zsh)"
-command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
-
-alias ll="ls -la"
-alias vim="nvim"
-alias lg="lazygit"
-ZSHRC
-		log_success "Created .zshrc"
+	if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
+		log_info "Installing Oh My Zsh..."
+		sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+		log_success "Oh My Zsh installed"
 	else
-		log_info ".zshrc already exists"
+		log_info "Oh My Zsh already installed"
 	fi
 }
 
@@ -129,61 +121,94 @@ setup_ssh() {
 }
 
 clone_dotfiles() {
-	local dotfiles_dir="$HOME/Programming/dotfiles"
-
 	log_header "Setting up dotfiles..."
 
-	if [[ -d "$dotfiles_dir" ]]; then
-		log_info "Dotfiles already cloned at $dotfiles_dir"
+	if [[ -d "$DOTFILES_DIR" ]]; then
+		log_info "Dotfiles already cloned at $DOTFILES_DIR"
 		return
 	fi
 
-	mkdir -p "$HOME/Programming"
-	git clone git@github.com:JimmyTranDev/dotfiles.git "$dotfiles_dir" || {
-		log_warning "SSH clone failed, trying HTTPS..."
-		git clone https://github.com/JimmyTranDev/dotfiles.git "$dotfiles_dir"
-	}
+	mkdir -p "$(dirname "$DOTFILES_DIR")"
+	git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
+	log_success "Dotfiles cloned to $DOTFILES_DIR"
+}
 
-	log_success "Dotfiles cloned to $dotfiles_dir"
+switch_remote_to_ssh() {
+	if [[ ! -d "$DOTFILES_DIR" ]]; then
+		return
+	fi
+
+	log_info "Switching dotfiles remote to SSH..."
+	git -C "$DOTFILES_DIR" remote set-url origin git@github.com:JimmyTranDev/dotfiles.git
+	log_success "Dotfiles remote switched to SSH"
+}
+
+setup_bitwarden_secrets() {
+	local secrets_file="$HOME/Programming/JimmyTranDev/secrets/env.sh"
+
+	if [[ -f "$secrets_file" ]]; then
+		log_success "Secrets already present"
+		return
+	fi
+
+	if ! command -v bw &>/dev/null; then
+		if command -v npm &>/dev/null; then
+			log_info "Installing Bitwarden CLI via npm..."
+			npm install -g @bitwarden/cli || {
+				log_warning "Bitwarden CLI install failed, skipping secrets"
+				return
+			}
+			hash -r
+		else
+			log_warning "npm not available, skipping Bitwarden CLI install"
+			return
+		fi
+	fi
+
+	if [[ -f "$DOTFILES_DIR/etc/scripts/src/sync_secrets.sh" ]]; then
+		log_info "Downloading secrets from Bitwarden..."
+		bash "$DOTFILES_DIR/etc/scripts/src/sync_secrets.sh" download || {
+			log_warning "Secrets download failed — you can re-run sync_secrets.sh later"
+		}
+	else
+		log_warning "sync_secrets.sh not found, skipping secrets download"
+	fi
 }
 
 symlink_configs() {
-	local dotfiles_dir="$HOME/Programming/dotfiles"
-
-	if [[ ! -d "$dotfiles_dir" ]]; then
+	if [[ ! -d "$DOTFILES_DIR" ]]; then
 		log_warning "Dotfiles not found, skipping symlinks"
 		return
 	fi
 
-	log_header "Symlinking configs..."
+	log_header "Syncing symbolic links..."
+	bash "$DOTFILES_DIR/etc/scripts/src/install/sync_links.sh"
+}
 
-	local links=(
-		"$dotfiles_dir/src/nvim:$HOME/.config/nvim"
-		"$dotfiles_dir/src/starship.toml:$HOME/.config/starship.toml"
-		"$dotfiles_dir/src/git/.gitconfig:$HOME/.gitconfig"
-		"$dotfiles_dir/src/lazygit:$HOME/.config/lazygit"
-	)
+setup_tools() {
+	log_header "Setting up additional tools..."
 
-	for link in "${links[@]}"; do
-		local src="${link%%:*}"
-		local dst="${link##*:}"
+	if command -v npm &>/dev/null; then
+		log_info "Installing global npm packages..."
+		npm install -g pnpm opencode @doist/todoist-cli || {
+			log_warning "Some npm global installs failed"
+		}
+		hash -r
+	else
+		log_warning "npm not found, skipping global npm packages"
+	fi
 
-		if [[ ! -e "$src" ]]; then
-			log_warning "Source not found: $src"
-			continue
-		fi
+	if command -v ya &>/dev/null; then
+		log_info "Installing yazi packages..."
+		ya pkg install || log_warning "ya pkg install failed (may need network)"
+	fi
+}
 
-		mkdir -p "$(dirname "$dst")"
-
-		if [[ -L "$dst" ]]; then
-			log_info "Already linked: $dst"
-		elif [[ -e "$dst" ]]; then
-			log_warning "File exists (not a symlink): $dst — skipping"
-		else
-			ln -s "$src" "$dst"
-			log_success "Linked: $dst -> $src"
-		fi
-	done
+set_script_permissions() {
+	if [[ -d "$DOTFILES_DIR/etc/scripts" ]]; then
+		find "$DOTFILES_DIR/etc/scripts" -type f -name "*.sh" -exec chmod +x {} \;
+		log_success "Script permissions set"
+	fi
 }
 
 main() {
@@ -199,15 +224,25 @@ main() {
 		esac
 	done
 
-	log_header "Termux Bootstrap"
-	log_info "Starting setup..."
+	echo ""
+	echo "================================================"
+	echo "  JimmyTranDev Dotfiles Bootstrap (Termux)"
+	echo "================================================"
+	echo ""
 
 	install_packages "$minimal"
 	setup_storage
-	setup_shell
 	setup_ssh "$skip_ssh"
 	clone_dotfiles
+	switch_remote_to_ssh
+	set_script_permissions
+	setup_bitwarden_secrets
+	setup_shell
 	symlink_configs
+
+	if [[ "$minimal" != "true" ]]; then
+		setup_tools
+	fi
 
 	log_success "Bootstrap complete!"
 	log_info "Restart Termux to use zsh as your default shell."
