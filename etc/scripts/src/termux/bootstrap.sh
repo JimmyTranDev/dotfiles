@@ -54,6 +54,7 @@ install_packages() {
 		pkg install -y "${extra_packages[@]}"
 
 		if command -v npm &>/dev/null; then
+			hash -r
 			npm install -g pnpm
 		fi
 	fi
@@ -62,6 +63,7 @@ install_packages() {
 setup_storage() {
 	log_header "Setting up storage access..."
 	if [[ ! -d "$HOME/storage" ]]; then
+		log_info "You may see a storage permission dialog..."
 		termux-setup-storage
 		log_success "Storage access configured"
 	else
@@ -71,7 +73,9 @@ setup_storage() {
 
 setup_shell() {
 	log_header "Setting up zsh..."
-	chsh -s zsh
+	if [[ "$SHELL" != *zsh ]]; then
+		chsh -s zsh
+	fi
 
 	if [[ ! -f "$HOME/.zshrc" ]]; then
 		cat >"$HOME/.zshrc" <<'ZSHRC'
@@ -80,7 +84,7 @@ export EDITOR=nvim
 export VISUAL=nvim
 
 eval "$(starship init zsh)"
-eval "$(zoxide init zsh)"
+command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
 
 alias ll="ls -la"
 alias vim="nvim"
@@ -105,7 +109,7 @@ setup_ssh() {
 	if [[ ! -f "$HOME/.ssh/id_ed25519" ]]; then
 		mkdir -p "$HOME/.ssh"
 		chmod 700 "$HOME/.ssh"
-		ssh-keygen -t ed25519 -C "termux@$(hostname)" -f "$HOME/.ssh/id_ed25519" -N ""
+		ssh-keygen -t ed25519 -C "termux@android" -f "$HOME/.ssh/id_ed25519" -N ""
 		log_success "SSH key generated"
 		log_info "Public key:"
 		cat "$HOME/.ssh/id_ed25519.pub"
@@ -145,6 +149,7 @@ symlink_configs() {
 	log_header "Symlinking configs..."
 
 	local links=(
+		"$dotfiles_dir/src/nvim:$HOME/.config/nvim"
 		"$dotfiles_dir/src/starship.toml:$HOME/.config/starship.toml"
 		"$dotfiles_dir/src/git/.gitconfig:$HOME/.gitconfig"
 		"$dotfiles_dir/src/lazygit:$HOME/.config/lazygit"
