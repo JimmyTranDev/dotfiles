@@ -123,6 +123,16 @@ setup_ssh() {
 clone_dotfiles() {
 	log_header "Setting up dotfiles..."
 
+	# Migrate old path if it exists
+	local old_path="$HOME/Programming/dotfiles"
+	if [[ -d "$old_path" && ! -d "$DOTFILES_DIR" ]]; then
+		log_info "Migrating dotfiles from $old_path to $DOTFILES_DIR..."
+		mkdir -p "$(dirname "$DOTFILES_DIR")"
+		mv "$old_path" "$DOTFILES_DIR"
+		log_success "Dotfiles migrated to $DOTFILES_DIR"
+		return
+	fi
+
 	if [[ -d "$DOTFILES_DIR" ]]; then
 		log_info "Dotfiles already cloned at $DOTFILES_DIR"
 		return
@@ -190,7 +200,7 @@ setup_tools() {
 
 	if command -v npm &>/dev/null; then
 		log_info "Installing global npm packages..."
-		npm install -g pnpm opencode @doist/todoist-cli || {
+		npm install -g pnpm @anthropic-ai/opencode @doist/todoist-cli || {
 			log_warning "Some npm global installs failed"
 		}
 		hash -r
