@@ -227,38 +227,11 @@ install_opencode() {
 		return
 	fi
 
-	local arch
-	arch="$(uname -m)"
-	if [[ "$arch" != "aarch64" ]]; then
-		log_warning "OpenCode native binary only supports aarch64 (detected: $arch), skipping"
-		return
-	fi
-
-	# NOTE: Update this version manually when new releases are available at
-	# https://github.com/guysoft/opencode-termux/releases
-	local version="1.3.13"
-	local zip_name="opencode-${version}-android-aarch64.zip"
-	local url="https://github.com/guysoft/opencode-termux/releases/download/v0.0.0-${version}/${zip_name}"
-	local tmp_dir
-	tmp_dir="$(mktemp -d)"
-	trap 'rm -rf "$tmp_dir"' RETURN
-
-	log_info "Installing OpenCode native binary (v${version})..."
-
-	if ! command -v unzip &>/dev/null; then
-		pkg install -y unzip || {
-			log_warning "Failed to install unzip, skipping OpenCode"
-			return
-		}
-	fi
-
-	if curl -fsSL -o "$tmp_dir/$zip_name" "$url"; then
-		unzip -o -q "$tmp_dir/$zip_name" -d "$tmp_dir"
-		chmod +x "$tmp_dir/opencode"
-		mv "$tmp_dir/opencode" "$PREFIX/bin/opencode"
-		log_success "OpenCode installed to $PREFIX/bin/opencode"
+	local script="$DOTFILES_DIR/etc/scripts/src/termux/install-opencode.sh"
+	if [[ -f "$script" ]]; then
+		bash "$script"
 	else
-		log_warning "Failed to download OpenCode binary, skipping"
+		log_warning "install-opencode.sh not found, skipping OpenCode install"
 	fi
 }
 
