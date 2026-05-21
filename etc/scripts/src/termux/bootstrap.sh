@@ -2,7 +2,16 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/logging.sh"
+LOGGING_SH="$SCRIPT_DIR/../../utils/logging.sh"
+if [[ -f "$LOGGING_SH" ]]; then
+	source "$LOGGING_SH"
+else
+	log_header() { echo "==> $1"; }
+	log_info() { echo "[INFO] $1"; }
+	log_success() { echo "[OK] $1"; }
+	log_warning() { echo "[WARN] $1"; }
+	log_error() { echo "[ERROR] $1" >&2; }
+fi
 
 show_help() {
 	cat <<'EOF'
@@ -49,13 +58,13 @@ install_packages() {
 			bat
 			zoxide
 			lazygit
-			delta
+			git-delta
 		)
 		pkg install -y "${extra_packages[@]}"
 
 		if command -v npm &>/dev/null; then
 			hash -r
-			npm install -g pnpm
+			npm install -g pnpm opencode
 		fi
 	fi
 }
