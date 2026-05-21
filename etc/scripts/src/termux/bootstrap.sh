@@ -4,9 +4,11 @@ set -e
 DOTFILES_REPO="https://github.com/JimmyTranDev/dotfiles.git"
 DOTFILES_DIR="$HOME/Programming/JimmyTranDev/dotfiles"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOGGING_SH="$SCRIPT_DIR/../../utils/logging.sh"
-if [[ -f "$LOGGING_SH" ]]; then
+# When piped from curl, BASH_SOURCE[0] won't resolve to a real path.
+# The fallback logging functions below handle this gracefully.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "")"
+LOGGING_SH="${SCRIPT_DIR:+$SCRIPT_DIR/../../utils/logging.sh}"
+if [[ -n "$LOGGING_SH" && -f "$LOGGING_SH" ]]; then
 	source "$LOGGING_SH"
 else
 	log_header() { echo "==> $1"; }
@@ -81,7 +83,7 @@ setup_storage() {
 setup_shell() {
 	log_header "Setting up zsh..."
 
-	if [[ "$SHELL" != *zsh ]]; then
+	if [[ "$SHELL" != *"zsh"* ]]; then
 		chsh -s zsh
 		log_success "Default shell set to zsh"
 	else
@@ -191,6 +193,9 @@ symlink_configs() {
 		return
 	fi
 
+	# Ensure TERMUX_VERSION is exported so sync_links.sh detects Termux
+	export TERMUX_VERSION="${TERMUX_VERSION:-}"
+
 	log_header "Syncing symbolic links..."
 	bash "$DOTFILES_DIR/etc/scripts/src/install/sync_links.sh"
 }
@@ -200,7 +205,7 @@ setup_tools() {
 
 	if command -v npm &>/dev/null; then
 		log_info "Installing global npm packages..."
-		npm install -g pnpm @anthropic-ai/opencode @doist/todoist-cli || {
+		npm install -g pnpm @doist/todoist-cli || {
 			log_warning "Some npm global installs failed"
 		}
 		hash -r
@@ -208,9 +213,52 @@ setup_tools() {
 		log_warning "npm not found, skipping global npm packages"
 	fi
 
+	install_opencode
+
 	if command -v ya &>/dev/null; then
 		log_info "Installing yazi packages..."
 		ya pkg install || log_warning "ya pkg install failed (may need network)"
+	fi
+}
+
+install_opencode() {
+	if command -v opencode &>/dev/null; then
+		log_info "OpenCode already installed"
+		return
+	fi
+
+	local arch
+	arch="$(uname -m)"
+	if [[ "$arch" != "aarch64" ]]; then
+		log_warning "OpenCode native binary only supports aarch64 (detected: $arch), skipping"
+		return
+	fi
+
+	# NOTE: Update this version manually when new releases are available at
+	# https://github.com/guysoft/opencode-termux/releases
+	local version="1.3.13"
+	local zip_name="opencode-${version}-android-aarch64.zip"
+	local url="https://github.com/guysoft/opencode-termux/releases/download/v0.0.0-${version}/${zip_name}"
+	local tmp_dir
+	tmp_dir="$(mktemp -d)"
+	trap 'rm -rf "$tmp_dir"' RETURN
+
+	log_info "Installing OpenCode native binary (v${version})..."
+
+	if ! command -v unzip &>/dev/null; then
+		pkg install -y unzip || {
+			log_warning "Failed to install unzip, skipping OpenCode"
+			return
+		}
+	fi
+
+	if curl -fsSL -o "$tmp_dir/$zip_name" "$url"; then
+		unzip -o -q "$tmp_dir/$zip_name" -d "$tmp_dir"
+		chmod +x "$tmp_dir/opencode"
+		mv "$tmp_dir/opencode" "$PREFIX/bin/opencode"
+		log_success "OpenCode installed to $PREFIX/bin/opencode"
+	else
+		log_warning "Failed to download OpenCode binary, skipping"
 	fi
 }
 
