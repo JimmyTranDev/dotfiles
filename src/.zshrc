@@ -45,8 +45,8 @@ export FZF_DEFAULT_OPTS="\
 export PATH="$HOMEBREW_PREFIX/opt/postgresql@15/bin:$PATH"
 
 case ":$PATH:" in
-*":$PNPM_HOME:"*) ;;
-*) export PATH="$PNPM_HOME:$PATH" ;;
+  *":$PNPM_HOME/bin:"*) ;;
+  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
 esac
 
 path_additions=(
@@ -144,3 +144,5 @@ bindkey '^g' select_worktree
 bindkey '^[f' select_projects_multi
 bindkey '^[g' select_worktrees_multi
 bindkey '^u' zellij_update_tab_indexes
+
+
