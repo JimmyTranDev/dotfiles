@@ -5,7 +5,7 @@ description: PostHog CLI (posthog-cli) command reference for authentication, SQL
 
 ## Overview
 
-The `posthog-cli` command is the PostHog CLI. Install via `npm install -g @posthog/cli`.
+The `posthog-cli` command is the PostHog CLI. Install via `pnpm add -g @posthog/cli`.
 
 - Use `posthog-cli login` for interactive auth, or environment variables for CI/CD
 - All commands accept `--host <HOST>` to target a specific PostHog instance (default: `https://us.posthog.com`)

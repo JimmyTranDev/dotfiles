@@ -134,6 +134,26 @@ switch_remote_to_ssh() {
 	log_success "Dotfiles remote switched to SSH"
 }
 
+setup_pnpm() {
+	if command -v pnpm &>/dev/null; then
+		log_info "pnpm already installed"
+		return
+	fi
+
+	if ! command -v npm &>/dev/null; then
+		log_warning "npm not available, cannot bootstrap pnpm"
+		return 1
+	fi
+
+	log_info "Bootstrapping pnpm via npm..."
+	npm install -g pnpm || {
+		log_warning "pnpm bootstrap failed"
+		return 1
+	}
+	hash -r
+	log_success "pnpm bootstrapped"
+}
+
 setup_bitwarden_secrets() {
 	local secrets_file="$HOME/Programming/JimmyTranDev/secrets/env.sh"
 
@@ -143,15 +163,15 @@ setup_bitwarden_secrets() {
 	fi
 
 	if ! command -v bw &>/dev/null; then
-		if command -v npm &>/dev/null; then
-			log_info "Installing Bitwarden CLI via npm..."
-			npm install -g @bitwarden/cli || {
+		if command -v pnpm &>/dev/null; then
+			log_info "Installing Bitwarden CLI via pnpm..."
+			pnpm add -g @bitwarden/cli || {
 				log_warning "Bitwarden CLI install failed, skipping secrets"
 				return
 			}
 			hash -r
 		else
-			log_warning "npm not available, skipping Bitwarden CLI install"
+			log_warning "pnpm not available, skipping Bitwarden CLI install"
 			return
 		fi
 	fi
@@ -182,14 +202,14 @@ symlink_configs() {
 setup_tools() {
 	log_header "Setting up additional tools..."
 
-	if command -v npm &>/dev/null; then
-		log_info "Installing global npm packages..."
-		npm install -g pnpm @doist/todoist-cli || {
-			log_warning "Some npm global installs failed"
+	if command -v pnpm &>/dev/null; then
+		log_info "Installing global pnpm packages..."
+		pnpm add -g @doist/todoist-cli || {
+			log_warning "Some pnpm global installs failed"
 		}
 		hash -r
 	else
-		log_warning "npm not found, skipping global npm packages"
+		log_warning "pnpm not found, skipping global pnpm packages"
 	fi
 
 	install_opencode
@@ -273,6 +293,7 @@ main() {
 	clone_dotfiles
 	switch_remote_to_ssh
 	set_script_permissions
+	setup_pnpm
 	setup_bitwarden_secrets
 	setup_shell
 	symlink_configs

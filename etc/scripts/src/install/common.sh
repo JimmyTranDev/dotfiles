@@ -41,12 +41,12 @@ main() {
 		log_warning "pipx not found, skipping pipx packages"
 	fi
 
-	if command -v npm >/dev/null 2>&1; then
-		log_info "Installing global npm packages..."
-		npm install -g @doist/todoist-cli
-		npm install -g @_davideast/stitch-mcp
+	if command -v pnpm >/dev/null 2>&1; then
+		log_info "Installing global pnpm packages..."
+		pnpm add -g @doist/todoist-cli
+		pnpm add -g @_davideast/stitch-mcp
 	else
-		log_warning "npm not found, skipping global npm packages"
+		log_warning "pnpm not found, skipping global pnpm packages"
 	fi
 
 	log_success "Common setup completed"

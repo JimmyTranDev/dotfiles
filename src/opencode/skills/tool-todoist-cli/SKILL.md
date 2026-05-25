@@ -5,7 +5,7 @@ description: Todoist CLI (td) command reference for task management, projects, l
 
 ## Overview
 
-The `td` command is the Todoist CLI. Install via `npm install -g @doist/todoist-cli`.
+The `td` command is the Todoist CLI. Install via `pnpm add -g @doist/todoist-cli`.
 
 - Use `td task add` (not `td add`) for structured task creation with flags
 - Use `--json` or `--ndjson` for machine-readable output

@@ -7,7 +7,7 @@ if vim.env.PRI_TODOIST_API_TOKEN then vim.env.TODOIST_API_TOKEN = vim.env.PRI_TO
 
 local function ensure_td_executable()
   if vim.fn.executable('td') == 1 then return true end
-  vim.notify("'td' is not installed. Run: npm install -g @doist/todoist-cli", vim.log.levels.ERROR)
+  vim.notify("'td' is not installed. Run: pnpm add -g @doist/todoist-cli", vim.log.levels.ERROR)
   return false
 end
 

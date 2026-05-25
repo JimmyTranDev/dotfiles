@@ -153,7 +153,7 @@ main() {
 		return 1
 	fi
 
-	require_command "td" "npm install -g @doist/todoist-cli"
+	require_command "td" "pnpm add -g @doist/todoist-cli"
 	move_tasks "$source_url" "$dest_url"
 }
 
