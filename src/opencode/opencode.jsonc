@@ -4,6 +4,9 @@
   // Primary model used for all conversations and task execution
   "model": "github-copilot/claude-opus-4.6",
 
+  // Lightweight model for title generation and small tasks
+  "small_model": "github-copilot/claude-haiku-4.5",
+
   // Additional markdown files injected as system instructions
   "instructions": [
     "AGENTS.md"
