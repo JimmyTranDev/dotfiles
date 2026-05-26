@@ -7,6 +7,8 @@ Usage: /system-design [$ARGUMENTS]
 
 Generate a realistic system design interview problem, then guide the user through a structured solution. If `$ARGUMENTS` specifies a topic, use it; otherwise pick a random well-known system design problem.
 
+Load skills in parallel: **strategy-system-design** (for load balancing, caching, message queues, sharding, CAP theorem), **comm-spec-writer** (for structuring the solution into clear sections).
+
 ## Output
 
 Two tiers:

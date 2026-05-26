@@ -7,6 +7,8 @@ Usage: /audit-migration
 
 Check for new or pending Flyway database migrations in the current Java Spring project.
 
+Load skills in parallel: **java-spring-senior** (for Java Spring conventions and migration patterns), **tool-spring-boot** (for Spring Boot project structure and configuration).
+
 1. Verify this is a Java project:
    - Check for `pom.xml`, `build.gradle`, or `build.gradle.kts`
    - If none found, report "Not a Java project" and exit

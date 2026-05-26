@@ -9,6 +9,8 @@ $ARGUMENTS
 
 Analyze the requested changes and show exactly what would be created, modified, or deleted — without actually making any changes.
 
+Load skills in parallel: **code-follower** (to predict file modifications that match existing conventions), **comm-spec-writer** (for structured task decomposition and dependency mapping).
+
 ## Workflow
 
 1. Parse `$ARGUMENTS`:

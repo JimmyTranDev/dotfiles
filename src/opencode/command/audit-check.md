@@ -9,6 +9,8 @@ $ARGUMENTS
 
 Run project quality checks (lint, test, build, typecheck) in parallel and report combined results.
 
+Load skills in parallel: **code-follower** (to understand existing conventions when suggesting fixes), **test** (for understanding test patterns and coverage goals).
+
 ## Workflow
 
 1. Run `detect-stack.sh` to identify the project type, package manager, test runner, and linter. Use the output to determine which checks are available.

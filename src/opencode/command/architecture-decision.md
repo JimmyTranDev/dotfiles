@@ -11,7 +11,7 @@ Evaluate a technical decision with structured tradeoff analysis and record the o
 
 ## Workflow
 
-1. Load the **comm-adr-writer** skill
+1. Load the **comm-adr-writer** skill. Also load in parallel: **strategy-system-design** (for architectural tradeoff analysis), **strategy-pragmatic-programmer** (for orthogonality and reversibility assessment), **strategy-criticize** (for devil's advocate analysis of each option).
 
 2. Parse `$ARGUMENTS` to understand the decision context:
    - What problem needs solving?

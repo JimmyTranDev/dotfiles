@@ -22,6 +22,8 @@ Otherwise, use `$ARGUMENTS` directly as the implementation description.
 
 $ARGUMENTS
 
+Load skills in parallel: **code-follower** (to match existing codebase conventions in all code shown), **comm-spec-writer** (for breaking tasks into well-structured steps with clear dependencies).
+
 1. Parse the request and break it into small, logical implementation steps:
    - Each step should be a single focused change (one function, one file modification, one configuration change)
    - Order steps so each builds on the previous — the user should be able to follow the progression

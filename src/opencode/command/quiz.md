@@ -7,6 +7,8 @@ Usage: /quiz [$ARGUMENTS]
 
 Quiz the user on implementation decisions for a spec or plan file. Generate a spec if none exists, then walk through each task asking "what would you do here?" and score their answers.
 
+Load skills in parallel: **code-follower** (to ground quiz answers in actual codebase conventions), **comm-spec-writer** (for understanding spec decomposition and task dependencies).
+
 1. Find or generate the spec:
    - If `$ARGUMENTS` points to a file in `plans/`, read it as the quiz source
    - If `$ARGUMENTS` describes a feature, run `/specify` to generate a spec first

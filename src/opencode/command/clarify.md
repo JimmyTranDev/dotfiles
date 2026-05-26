@@ -9,6 +9,8 @@ Analyze the user's request, spec, or task description and generate targeted clar
 
 $ARGUMENTS
 
+Load skills in parallel: **code-logic-checker** (to surface contradictions and impossible states in the request), **comm-spec-writer** (for structured requirements decomposition).
+
 1. Parse the input:
    - If the user provides a task description, feature request, or spec — analyze it directly
    - If the user references a file, issue, or PR — read it to understand the full context

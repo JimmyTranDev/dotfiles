@@ -7,7 +7,7 @@ Usage: /structure [scope or description]
 
 $ARGUMENTS
 
-1. Load the **meta-structure** skill
+1. Load the **meta-structure** skill. Also load in parallel: **code-simplifier** (for reducing complexity during reorganization), **code-consolidator** (for merging over-separated code), **code-deduplicator** (for extracting repeated patterns into utilities).
 
 **Scope**
 

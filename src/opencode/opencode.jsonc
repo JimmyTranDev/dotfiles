@@ -1,17 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
-
-  // Primary model used for all conversations and task execution
-  "model": "github-copilot/claude-opus-4.6",
-
-  // Lightweight model for title generation and small tasks
-  "small_model": "github-copilot/claude-haiku-4.5",
-
   // Additional markdown files injected as system instructions
   "instructions": [
     "AGENTS.md"
   ],
-
   // All permissions set to "allow" for unrestricted autonomous operation
   "permission": {
     "edit": "allow",
@@ -21,7 +13,6 @@
     "doom_loop": "allow",
     "external_directory": "allow"
   },
-
   // MCP servers — disabled by default, enable per-project as needed
   "mcp": {
     // Figma design-to-code via local proxy

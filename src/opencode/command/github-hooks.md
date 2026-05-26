@@ -9,6 +9,8 @@ $ARGUMENTS
 
 Set up or manage GitHub webhook integrations that trigger OpenCode commands automatically via GitHub Actions and n8n.
 
+Load the **tool-github-actions** skill.
+
 ## Available Hooks
 
 | GitHub Event | Action | OpenCode Command |

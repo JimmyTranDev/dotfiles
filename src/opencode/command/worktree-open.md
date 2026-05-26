@@ -7,7 +7,7 @@ Usage: /worktree-open [branch names or PR numbers]
 
 $ARGUMENTS
 
-Open one or more worktrees in separate Zellij tabs for parallel work.
+Load the **tool-zellij** skill for Zellij tab operations.
 
 ## Workflow
 

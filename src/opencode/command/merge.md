@@ -9,6 +9,8 @@ Merge the specified PRs and clean up associated worktrees and branches.
 
 $ARGUMENTS
 
+Load skills in parallel: **git-workflows** (for commit message format), **git-worktree-workflow** (for worktree lifecycle), **git-conflict-resolution** (for merge conflict resolution).
+
 1. Resolve the target PRs from `$ARGUMENTS`:
    - Parse PR numbers (`#123` or `123`), GitHub PR URLs, or branch names from the input
    - For each reference, fetch PR details: `gh pr view <ref> --json number,title,url,headRefName`
@@ -21,7 +23,6 @@ $ARGUMENTS
       - If the merge fails for a non-conflict reason, report the error and continue to the next PR
 
    b. If the merge fails due to merge conflicts, resolve and retry:
-      - Load the **git-conflict-resolution** skill
        - Determine the base branch the PR targets: `gh pr view <number> --json baseRefName --jq '.baseRefName'` (or use `git-branch-info.sh` if the PR base is unknown)
       - Ensure the worktree exists for this PR's branch at `~/Programming/wcreated/<branch-name>` — if not, create it with `git worktree add ~/Programming/wcreated/<branch-name> <branch-name>`
       - In the worktree directory, fetch and merge the base branch: `git fetch origin <base-branch> && git merge origin/<base-branch>`

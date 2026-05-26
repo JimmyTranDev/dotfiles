@@ -9,6 +9,8 @@ $ARGUMENTS
 
 ## Phase 1: Collect Decisions
 
+Load skills in parallel: **code-follower** (to understand codebase conventions when suggesting fixes), **comm-natural-speech** (for presenting options conversationally).
+
 Parse the review output from the current conversation. Extract each finding (critical, important, and suggestion) into an ordered list, ranked by severity (critical first, then important, then suggestions).
 
 For each finding, present it to the user with full context:

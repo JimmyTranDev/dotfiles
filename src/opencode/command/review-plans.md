@@ -9,6 +9,8 @@ Walk through plan/spec files and present every unresolved decision for individua
 
 $ARGUMENTS
 
+Load skills in parallel: **comm-spec-writer** (for understanding spec structure and task decomposition), **code-follower** (for evaluating decisions against actual codebase patterns).
+
 1. Locate plan files:
    - If the user specifies a directory or files, use those
    - If no arguments provided, look for `plans/`, `plans/`, or `docs/` directories in the project root

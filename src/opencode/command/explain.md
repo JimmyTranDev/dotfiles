@@ -7,6 +7,8 @@ Usage: /explain [file path, function name, or concept]
 
 Locate the specified target in the codebase and produce a clear, plain-language explanation of how it works, why it exists, and how it connects to the rest of the system.
 
+Load the **code-follower** skill to understand the codebase's conventions and patterns before explaining.
+
 $ARGUMENTS
 
 1. Parse the target from arguments — it may be a file path, function name, class name, or architectural concept

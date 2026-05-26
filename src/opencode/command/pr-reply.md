@@ -25,6 +25,8 @@ Fetch PR review comments and walk through each unresolved one interactively, let
 
 ## Reply Loop
 
+Load skills in parallel: **comm-natural-speech** (for natural, varied phrasing in replies), **code-follower** (to understand codebase conventions when drafting replies about code).
+
 For each unresolved comment, show:
 - The reviewer's name
 - The file and line location
@@ -54,4 +56,4 @@ After all comments are processed (or user stops), present:
 
 - Never resolve or close review threads — only reply. Let the reviewer resolve their own threads.
 - Each reply must be specific — never post generic "Addressed in <sha>" messages.
-- Load **comm-natural-speech** skill before generating replies. Replies must feel personal and natural — vary phrasing, avoid repetitive patterns across comments.
+- Replies must feel personal and natural — vary phrasing, avoid repetitive patterns across comments.

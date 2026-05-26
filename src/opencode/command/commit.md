@@ -5,6 +5,8 @@ subtask: true
 description: Create a well-formatted git commit using conventional commit format
 ---
 
+Load the **git-workflows** skill for commit message format.
+
 Review my staged changes and create a well-formatted git commit.
 
 Format: `<type>(<scope>): <description>`

@@ -9,6 +9,8 @@ Execute a structured deployment workflow including pre-flight checks, build, pus
 
 $ARGUMENTS
 
+Load skills based on deployment config detected: **tool-docker** (if Dockerfile/docker-compose found), **tool-github-actions** (if CI/CD deploy workflow found).
+
 1. Run `detect-stack.sh` and check for deployment configuration:
    - Dockerfile / docker-compose.yml
    - vercel.json / .vercel/

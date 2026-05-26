@@ -31,11 +31,19 @@ $ARGUMENTS
 
 5. Load applicable skills and delegate to agents:
 
-   Skills to load:
-    - **code-follower**: Always load to match existing codebase conventions
-    - **code-logic-checker**: Load when the bug involves complex business logic or state management
+    Skills to load in a single parallel batch:
+     - **code-follower**: Always load to match existing codebase conventions
+     - **code-logic-checker**: Load when the bug involves complex business logic or state management
+     - **code-soundness**: Always load to catch suspicious patterns, anomalies, and things that look wrong
+     - **test**: Load to guide regression testing and verify the fix doesn't break existing behavior
+     - Tech-stack-specific skills (run `detect-stack.sh` to determine):
+       - Java (pom.xml/build.gradle/**.java) → load **java-spring-senior** and **review-backend**
+       - TypeScript/React (tsconfig.json/**.tsx) → load **review-frontend** and **ts-total-typescript**
+       - React Native → load **review-mobile**
+       - Shell scripts → load **meta-shell-scripting**
+     - **security**: Load when the bug touches authentication, authorization, data validation, or external inputs
 
-   Agents to delegate to:
+    Agents to delegate to:
     - **fixer**: Delegate the core investigation and fix — this is the primary agent for /fix
     - **tester**: Launch after the fix is applied to verify test coverage and add tests if needed
     - **reviewer**: Launch in parallel with tester to verify the fix is correct and doesn't introduce new issues

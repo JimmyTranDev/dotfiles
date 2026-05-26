@@ -11,7 +11,7 @@ Create a temporary combined PR that merges multiple feature branches together fo
 
 ## Workflow
 
-1. Load the **git-worktree-workflow** and **git-workflows** skills in parallel
+1. Load the **git-worktree-workflow**, **git-workflows**, and **git-conflict-resolution** skills in parallel
 
 2. Run `git-branch-info.sh` and use the `BASE_BRANCH` value
 

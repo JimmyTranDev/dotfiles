@@ -11,7 +11,7 @@ Generate a weekly summary of git activity and associated Jira tickets for standu
 
 ## Workflow
 
-1. Load the **tool-acli** skill
+1. Load the **tool-acli** skill. If Todoist tasks are involved in the summary, also load **tool-todoist-cli**.
 
 2. Run the weekly-summary script with JSON output:
    - Default (current repo): `~/Programming/JimmyTranDev/dotfiles/etc/scripts/src/ai/weekly-summary.sh --json`

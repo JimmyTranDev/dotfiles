@@ -23,6 +23,8 @@ Fetch PR review comments and walk through each unresolved one interactively, col
 
 3. Filter to unresolved comments only. Group them by file, then present them in file order (top to bottom).
 
+Load skills in parallel: **comm-natural-speech** (for writing replies), **code-follower** (for matching codebase conventions during fixes), **git-workflows** (for commit message formatting).
+
 ## Phase 1: Collect Decisions
 
 For each unresolved comment, show:
@@ -82,7 +84,5 @@ If any fixes were made, ask if the user wants to:
 ## Rules
 
 - Never resolve or close review threads — only reply. Let the reviewer resolve their own threads.
-- Load **comm-natural-speech** skill before writing replies. Replies must feel personal and natural — vary phrasing, avoid repetitive patterns across comments. Reference the specific change made, not boilerplate responses.
+- Replies must feel personal and natural — vary phrasing, avoid repetitive patterns across comments. Reference the specific change made, not boilerplate responses.
 - Never force push unless explicitly asked.
-- Load **code-follower** skill before making fixes to match codebase conventions.
-- Load **git-workflows** skill for commit message formatting.
