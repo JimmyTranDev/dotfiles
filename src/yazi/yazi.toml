@@ -4,6 +4,12 @@ show_hidden = true
 [flavor]
 use = "catppuccin-mocha"
 
+[preview]
+max_width  = 1000
+max_height = 1000
+image_filter  = "lanczos3"
+image_quality = 90
+
 [[plugin.prepend_fetchers]]
 id    = "git"
 url   = "*"
@@ -15,58 +21,6 @@ id    = "git"
 url   = "*/"
 run   = "git"
 group = "normal"
-
-[[plugin.prepend_previewers]]
-mime = "video/*"
-run  = "noop"
-
-[[plugin.prepend_previewers]]
-mime = "audio/*"
-run  = "noop"
-
-[[plugin.prepend_previewers]]
-mime = "application/pdf"
-run  = "noop"
-
-[[plugin.prepend_previewers]]
-mime = "application/zip"
-run  = "noop"
-
-[[plugin.prepend_previewers]]
-mime = "application/gzip"
-run  = "noop"
-
-[[plugin.prepend_previewers]]
-mime = "application/x-tar"
-run  = "noop"
-
-[[plugin.prepend_previewers]]
-mime = "application/x-7z-compressed"
-run  = "noop"
-
-[[plugin.prepend_previewers]]
-mime = "application/x-rar"
-run  = "noop"
-
-[[plugin.prepend_previewers]]
-mime = "application/x-bzip2"
-run  = "noop"
-
-[[plugin.prepend_previewers]]
-mime = "application/x-xz"
-run  = "noop"
-
-[[plugin.prepend_previewers]]
-mime = "application/octet-stream"
-run  = "noop"
-
-[[plugin.prepend_previewers]]
-mime = "application/x-executable"
-run  = "noop"
-
-[[plugin.prepend_previewers]]
-mime = "application/x-mach-binary"
-run  = "noop"
 
 [[opener.editor]]
 run   = '''
