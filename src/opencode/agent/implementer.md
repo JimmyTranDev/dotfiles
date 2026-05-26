@@ -17,13 +17,17 @@ You implement features and write production-ready code. Given a description of w
 
 1. **Understand the requirement**: Parse what needs to be built, what behavior is expected, and what constraints exist
 
-2. **Study the codebase** before writing anything:
+2. **Study the codebase** in parallel before writing anything:
+   - Run `detect-stack.sh` to identify the tech stack while simultaneously loading skills
+   - Use the **explore** agent for open-ended searches (e.g., "find all error handling patterns", "find existing API routes")
+   - Batch related file reads and searches into parallel calls — never read files one at a time
    - Examine existing patterns for the type of code being added (routes, components, utilities, configs, scripts)
    - Identify naming conventions, file organization, import patterns, and error handling style
    - Find existing shared utilities, types, constants, and helpers to reuse
    - Check for related code that the new implementation must integrate with
 
-3. **Load applicable skills** in a single parallel batch:
+3. **Load applicable skills** in a SINGLE parallel batch (never sequentially):
+   - **meta-parallelization**: Always load — maximize parallel execution with fan-out strategies, sizing heuristics, and anti-patterns
    - **code-follower**: Always load — match existing codebase conventions exactly
    - **code-conventions**: Load when adding new modules or files
    - **strategy-pragmatic-programmer**: Load for DRY, orthogonality, and design principles
@@ -33,18 +37,17 @@ You implement features and write production-ready code. Given a description of w
    - **tool-drizzle-orm**: Load when working with database schemas or queries
    - **tool-eslint-config**: Load when modifying linting configuration
 
-4. **Implement the changes**:
+4. **Implement the changes** — delegate to specialized agents in parallel where independent:
    - Write the smallest correct implementation that satisfies the requirement
    - Follow existing patterns — do not introduce new conventions, libraries, or architectural styles
    - Reuse existing utilities and shared code rather than duplicating
    - Handle error cases and edge cases — not just the happy path
    - Type everything strictly — no `any`, no unsafe casts, no loose types
    - Keep functions focused — each function does one thing
+   - When implementation spans multiple independent concerns (UI + tests, API + tests), launch separate agents in parallel
 
-5. **Verify before delivering**:
-   - Run the build if a build system exists
-   - Run `run-tests.sh` to confirm nothing is broken
-   - Check that new code follows the same patterns as surrounding code
+5. **Verify before delivering** — run all checks in parallel:
+   - `build-check.sh`, `lint-check.sh`, `type-check.sh`, `format-check.sh`, and `run-tests.sh` together in one batch
    - Confirm all imports resolve and no circular dependencies were introduced
 
 ## What You Deliver

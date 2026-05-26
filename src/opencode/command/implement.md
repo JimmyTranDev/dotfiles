@@ -31,9 +31,10 @@ Otherwise, proceed with the single-task workflow.
 4. If the changes are missing or incomplete, implement them according to the description
 5. If the changes are already present, verify they match the description and suggest improvements if needed
 
-After understanding the intent, load relevant skills and delegate to specialized agents — maximize parallelism per the Parallelization section in AGENTS.md:
+After understanding the intent, load relevant skills and delegate to specialized agents — maximize parallelism per the **meta-parallelization** skill and AGENTS.md:
 
-Skills to load (load all applicable skills in a single parallel batch):
+Skills to load — load ALL applicable skills in a SINGLE parallel batch (never one at a time):
+- **meta-parallelization**: Always load — maximize parallel execution with fan-out strategies, sizing heuristics, and anti-patterns
 - **code-follower**: Always load to study existing codebase conventions (naming, imports, file structure, patterns) so all new code matches the established style
 - **code-conventions**: Load when the task describes adding new code to ensure consistent coding patterns
 - **code-logic-checker**: Load when the task involves business logic, state machines, or complex conditional flows to verify logical soundness and catch impossible states
@@ -55,12 +56,32 @@ Agents to delegate to (launch independent agents in parallel — only serialize 
 - **optimizer**: Use when the task describes performance improvements — profile and implement measurable optimizations
 - **auditor**: Use when the task describes security-related changes, authentication flows, or data handling to scan for vulnerabilities
 
-Workflow:
-1. Analyze the prompt to categorize the type of work (feature, fix, refactor, test, security, performance, etc.)
-2. Load all applicable skills in parallel (always include **code-follower**, add others based on task type)
-3. Implement the changes in the current working directory, delegating to the appropriate specialized agents based on the work type — launch independent agents in parallel
-4. Run post-implementation agents in parallel where independent (e.g., **reviewer** + **auditor** together, **tester** + **optimizer** together)
-5. If the reviewer surfaces problems, use the **fixer** agent to address them (sequential — depends on reviewer output)
+### Parallel Agent Combos
+
+| Parallel Batch | Agents | When |
+|---------------|--------|------|
+| Implementation | **implementer** + **designer** + **tester** | Feature needs UI + tests |
+| Implementation | **implementer** + **tester** | Feature needs tests written alongside code |
+| Post-Implementation | **reviewer** + **auditor** + **tester** | Review + audit + test coverage check together |
+| Fix | **fixer** × N (one per file/issue) | Multiple independent fixes across different files |
+| Post-Fix Verification | **reviewer** (verify) | Sequential — depends on all fixers completing |
+
+### Workflow
+
+1. **Analyze**: Categorize the type of work (feature, fix, refactor, test, security, performance, etc.)
+2. **Explore & Load** (parallel):
+   - Launch **explore** agent for open-ended codebase searches
+   - Run `detect-stack.sh` to identify tech stack
+   - Load all applicable skills in a SINGLE parallel batch (always include **code-follower**)
+3. **Implement** (parallel):
+   - Delegate to the appropriate specialized agents based on work type — launch independent agents in one message
+   - Batch related file reads and searches into parallel calls
+4. **Verify** (parallel):
+   - Run `build-check.sh`, `lint-check.sh`, `type-check.sh`, `format-check.sh`, and `run-tests.sh` in a single parallel batch
+   - Launch **reviewer**, **auditor**, and **tester** agents together in one message
+5. **Fix** (serial — depends on reviewer/auditor output):
+   - If issues are found, launch **fixer** agents in parallel for independent fixes across different files
+   - Run **reviewer** once more to verify fixes (max 2 iterations)
 6. **Spec cleanup**: If `$ARGUMENTS` references a file in `plans/` (path starts with `plans/` or contains a `.md` file inside `plans/`), ask the user for confirmation before deleting the consumed spec file. If confirmed and the file is tracked by git, use `git rm`; otherwise use `rm`. If the `plans/` directory is empty after deletion, remove it too. Note in the final summary: "Removed consumed spec: plans/xyz.md"
 7. **Todoist completion**: If the consumed spec file contains YAML frontmatter with a `todoist:` field, load the **tool-todoist-cli** skill and run `td task complete "<url>"` for each URL listed. Only complete after successful implementation and spec cleanup. If implementation failed, do NOT complete the Todoist task.
 8. **Post-implementation review offer**: After successful implementation, use the question tool to ask: "Would you like to review the changes?" Options: "Yes, run /review" / "No, skip review". If yes, run `/review` in local mode to review the changes just made. If implementation failed at any step, skip this prompt.
