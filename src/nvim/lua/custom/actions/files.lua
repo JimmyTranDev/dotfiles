@@ -196,4 +196,48 @@ function M.find_plan_files()
   Snacks.picker.files({ cwd = vim.fn.getcwd() .. '/plans' })
 end
 
+function M.clear_plan_files()
+  local plans_dir = vim.fn.getcwd() .. '/plans'
+  local stat = vim.uv.fs_stat(plans_dir)
+  if not stat or stat.type ~= 'directory' then
+    vim.notify('No plans/ directory found', vim.log.levels.WARN)
+    return
+  end
+
+  local files = {}
+  local handle = vim.uv.fs_scandir(plans_dir)
+  if not handle then
+    vim.notify('Could not read plans/ directory', vim.log.levels.WARN)
+    return
+  end
+
+  while true do
+    local name, type = vim.uv.fs_scandir_next(handle)
+    if not name then break end
+    if type == 'file' then
+      table.insert(files, name)
+    end
+  end
+
+  if #files == 0 then
+    vim.notify('No plan files to clear', vim.log.levels.INFO)
+    return
+  end
+
+  local msg = string.format('Delete %d plan file(s)?', #files)
+  vim.ui.select({ 'Yes', 'No' }, { prompt = msg }, function(choice)
+    if choice ~= 'Yes' then return end
+    local deleted = 0
+    for _, filename in ipairs(files) do
+      local ok = os.remove(plans_dir .. '/' .. filename)
+      if ok then
+        deleted = deleted + 1
+      else
+        vim.notify('Failed to delete: ' .. filename, vim.log.levels.ERROR)
+      end
+    end
+    vim.notify('Deleted ' .. deleted .. ' plan file(s)', vim.log.levels.INFO)
+  end)
+end
+
 return M

@@ -72,7 +72,11 @@ Load the **git-worktree-workflow**, **git-workflows**, **git-conflict-resolution
     - Title: a concise summary of the overall goal
     - Body: a summary section, followed by a checklist of all tasks with their status (checked if merged successfully, unchecked with a note if skipped due to conflicts). Include the task branch names as references.
 
-14. Report outcome to the user:
+14. **Spec cleanup**: If `$ARGUMENTS` references files in `plans/` (paths starting with `plans/` or containing `.md` files inside `plans/`), ask the user for confirmation before deleting each consumed spec file. If confirmed and the file is tracked by git, use `git rm`; otherwise use `rm`. If the `plans/` directory is empty after deletion, remove it too. Note in the final summary: "Removed consumed spec: plans/xyz.md"
+
+15. **Todoist completion**: If the consumed spec file contains YAML frontmatter with a `todoist:` field, load the **tool-todoist-cli** skill and run `td task complete "<url>"` for each URL listed. Only complete after successful implementation and spec cleanup. If implementation failed, do NOT complete the Todoist task.
+
+16. Report outcome to the user:
     - PR URL
     - Table showing each task, its task branch, merge status (merged / skipped / failed), and conflict summary if any
     - Count of tasks merged vs skipped vs failed

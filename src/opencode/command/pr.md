@@ -47,4 +47,8 @@ Load skills based on mode:
    - For trivial PRs (single file, <10 lines changed), use only the Summary section
    - If a `plans/*.md` spec file was consumed, reference it in the Summary for context
 
-7. Report the PR URL to the user
+7. **Spec cleanup**: If `$ARGUMENTS` references a file in `plans/` (path starts with `plans/` or contains a `.md` file inside `plans/`), ask the user for confirmation before deleting the consumed spec file. If confirmed and the file is tracked by git, use `git rm`; otherwise use `rm`. If the `plans/` directory is empty after deletion, remove it too. Note in the final summary: "Removed consumed spec: plans/xyz.md"
+
+8. **Todoist completion**: If the consumed spec file contains YAML frontmatter with a `todoist:` field, load the **tool-todoist-cli** skill and run `td task complete "<url>"` for each URL listed. Only complete after successful implementation and spec cleanup. If implementation failed, do NOT complete the Todoist task.
+
+9. Report the PR URL to the user

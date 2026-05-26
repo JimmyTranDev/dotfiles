@@ -118,7 +118,7 @@ map('n', '<Leader>W', ':wa<CR>', { desc = '󰆓 Write all' })
 
 map('n', '<Leader>rt', todoist_actions.log_todoist_task_all_projects(), { desc = '󰌱 Log todoist task' })
 map('n', '<Leader>rT', todoist_actions.edit_recent_task, { desc = '󰌱 Edit recent Todoist task' })
-  map('n', '<Leader>rD', todoist_actions.delete_recent_task, { desc = '󰌱 Delete recent Todoist task' })
+map('n', '<Leader>rD', todoist_actions.delete_recent_task, { desc = '󰌱 Delete recent Todoist task' })
 map('n', '<Leader>rw', jira_actions.create_jira_task(), { desc = '󰌱 Create Jira task' })
 map('n', '<Leader>rW', jira_actions.create_jira_task_with_link(), { desc = '󰌱 Create Jira task + open link' })
 map('n', '<Leader>rj', journal_actions.add_journal_entry, { desc = '󰌱 Add journal entry' })
@@ -172,7 +172,6 @@ map('v', '<Leader>us', link_actions.search_google, { desc = '󰦥 Search Google 
 map('n', '<Leader>un', github_actions.show_notifications, { desc = '󰦥 GitHub Notifications' })
 map('n', '<Leader>uO', github_actions.select_open_prs_by_people, { desc = '󰦥 Open PRs by team' })
 
-
 -- New
 -- map('n', '<Leader>un', link_actions.open_npm_url, { desc = 'Open NPM link' })
 -- map('n', '<Leader>uO', github_actions.select_open_prs_by_people, { desc = 'Open PRs by people' })
@@ -182,14 +181,12 @@ map('n', '<Leader>uO', github_actions.select_open_prs_by_people, { desc = '󰦥 
 -- map('n', '<Leader>uM', git_actions.diff_vs_develop, { desc = 'Diff vs develop' })
 -- map('n', '<Leader>uB', branch_actions.stale_branch_cleanup(), { desc = 'Stale branch cleanup' })
 
-
-
 -- map('n', '<leader>ks', keybinding_tracker_actions.show_keybinding_stats, { desc = 'Show keybinding stats' })
 -- map('n', '<leader>kr', keybinding_tracker_actions.reset_keybinding_stats, { desc = 'Reset keybinding stats' })
 -- map('n', '<leader>k?', keymap_help_actions.contextual_help, { desc = 'Contextual keymap help' })
 
 map('n', '<leader>fW', project_actions.switch_project, { desc = 'Switch project' })
--- map('n', '<leader>fP', file_actions.find_plan_files, { desc = 'Find plan files' })
+map('n', '<leader>;cp', file_actions.clear_plan_files, { desc = 'Clear plan files' })
 
 -- map('n', '<leader><leader>Ss', session.save, { desc = 'Save session' })
 -- map('n', '<leader><leader>Sr', session.restore, { desc = 'Restore session' })

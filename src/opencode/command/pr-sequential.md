@@ -60,7 +60,11 @@ Load the **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** 
 
 7. **Final review**: Launch the **reviewer** agent on the full PR diff (`git diff <base-branch>...HEAD`) to review the cumulative changes across all tasks. If issues are found, launch **fixer** to address them, commit, and push. After the final review passes, update the PR description to check off the **Review** task.
 
-8. Report the PR URL to the user
+8. **Spec cleanup**: If `$ARGUMENTS` references files in `plans/` (paths starting with `plans/` or containing `.md` files inside `plans/`), delete each consumed spec file after all tasks are successfully implemented and committed. Ask the user for confirmation before deletion. If confirmed and the file is tracked by git, use `git rm`; otherwise use `rm`. If the `plans/` directory is empty after deletion, remove it too. Note in the final summary: "Removed consumed spec: plans/xyz.md"
+
+9. **Todoist completion**: If the consumed spec file contains YAML frontmatter with a `todoist:` field, load the **tool-todoist-cli** skill and run `td task complete "<url>"` for each URL listed. Only complete after successful implementation and spec cleanup. If implementation failed, do NOT complete the Todoist task.
+
+10. Report the PR URL to the user
     - If changes were stashed during worktree setup, remind the user to `git stash pop` in the main repo
 
 Important:

@@ -284,6 +284,7 @@ All scripts output **minified JSON** to stdout, log to stderr via `log_*` helper
 | `type-check.sh [dir]` | Auto-detect and run type checker (tsc/mypy/cargo check) | Replaces manual type checker detection |
 | `build-check.sh [dir]` | Auto-detect and run build command | Replaces manual build tool detection |
 | `scan-style.sh [dir]` | Gather file stats, naming patterns, and code samples for style analysis | Replaces manual file sampling |
+| `spec-cleanup.sh <file>` | Remove consumed spec file after successful implementation with git-aware deletion | Replaces manual spec file cleanup |
 
 **When to use**: Any time a command or agent needs to detect the tech stack, find the base branch, run tests, run linting, install dependencies, check PR status, or perform any operation listed above — call the script instead of reimplementing with multiple tool calls.
 
@@ -306,6 +307,14 @@ After implementation, run this cycle:
 2. If issues are found, launch **fixer** agents in parallel for independent fixes across different files
 3. Stage and commit fixes: `git add -A && git commit -m "fix: address review and audit findings"`
 4. Run **reviewer** once more to verify (max 2 iterations)
+
+### Spec Cleanup
+After successful implementation and PR creation, remove consumed spec files:
+1. If `$ARGUMENTS` references a `plans/` file (path starts with `plans/` or contains a `.md` file inside `plans/`), ask the user for confirmation before deleting the consumed spec file
+2. If confirmed and the file is tracked by git, use `git rm`; otherwise use `rm`
+3. If the `plans/` directory is empty after deletion, remove it too
+4. Note in the final summary: "Removed consumed spec: plans/xyz.md"
+5. If the consumed spec contains YAML frontmatter with a `todoist:` field, load the **tool-todoist-cli** skill and run `td task complete "<url>"` for each URL
 
 ### PR Rules
 - All work happens in the worktree directory, never in the main repo

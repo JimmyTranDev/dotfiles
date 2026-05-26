@@ -15,13 +15,6 @@ return {
         menu = { auto_show = true },
       },
     },
-    trigger = {
-      completion = {
-        keyword_length = 2,
-        keyword_regex = '[%w_%-%.#:]*',
-        exclude_from_prefix_regex = '[%(%)]',
-      },
-    },
     keymap = {
       ['<CR>'] = { 'select_and_accept', 'fallback' },
       ['<Down>'] = { 'select_next', 'fallback' },
@@ -35,6 +28,11 @@ return {
     },
     signature = { enabled = true },
     completion = {
+      trigger = {
+        keyword_length = 2,
+        keyword_regex = '[%w_%-%.#:]*',
+        exclude_from_prefix_regex = '[%(%)]',
+      },
       accept = { auto_brackets = { enabled = false } },
       documentation = {
         auto_show = true,

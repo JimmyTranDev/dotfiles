@@ -46,7 +46,11 @@ Load the **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** 
 
    Each agent works exclusively in its own worktree directory (`~/Programming/wcreated/<branch-name>/`). A failure in one group does not block others — all groups run to completion independently.
 
-7. Report outcome to the user:
+7. **Spec cleanup**: If `$ARGUMENTS` references files in `plans/` (paths starting with `plans/` or containing `.md` files inside `plans/`), ask the user for confirmation before deleting each consumed spec file. If confirmed and the file is tracked by git, use `git rm`; otherwise use `rm`. If the `plans/` directory is empty after deletion, remove it too. Note in the final summary: "Removed consumed spec: plans/xyz.md"
+
+8. **Todoist completion**: If the consumed spec file contains YAML frontmatter with a `todoist:` field, load the **tool-todoist-cli** skill and run `td task complete "<url>"` for each URL listed. Only complete after successful implementation and spec cleanup. If implementation failed, do NOT complete the Todoist task.
+
+9. Report outcome to the user:
     - Table showing each group, its tasks, branch name, PR URL, and status (success/failed)
     - Count of PRs created vs failed
     - If changes were stashed during worktree setup, remind the user to `git stash pop` in the main repo
