@@ -41,7 +41,13 @@ ensure_bw_unlocked() {
 
 get_cached_item() {
 	if [[ -z "${_BW_ITEM_CACHE:-}" ]]; then
-		_BW_ITEM_CACHE=$(bw get item "$BW_ITEM_NAME" 2>/dev/null) || true
+		local bw_err
+		bw_err=$(mktemp)
+		_BW_ITEM_CACHE=$(bw get item "$BW_ITEM_NAME" 2>"$bw_err") || true
+		if [[ -s "$bw_err" ]]; then
+			log_warning "bw get item stderr: $(cat "$bw_err")"
+		fi
+		rm -f "$bw_err"
 	fi
 	echo "$_BW_ITEM_CACHE"
 }

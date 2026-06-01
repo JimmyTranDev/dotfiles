@@ -47,7 +47,7 @@ brew "unar"
 brew "zoxide"
 
 # Grammar
-brew "harper-ls"
+brew "harper"
 
 # Languages
 brew "cocoapods"
