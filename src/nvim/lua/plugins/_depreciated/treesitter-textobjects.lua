@@ -4,8 +4,8 @@ return {
   dependencies = { 'nvim-treesitter/nvim-treesitter' },
   lazy = false,
   config = function()
-    local select = require('nvim-treesitter-textobjects.select')
-    local move = require('nvim-treesitter-textobjects.move')
+    local select = require('nvim-treesitter.textobjects.select')
+    local move = require('nvim-treesitter.textobjects.move')
 
     require('nvim-treesitter-textobjects').setup({
       select = {
