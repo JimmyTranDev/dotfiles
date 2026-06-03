@@ -15,15 +15,13 @@ local session = require('custom.utils.session')
 local env_check = require('custom.utils.env_check')
 local stock_prompt = require('custom.utils.stock_prompt')
 
-local tracker = require('custom.utils.keybinding_tracker')
-tracker.init()
 session.setup_autosave()
 vim.defer_fn(env_check.check_env_vars, 2000)
 stock_prompt.setup()
 
 local function map(mode, lhs, rhs, opts)
   opts = vim.tbl_extend('force', { silent = true, noremap = true }, opts or {})
-  tracker.tracked_set(mode, lhs, rhs, opts)
+  vim.keymap.set(mode, lhs, rhs, opts)
 end
 
 local function maps(mode, mappings)
@@ -182,10 +180,6 @@ map('n', '<Leader>uw', github_actions.select_open_prs_by_people, { desc = '󰦥 
 -- map('n', '<Leader>um', git_actions.diff_vs_main, { desc = 'Diff vs main' })
 -- map('n', '<Leader>uM', git_actions.diff_vs_develop, { desc = 'Diff vs develop' })
 -- map('n', '<Leader>uB', branch_actions.stale_branch_cleanup(), { desc = 'Stale branch cleanup' })
-
--- map('n', '<leader>ks', keybinding_tracker_actions.show_keybinding_stats, { desc = 'Show keybinding stats' })
--- map('n', '<leader>kr', keybinding_tracker_actions.reset_keybinding_stats, { desc = 'Reset keybinding stats' })
--- map('n', '<leader>k?', keymap_help_actions.contextual_help, { desc = 'Contextual keymap help' })
 
 map('n', '<leader>fW', project_actions.switch_project, { desc = 'Switch project' })
 map('n', '<leader>;cp', file_actions.clear_plan_files, { desc = 'Clear plan files' })
