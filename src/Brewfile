@@ -76,9 +76,7 @@ cask "google-drive"
 cask "keyboardcleantool"
 cask "raycast"
 cask "minisim"
-
 cask "figma"
-
 cask "db-browser-for-sqlite"
 cask "losslesscut"
 cask "obs"
@@ -87,6 +85,9 @@ cask "thunderbird"
 cask "transmission"
 cask "webtorrent"
 cask "discord"
+cask "microsoft-outlook"
+cask "microsoft-teams"
+cask "slack"
 
 #  Backend
 cask "dbeaver-community"
