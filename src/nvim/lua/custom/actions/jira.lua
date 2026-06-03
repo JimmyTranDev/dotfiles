@@ -447,6 +447,88 @@ M.generate_done_md = function()
   )
 end
 
+M.browse_my_tasks = function()
+  local assignee_email = get_current_user_email()
+  if not assignee_email then
+    vim.notify('ORG_EMAIL environment variable not set', vim.log.levels.ERROR)
+    return
+  end
+
+  local escaped_email = assignee_email:gsub('@', '\\u0040')
+  local jql_query = string.format(
+    "assignee = '%s' AND status not in (Done, Closed, Resolved) ORDER BY updated DESC",
+    escaped_email
+  )
+
+  local cmd = string.format(
+    'acli jira workitem search --jql "%s" --fields "key,summary,status" --limit %d --csv',
+    jql_query,
+    CONFIG.LIMIT
+  )
+
+  vim.notify('Fetching your Jira tasks...', vim.log.levels.INFO)
+
+  vim.system(
+    { 'sh', '-c', cmd },
+    { text = true },
+    vim.schedule_wrap(function(result)
+      if result.code ~= 0 then
+        local error_msg = result.stderr ~= '' and result.stderr or result.stdout
+        vim.notify('Failed to fetch tasks: ' .. error_msg, vim.log.levels.ERROR)
+        return
+      end
+
+      local lines = vim.split(result.stdout, '\n', { trimempty = true })
+      if #lines <= 1 then
+        vim.notify('No tasks found', vim.log.levels.WARN)
+        return
+      end
+
+      local items = {}
+      for i = 2, #lines do
+        local fields = parse_csv_line(lines[i])
+        if #fields >= 3 then
+          local key = fields[1]
+          local status = fields[2]
+          local summary = fields[3]
+          table.insert(items, {
+            text = string.format('%s  %s  [%s]', key, summary, status),
+            key = key,
+            summary = summary,
+            status = status,
+          })
+        end
+      end
+
+      if #items == 0 then
+        vim.notify('No tasks found', vim.log.levels.WARN)
+        return
+      end
+
+      Snacks.picker({
+        title = 'My Jira Tasks',
+        items = items,
+        format = function(item)
+          return {
+            { item.key .. '  ', 'DiagnosticInfo' },
+            { item.summary .. '  ', 'Normal' },
+            { '[' .. item.status .. ']', 'Comment' },
+          }
+        end,
+        confirm = function(picker, item)
+          picker:close()
+          local jira_link = link_utils.get_jira_link_with_ticket(item.key)
+          if jira_link then
+            vim.system({ 'open', jira_link })
+          else
+            vim.notify('Could not build Jira link for ' .. item.key, vim.log.levels.ERROR)
+          end
+        end,
+      })
+    end)
+  )
+end
+
 M.copy_ticket_with_title = function()
   local branch_name = git_utils.get_current_branch()
   if not branch_name or branch_name == '' then

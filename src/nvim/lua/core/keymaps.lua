@@ -89,6 +89,7 @@ map('n', '<leader>vk', language_actions.run_knip_unused_code, { desc = '󰒡 Kni
 map('n', '<leader>;ct', todoist_actions.refresh_todoist_cache(), { desc = '󰆘 Refresh Todoist cache' })
 map('n', '<leader>;cw', jira_actions.refresh_jira_cache, { desc = '󰆘 Refresh Jira cache' })
 
+map('n', '<leader>fj', jira_actions.browse_my_tasks, { desc = '󰌱 Browse my Jira tasks' })
 map('n', '<leader>cj', jira_actions.copy_ticket_with_title, { desc = '󰆓 Copy Jira ticket with title' })
 map('n', '<leader>ct', jira_actions.copy_testable_message, { desc = '󰆓 Copy testable Slack message' })
 map('n', '<leader>;J', jira_actions.generate_done_md, { desc = '󰌧 Generate this week jira tasks' })
