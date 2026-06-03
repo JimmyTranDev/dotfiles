@@ -169,8 +169,8 @@ map('n', '<Leader>ug', github_actions.list_org_repos_and_open, { desc = '󰦥 Li
 map('n', '<Leader>ut', link_actions.open_technical_link, { desc = '󰦥 Open technical link' })
 map('n', '<Leader>us', link_actions.search_google, { desc = '󰦥 Search Google' })
 map('v', '<Leader>us', link_actions.search_google, { desc = '󰦥 Search Google (selection)' })
-map('n', '<Leader>un', github_actions.show_notifications, { desc = '󰦥 GitHub Notifications' })
-map('n', '<Leader>uN', github_actions.show_notifications_by_team, { desc = '󰦥 Team Notifications' })
+map('n', '<Leader>uN', github_actions.show_notifications, { desc = '󰦥 GitHub Notifications' })
+map('n', '<Leader>un', github_actions.show_notifications_by_team, { desc = '󰦥 Team Notifications' })
 map('n', '<Leader>uw', github_actions.select_open_prs_by_people, { desc = '󰦥 Who (team PRs)' })
 
 -- New
