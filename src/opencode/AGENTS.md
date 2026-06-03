@@ -285,6 +285,7 @@ All scripts output **minified JSON** to stdout, log to stderr via `log_*` helper
 | `build-check.sh [dir]` | Auto-detect and run build command | Replaces manual build tool detection |
 | `scan-style.sh [dir]` | Gather file stats, naming patterns, and code samples for style analysis | Replaces manual file sampling |
 | `spec-cleanup.sh <file>` | Remove consumed spec file after successful implementation with git-aware deletion | Replaces manual spec file cleanup |
+| `version-bump.sh [minor\|major] [--dry-run] [--dir path]` | Bump minor or major version across all monorepo workspaces + app.json | Replaces manual version editing |
 
 **When to use**: Any time a command or agent needs to detect the tech stack, find the base branch, run tests, run linting, install dependencies, check PR status, or perform any operation listed above — call the script instead of reimplementing with multiple tool calls.
 
