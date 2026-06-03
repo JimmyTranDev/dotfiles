@@ -157,6 +157,7 @@ map('n', '<leader>ce', errors_actions.copy_diagnostic_under_cursor, { desc = '�
 map('n', '<Leader>ud', file_actions.open_current_dir, { desc = '󰦥 Open directory' })
 map('n', '<Leader>uc', github_actions.open_current_commit_in_github, { desc = '󰦥 Open Current Commit in GitHub' })
 map('n', '<Leader>up', git_actions.open_or_create_pull_request, { desc = '󰦥 Open existing PR or create new one' })
+map('n', '<Leader>uP', git_actions.copy_pr_link, { desc = '󰦥 Copy PR link' })
 map('n', '<Leader>ur', link_actions.open_current_github_repo, { desc = '󰦥 Open current GitHub repo' })
 map('n', '<Leader>ua', link_actions.open_current_github_prs, { desc = '󰦥 All PRs tab' })
 map('n', '<Leader>uh', github_actions.open_current_repo_in_browser, { desc = '󰊤 Open repo homepage' })

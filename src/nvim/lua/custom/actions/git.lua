@@ -459,6 +459,23 @@ function M.open_or_create_pull_request()
   end
 end
 
+function M.copy_pr_link()
+  local branch = git_utils.get_current_branch()
+  if not branch or branch == '' then
+    vim.notify('Could not determine current branch', vim.log.levels.ERROR)
+    return
+  end
+
+  local pr_url = get_pr_for_branch(branch)
+  if not pr_url then
+    vim.notify('No PR found for branch: ' .. branch, vim.log.levels.WARN)
+    return
+  end
+
+  vim.fn.setreg('+', pr_url)
+  vim.notify('Copied PR link: ' .. pr_url, vim.log.levels.INFO)
+end
+
 function M.rebase_choose_ours()
   local current_branch = git_utils.get_current_branch()
   if not current_branch or current_branch == '' then
