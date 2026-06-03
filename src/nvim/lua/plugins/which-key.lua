@@ -95,7 +95,7 @@ return {
       { '<leader><leader>p', '󰏖 Packages' },
       { '<leader>r', '󰌱 Capture' },
       { '<leader><leader>s', '󰒺 Sort & Swap' },
-      { '<leader>u', '󰦥 Open & Links' },
+      { '<leader>u', '󰦥 URL / Open' },
       { '<leader>z', '󰒲 Lazy' },
       { 'g', '󰬴 Goto' },
       { ']', '󰮯 Next' },

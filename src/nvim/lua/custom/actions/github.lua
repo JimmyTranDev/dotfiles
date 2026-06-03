@@ -821,58 +821,149 @@ function M._submit_pr_review(pr_number, review_type)
   end)
 end
 
-function M.show_notifications()
-  vim.notify('Fetching GitHub notifications...', vim.log.levels.INFO)
+local function show_notifications_picker(notifications, title_suffix)
+  local items = {}
+  for _, notif in ipairs(notifications) do
+    local type_icon = ({ PullRequest = '', Issue = '', Discussion = '󰍩' })[notif.subject_type] or ''
+    table.insert(items, {
+      text = string.format('%s [%s] %s (%s)', type_icon, notif.repository, notif.subject_title, notif.reason),
+      notif = notif,
+    })
+  end
 
-  vim.system(
-    {
-      'gh',
-      'api',
-      'notifications',
-      '--jq',
-      '.[] | {id: .id, subject_title: .subject.title, subject_type: .subject.type, subject_url: .subject.url, repository: .repository.full_name, reason: .reason, updated_at: .updated_at, unread: .unread}',
-    },
-    { text = true },
-    vim.schedule_wrap(function(result)
-      if result.code ~= 0 then
-        vim.notify('Failed to fetch notifications: ' .. (result.stderr or ''), vim.log.levels.ERROR)
-        return
-      end
+  local snacks_ok, snacks = pcall(require, 'snacks')
+  if not snacks_ok then return end
 
-      if not result.stdout or result.stdout == '' then
-        vim.notify('No notifications', vim.log.levels.INFO)
-        return
-      end
+  local title = 'GitHub Notifications (' .. #items .. ')'
+  if title_suffix then
+    title = title .. ' - ' .. title_suffix
+  end
 
-      local notifications = {}
-      for line in result.stdout:gmatch('[^\n]+') do
-        local ok, notif = pcall(vim.fn.json_decode, line)
-        if ok and notif then
-          table.insert(notifications, notif)
-        end
-      end
-
-      if #notifications == 0 then
-        vim.notify('No notifications', vim.log.levels.INFO)
-        return
-      end
-
-      local items = {}
-      for _, notif in ipairs(notifications) do
-        local type_icon = ({ PullRequest = '', Issue = '', Discussion = '󰍩' })[notif.subject_type] or ''
-        table.insert(items, {
-          text = string.format('%s [%s] %s (%s)', type_icon, notif.repository, notif.subject_title, notif.reason),
-          notif = notif,
-        })
-      end
-
-      local snacks_ok, snacks = pcall(require, 'snacks')
-      if not snacks_ok then return end
+      -- Cache for fetched notification details (keyed by subject_url)
+      local detail_cache = {}
 
       snacks.picker({
         title = 'GitHub Notifications (' .. #items .. ')',
         items = items,
         format = function(item) return { { item.text, 'Normal' } } end,
+        preview = function(ctx)
+          local item = ctx.item
+          if not item or not item.notif then return end
+          local notif = item.notif
+
+          local function render_preview(lines)
+            ctx.preview:set_lines(lines)
+
+            -- Highlight header lines
+            for i, line in ipairs(lines) do
+              if line:match('^[A-Z].*:') and not line:match('^  ') then
+                ctx.preview:highlight({ col = 0, line = i, end_col = line:find(':'), hl = 'Title' })
+              elseif line:match('^─') then
+                ctx.preview:highlight({ col = 0, line = i, end_col = #line, hl = 'Comment' })
+              end
+            end
+          end
+
+          -- Build static header
+          local reason_labels = {
+            assign = 'Assigned to you',
+            author = 'You created this',
+            comment = 'New comment',
+            ci_activity = 'CI activity',
+            invitation = 'Invitation',
+            manual = 'Subscribed manually',
+            mention = 'You were mentioned',
+            review_requested = 'Review requested',
+            security_alert = 'Security alert',
+            state_change = 'State changed',
+            subscribed = 'Subscribed',
+            team_mention = 'Team mentioned',
+          }
+
+          local header = {
+            'Title:      ' .. (notif.subject_title or ''),
+            'Repository: ' .. (notif.repository or ''),
+            'Type:       ' .. (notif.subject_type or ''),
+            'Reason:     ' .. (reason_labels[notif.reason] or notif.reason or ''),
+            'Updated:    ' .. (notif.updated_at or ''),
+            'Unread:     ' .. (notif.unread and 'Yes' or 'No'),
+            '────────────────────────────────────────',
+          }
+
+          -- Show header immediately, then fetch details async
+          local api_url = notif.subject_url
+          if not api_url or api_url == '' then
+            render_preview(header)
+            return
+          end
+
+          if detail_cache[api_url] then
+            local lines = vim.list_extend({}, header)
+            vim.list_extend(lines, detail_cache[api_url])
+            render_preview(lines)
+            return
+          end
+
+          -- Show header with loading indicator
+          local loading = vim.list_extend({}, header)
+          table.insert(loading, 'Loading details...')
+          render_preview(loading)
+
+          -- Fetch body/details from the API
+          local jq_expr = notif.subject_type == 'PullRequest'
+            and '{state: .state, user: .user.login, body: .body, additions: .additions, deletions: .deletions, changed_files: .changed_files, merged: .merged, draft: .draft, labels: [.labels[].name]}'
+            or '{state: .state, user: .user.login, body: .body, labels: [.labels[].name]}'
+
+          vim.system(
+            { 'gh', 'api', api_url, '--jq', jq_expr },
+            { text = true },
+            vim.schedule_wrap(function(detail_result)
+              if detail_result.code ~= 0 or not detail_result.stdout or detail_result.stdout == '' then
+                detail_cache[api_url] = { '(Could not load details)' }
+              else
+                local ok, detail = pcall(vim.fn.json_decode, detail_result.stdout)
+                if not ok or not detail then
+                  detail_cache[api_url] = { '(Failed to parse details)' }
+                else
+                  local detail_lines = {}
+                  if detail.user then
+                    table.insert(detail_lines, 'Author:     ' .. detail.user)
+                  end
+                  if detail.state then
+                    local state = detail.state
+                    if detail.merged then
+                      state = 'merged'
+                    elseif detail.draft then
+                      state = 'draft'
+                    end
+                    table.insert(detail_lines, 'State:      ' .. state)
+                  end
+                  if detail.additions then
+                    table.insert(
+                      detail_lines,
+                      'Changes:    +' .. detail.additions .. ' -' .. detail.deletions .. ' (' .. detail.changed_files .. ' files)'
+                    )
+                  end
+                  if detail.labels and #detail.labels > 0 then
+                    table.insert(detail_lines, 'Labels:     ' .. table.concat(detail.labels, ', '))
+                  end
+                  if detail.body and detail.body ~= '' then
+                    table.insert(detail_lines, '────────────────────────────────────────')
+                    for body_line in detail.body:gmatch('[^\r\n]*') do
+                      table.insert(detail_lines, body_line)
+                    end
+                  end
+                  detail_cache[api_url] = detail_lines
+                end
+              end
+
+              -- Re-render if this item is still selected
+              local lines = vim.list_extend({}, header)
+              vim.list_extend(lines, detail_cache[api_url])
+              render_preview(lines)
+            end)
+          )
+        end,
         confirm = function(picker, item)
           picker:close()
           local api_url = item.notif.subject_url
@@ -914,8 +1005,161 @@ function M.show_notifications()
           },
         },
       })
+end
+
+local function fetch_notifications(callback)
+  vim.notify('Fetching GitHub notifications...', vim.log.levels.INFO)
+  vim.system(
+    {
+      'gh',
+      'api',
+      'notifications',
+      '--jq',
+      '.[] | {id: .id, subject_title: .subject.title, subject_type: .subject.type, subject_url: .subject.url, repository: .repository.full_name, reason: .reason, updated_at: .updated_at, unread: .unread}',
+    },
+    { text = true },
+    vim.schedule_wrap(function(result)
+      if result.code ~= 0 then
+        vim.notify('Failed to fetch notifications: ' .. (result.stderr or ''), vim.log.levels.ERROR)
+        return
+      end
+
+      if not result.stdout or result.stdout == '' then
+        vim.notify('No notifications', vim.log.levels.INFO)
+        return
+      end
+
+      local notifications = {}
+      for line in result.stdout:gmatch('[^\n]+') do
+        local ok, notif = pcall(vim.fn.json_decode, line)
+        if ok and notif then
+          table.insert(notifications, notif)
+        end
+      end
+
+      if #notifications == 0 then
+        vim.notify('No notifications', vim.log.levels.INFO)
+        return
+      end
+
+      callback(notifications)
     end)
   )
+end
+
+function M.show_notifications()
+  fetch_notifications(function(notifications)
+    show_notifications_picker(notifications, nil)
+  end)
+end
+
+function M.show_notifications_by_team()
+  local teams_str = vim.env.GITHUB_PR_FILTER_TEAMS
+  if not teams_str or teams_str == '' then
+    vim.notify('GITHUB_PR_FILTER_TEAMS not set (comma-separated team slugs)', vim.log.levels.ERROR)
+    return
+  end
+
+  local org_name = vim.env.ORG_GITHUB_NAME
+  if not org_name or org_name == '' then
+    vim.notify('ORG_GITHUB_NAME not set', vim.log.levels.ERROR)
+    return
+  end
+
+  local team_slugs = {}
+  for slug in teams_str:gmatch('[^,]+') do
+    local trimmed = slug:match('^%s*(.-)%s*$')
+    if trimmed ~= '' then table.insert(team_slugs, trimmed) end
+  end
+
+  if #team_slugs == 0 then
+    vim.notify('No teams found in GITHUB_PR_FILTER_TEAMS', vim.log.levels.ERROR)
+    return
+  end
+
+  local choices = {}
+  for _, slug in ipairs(team_slugs) do
+    table.insert(choices, { text = slug, slugs = { slug } })
+  end
+  table.insert(choices, { text = 'All teams', slugs = team_slugs })
+
+  vim.ui.select(choices, {
+    prompt = 'Select team:',
+    format_item = function(item) return item.text end,
+  }, function(choice)
+    if not choice then return end
+    get_team_members_for_slugs(org_name, choice.slugs, function(usernames)
+      if #usernames == 0 then
+        vim.notify('No members found for selected team', vim.log.levels.WARN)
+        return
+      end
+
+      local members_set = {}
+      for _, login in ipairs(usernames) do
+        members_set[login:lower()] = true
+      end
+
+      fetch_notifications(function(notifications)
+        -- Resolve authors for all notifications, then filter
+        vim.notify('Resolving notification authors...', vim.log.levels.INFO)
+        local pending = #notifications
+        local author_map = {} -- subject_url -> author login
+
+        if pending == 0 then
+          vim.notify('No notifications', vim.log.levels.INFO)
+          return
+        end
+
+        for _, notif in ipairs(notifications) do
+          local api_url = notif.subject_url
+          if not api_url or api_url == '' then
+            pending = pending - 1
+            if pending == 0 then
+              vim.schedule(function()
+                local filtered = {}
+                for _, n in ipairs(notifications) do
+                  local author = author_map[n.subject_url]
+                  if author and members_set[author:lower()] then
+                    table.insert(filtered, n)
+                  end
+                end
+                if #filtered == 0 then
+                  vim.notify('No notifications from team members', vim.log.levels.INFO)
+                  return
+                end
+                show_notifications_picker(filtered, choice.text)
+              end)
+            end
+          else
+            vim.system(
+              { 'gh', 'api', api_url, '--jq', '.user.login' },
+              { text = true },
+              vim.schedule_wrap(function(author_result)
+                if author_result.code == 0 and author_result.stdout and author_result.stdout ~= '' then
+                  author_map[api_url] = vim.trim(author_result.stdout)
+                end
+                pending = pending - 1
+                if pending == 0 then
+                  local filtered = {}
+                  for _, n in ipairs(notifications) do
+                    local author = author_map[n.subject_url]
+                    if author and members_set[author:lower()] then
+                      table.insert(filtered, n)
+                    end
+                  end
+                  if #filtered == 0 then
+                    vim.notify('No notifications from team members', vim.log.levels.INFO)
+                    return
+                  end
+                  show_notifications_picker(filtered, choice.text)
+                end
+              end)
+            )
+          end
+        end
+      end)
+    end)
+  end)
 end
 
 function M.redeploy_pr()
