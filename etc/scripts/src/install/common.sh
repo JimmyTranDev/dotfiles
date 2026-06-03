@@ -64,6 +64,41 @@ main() {
 		log_warning "pnpm not found, skipping global pnpm packages"
 	fi
 
+	if command -v npm >/dev/null 2>&1; then
+		if command -v eas >/dev/null 2>&1; then
+			log_info "eas-cli already installed"
+		else
+			log_info "Installing eas-cli..."
+			npm install -g eas-cli
+			log_success "eas-cli installed"
+		fi
+	else
+		log_warning "npm not found, skipping eas-cli install"
+	fi
+
+	if [[ ! -f "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
+		log_info "Installing SDKMAN..."
+		bash -c "$(curl -fsSL https://get.sdkman.io)" || log_warning "SDKMAN installation failed"
+		if [[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
+			log_success "SDKMAN installed"
+		fi
+	else
+		log_info "SDKMAN already installed"
+	fi
+
+	if [[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
+		source "$HOME/.sdkman/bin/sdkman-init.sh"
+		if ! sdk list java | grep -q "21\.[^ ]* .* installed"; then
+			log_info "Installing Java 21 via SDKMAN..."
+			sdk install java 21-tem || sdk install java 21-open || log_warning "Java 21 installation failed"
+			log_success "Java 21 installed"
+		else
+			log_info "Java 21 already installed"
+		fi
+		log_info "Setting Java 21 as default..."
+		sdk default java 21-tem 2>/dev/null || sdk default java 21-open 2>/dev/null || log_warning "Could not set Java 21 as default"
+	fi
+
 	log_success "Common setup completed"
 }
 

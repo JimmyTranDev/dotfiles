@@ -41,6 +41,32 @@ main() {
 	done
 
 	log_success "macOS setup completed"
+
+	start_macos_services
+}
+
+start_macos_services() {
+	if command -v yabai >/dev/null 2>&1; then
+		log_info "Starting yabai service..."
+		yabai --start-service
+		log_success "yabai service started"
+	else
+		log_warning "yabai not found, skipping service start"
+	fi
+	if command -v skhd >/dev/null 2>&1; then
+		log_info "Starting skhd service..."
+		skhd --start-service
+		log_success "skhd service started"
+	else
+		log_warning "skhd not found, skipping service start"
+	fi
+	if brew list postgresql@17 &>/dev/null || brew list postgresql &>/dev/null; then
+		log_info "Starting PostgreSQL service..."
+		brew services start postgresql@17 2>/dev/null || brew services start postgresql 2>/dev/null || log_warning "Failed to start PostgreSQL service"
+		log_success "PostgreSQL service started"
+	else
+		log_warning "PostgreSQL not found, skipping service start"
+	fi
 }
 
 main "$@"
