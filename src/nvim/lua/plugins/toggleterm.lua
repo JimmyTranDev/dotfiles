@@ -185,6 +185,5 @@ return {
     vim.keymap.set('n', [[<c-\>]], [[<Cmd>execute v:count1 . "ToggleTerm"<CR>]], { silent = true })
     vim.keymap.set('i', [[<c-\>]], [[<Esc><Cmd>execute v:count1 . "ToggleTerm"<CR>]], { silent = true })
 
-    toggle_term_actions.setup_floating_labels()
   end,
 }
