@@ -1,6 +1,8 @@
 keybinding:
   universal:
     return: <c-a>
+git:
+  skipHookPrefix: ''
 os:
   editPreset: 'nvim-remote'
   edit: 'nvim --server "$NVIM" --remote-tab {{filename}}'
