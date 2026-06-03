@@ -139,6 +139,19 @@ main() {
 		success "SDKMAN already installed"
 	fi
 
+	if [[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
+		source "$HOME/.sdkman/bin/sdkman-init.sh"
+		if ! sdk list java | grep -q "21\.[^ ]* .* installed"; then
+			info "Installing Java 21 via SDKMAN..."
+			sdk install java 21-tem || sdk install java 21-open || warn "Java 21 installation failed"
+			success "Java 21 installed"
+		else
+			success "Java 21 already installed"
+		fi
+		info "Setting Java 21 as default..."
+		sdk default java 21-tem 2>/dev/null || sdk default java 21-open 2>/dev/null || warn "Could not set Java 21 as default"
+	fi
+
 	info "Running dotfiles install script..."
 	bash "$DOTFILES_DIR/etc/scripts/src/install/install.sh"
 
