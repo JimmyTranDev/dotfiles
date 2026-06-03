@@ -101,6 +101,13 @@ start_macos_services() {
 	else
 		warn "skhd not found, skipping service start"
 	fi
+	if brew list postgresql@17 &>/dev/null || brew list postgresql &>/dev/null; then
+		info "Starting PostgreSQL service..."
+		brew services start postgresql@17 2>/dev/null || brew services start postgresql 2>/dev/null || warn "Failed to start PostgreSQL service"
+		success "PostgreSQL service started"
+	else
+		warn "PostgreSQL not found, skipping service start"
+	fi
 }
 
 main() {

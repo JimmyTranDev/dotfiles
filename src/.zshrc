@@ -101,6 +101,7 @@ y() {
 alias z='zellij'
 alias a='eval "$(poetry env activate)"'
 alias d="$DOTFILES_DIR/etc/scripts/utils/git_diff_commits.sh"
+alias too="$DOTFILES_DIR/etc/scripts/src/git_diff_base.sh"
 alias k="$DOTFILES_DIR/etc/scripts/src/kill_port.sh"
 alias l="$DOTFILES_DIR/etc/scripts/src/select_git_folder_actx.sh"
 alias i='brew bundle --file=$DOTFILES_DIR/src/Brewfile --cleanup'
