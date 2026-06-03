@@ -204,6 +204,34 @@ function M.open_technical_link()
   end)
 end
 
+function M.open_technical_link_current_repo()
+  local repo_name = github_utils.get_repo_name()
+  if not repo_name or repo_name == '' then
+    vim.notify('Not in a git repository', vim.log.levels.WARN)
+    return
+  end
+
+  local routes = link_constants.project_name_to_route_object[repo_name]
+  if not routes then
+    vim.notify('No technical links found for: ' .. repo_name, vim.log.levels.WARN)
+    return
+  end
+
+  local route_names = {}
+  for key in pairs(routes) do
+    table.insert(route_names, key)
+  end
+  table.sort(route_names)
+
+  ui_utils.safe_select(route_names, { prompt = 'Select link type:' }, function(route_name)
+    local url = routes[route_name]
+    if url then
+      record_link_usage(repo_name .. ':' .. route_name)
+      open_url(url, repo_name .. ' (' .. route_name .. ')')
+    end
+  end)
+end
+
 function M.open_firefox_container()
   vim.ui.input({ prompt = 'Container name: ' }, function(container)
     if not container or container == '' then return end
