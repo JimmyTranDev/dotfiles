@@ -485,26 +485,8 @@ local function fetch_and_show_prs(org_name, usernames)
 end
 
 function M.select_open_prs_by_people()
-  local teams_str = vim.env.GITHUB_PR_FILTER_TEAMS
-  if not teams_str or teams_str == '' then
-    vim.notify('GITHUB_PR_FILTER_TEAMS not set (comma-separated team slugs)', vim.log.levels.ERROR)
-    return
-  end
-
-  local org_name = vim.env.ORG_GITHUB_NAME
-  if not org_name or org_name == '' then
-    vim.notify('ORG_GITHUB_NAME not set', vim.log.levels.ERROR)
-    return
-  end
-
-  local team_slugs = {}
-  for slug in teams_str:gmatch('[^,]+') do
-    local trimmed = slug:match('^%s*(.-)%s*$')
-    if trimmed ~= '' then table.insert(team_slugs, trimmed) end
-  end
-
-  if #team_slugs == 0 then
-    vim.notify('No teams found in GITHUB_PR_FILTER_TEAMS', vim.log.levels.ERROR)
+  local team_slugs, org_name = parse_team_config()
+  if not team_slugs or not org_name then
     return
   end
 
@@ -518,10 +500,23 @@ function M.select_open_prs_by_people()
     prompt = 'Select team:',
     format_item = function(item) return item.text end,
   }, function(choice)
-    if not choice then return end
+    if not choice then
+      return
+    end
     get_team_members_for_slugs(org_name, choice.slugs, function(usernames)
       fetch_and_show_prs(org_name, usernames)
     end)
+  end)
+end
+
+function M.select_open_prs_by_default_team()
+  local team_slugs, org_name = parse_team_config()
+  if not team_slugs or not org_name then
+    return
+  end
+
+  get_team_members_for_slugs(org_name, { team_slugs[1] }, function(usernames)
+    fetch_and_show_prs(org_name, usernames)
   end)
 end
 
@@ -538,7 +533,7 @@ function M.list_org_repos_and_open()
   while true do
     local org_name, org_type = vim.uv.fs_scandir_next(org_handle)
     if not org_name then break end
-    if org_type ~= 'directory' or org_name == 'Worktrees' then goto continue_org end
+    if org_type ~= 'directory' or org_name == 'Worktrees' or org_name == 'wcreated' or org_name == 'wcheckout' then goto continue_org end
 
     local repo_handle = vim.uv.fs_scandir(programming_dir .. '/' .. org_name)
     if not repo_handle then goto continue_org end

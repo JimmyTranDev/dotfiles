@@ -173,7 +173,8 @@ map('v', '<Leader>us', link_actions.search_google, { desc = '󰦥 Search Google 
 map('n', '<Leader>uN', github_actions.show_notifications, { desc = '󰦥 GitHub Notifications' })
 map('n', '<Leader>un', github_actions.show_notifications_by_default_team, { desc = '󰦥 Default Team Notifications' })
 map('n', '<Leader>uT', github_actions.show_notifications_by_team, { desc = '󰦥 Select Team Notifications' })
-map('n', '<Leader>uw', github_actions.select_open_prs_by_people, { desc = '󰦥 Who (team PRs)' })
+map('n', '<Leader>uw', github_actions.select_open_prs_by_default_team, { desc = '󰦥 Default Team PRs' })
+map('n', '<Leader>uW', github_actions.select_open_prs_by_people, { desc = '󰦥 Select Team PRs' })
 
 -- New
 -- map('n', '<Leader>un', link_actions.open_npm_url, { desc = 'Open NPM link' })
