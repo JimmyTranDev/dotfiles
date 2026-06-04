@@ -38,5 +38,16 @@ return {
     })
 
     vim.treesitter.language.register('markdown', 'mdx')
+
+    -- Workaround for Neovim 0.12.2 bug: treesitter injection parsing can
+    -- pass a nil node to get_range(), causing `node:range()` to error.
+    -- Patch get_range to return zeros for nil nodes instead of crashing.
+    local original_get_range = vim.treesitter.get_range
+    vim.treesitter.get_range = function(node, source, metadata)
+      if node == nil then
+        return { 0, 0, 0, 0, 0, 0 }
+      end
+      return original_get_range(node, source, metadata)
+    end
   end,
 }

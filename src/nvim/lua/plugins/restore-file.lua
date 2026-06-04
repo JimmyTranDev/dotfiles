@@ -12,19 +12,16 @@ return {
         local cwd = vim.fn.getcwd()
         for _, file in ipairs(vim.v.oldfiles or {}) do
           local abs_file = vim.fn.fnamemodify(file, ':p')
-          if vim.fn.filereadable(abs_file) == 1 and vim.startswith(vim.fn.fnamemodify(abs_file, ':h'), cwd) then
+          if
+            vim.fn.filereadable(abs_file) == 1
+            and vim.startswith(vim.fn.fnamemodify(abs_file, ':h'), cwd)
+            and os.execute('git -C ' .. vim.fn.shellescape(vim.fn.fnamemodify(abs_file, ':h')) .. ' check-ignore -q ' .. vim.fn.shellescape(abs_file) .. ' 2>/dev/null') ~= 0
+          then
             vim.defer_fn(function()
-              -- Use noautocmd to avoid a Neovim 0.12.2 treesitter bug where
-              -- markview's BufEnter handler triggers injection parsing before
-              -- the language tree is ready (nil node in :range()).
-              -- After the buffer is stable, re-trigger BufEnter so plugins
-              -- can attach normally.
-              vim.cmd('noautocmd edit ' .. vim.fn.fnameescape(abs_file))
-              vim.schedule(function()
-                vim.cmd('doautocmd BufReadPost')
-                vim.cmd('doautocmd BufEnter')
-                vim.cmd('doautocmd BufWinEnter')
-              end)
+              local ok, err = pcall(vim.cmd, 'edit ' .. vim.fn.fnameescape(abs_file))
+              if not ok then
+                vim.notify('restore-file: ' .. tostring(err), vim.log.levels.WARN)
+              end
             end, 50)
             break
           end
