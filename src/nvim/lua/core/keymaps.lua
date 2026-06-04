@@ -171,7 +171,8 @@ map('n', '<Leader>uT', link_actions.open_technical_link, { desc = '󰦥 Technica
 map('n', '<Leader>us', link_actions.search_google, { desc = '󰦥 Search Google' })
 map('v', '<Leader>us', link_actions.search_google, { desc = '󰦥 Search Google (selection)' })
 map('n', '<Leader>uN', github_actions.show_notifications, { desc = '󰦥 GitHub Notifications' })
-map('n', '<Leader>un', github_actions.show_notifications_by_team, { desc = '󰦥 Team Notifications' })
+map('n', '<Leader>un', github_actions.show_notifications_by_default_team, { desc = '󰦥 Default Team Notifications' })
+map('n', '<Leader>uT', github_actions.show_notifications_by_team, { desc = '󰦥 Select Team Notifications' })
 map('n', '<Leader>uw', github_actions.select_open_prs_by_people, { desc = '󰦥 Who (team PRs)' })
 
 -- New

@@ -1053,27 +1053,116 @@ function M.show_notifications()
   end)
 end
 
-function M.show_notifications_by_team()
+---@return string[]|nil team_slugs
+---@return string|nil org_name
+local function parse_team_config()
   local teams_str = vim.env.GITHUB_PR_FILTER_TEAMS
   if not teams_str or teams_str == '' then
     vim.notify('GITHUB_PR_FILTER_TEAMS not set (comma-separated team slugs)', vim.log.levels.ERROR)
-    return
+    return nil, nil
   end
 
   local org_name = vim.env.ORG_GITHUB_NAME
   if not org_name or org_name == '' then
     vim.notify('ORG_GITHUB_NAME not set', vim.log.levels.ERROR)
-    return
+    return nil, nil
   end
 
   local team_slugs = {}
   for slug in teams_str:gmatch('[^,]+') do
     local trimmed = slug:match('^%s*(.-)%s*$')
-    if trimmed ~= '' then table.insert(team_slugs, trimmed) end
+    if trimmed ~= '' then
+      table.insert(team_slugs, trimmed)
+    end
   end
 
   if #team_slugs == 0 then
     vim.notify('No teams found in GITHUB_PR_FILTER_TEAMS', vim.log.levels.ERROR)
+    return nil, nil
+  end
+
+  return team_slugs, org_name
+end
+
+---@param org_name string
+---@param slugs string[]
+---@param label string
+local function fetch_notifications_for_team(org_name, slugs, label)
+  get_team_members_for_slugs(org_name, slugs, function(usernames)
+    if #usernames == 0 then
+      vim.notify('No members found for selected team', vim.log.levels.WARN)
+      return
+    end
+
+    local members_set = {}
+    for _, login in ipairs(usernames) do
+      members_set[login:lower()] = true
+    end
+
+    fetch_notifications(function(notifications)
+      vim.notify('Resolving notification authors...', vim.log.levels.INFO)
+      local pending = #notifications
+      local author_map = {}
+
+      if pending == 0 then
+        vim.notify('No notifications', vim.log.levels.INFO)
+        return
+      end
+
+      for _, notif in ipairs(notifications) do
+        local api_url = notif.subject_url
+        if not api_url or api_url == '' then
+          pending = pending - 1
+          if pending == 0 then
+            vim.schedule(function()
+              local filtered = {}
+              for _, n in ipairs(notifications) do
+                local author = author_map[n.subject_url]
+                if author and members_set[author:lower()] then
+                  table.insert(filtered, n)
+                end
+              end
+              if #filtered == 0 then
+                vim.notify('No notifications from team members', vim.log.levels.INFO)
+                return
+              end
+              show_notifications_picker(filtered, label)
+            end)
+          end
+        else
+          vim.system(
+            { 'gh', 'api', api_url, '--jq', '.user.login' },
+            { text = true },
+            vim.schedule_wrap(function(author_result)
+              if author_result.code == 0 and author_result.stdout and author_result.stdout ~= '' then
+                author_map[api_url] = vim.trim(author_result.stdout)
+              end
+              pending = pending - 1
+              if pending == 0 then
+                local filtered = {}
+                for _, n in ipairs(notifications) do
+                  local author = author_map[n.subject_url]
+                  if author and members_set[author:lower()] then
+                    table.insert(filtered, n)
+                  end
+                end
+                if #filtered == 0 then
+                  vim.notify('No notifications from team members', vim.log.levels.INFO)
+                  return
+                end
+                show_notifications_picker(filtered, label)
+              end
+            end)
+          )
+        end
+      end
+    end)
+  end)
+end
+
+function M.show_notifications_by_team()
+  local team_slugs, org_name = parse_team_config()
+  if not team_slugs or not org_name then
     return
   end
 
@@ -1087,79 +1176,20 @@ function M.show_notifications_by_team()
     prompt = 'Select team:',
     format_item = function(item) return item.text end,
   }, function(choice)
-    if not choice then return end
-    get_team_members_for_slugs(org_name, choice.slugs, function(usernames)
-      if #usernames == 0 then
-        vim.notify('No members found for selected team', vim.log.levels.WARN)
-        return
-      end
-
-      local members_set = {}
-      for _, login in ipairs(usernames) do
-        members_set[login:lower()] = true
-      end
-
-      fetch_notifications(function(notifications)
-        -- Resolve authors for all notifications, then filter
-        vim.notify('Resolving notification authors...', vim.log.levels.INFO)
-        local pending = #notifications
-        local author_map = {} -- subject_url -> author login
-
-        if pending == 0 then
-          vim.notify('No notifications', vim.log.levels.INFO)
-          return
-        end
-
-        for _, notif in ipairs(notifications) do
-          local api_url = notif.subject_url
-          if not api_url or api_url == '' then
-            pending = pending - 1
-            if pending == 0 then
-              vim.schedule(function()
-                local filtered = {}
-                for _, n in ipairs(notifications) do
-                  local author = author_map[n.subject_url]
-                  if author and members_set[author:lower()] then
-                    table.insert(filtered, n)
-                  end
-                end
-                if #filtered == 0 then
-                  vim.notify('No notifications from team members', vim.log.levels.INFO)
-                  return
-                end
-                show_notifications_picker(filtered, choice.text)
-              end)
-            end
-          else
-            vim.system(
-              { 'gh', 'api', api_url, '--jq', '.user.login' },
-              { text = true },
-              vim.schedule_wrap(function(author_result)
-                if author_result.code == 0 and author_result.stdout and author_result.stdout ~= '' then
-                  author_map[api_url] = vim.trim(author_result.stdout)
-                end
-                pending = pending - 1
-                if pending == 0 then
-                  local filtered = {}
-                  for _, n in ipairs(notifications) do
-                    local author = author_map[n.subject_url]
-                    if author and members_set[author:lower()] then
-                      table.insert(filtered, n)
-                    end
-                  end
-                  if #filtered == 0 then
-                    vim.notify('No notifications from team members', vim.log.levels.INFO)
-                    return
-                  end
-                  show_notifications_picker(filtered, choice.text)
-                end
-              end)
-            )
-          end
-        end
-      end)
-    end)
+    if not choice then
+      return
+    end
+    fetch_notifications_for_team(org_name, choice.slugs, choice.text)
   end)
+end
+
+function M.show_notifications_by_default_team()
+  local team_slugs, org_name = parse_team_config()
+  if not team_slugs or not org_name then
+    return
+  end
+
+  fetch_notifications_for_team(org_name, { team_slugs[1] }, team_slugs[1])
 end
 
 function M.redeploy_pr()
