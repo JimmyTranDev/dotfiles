@@ -14,7 +14,17 @@ return {
           local abs_file = vim.fn.fnamemodify(file, ':p')
           if vim.fn.filereadable(abs_file) == 1 and vim.startswith(vim.fn.fnamemodify(abs_file, ':h'), cwd) then
             vim.defer_fn(function()
-              vim.cmd('edit ' .. vim.fn.fnameescape(abs_file))
+              -- Use noautocmd to avoid a Neovim 0.12.2 treesitter bug where
+              -- markview's BufEnter handler triggers injection parsing before
+              -- the language tree is ready (nil node in :range()).
+              -- After the buffer is stable, re-trigger BufEnter so plugins
+              -- can attach normally.
+              vim.cmd('noautocmd edit ' .. vim.fn.fnameescape(abs_file))
+              vim.schedule(function()
+                vim.cmd('doautocmd BufReadPost')
+                vim.cmd('doautocmd BufEnter')
+                vim.cmd('doautocmd BufWinEnter')
+              end)
             end, 50)
             break
           end
