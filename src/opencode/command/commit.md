@@ -37,18 +37,3 @@ Important:
 Analyze the staged changes (git diff --cached -- . ':!*.csv') to understand the changes, then create the commit. Always exclude `*.csv` files from diff output — CSV diffs are large, noisy, and not useful for understanding changes.
 
 Do NOT ask clarifying questions. Decide the commit type, scope, and description autonomously based on the staged diff. Just create the commit immediately.
-
-## Updates File
-
-After every successful commit, write a summary to `updates/YYYY-MM-DD.md` (using today's date):
-1. Ensure the `updates/` directory exists (create if not)
-2. If the file does not exist, create it with a `# YYYY-MM-DD` heading followed by the commit summary
-3. If the file already exists, append the new commit summary to the end
-4. Each entry should include the full commit message and a brief bullet-point summary of changes
-5. Use this format for each entry:
-
-```
-## <commit message>
-
-- <bullet summary of changes>
-```
