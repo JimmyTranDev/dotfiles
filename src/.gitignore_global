@@ -5,5 +5,4 @@ copilot-instructions.md
 .factorypath
 *.launch
 application-local.yml
-plans/
 updates/*.md

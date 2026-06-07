@@ -87,7 +87,7 @@ map('n', '<leader>vk', language_actions.run_knip_unused_code, { desc = '󰒡 Kni
 map('n', '<leader>;ct', todoist_actions.refresh_todoist_cache(), { desc = '󰆘 Refresh Todoist cache' })
 map('n', '<leader>;cw', jira_actions.refresh_jira_cache, { desc = '󰆘 Refresh Jira cache' })
 
-map('n', '<leader>fj', jira_actions.browse_my_tasks, { desc = '󰌱 Browse my Jira tasks' })
+
 map('n', '<leader>cj', jira_actions.copy_ticket_with_title, { desc = '󰆓 Copy Jira ticket with title' })
 map('n', '<leader>ct', jira_actions.copy_testable_message, { desc = '󰆓 Copy testable Slack message' })
 map('n', '<leader>;J', jira_actions.generate_done_md, { desc = '󰌧 Generate this week jira tasks' })
@@ -162,6 +162,8 @@ map('n', '<Leader>ur', link_actions.open_current_github_repo, { desc = '󰦥 Ope
 map('n', '<Leader>ua', link_actions.open_current_github_prs, { desc = '󰦥 All PRs tab' })
 map('n', '<Leader>uh', github_actions.open_current_repo_in_browser, { desc = '󰊤 Open repo homepage' })
 map('n', '<Leader>uj', link_actions.open_jira_ticket, { desc = '󰦥 Open Jira ticket' })
+map('n', '<Leader>uJ', jira_actions.browse_my_tasks, { desc = '󰦥 Browse my Jira tasks' })
+map('n', '<Leader>uU', jira_actions.browse_recently_updated_tasks, { desc = '󰦥 Recently updated Jira tasks' })
 map('n', '<Leader>um', github_actions.select_own_open_prs, { desc = '󰦥 My open PRs' })
 map('n', '<Leader>ul', link_actions.open_useful_link, { desc = '󰦥 Useful link' })
 map('n', '<Leader>uL', link_actions.open_private_useful_link, { desc = '󰦥 Private useful link' })
