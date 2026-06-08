@@ -40,6 +40,7 @@
   "typescript-tools.nvim": { "branch": "master", "commit": "c2f5910074103705661e9651aa841e0d7eea9932" },
   "vim-fugitive": { "branch": "master", "commit": "3b753cf8c6a4dcde6edee8827d464ba9b8c4a6f0" },
   "vim-repeat": { "branch": "master", "commit": "65846025c15494983dafe5e3b46c8f88ab2e9635" },
+  "vim-suda": { "branch": "master", "commit": "c492741b4679b3cdd4d9e34138209784e061d916" },
   "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" },
   "workspace-diagnostics.nvim": { "branch": "main", "commit": "a35321d8401878cc9558e357acfd0da58b582739" },
   "yazi.nvim": { "branch": "main", "commit": "f3af041ea9f8c8ad3864ec82b082ab2addd2ade4" }
