@@ -167,6 +167,7 @@ return {
       desc = '󰫙 Maven Test Coverage (New Code via diff-cover)',
       silent = true,
     },
+    { mode = 'n', '<leader>tvb', ':3TermExec cmd="mvn compile -Dmaven.gitcommitid.skip=true"<CR>', desc = '󰫙 Maven Compile', silent = true },
     { mode = 'n', '<leader>tvg', ':3TermExec cmd="gcloud auth application-default login"<CR>', desc = '󰫙 GCloud Auth', silent = true },
   },
   config = function()
