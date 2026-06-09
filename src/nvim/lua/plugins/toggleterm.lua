@@ -31,7 +31,24 @@ return {
     { mode = 't', '<C-j>', [[<Cmd>wincmd j<CR>]], desc = '󰖲 Terminal down window', silent = true },
     { mode = 't', '<C-k>', [[<Cmd>wincmd k<CR>]], desc = '󰖲 Terminal up window', silent = true },
     { mode = 't', '<C-l>', [[<Cmd>wincmd l<CR>]], desc = '󰖲 Terminal right window', silent = true },
-    { mode = 't', '<Esc>', [[<C-\><C-n>]], desc = '󰅁 Terminal escape to normal mode', silent = true },
+    {
+      mode = 't',
+      '<Esc>',
+      function()
+        local bufname = vim.api.nvim_buf_get_name(0)
+        if bufname:find('opencode') then
+          local chan = vim.b.terminal_job_id
+          if chan then
+            vim.api.nvim_chan_send(chan, '\27')
+          end
+        else
+          local keys = vim.api.nvim_replace_termcodes([[<C-\><C-n>]], true, false, true)
+          vim.api.nvim_feedkeys(keys, 'n', false)
+        end
+      end,
+      desc = '󰅁 Terminal escape to normal mode',
+      silent = true,
+    },
 
     { mode = 'n', '<leader>tnum', language_actions.create_npm_update_executor(7, 'minor'), silent = true, desc = '󰎙 Npm Update Minor' },
     { mode = 'n', '<leader>tnun', language_actions.create_npm_update_executor(7, 'major'), silent = true, desc = '󰎙 Npm Update Major' },

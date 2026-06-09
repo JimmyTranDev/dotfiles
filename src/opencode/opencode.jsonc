@@ -21,7 +21,7 @@
     "Figma": {
       "type": "remote",
       "url": "http://127.0.0.1:3845/mcp",
-      "enabled": true
+      "enabled": false
     },
     // Browser automation for web scraping and testing
     "Browser": {
