@@ -83,10 +83,10 @@ map('n', '<leader>vX', language_actions.run_knip_fix, { desc = '󰒡 Knip fix & 
 map('n', '<leader>ve', language_actions.run_eslint_picker, { desc = '󰒡 ESLint analysis picker' })
 map('n', '<leader>vK', language_actions.run_knip_unused_files, { desc = '󰒡 Knip unused files' })
 map('n', '<leader>vk', language_actions.run_knip_unused_code, { desc = '󰒡 Knip unused code' })
+map('n', '<leader>vd', github_actions.redeploy_pr, { desc = '󰚴 Redeploy PR (#deploy)' })
 
 map('n', '<leader>;ct', todoist_actions.refresh_todoist_cache(), { desc = '󰆘 Refresh Todoist cache' })
 map('n', '<leader>;cw', jira_actions.refresh_jira_cache, { desc = '󰆘 Refresh Jira cache' })
-
 
 map('n', '<leader>cj', jira_actions.copy_ticket_with_title, { desc = '󰆓 Copy Jira ticket with title' })
 map('n', '<leader>ct', jira_actions.copy_testable_message, { desc = '󰆓 Copy testable Slack message' })
@@ -128,9 +128,6 @@ map('n', '<Leader>rn', notes_actions.add_sentence, { desc = '󰌱 Add sentence t
 map('n', '<Leader>rN', notes_actions.save_task, { desc = '󰌱 Save task to notes' })
 map('n', '<Leader>rc', jira_actions.add_comment_from_branch, { desc = '󰌱 Add Jira comment from branch' })
 map('n', '<Leader>rs', slack_actions.post_good_morning, { desc = '󰒱 Post good morning' })
-
-map('n', '<leader>ac', function() require('opencode').prompt('commit', { submit = true }) end, { desc = '󰚴 OpenCode commit' })
-map('n', '<leader>ad', github_actions.redeploy_pr, { desc = '󰚴 Redeploy PR (#deploy)' })
 
 map('n', '<leader>cl', github_actions.copy_github_line_url, { desc = '󰆓 Copy GitHub line URL' })
 map('v', '<leader>cl', github_actions.copy_github_line_url, { desc = '󰆓 Copy GitHub line URL' })
