@@ -22,7 +22,7 @@ Run `detect-stack.sh` to detect the project's tech stack and load skills accordi
 - TypeScript/React files (`.ts`, `.tsx`, `.jsx`) → load **review-frontend**, **ts-total-typescript**
 - React Native (`react-native` in package.json) → load **review-mobile**
 - Shell scripts (`.sh`, `.zsh`) → load **meta-shell-scripting**
-- Always load in parallel: **code-follower**, **code-quality**, **code-soundness**, **security**, **code-logic-checker**, **code-deduplicator**, **code-simplifier**, **test**
+- Always load in parallel: **code-follower**, **code-quality**, **code-soundness**, **security**, **code-logic-checker**, **code-deduplicator**, **code-simplifier**
 
 Load all applicable skills in a single parallel batch.
 

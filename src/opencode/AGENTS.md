@@ -17,7 +17,6 @@ When a user request is vague, ambiguous, or could be interpreted in multiple way
 - **Todoist priority filter** — when a `p1`, `p2`, `p3`, or `p4` token appears alongside a Todoist section URL, use `triage-todoist.sh <url> --priority <p1|p2|p3|p4>` to fetch filtered tasks. The script handles the inverted API mapping internally. If no priority token is present, omit `--priority` to fetch all tasks.
 - **Always continue** — if there are remaining tasks, todos, or steps left to complete, keep working without stopping to ask for permission to continue. Only pause for user input when you need clarification or a decision, not when you simply have more work to do.
 - **Java projects** — when working in a Java project, always load the **java-spring-senior** skill before making changes. Detect Java projects by the presence of `pom.xml`, `build.gradle`, `build.gradle.kts`, or `*.java` files.
-- **100% test coverage** — when writing or modifying code, always ensure 100% unit test coverage for all affected code. This includes new code, modified functions, and any code paths touched by the changes. Load the **test** skill, write or update tests, and run them to verify full coverage before considering the task complete.
 - **Save useful scripts to dotfiles** — when creating a reusable utility script during a task, save it to `etc/scripts/src/ai/` in the dotfiles repo (`~/Programming/JimmyTranDev/dotfiles/etc/scripts/src/ai/`) rather than leaving it in the project directory. Scripts must follow existing conventions: `set -e`, source `utils/logging.sh`, function-based structure. This makes scripts available across all projects.
 - **Prefer scripts over pure AI** — when a task involves repeatable operations (data transformations, file processing, API calls, build steps, etc.), prefer creating a reusable script rather than performing the work entirely through AI tool calls. Scripts are version-controlled, reproducible, and runnable without AI. Only skip scripting when the task is truly one-off or exploratory.
 - **Architecture decisions** — when making significant architectural decisions (technology choices, system design, data model changes), save them to an `architecture/` folder at the project root as ADR files. Use the format from the **comm-adr-writer** skill.
@@ -197,7 +196,7 @@ Maximize parallel execution at every level to reduce latency and total task time
 
 ### Agent Delegation
 - Launch independent subagents in parallel when their tasks do not depend on each other's output
-- Examples: run **reviewer** and **auditor** in parallel on completed code, run **tester** and **optimizer** in parallel when both are needed
+- Examples: run **reviewer** and **auditor** in parallel on completed code, run **optimizer** and **tester** in parallel when both are explicitly requested
 - Only serialize agent calls when one agent's output feeds into another (e.g., **fixer** depends on **reviewer** findings)
 
 ### Codebase Exploration
@@ -303,7 +302,7 @@ All `pr-*` commands follow these shared conventions. Individual commands only ne
 
 ### Review-Fix-Verify Cycle
 After implementation, run this cycle:
-1. Launch **reviewer**, **auditor**, and **tester** agents in parallel on the diff
+1. Launch **reviewer** and **auditor** agents in parallel on the diff
 2. If issues are found, launch **fixer** agents in parallel for independent fixes across different files
 3. Stage and commit fixes: `git add -A && git commit -m "fix: address review and audit findings"`
 4. Run **reviewer** once more to verify (max 2 iterations)

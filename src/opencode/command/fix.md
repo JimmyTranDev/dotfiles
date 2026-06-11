@@ -35,7 +35,7 @@ $ARGUMENTS
      - **code-follower**: Always load to match existing codebase conventions
      - **code-logic-checker**: Load when the bug involves complex business logic or state management
      - **code-soundness**: Always load to catch suspicious patterns, anomalies, and things that look wrong
-     - **test**: Load to guide regression testing and verify the fix doesn't break existing behavior
+     - **test**: Load when the user asks for test verification
      - Tech-stack-specific skills (run `detect-stack.sh` to determine):
        - Java (pom.xml/build.gradle/**.java) → load **java-spring-senior** and **review-backend**
        - TypeScript/React (tsconfig.json/**.tsx) → load **review-frontend** and **ts-total-typescript**
@@ -45,6 +45,6 @@ $ARGUMENTS
 
     Agents to delegate to:
     - **fixer**: Delegate the core investigation and fix — this is the primary agent for /fix
-    - **tester**: Launch after the fix is applied to verify test coverage and add tests if needed
-    - **reviewer**: Launch in parallel with tester to verify the fix is correct and doesn't introduce new issues
+    - **tester**: Launch only if the user explicitly asks for tests
+    - **reviewer**: Launch after the fix to verify it is correct and doesn't introduce new issues
 Report what the root cause was, what was changed, and how it was verified.

@@ -61,7 +61,7 @@ Load the **git-worktree-workflow**, **git-workflows**, **git-conflict-resolution
 
 9. Collect results from all parallel agents. If all tasks failed, report the failures and stop.
 
-10. **Integration review**: Launch **reviewer**, **auditor**, and **tester** agents in parallel on the full combined diff (`git diff <base-branch>...HEAD`) in the integration worktree. If issues are found, launch **fixer** to address them, stage and commit, then run **reviewer** once more to verify (max 2 iterations).
+10. **Integration review**: Launch **reviewer** and **auditor** agents in parallel on the full combined diff (`git diff <base-branch>...HEAD`) in the integration worktree. If issues are found, launch **fixer** to address them, stage and commit, then run **reviewer** once more to verify (max 2 iterations).
 
 11. Run pre-commit hooks: `git hook run pre-commit` in the integration worktree. If hooks modify files, stage and commit: `git add -A && git commit --no-verify -m "style: 💎 apply pre-commit hook fixes"`. If hooks fail with errors, launch **fixer** to address them, then re-run.
 

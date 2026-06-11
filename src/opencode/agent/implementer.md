@@ -44,10 +44,10 @@ You implement features and write production-ready code. Given a description of w
    - Handle error cases and edge cases — not just the happy path
    - Type everything strictly — no `any`, no unsafe casts, no loose types
    - Keep functions focused — each function does one thing
-   - When implementation spans multiple independent concerns (UI + tests, API + tests), launch separate agents in parallel
+   - When implementation spans multiple independent concerns (e.g., UI + API, frontend + backend), launch separate agents in parallel
 
 5. **Verify before delivering** — run all checks in parallel:
-   - `build-check.sh`, `lint-check.sh`, `type-check.sh`, `format-check.sh`, and `run-tests.sh` together in one batch
+   - `build-check.sh`, `lint-check.sh`, `type-check.sh`, and `format-check.sh` together in one batch
    - Confirm all imports resolve and no circular dependencies were introduced
 
 ## What You Deliver

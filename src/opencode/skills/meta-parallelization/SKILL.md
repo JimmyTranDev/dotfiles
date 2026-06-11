@@ -22,7 +22,7 @@ If operation B does not depend on operation A's output, run them together in a s
 ### Common Parallel Batches
 
 - **Start of task**: read relevant files + run `git status` + run `git log` + load skills
-- **After implementation**: launch **reviewer** + **auditor** + **tester** together
+- **After implementation**: launch **reviewer** + **auditor** together
 - **Multiple fixes**: launch **fixer** agents for independent files together
 - **Information gathering**: glob + grep + file reads in one batch
 

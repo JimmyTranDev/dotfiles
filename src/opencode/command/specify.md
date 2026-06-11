@@ -69,7 +69,7 @@ $ARGUMENTS
    - **API contracts**: If applicable — new endpoints, function signatures, type definitions, or interfaces that other code will depend on. Define these precisely so dependent tasks can proceed in parallel.
    - **State changes**: New database tables, config entries, environment variables, or stored state this piece introduces
    - **Edge cases**: Known edge cases, error conditions, and boundary behaviors that the implementation must handle
-   - **Testing approach**: What tests are needed — unit, integration, e2e — and what behaviors they should verify
+   - **Testing approach** (if applicable): What tests are needed — unit, integration, e2e — and what behaviors they should verify
    - **Open questions**: Ambiguities that need human input before implementation, grouped by:
      - Requirements — unclear behavior, missing acceptance criteria, ambiguous edge cases
      - Architecture — multiple valid approaches where the user's preference matters

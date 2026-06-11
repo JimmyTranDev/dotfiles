@@ -51,7 +51,7 @@ Skills to load — load ALL applicable skills in a SINGLE parallel batch (never 
 Agents to delegate to (launch independent agents in parallel — only serialize when one depends on another's output):
 - **designer**: Use when the task describes UI component work, accessibility improvements, or frontend feature additions
 - **fixer**: Use when the task describes a bug fix, a complex problem with unclear root cause, or a multi-layered issue requiring investigation
-- **tester**: Use when the task mentions adding or updating tests, or after implementing a feature to ensure proper test coverage
+- **tester**: Use when the user explicitly asks for tests
 - **reviewer**: Use after implementation is complete to catch bugs, design issues, and maintainability problems before finalizing
 - **optimizer**: Use when the task describes performance improvements — profile and implement measurable optimizations
 - **auditor**: Use when the task describes security-related changes, authentication flows, or data handling to scan for vulnerabilities
@@ -60,9 +60,8 @@ Agents to delegate to (launch independent agents in parallel — only serialize 
 
 | Parallel Batch | Agents | When |
 |---------------|--------|------|
-| Implementation | **implementer** + **designer** + **tester** | Feature needs UI + tests |
-| Implementation | **implementer** + **tester** | Feature needs tests written alongside code |
-| Post-Implementation | **reviewer** + **auditor** + **tester** | Review + audit + test coverage check together |
+| Implementation | **implementer** + **designer** | Feature needs UI |
+| Post-Implementation | **reviewer** + **auditor** | Review + audit together |
 | Fix | **fixer** × N (one per file/issue) | Multiple independent fixes across different files |
 | Post-Fix Verification | **reviewer** (verify) | Sequential — depends on all fixers completing |
 
@@ -77,8 +76,8 @@ Agents to delegate to (launch independent agents in parallel — only serialize 
    - Delegate to the appropriate specialized agents based on work type — launch independent agents in one message
    - Batch related file reads and searches into parallel calls
 4. **Verify** (parallel):
-   - Run `build-check.sh`, `lint-check.sh`, `type-check.sh`, `format-check.sh`, and `run-tests.sh` in a single parallel batch
-   - Launch **reviewer**, **auditor**, and **tester** agents together in one message
+   - Run `build-check.sh`, `lint-check.sh`, `type-check.sh`, and `format-check.sh` in a single parallel batch
+   - Launch **reviewer** and **auditor** agents together in one message
 5. **Fix** (serial — depends on reviewer/auditor output):
    - If issues are found, launch **fixer** agents in parallel for independent fixes across different files
    - Run **reviewer** once more to verify fixes (max 2 iterations)

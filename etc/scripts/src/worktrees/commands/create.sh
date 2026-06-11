@@ -12,6 +12,7 @@ cmd_create() {
 	local jira_ticket=""
 	local repo_name=""
 	local commit_type=""
+	local target_dir=""
 	local no_prompt=false
 
 	while [[ $# -gt 0 ]]; do
@@ -28,6 +29,10 @@ cmd_create() {
 			commit_type="$2"
 			shift 2
 			;;
+		--dir)
+			target_dir="$2"
+			shift 2
+			;;
 		--no-prompt)
 			no_prompt=true
 			shift
@@ -39,6 +44,7 @@ cmd_create() {
 			echo "  --branch <name>     Branch name or Jira ticket (skips interactive input)"
 			echo "  --repo <name>       Repository name (skips fzf repo selection)"
 			echo "  --type <type>       Commit type: feat|fix|chore|... (skips fzf selection)"
+			echo "  --dir <dir>         Target directory: wcreated or wcheckout (skips selection)"
 			echo "  --no-prompt         Skip all interactive prompts, use defaults"
 			echo "  -h, --help          Show this help"
 			return 0
@@ -213,12 +219,36 @@ cmd_create() {
 
 	print_color green "Selected commit type: $commit_type"
 
+	if [[ -z "$target_dir" ]]; then
+		if [[ "$no_prompt" == true ]]; then
+			target_dir="$WCREATED_DIR"
+		else
+			local dir_options=("wcreated" "wcheckout")
+			local selected_dir
+			selected_dir=$(select_fzf "Select worktree directory: " "${dir_options[@]}") || {
+				print_color red "No directory selected. Aborting."
+				return 1
+			}
+			case "$selected_dir" in
+			"wcreated") target_dir="$WCREATED_DIR" ;;
+			"wcheckout") target_dir="$WCHECKOUT_DIR" ;;
+			*) target_dir="$WCREATED_DIR" ;;
+			esac
+		fi
+	elif [[ "$target_dir" == "wcreated" ]]; then
+		target_dir="$WCREATED_DIR"
+	elif [[ "$target_dir" == "wcheckout" ]]; then
+		target_dir="$WCHECKOUT_DIR"
+	fi
+
+	print_color yellow "Target directory: $target_dir"
+
 	local worktree_dir
-	worktree_dir=$(resolve_unique_dir "$WCREATED_DIR/$branch_name")
+	worktree_dir=$(resolve_unique_dir "$target_dir/$branch_name")
 	branch_name=$(basename "$worktree_dir")
 
-	mkdir -p "$WCREATED_DIR" || {
-		print_color red "Error: Could not create worktrees directory: $WCREATED_DIR"
+	mkdir -p "$target_dir" || {
+		print_color red "Error: Could not create worktrees directory: $target_dir"
 		return 1
 	}
 

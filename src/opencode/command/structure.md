@@ -43,4 +43,4 @@ $ARGUMENTS
 18. When extracting types/interfaces to `types.ts`, ensure they are **re-exported from `index.ts`** if other modules import them from the parent path (e.g., `export type { UseThrottledRefreshOptions } from './types'`)
 19. When moving a file one directory deeper (e.g., `hooks/useX.ts` → `hooks/useX/index.ts`), fix all **relative paths** like `require('../../../foo')` → `require('../../../../foo')` — add one extra `../` per nesting level added. Path-alias imports (`~/...`) are unaffected.
 20. After all changes, run `lint-check.sh --fix` on the affected directory to auto-fix formatting and import ordering issues
-21. Verify the project still builds/compiles after structural changes (`lint-check.sh` + `tsc --noEmit` + `run-tests.sh`)
+21. Verify the project still builds/compiles after structural changes (`lint-check.sh` + `tsc --noEmit`)

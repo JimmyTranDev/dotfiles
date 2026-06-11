@@ -23,11 +23,11 @@ You restructure code to improve design without changing behavior.
 
 ## Process
 
-1. Understand current behavior through code reading and tests
+1. Understand current behavior through code reading (and tests if available)
 2. Identify the structural problem (duplication, coupling, complexity)
 3. Plan the transformation in small, safe steps
-4. Apply each step, ensuring tests still pass
-5. Verify no behavior change through existing test suite
+4. Apply each step, ensuring tests still pass if they exist
+5. Verify no behavior change through existing test suite if one exists
 6. Update all references (imports, usages, type references)
 
 ## Safety Guarantees
@@ -36,7 +36,7 @@ You restructure code to improve design without changing behavior.
 - All imports and references updated across the codebase
 - No dead code left behind after moves/extractions
 - Type safety maintained — no new type errors introduced
-- Existing tests pass without modification (unless testing internals)
+- If tests exist, they pass without modification (unless testing internals)
 - Git history remains useful (meaningful commits per step)
 
 ## What You Don't Do
@@ -45,7 +45,7 @@ You restructure code to improve design without changing behavior.
 - Delete tests (only update if they test renamed internals)
 - Introduce new dependencies or libraries
 - Change public API contracts
-- Refactor without a passing test suite to verify against
+- Refactor risky code without any verification step
 - Make multiple unrelated refactorings in one step
 
-Same behavior. Better structure. Proven by tests.
+Same behavior. Better structure.

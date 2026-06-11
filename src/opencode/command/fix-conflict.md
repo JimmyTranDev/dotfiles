@@ -23,11 +23,11 @@ Load the **git-conflict-resolution** and **code-follower** skills in parallel.
 
 3. Verify the resolution:
    - Run `git diff --cached` to review the staged resolution
-   - Run `lint-check.sh` and `run-tests.sh` to confirm the resolution is correct
+   - Run `lint-check.sh` to confirm the resolution is correct
    - If verification fails, use **fixer** to address issues
 
 4. Auto-continue the operation:
-   - Only proceed if verification (lint/tests) passed. If verification failed, stop and ask the user to decide.
+   - Only proceed if verification (lint) passed. If verification failed, stop and ask the user to decide.
    - Detect the operation type from `git status`:
      - If merge: run `git commit --no-edit`
      - If rebase: run `git rebase --continue`
@@ -38,7 +38,7 @@ Load the **git-conflict-resolution** and **code-follower** skills in parallel.
 
 5. Report a summary:
    - List of conflicted files and how each was resolved
-   - Whether build/lint/test passed after resolution
+   - Whether build/lint passed after resolution
    - Whether the operation was completed successfully or stopped due to an error
    - Total number of conflict rounds resolved (for rebase)
 

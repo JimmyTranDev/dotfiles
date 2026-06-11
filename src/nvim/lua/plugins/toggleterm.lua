@@ -82,9 +82,9 @@ return {
       mode = 'n',
       '<leader>tna',
       function()
-        language_actions.create_package_command_runner(5, 'build')()
-        language_actions.create_package_command_runner(6, 'lint:fix')()
-        language_actions.create_package_command_runner(7, 'test')()
+        language_actions.create_package_command_runner(5, 'build && exit')()
+        language_actions.create_package_command_runner(6, 'lint:fix && exit')()
+        language_actions.create_package_command_runner(7, 'test && exit')()
       end,
       silent = true,
       desc = '󰎙 Npm All (build, lint, test)',

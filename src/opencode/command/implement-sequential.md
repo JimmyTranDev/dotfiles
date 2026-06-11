@@ -36,9 +36,9 @@ Load the **git-workflows** skill.
    b. **Implement**: Follow the `/implement` command workflow for this task:
       - Load all applicable skills in parallel (always include **code-follower**, add others based on task type — see `/implement` for the full skill list)
       - Implement the changes, delegating to specialized agents based on work type
-      - Launch independent agents in parallel (e.g., **designer** + **tester**, **reviewer** + **auditor**)
+      - Launch independent agents in parallel (e.g., **designer**, **reviewer** + **auditor**)
 
-   c. **Review**: Launch **reviewer**, **auditor**, and **tester** agents in parallel on the diff from `git diff HEAD` (unstaged + staged changes)
+   c. **Review**: Launch **reviewer** and **auditor** agents in parallel on the diff from `git diff HEAD` (unstaged + staged changes)
 
    d. **Fix**: If issues were found, launch **fixer** agents in parallel for independent fixes across different files. Run **reviewer** once more to verify (max 2 iterations).
 
