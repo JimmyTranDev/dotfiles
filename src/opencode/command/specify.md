@@ -85,7 +85,14 @@ $ARGUMENTS
    - Show which specs can be worked on in parallel vs which have ordering constraints
    - Suggest which spec to start with
 
-## Todoist URL Preservation
+## Reference Link Preservation
+
+When `$ARGUMENTS` contains URLs, preserve them in the generated spec file:
+1. Extract all URLs from the arguments
+2. Include each URL inline where it is most relevant (e.g., in the Overview, a specific Task, or an Open Question)
+3. If a URL does not fit naturally into any section, add a **References** section at the end of the spec listing all preserved URLs
+
+### Todoist URLs
 
 If `$ARGUMENTS` contains a Todoist URL (`app.todoist.com/...`):
 1. Extract the URL(s) from the arguments

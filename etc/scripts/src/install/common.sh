@@ -99,6 +99,13 @@ main() {
 		sdk default java 21-tem 2>/dev/null || sdk default java 21-open 2>/dev/null || log_warning "Could not set Java 21 as default"
 	fi
 
+	read -rp "Install storecode (AI coding tool)? [y/N] " answer </dev/tty
+	if [[ "$answer" =~ ^[Yy]$ ]]; then
+		"$SCRIPTS_DIR/src/install/storecode.sh"
+	else
+		log_info "Skipping storecode"
+	fi
+
 	log_success "Common setup completed"
 }
 
