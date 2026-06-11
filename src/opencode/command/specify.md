@@ -140,12 +140,3 @@ After all open questions are resolved (or skipped), ask the user if they want to
    - **Yes, implement specific spec** — if multiple specs were produced, let the user pick which one(s)
    - **No, just keep the plans** — end the command
 2. If the user chooses to implement, invoke the `/implement` command with the spec file path(s) as arguments
-
-## Post-Implementation Commit Offer
-
-After implementation completes (i.e., `/implement` finishes successfully), ask the user if they want to commit the changes:
-
-1. Present the question: "Would you like to commit these changes?"
-   - **Yes, commit now** — run `/commit` to create a well-formatted git commit
-   - **No, I'll commit later** — end the command
-2. If the user chooses to commit, invoke the `/commit` command
