@@ -28,6 +28,7 @@ get_common_links() {
 		"$DOTFILES_ROOT/src/git/hooks|$HOME/.config/git/hooks"
 		"$DOTFILES_ROOT/src/fd|$HOME/.config/fd"
 		"$DOTFILES_ROOT/src/espanso|$HOME/.config/espanso"
+		"$DOTFILES_ROOT/src/tridactyl/tridactylrc|$HOME/.config/tridactyl/tridactylrc"
 		"$SECRETS_DIR/ssh|$HOME/.ssh"
 		"$SECRETS_DIR/.gitconfig|$HOME/.gitconfig"
 		"$SECRETS_DIR/.npmrc|$HOME/.npmrc"

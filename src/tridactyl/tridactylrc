@@ -1,0 +1,4 @@
+" Tridactyl configuration
+
+" Blacklisted sites (tridactyl ignores all keypresses)
+blacklistadd todoist.com
