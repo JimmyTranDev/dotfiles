@@ -1347,4 +1347,28 @@ function M.open_file_from_clipboard_url()
   end
 end
 
+function M.show_current_branch_pr_diff()
+  local repo_info = github_utils.get_repo_info()
+  local repo_slug = repo_info and repo_info.nameWithOwner or ''
+
+  vim.system(
+    { 'gh', 'pr', 'view', '--json', 'number,title' },
+    { text = true },
+    vim.schedule_wrap(function(result)
+      if result.code ~= 0 then
+        vim.notify('No PR found for current branch', vim.log.levels.WARN)
+        return
+      end
+
+      local ok, pr = pcall(vim.fn.json_decode, result.stdout)
+      if not ok or not pr or not pr.number then
+        vim.notify('Could not parse PR info', vim.log.levels.ERROR)
+        return
+      end
+
+      M._open_pr_review(pr.number, pr.title, repo_slug)
+    end)
+  )
+end
+
 return M

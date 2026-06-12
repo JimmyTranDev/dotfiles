@@ -196,6 +196,7 @@ map('n', '<Leader>ub', github_actions.show_notifications_by_team, { desc = '󰦥
 map('n', '<Leader>uw', github_actions.select_open_prs_by_default_team, { desc = '󰦥 GitHub: team PRs' })
 map('n', '<Leader>uW', github_actions.select_open_prs_by_people, { desc = '󰦥 GitHub: team PRs (select)' })
 map('n', '<Leader>uf', github_actions.open_file_from_clipboard_url, { desc = '󰦥 Open file from clipboard URL' })
+map('n', '<Leader>ui', github_actions.show_current_branch_pr_diff, { desc = '󰦥 GitHub: PR diff (current branch)' })
 
 map('n', '<leader>sc', status_actions.show_ci_checks, { desc = '󱖫 CI Checks' })
 map('n', '<leader>sp', status_actions.show_pr_status, { desc = '󱖫 PR Status' })
