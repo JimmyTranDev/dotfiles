@@ -6,11 +6,11 @@ local async_utils = require('custom.utils.async')
 local M = {}
 
 local PRIORITY_OPTIONS = {
+  { name = 'Top', value = 'p1' },
   { name = 'High', value = 'p2' },
   { name = 'Medium', value = 'p3' },
   { name = 'Low', value = 'p4' },
   { name = 'None', value = nil },
-  { name = 'Top', value = 'p1' },
 }
 
 local RECENT_PROJECTS_FILE = vim.fn.stdpath('data') .. '/todoist_recent_projects.json'
@@ -153,7 +153,12 @@ local function create_task_with_navigation(task_name, projects, opts, on_back_to
         return false
       end)
 
-      table.insert(section_options, { name = 'No section', id = nil })
+      if #section_options == 1 then
+        add_recent_section_id(section_options[1].id)
+        select_priority(selected_project, section_options[1])
+        return
+      end
+
       ui_utils.add_back_option(section_options, 'Back to projects')
 
       ui_utils.safe_select(section_options, {
