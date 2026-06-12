@@ -1,4 +1,4 @@
-export const Notification = async ({ $ }) => {
+export const Notification = async ({ $, client }) => {
   const platform = process.platform
   let needsAttention = false
   let taskStartTime = Date.now()
@@ -9,6 +9,32 @@ export const Notification = async ({ $ }) => {
   let lastMessageText = ""
   let lastErrorDetail = ""
   let lastPermissionDetail = ""
+  let sessionTitle = ""
+
+  const updateSessionTitle = async (sessionId) => {
+    if (!client?.session?.get || !sessionId) { return }
+    try {
+      const result = await client.session.get({ path: { id: sessionId } })
+      const session = result?.data || result
+      if (session?.title) {
+        sessionTitle = session.title
+      } else if (session?.id) {
+        sessionTitle = session.id.slice(0, 8)
+      }
+    } catch {}
+  }
+
+  // Try to initialize session name from client SDK
+  if (client?.session?.list) {
+    try {
+      const result = await client.session.list()
+      const sessions = result?.data || (Array.isArray(result) ? result : [])
+      if (sessions.length > 0) {
+        const latest = sessions[sessions.length - 1]
+        sessionTitle = latest?.title || (latest?.id ? latest.id.slice(0, 8) : "")
+      }
+    } catch {}
+  }
 
   const idleSound = process.env.OPENCODE_SOUND_IDLE || "Glass"
   const permissionSound = process.env.OPENCODE_SOUND_PERMISSION || "Ping"
@@ -37,7 +63,10 @@ export const Notification = async ({ $ }) => {
     return text.slice(0, maxLength - 3) + "..."
   }
 
-  const getProjectName = () => {
+  const getSessionName = () => {
+    if (sessionTitle) {
+      return sessionTitle
+    }
     try {
       const cwd = process.cwd()
       return cwd.split("/").pop() || "OpenCode"
@@ -56,7 +85,7 @@ export const Notification = async ({ $ }) => {
   }
 
   const buildNotificationBody = (variant) => {
-    const project = getProjectName()
+    const project = getSessionName()
     const lines = []
 
     if (taskStartTime) {
@@ -114,7 +143,15 @@ export const Notification = async ({ $ }) => {
 
   return {
     event: async ({ event }) => {
-      if (event.type === "tool.execute.after") {
+      if (event.type === "session.created" || event.type === "session.updated") {
+        const title = event?.properties?.title || ""
+        const id = event?.properties?.id || event?.properties?.sessionId || ""
+        if (title) {
+          sessionTitle = title
+        } else if (id && !sessionTitle) {
+          await updateSessionTitle(id)
+        }
+      } else if (event.type === "tool.execute.after") {
         const toolName = event?.properties?.tool || event?.properties?.name || ""
         if (toolName) {
           lastToolName = toolName
