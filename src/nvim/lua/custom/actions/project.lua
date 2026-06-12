@@ -2,6 +2,25 @@ local M = {}
 
 local PROGRAMMING_DIR = vim.fn.expand('$HOME/Programming')
 local EXCLUDED_DIRS = { Worktrees = true, wcreated = true, wcheckout = true }
+local MAX_TAB_NAME_LENGTH = 20
+
+local function rename_zellij_tab(name)
+  if not vim.env.ZELLIJ then return end
+
+  local tab_name = name:sub(1, MAX_TAB_NAME_LENGTH)
+  local layout = vim.fn.system('zellij action dump-layout 2>/dev/null')
+  local tab_index = 0
+  for line in layout:gmatch('[^\n]+') do
+    if line:match('^%s*tab%s.*name=') then
+      tab_index = tab_index + 1
+      if line:match('focus=true') then break end
+    end
+  end
+  if tab_index > 0 then
+    tab_name = tab_index .. '.' .. tab_name
+  end
+  vim.fn.system('zellij action rename-tab "' .. tab_name .. '"')
+end
 
 local function scan_projects()
   local projects = {}
@@ -66,6 +85,7 @@ function M.switch_project()
         return
       end
       vim.cmd('cd ' .. vim.fn.fnameescape(item.path))
+      rename_zellij_tab(item.name)
       vim.notify('Switched to ' .. item.text, vim.log.levels.INFO)
     end,
   })
