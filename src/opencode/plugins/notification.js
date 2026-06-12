@@ -24,18 +24,6 @@ export const Notification = async ({ $, client }) => {
     } catch {}
   }
 
-  // Try to initialize session name from client SDK
-  if (client?.session?.list) {
-    try {
-      const result = await client.session.list()
-      const sessions = result?.data || (Array.isArray(result) ? result : [])
-      if (sessions.length > 0) {
-        const latest = sessions[sessions.length - 1]
-        sessionTitle = latest?.title || (latest?.id ? latest.id.slice(0, 8) : "")
-      }
-    } catch {}
-  }
-
   const idleSound = process.env.OPENCODE_SOUND_IDLE || "Glass"
   const permissionSound = process.env.OPENCODE_SOUND_PERMISSION || "Ping"
   const errorSound = process.env.OPENCODE_SOUND_ERROR || "Basso"
