@@ -57,23 +57,12 @@ main() {
 			log_info "Installing global pnpm packages..."
 			pnpm add -g @doist/todoist-cli
 			pnpm add -g @_davideast/stitch-mcp
+			pnpm add -g eas-cli
 		else
 			log_info "Skipping global pnpm packages"
 		fi
 	else
 		log_warning "pnpm not found, skipping global pnpm packages"
-	fi
-
-	if command -v npm >/dev/null 2>&1; then
-		if command -v eas >/dev/null 2>&1; then
-			log_info "eas-cli already installed"
-		else
-			log_info "Installing eas-cli..."
-			npm install -g eas-cli
-			log_success "eas-cli installed"
-		fi
-	else
-		log_warning "npm not found, skipping eas-cli install"
 	fi
 
 	if [[ ! -f "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
