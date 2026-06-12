@@ -130,6 +130,7 @@ keybinds clear-defaults=true {
         bind "Alt ." { GoToNextTab; }
         bind "Alt i" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/move_tab_and_reindex.sh left" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         bind "Alt o" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/move_tab_and_reindex.sh right" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        bind "Alt a" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_opencode_quad.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         bind "Alt y" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
 
         bind "Alt d" { NewPane "down"; SwitchToMode "locked"; }

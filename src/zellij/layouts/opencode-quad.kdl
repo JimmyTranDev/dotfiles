@@ -1,0 +1,10 @@
+layout {
+    pane split_direction="vertical" {
+        pane command="opencode"
+        pane command="opencode"
+    }
+    pane split_direction="vertical" {
+        pane command="opencode"
+        pane command="opencode"
+    }
+}
