@@ -1200,7 +1200,7 @@ function M.redeploy_pr()
       local pr_number = vim.trim(pr_result.stdout)
 
       vim.system(
-        { 'gh', 'api', string.format('repos/{owner}/{repo}/issues/%s/comments', pr_number), '--jq', '[.[] | select(.body | test("#deploy")) | {id: .id, author: .user.login}]' },
+        { 'gh', 'api', string.format('repos/{owner}/{repo}/issues/%s/comments', pr_number), '--jq', '[.[] | select((.body | test("#deploy")) or .user.login == "github-actions[bot]") | {id: .id, author: .user.login}]' },
         { text = true },
         vim.schedule_wrap(function(comments_result)
           if comments_result.code ~= 0 then
