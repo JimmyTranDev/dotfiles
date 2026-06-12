@@ -134,7 +134,6 @@ src/opencode/
     ├── tool-local-ai/
     ├── tool-posthog-cli/
     ├── tool-psql/
-    ├── tool-slack-cli/
     ├── tool-spring-boot/
     ├── tool-storybook-mcp/
     ├── tool-todoist-cli/
