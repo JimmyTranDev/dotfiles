@@ -171,6 +171,23 @@ get_repository() {
 		done < <(find "$dir" -maxdepth 2 -name ".git" -type d -print0 2>/dev/null)
 	done
 
+	# Also scan worktree directories (wcreated and wcheckout)
+	local wcreated_dir="${WCREATED_DIR:-$programming_dir/wcreated}"
+	local wcheckout_dir="${WCHECKOUT_DIR:-$programming_dir/wcheckout}"
+	for wt_dir in "$wcreated_dir" "$wcheckout_dir"; do
+		[[ ! -d "$wt_dir" ]] && continue
+		local wt_label
+		wt_label=$(basename "$wt_dir")
+		for wt_entry in "$wt_dir"/*/; do
+			[[ ! -d "$wt_entry" ]] && continue
+			if [[ -d "$wt_entry/.git" ]] || [[ -f "$wt_entry/.git" ]]; then
+				local wt_path="${wt_entry%/}"
+				repos+=("$wt_path")
+				repo_labels+=("[$wt_label] $(basename "$wt_path")")
+			fi
+		done
+	done
+
 	if [[ ${#repos[@]} -eq 0 ]]; then
 		print_color red "No git repositories found" >&2
 		return 1
@@ -193,10 +210,10 @@ get_repository() {
 		selected=$(printf '%s\n' "${repo_labels[@]}" | fzf --prompt="Select repository: " --height=40% --reverse)
 		[[ -z "$selected" ]] && return 1
 
-		local selected_name="${selected##*] }"
-		for repo in "${repos[@]}"; do
-			if [[ "$(basename "$repo")" == "$selected_name" ]]; then
-				echo "$repo"
+		# Match by both label and basename to handle duplicate names across categories
+		for i in "${!repo_labels[@]}"; do
+			if [[ "${repo_labels[$i]}" == "$selected" ]]; then
+				echo "${repos[$i]}"
 				return 0
 			fi
 		done
