@@ -185,7 +185,7 @@ return {
       silent = true,
     },
     { mode = 'n', '<leader>tvb', ':3TermExec cmd="mvn compile -Dmaven.gitcommitid.skip=true"<CR>', desc = '󰫙 Maven Compile', silent = true },
-    { mode = 'n', '<leader>tvg', ':3TermExec cmd="gcloud auth application-default login"<CR>', desc = '󰫙 GCloud Auth', silent = true },
+
     { mode = 'n', '<leader>tvq', ':3TermExec cmd="brew services restart postgresql@15"<CR>', desc = '󰫙 Start PostgreSQL', silent = true },
     { mode = 'n', '<leader>tvr', ':3TermExec cmd="~/Programming/JimmyTranDev/secrets/reset-db.sh"<CR>', desc = '󰫙 Reset PostgreSQL DB', silent = true },
   },
