@@ -136,7 +136,7 @@ local function create_task_with_navigation(task_name, projects, opts, on_back_to
       end
 
       if #sections == 0 then
-        select_priority(selected_project, { name = 'No section', id = nil })
+        select_priority(selected_project, { name = 'No section', id = nil }, true)
         return
       end
 
@@ -155,7 +155,7 @@ local function create_task_with_navigation(task_name, projects, opts, on_back_to
 
       if #section_options == 1 then
         add_recent_section_id(section_options[1].id)
-        select_priority(selected_project, section_options[1])
+        select_priority(selected_project, section_options[1], true)
         return
       end
 
@@ -177,17 +177,25 @@ local function create_task_with_navigation(task_name, projects, opts, on_back_to
     end)
   end
 
-  select_priority = function(selected_project, selected_section)
+  select_priority = function(selected_project, selected_section, section_was_auto)
     local priority_options = vim.list_extend({}, PRIORITY_OPTIONS)
     ui_utils.add_back_option(priority_options, 'Back to sections')
+
+    local function go_back()
+      if section_was_auto then
+        select_project()
+      else
+        select_section(selected_project)
+      end
+    end
 
     ui_utils.safe_select(priority_options, {
       prompt = 'Select a priority for the task:',
       format_item = format_by_name,
-      on_back = function() select_section(selected_project) end,
+      on_back = go_back,
     }, function(selected_priority)
       if selected_priority.is_back then
-        select_section(selected_project)
+        go_back()
         return
       end
 
