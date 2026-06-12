@@ -239,14 +239,6 @@ After analysis, write findings to a markdown file in the **project root** `plans
 - Write findings grouped by category, ranked by severity/impact, with file locations and suggested fixes
 - Print a brief summary to chat: the spec file path, total findings count, and the top 3 most critical items
 
-### Post-Clarification Implementation Offer
-After all open questions are resolved (or skipped), ask the user if they want to proceed with implementation:
-1. Present the question: "Would you like to implement this spec now?"
-   - **Yes, implement all** — run `/implement <plans-file-path>` for each spec file produced
-   - **Yes, implement specific spec** — if multiple specs were produced, let the user pick which one(s)
-   - **No, just keep the plans** — end the command
-2. If the user chooses to implement, invoke the `/implement` command with the spec file path(s) as arguments
-
 ## AI Utility Scripts
 
 Reusable scripts in `~/Programming/JimmyTranDev/dotfiles/etc/scripts/src/ai/` replace common inline operations. Always prefer calling these scripts over reimplementing the same logic with multiple tool calls.

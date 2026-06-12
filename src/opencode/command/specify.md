@@ -137,13 +137,3 @@ After writing all spec files and presenting the summary, automatically iterate t
 4. After each answer, update the spec file inline — replace the open question with a "Decision: [answer]" statement
 5. If the user's answer invalidates an earlier task or architectural decision in the spec, update that section too
 6. After all questions are answered (or skipped), note how many decisions were recorded
-
-## Post-Clarification Implementation Offer
-
-After all open questions are resolved (or skipped), ask the user if they want to proceed with implementation:
-
-1. Present the question: "Would you like to implement this spec now?"
-   - **Yes, implement all** — run `/implement <plans-file-path>` for each spec file produced
-   - **Yes, implement specific spec** — if multiple specs were produced, let the user pick which one(s)
-   - **No, just keep the plans** — end the command
-2. If the user chooses to implement, invoke the `/implement` command with the spec file path(s) as arguments
