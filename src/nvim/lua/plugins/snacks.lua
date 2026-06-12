@@ -619,21 +619,21 @@ return {
     --   function() Snacks.picker.projects() end,
     --   desc = 'Projects',
     -- },
-    -- {
-    --   '<leader>fo',
-    --   function()
-    --     local git_root = vim.fn.systemlist('git rev-parse --show-toplevel')[1]
-    --     if vim.v.shell_error ~= 0 or not git_root or git_root == '' then
-    --       Snacks.picker.recent()
-    --       return
-    --     end
-    --     git_root = vim.fn.fnamemodify(git_root, ':p')
-    --     Snacks.picker.recent({
-    --       filter = { cwd = git_root },
-    --     })
-    --   end,
-    --   desc = 'Recent (repo)',
-    -- },
+    {
+      '<leader>fo',
+      function()
+        local git_root = vim.fn.systemlist('git rev-parse --show-toplevel')[1]
+        if vim.v.shell_error ~= 0 or not git_root or git_root == '' then
+          Snacks.picker.recent()
+          return
+        end
+        git_root = vim.fn.fnamemodify(git_root, ':p')
+        Snacks.picker.recent({
+          filter = { cwd = git_root },
+        })
+      end,
+      desc = '󰋚 Recent (repo)',
+    },
     -- {
     --   '<leader>fl',
     --   function() Snacks.picker.lines() end,
