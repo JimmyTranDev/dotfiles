@@ -332,6 +332,37 @@ end
 
 local cached_team_members = {}
 
+---@return string[]|nil team_slugs
+---@return string|nil org_name
+local function parse_team_config()
+  local teams_str = vim.env.GITHUB_PR_FILTER_TEAMS
+  if not teams_str or teams_str == '' then
+    vim.notify('GITHUB_PR_FILTER_TEAMS not set (comma-separated team slugs)', vim.log.levels.ERROR)
+    return nil, nil
+  end
+
+  local org_name = vim.env.ORG_GITHUB_NAME
+  if not org_name or org_name == '' then
+    vim.notify('ORG_GITHUB_NAME not set', vim.log.levels.ERROR)
+    return nil, nil
+  end
+
+  local team_slugs = {}
+  for slug in teams_str:gmatch('[^,]+') do
+    local trimmed = slug:match('^%s*(.-)%s*$')
+    if trimmed ~= '' then
+      table.insert(team_slugs, trimmed)
+    end
+  end
+
+  if #team_slugs == 0 then
+    vim.notify('No teams found in GITHUB_PR_FILTER_TEAMS', vim.log.levels.ERROR)
+    return nil, nil
+  end
+
+  return team_slugs, org_name
+end
+
 local function fetch_team_members_for_slug(org_name, team_slug, callback)
   vim.system(
     { 'gh', 'api', '/orgs/' .. org_name .. '/teams/' .. team_slug .. '/members', '--jq', '.[].login' },
@@ -1048,37 +1079,6 @@ function M.show_notifications()
   end)
 end
 
----@return string[]|nil team_slugs
----@return string|nil org_name
-local function parse_team_config()
-  local teams_str = vim.env.GITHUB_PR_FILTER_TEAMS
-  if not teams_str or teams_str == '' then
-    vim.notify('GITHUB_PR_FILTER_TEAMS not set (comma-separated team slugs)', vim.log.levels.ERROR)
-    return nil, nil
-  end
-
-  local org_name = vim.env.ORG_GITHUB_NAME
-  if not org_name or org_name == '' then
-    vim.notify('ORG_GITHUB_NAME not set', vim.log.levels.ERROR)
-    return nil, nil
-  end
-
-  local team_slugs = {}
-  for slug in teams_str:gmatch('[^,]+') do
-    local trimmed = slug:match('^%s*(.-)%s*$')
-    if trimmed ~= '' then
-      table.insert(team_slugs, trimmed)
-    end
-  end
-
-  if #team_slugs == 0 then
-    vim.notify('No teams found in GITHUB_PR_FILTER_TEAMS', vim.log.levels.ERROR)
-    return nil, nil
-  end
-
-  return team_slugs, org_name
-end
-
 ---@param org_name string
 ---@param slugs string[]
 ---@param label string
@@ -1250,6 +1250,101 @@ function M.redeploy_pr()
       )
     end)
   )
+end
+
+--- Parse a GitHub file URL from the clipboard and open the corresponding local file at the correct line
+function M.open_file_from_clipboard_url()
+  local clipboard = vim.fn.getreg('+')
+  if not clipboard or clipboard == '' then
+    vim.notify('Clipboard is empty', vim.log.levels.WARN)
+    return
+  end
+
+  -- Extract path portion after blob/tree/raw in GitHub-like URLs
+  local after_type = clipboard:match('https?://[^/]+/[^/]+/[^/]+/blob/(%S+)')
+    or clipboard:match('https?://[^/]+/[^/]+/[^/]+/tree/(%S+)')
+    or clipboard:match('https?://[^/]+/[^/]+/[^/]+/raw/(%S+)')
+
+  if not after_type then
+    vim.notify('No GitHub file URL found in clipboard', vim.log.levels.WARN)
+    return
+  end
+
+  -- Split path from fragment (#L42, #L10-L20)
+  local path_with_ref, fragment = after_type:match('^(.-)#(.*)$')
+  if not path_with_ref then
+    path_with_ref = after_type
+  end
+
+  -- Strip query parameters
+  path_with_ref = path_with_ref:gsub('%?.*', '')
+
+  -- Parse line number from fragment
+  local line_num
+  if fragment then
+    line_num = tonumber(fragment:match('L(%d+)'))
+  end
+
+  -- Decode URL-encoded characters (%20, etc.)
+  path_with_ref = path_with_ref:gsub('%%(%x%x)', function(h) return string.char(tonumber(h, 16)) end)
+
+  -- Split into segments to handle refs with slashes (e.g. feature/my-branch)
+  local segments = {}
+  for seg in path_with_ref:gmatch('[^/]+') do
+    table.insert(segments, seg)
+  end
+
+  if #segments < 2 then
+    vim.notify('Could not parse file path from URL', vim.log.levels.WARN)
+    return
+  end
+
+  local git_root = vim.fn.systemlist('git rev-parse --show-toplevel')[1]
+  if vim.v.shell_error ~= 0 or not git_root then
+    git_root = nil
+  end
+
+  -- Try progressively longer ref prefixes to find the file
+  local resolved_path
+  for i = 2, #segments do
+    local candidate = table.concat(segments, '/', i)
+
+    if vim.fn.filereadable(candidate) == 1 or vim.fn.isdirectory(candidate) == 1 then
+      resolved_path = candidate
+      break
+    end
+
+    if git_root then
+      local full = git_root .. '/' .. candidate
+      if vim.fn.filereadable(full) == 1 or vim.fn.isdirectory(full) == 1 then
+        resolved_path = full
+        break
+      end
+    end
+  end
+
+  if not resolved_path then
+    local tried_path = table.concat(segments, '/', 2)
+    vim.notify('File not found: ' .. tried_path, vim.log.levels.WARN)
+    return
+  end
+
+  vim.cmd('edit ' .. vim.fn.fnameescape(resolved_path))
+
+  if line_num then
+    local line_count = vim.api.nvim_buf_line_count(0)
+    if line_num > line_count then
+      line_num = line_count
+    end
+    vim.api.nvim_win_set_cursor(0, { line_num, 0 })
+  end
+
+  local display_name = vim.fn.fnamemodify(resolved_path, ':t')
+  if line_num then
+    vim.notify('Opened ' .. display_name .. ':' .. line_num, vim.log.levels.INFO)
+  else
+    vim.notify('Opened ' .. display_name, vim.log.levels.INFO)
+  end
 end
 
 return M

@@ -11,6 +11,7 @@ local project_actions = require('custom.actions.project')
 local journal_actions = require('custom.actions.journal')
 local notes_actions = require('custom.actions.notes')
 local slack_actions = require('custom.actions.slack')
+local status_actions = require('custom.actions.status')
 local session = require('custom.utils.session')
 local env_check = require('custom.utils.env_check')
 local stock_prompt = require('custom.utils.stock_prompt')
@@ -196,6 +197,11 @@ map('n', '<Leader>un', github_actions.show_notifications_by_default_team, { desc
 map('n', '<Leader>uT', github_actions.show_notifications_by_team, { desc = '󰦥 Select Team Notifications' })
 map('n', '<Leader>uw', github_actions.select_open_prs_by_default_team, { desc = '󰦥 Default Team PRs' })
 map('n', '<Leader>uW', github_actions.select_open_prs_by_people, { desc = '󰦥 Select Team PRs' })
+map('n', '<Leader>uf', github_actions.open_file_from_clipboard_url, { desc = '󰆓 Open file from GitHub URL' })
+
+map('n', '<leader>sc', status_actions.show_ci_checks, { desc = '󱖫 CI Checks' })
+map('n', '<leader>sp', status_actions.show_pr_status, { desc = '󱖫 PR Status' })
+map('n', '<leader>so', status_actions.show_pipeline_overview, { desc = '󱖫 Pipeline Overview' })
 
 -- New
 -- map('n', '<Leader>un', link_actions.open_npm_url, { desc = 'Open NPM link' })

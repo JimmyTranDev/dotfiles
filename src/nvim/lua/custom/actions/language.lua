@@ -43,7 +43,7 @@ function M.run_project_jar()
       .. ' -Dspring.cloud.gcp.sql.enabled=false'
       .. ' '
       .. jar_path
-    ui_utils.exec_in_terminal(cmd, 'Spring Boot: ' .. label, 3)
+    ui_utils.exec_in_terminal(cmd, 'Spring Boot: ' .. label, { name = 'spring-boot' })
   end
 
   local modules = find_app_modules()
@@ -66,8 +66,8 @@ function M.run_java_class_maven()
     vim.notify('No Java class found', vim.log.levels.WARN)
     return
   end
-  ui_utils.exec_in_terminal('mvn compile', 'Maven compile started')
-  ui_utils.exec_in_terminal('mvn exec:java -Dexec.mainClass=' .. class, 'Running: ' .. class, 3)
+  ui_utils.exec_in_terminal('mvn compile', 'Maven compile started', { name = 'mvn-compile' })
+  ui_utils.exec_in_terminal('mvn exec:java -Dexec.mainClass=' .. class, 'Running: ' .. class, { name = 'mvn-exec' })
 end
 
 function M.run_java_class_javac()
@@ -85,7 +85,7 @@ function M.serve_markdown_folder()
     vim.notify('Could not determine current folder', vim.log.levels.ERROR)
     return
   end
-  ui_utils.exec_in_terminal(('cd "%s" && markserv -b -p 5454'):format(folder), 'Markdown server started', 4)
+  ui_utils.exec_in_terminal(('cd "%s" && markserv -b -p 5454'):format(folder), 'Markdown server started', { name = 'markserv' })
 end
 
 function M.compile_mjml_file()
@@ -112,17 +112,17 @@ function M.install_javascript_package()
       end
       local cmd = pm .. ' add ' .. pkg_name
       if pkg_type == 'development' then cmd = cmd .. ' ' .. language_utils.get_javascript_package_manager_dev_arg() end
-      ui_utils.exec_in_terminal(cmd, 'Installing: ' .. pkg_name, 3)
+      ui_utils.exec_in_terminal(cmd, 'Installing: ' .. pkg_name, { name = 'npm-install' })
     end)
   end)
 end
 
-function M.run_package_script(term_id)
+function M.run_package_script()
   local scripts = language_utils.list_package_json_commands()
   if #scripts > 0 then
     ui_utils.safe_select(scripts, { prompt = 'Select script:' }, function(script)
       local pm = get_pm()
-      if pm then ui_utils.exec_in_terminal(pm .. ' ' .. script, 'Running: ' .. script, term_id or 3) end
+      if pm then ui_utils.exec_in_terminal(pm .. ' ' .. script, 'Running: ' .. script, { name = 'npm-' .. script }) end
     end)
     return
   end
@@ -138,7 +138,10 @@ function M.run_package_script(term_id)
     end
 
     if #targets > 0 then
-      ui_utils.safe_select(targets, { prompt = 'Make target:' }, function(target) vim.cmd((':%dTermExec cmd="make %s"'):format(term_id or 1, target)) end)
+      local registry = require('custom.utils.terminal_registry')
+      ui_utils.safe_select(targets, { prompt = 'Make target:' }, function(target)
+        registry.get_or_create('make-' .. target, { cmd = 'make ' .. target })
+      end)
       return
     end
   end
@@ -146,7 +149,7 @@ function M.run_package_script(term_id)
   vim.notify('No package.json or Makefile found', vim.log.levels.WARN)
 end
 
-function M.run_multiple_package_scripts(start_term_id)
+function M.run_multiple_package_scripts()
   return function()
     local scripts = language_utils.list_package_json_commands()
     if #scripts == 0 then
@@ -180,44 +183,45 @@ function M.run_multiple_package_scripts(start_term_id)
 
         if #selected > max_splits then vim.notify('Capped to ' .. max_splits .. ' scripts (selected ' .. #selected .. ')', vim.log.levels.WARN) end
 
+        local registry = require('custom.utils.terminal_registry')
         local count = math.min(#selected, max_splits)
         for i = 1, count do
           local script = selected[i].script
-          local term_id = (start_term_id or 10) + i - 1
-          local Terminal = require('toggleterm.terminal').Terminal
-          local term = Terminal:new({
+          registry.get_or_create('npm-run-' .. script, {
             cmd = pm .. ' run ' .. script,
-            count = term_id,
-            direction = 'horizontal',
-            display_name = script,
             close_on_exit = false,
           })
-          term:toggle()
         end
       end,
     })
   end
 end
 
-function M.kill_multiple_package_script_terms(start_term_id, count)
+function M.kill_multiple_package_script_terms()
   return function()
-    local max = count or 6
-    for i = 0, max - 1 do
-      local term_id = (start_term_id or 10) + i
-      local terms = require('toggleterm.terminal').Terminal
-      local term = terms:get(term_id)
-      if term then term:shutdown() end
+    local registry = require('custom.utils.terminal_registry')
+    local terminals = registry.list()
+    local killed = 0
+    for _, info in ipairs(terminals) do
+      if info.name:match('^npm%-run%-') then
+        registry.kill(info.name)
+        killed = killed + 1
+      end
     end
-    vim.notify('Killed multi-select script terminals', vim.log.levels.INFO)
+    vim.notify('Killed ' .. killed .. ' npm script terminals', vim.log.levels.INFO)
   end
 end
 
-function M.create_package_command_runner(term_id, command, should_exit, args)
+function M.create_package_command_runner(command, should_exit)
   return function()
     local pm = get_pm()
     if not pm or not command then return end
-    vim.cmd((':%dTermExec %s cmd="%s %s"'):format(term_id, args or '', pm, command))
-    if should_exit then vim.cmd((':%dTermExec cmd="exit"'):format(term_id)) end
+    local registry = require('custom.utils.terminal_registry')
+    local full_cmd = pm .. ' ' .. command
+    if should_exit then
+      full_cmd = full_cmd .. ' && exit'
+    end
+    registry.get_or_create('npm-' .. command:gsub('%s+', '-'), { cmd = full_cmd, close_on_exit = should_exit })
   end
 end
 
@@ -390,7 +394,7 @@ function M.fix_and_organize_typescript_imports()
   process_next()
 end
 
-function M.create_make_command_runner(term_id)
+function M.create_make_command_runner()
   return function()
     if vim.fn.filereadable('Makefile') == 0 then
       vim.notify('No Makefile found', vim.log.levels.ERROR)
@@ -406,7 +410,10 @@ function M.create_make_command_runner(term_id)
       end
     end
 
-    ui_utils.safe_select(targets, { prompt = 'Make target:' }, function(target) vim.cmd((':%dTermExec cmd="make %s"'):format(term_id or 1, target)) end)
+    local registry = require('custom.utils.terminal_registry')
+    ui_utils.safe_select(targets, { prompt = 'Make target:' }, function(target)
+      registry.get_or_create('make-' .. target, { cmd = 'make ' .. target })
+    end)
   end
 end
 
@@ -416,8 +423,11 @@ function M.create_npm_update_command(type)
   return npx .. ' npm-check-updates -u' .. (flags[type] or '')
 end
 
-function M.create_npm_update_executor(term_id, type)
-  return function() vim.cmd((':%dTermExec cmd="%s"'):format(term_id, M.create_npm_update_command(type))) end
+function M.create_npm_update_executor(type)
+  return function()
+    local registry = require('custom.utils.terminal_registry')
+    registry.get_or_create('npm-update-' .. type, { cmd = M.create_npm_update_command(type) })
+  end
 end
 
 function M.fms_key_lookup()

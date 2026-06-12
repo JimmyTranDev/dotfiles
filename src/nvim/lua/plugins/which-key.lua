@@ -94,6 +94,7 @@ return {
       { '<leader><leader>n', '󰖲 Window Splits' },
       { '<leader><leader>p', '󰏖 Packages' },
       { '<leader>r', '󰌱 Capture' },
+      { '<leader>s', '󱖫 Status' },
       { '<leader><leader>s', '󰒺 Sort & Swap' },
       { '<leader>u', '󰦥 URL / Open' },
       { '<leader>z', '󰒲 Lazy' },
@@ -123,7 +124,7 @@ return {
     for _, d in ipairs(descs) do
       table.insert(mappings, { d[1], desc = d[2], mode = { 'n', 'v' } })
     end
-    for _, c in ipairs({ 'a', 'c', 'd', 'e', 'f', 'i', 'j', 'k', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x' }) do
+    for _, c in ipairs({ 'a', 'c', 'd', 'e', 'f', 'i', 'j', 'k', 'm', 'n', 'o', 'p', 'q', 'r', 't', 'u', 'v', 'w', 'x' }) do
       table.insert(mappings, { c, desc = '_', mode = { 'n', 'v' } })
     end
 

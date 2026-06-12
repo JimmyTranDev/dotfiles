@@ -273,6 +273,7 @@ All scripts output **minified JSON** to stdout, log to stderr via `log_*` helper
 | `format-check.sh [--fix] [dir]` | Auto-detect and run formatter (prettier/biome/black/gofmt/rustfmt) | Replaces manual formatter detection |
 | `type-check.sh [dir]` | Auto-detect and run type checker (tsc/mypy/cargo check) | Replaces manual type checker detection |
 | `build-check.sh [dir]` | Auto-detect and run build command | Replaces manual build tool detection |
+| `verify-all.sh [--skip check] [dir]` | Run all checks (build, type, lint, format, test) and return aggregate pass/fail | Replaces running 5 check scripts individually |
 | `scan-style.sh [dir]` | Gather file stats, naming patterns, and code samples for style analysis | Replaces manual file sampling |
 | `spec-cleanup.sh <file>` | Remove consumed spec file after successful implementation with git-aware deletion | Replaces manual spec file cleanup |
 | `version-bump.sh [minor\|major] [--dry-run] [--dir path]` | Bump minor or major version across all monorepo workspaces + app.json | Replaces manual version editing |

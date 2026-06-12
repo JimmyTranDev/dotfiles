@@ -1,29 +1,81 @@
+local registry = require('custom.utils.terminal_registry')
+
 local M = {}
 
-function M.create_kill_toggle_term(index)
-  return function()
-    local term = require('toggleterm.terminal').get_all()[index]
-    if term then term:shutdown() end
+function M.open_terminal_picker()
+  local terminals = registry.list()
+  if #terminals == 0 then
+    vim.notify('No terminals running', vim.log.levels.INFO)
+    return
   end
+
+  local items = {}
+  for _, info in ipairs(terminals) do
+    local status_icon = info.is_open and '󰄬' or '󰄱'
+    local cmd_text = info.cmd and (' (' .. info.cmd:sub(1, 50) .. ')') or ''
+    table.insert(items, {
+      text = status_icon .. ' ' .. info.name .. cmd_text,
+      terminal_name = info.name,
+    })
+  end
+
+  local ok, snacks = pcall(require, 'snacks')
+  if not ok then
+    vim.notify('Snacks not available', vim.log.levels.ERROR)
+    return
+  end
+
+  snacks.picker({
+    title = 'Terminals',
+    items = items,
+    format = function(item)
+      return { { item.text } }
+    end,
+    confirm = function(picker, item)
+      picker:close()
+      if item then
+        registry.toggle(item.terminal_name)
+      end
+    end,
+    actions = {
+      kill_terminal = function(picker, item)
+        if item then
+          registry.kill(item.terminal_name)
+          picker:close()
+          vim.schedule(function() M.open_terminal_picker() end)
+        end
+      end,
+      kill_all_terminals = function(picker)
+        picker:close()
+        registry.kill_all()
+        vim.notify('All terminals killed', vim.log.levels.INFO)
+      end,
+    },
+    win = {
+      input = {
+        keys = {
+          ['<C-x>'] = { 'kill_terminal', desc = 'Kill terminal', mode = { 'n', 'i' } },
+          ['<C-a>'] = { 'kill_all_terminals', desc = 'Kill all terminals', mode = { 'n', 'i' } },
+        },
+      },
+      list = {
+        keys = {
+          ['<C-x>'] = { 'kill_terminal', desc = 'Kill terminal', mode = { 'n' } },
+          ['<C-a>'] = { 'kill_all_terminals', desc = 'Kill all terminals', mode = { 'n' } },
+        },
+      },
+    },
+  })
 end
 
-function M.kill_all_toggle_term()
-  for _, term in pairs(require('toggleterm.terminal').get_all()) do
-    term:shutdown()
-  end
+function M.create_blank_terminal()
+  local term = registry.create()
+  term:toggle()
 end
 
-function M.get_next_free_terminal(start_id)
-  local terminals = require('toggleterm.terminal')
-  local id = start_id or 1
-  for _ = 1, 20 do
-    local term = terminals.get(id)
-    if not term or not term:is_open() then
-      return id
-    end
-    id = id + 1
-  end
-  return id
+function M.kill_all_terminals()
+  registry.kill_all()
+  vim.notify('All terminals killed', vim.log.levels.INFO)
 end
 
 return M

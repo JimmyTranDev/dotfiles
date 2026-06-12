@@ -69,10 +69,20 @@ end
 
 M.show_success = function(msg) vim.notify(msg, vim.log.levels.INFO) end
 
-function M.exec_in_terminal(cmd, success_msg, terminal_id)
+function M.exec_in_terminal(cmd, label, opts)
   if not cmd then error('Command is required') end
-  vim.cmd(string.format("TermExec%d cmd='%s'", terminal_id or 5, cmd))
-  if success_msg then vim.defer_fn(function() vim.notify(success_msg, vim.log.levels.INFO) end, 500) end
+  local registry = require('custom.utils.terminal_registry')
+  local name
+  if type(opts) == 'number' then
+    name = label or ('terminal-' .. opts)
+  elseif type(opts) == 'table' then
+    name = opts.name or label
+  else
+    name = label
+  end
+  name = name or cmd
+  registry.get_or_create(name, { cmd = cmd })
+  if label then vim.defer_fn(function() vim.notify(label, vim.log.levels.INFO) end, 500) end
 end
 
 function M.multiline_input(opts, callback)
