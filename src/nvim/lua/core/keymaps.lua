@@ -88,12 +88,12 @@ map('n', '<leader>vd', github_actions.redeploy_pr, { desc = '󰚴 Redeploy PR (#
 map('n', '<leader>;ct', todoist_actions.refresh_todoist_cache(), { desc = '󰆘 Refresh Todoist cache' })
 map('n', '<leader>;cw', jira_actions.refresh_jira_cache, { desc = '󰆘 Refresh Jira cache' })
 
-map('n', '<leader>cj', jira_actions.copy_ticket_with_title, { desc = '󰆓 Copy Jira ticket with title' })
-map('n', '<leader>ct', jira_actions.copy_testable_message, { desc = '󰆓 Copy testable Slack message' })
+map('n', '<leader>cj', jira_actions.copy_ticket_with_title, { desc = '󰆓 Copy: Jira ticket + title' })
+map('n', '<leader>ct', jira_actions.copy_testable_message, { desc = '󰆓 Copy: Jira testable message' })
 map('n', '<leader>;J', jira_actions.generate_done_md, { desc = '󰌧 Generate this week jira tasks' })
 
-map('n', '<leader>cp', github_actions.copy_open_prs, { desc = '󰆓 Copy open PRs' })
-map('n', '<leader>cP', github_actions.select_and_copy_pr, { desc = '󰆓 Select PR to copy' })
+map('n', '<leader>cp', github_actions.copy_open_prs, { desc = '󰆓 Copy: open PRs' })
+map('n', '<leader>cP', github_actions.select_and_copy_pr, { desc = '󰆓 Copy: select PR' })
 
 -- map('n', '<leader><leader>ri', replacement_actions.replace_interactive, { desc = 'Interactive replace' })
 -- map('n', '<leader><leader>rb', replacement_actions.replace_buffer, { desc = 'Replace in buffer' })
@@ -128,8 +128,8 @@ map('n', '<Leader>rn', notes_actions.add_sentence, { desc = '󰌱 Add sentence t
 map('n', '<Leader>rN', notes_actions.save_task, { desc = '󰌱 Save task to notes' })
 map('n', '<Leader>rc', jira_actions.add_comment_from_branch, { desc = '󰌱 Add Jira comment from branch' })
 
-map('n', '<leader>cl', github_actions.copy_github_line_url, { desc = '󰆓 Copy GitHub line URL' })
-map('v', '<leader>cl', github_actions.copy_github_line_url, { desc = '󰆓 Copy GitHub line URL' })
+map('n', '<leader>cl', github_actions.copy_github_line_url, { desc = '󰆓 Copy: GitHub line URL' })
+map('v', '<leader>cl', github_actions.copy_github_line_url, { desc = '󰆓 Copy: GitHub line URL' })
 
 maps('n', {
   { '<leader>zc', ':Lazy clean<CR>', '󰒲 Lazy clean' },
@@ -143,12 +143,12 @@ maps('n', {
 -- map('n', '<Leader><Leader>tt', ':Typr<CR>', { desc = 'Start typing test' })
 -- map('n', '<Leader><Leader>ts', ':TyprStats<CR>', { desc = 'Show typing stats' })
 
-map('n', '<leader>ca', file_actions.copy_all_files_content, { desc = '󰆓 Copy all files content' })
-map('n', '<leader>cf', file_actions.copy_frontend_project_paths, { desc = '󰆓 Copy frontend project paths' })
-map('n', '<leader>cr', file_actions.copy_repo_path, { desc = '󰆓 Copy repo path' })
-map('n', '<leader>cu', file_actions.copy_current_file_url, { desc = '󰆓 Copy current file link' })
-map('n', '<leader>co', file_actions.copy_opencode_link, { desc = '󰆓 Copy OpenCode link' })
-map('n', '<leader>ce', errors_actions.copy_diagnostic_under_cursor, { desc = '󰆓 Copy diagnostic' })
+map('n', '<leader>ca', file_actions.copy_all_files_content, { desc = '󰆓 Copy: all files content' })
+map('n', '<leader>cf', file_actions.copy_frontend_project_paths, { desc = '󰆓 Copy: frontend project paths' })
+map('n', '<leader>cr', file_actions.copy_repo_path, { desc = '󰆓 Copy: repo path' })
+map('n', '<leader>cu', file_actions.copy_current_file_url, { desc = '󰆓 Copy: current file URL' })
+map('n', '<leader>co', file_actions.copy_opencode_link, { desc = '󰆓 Copy: OpenCode link' })
+map('n', '<leader>ce', errors_actions.copy_diagnostic_under_cursor, { desc = '󰆓 Copy: diagnostic' })
 map('n', '<leader>cg', function()
   vim.notify('Starting GCloud auth...', vim.log.levels.INFO)
   local url_copied = false
@@ -170,7 +170,7 @@ map('n', '<leader>cg', function()
       end
     end,
   })
-end, { desc = '󰆓 Copy GCloud auth URL' })
+end, { desc = '󰆓 Copy: GCloud auth URL' })
 
 map('n', '<Leader>ud', file_actions.open_current_dir, { desc = '󰦥 Open current directory' })
 map('n', '<Leader>uc', github_actions.open_current_commit_in_github, { desc = '󰦥 GitHub: current commit' })
