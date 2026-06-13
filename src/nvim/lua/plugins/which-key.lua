@@ -9,7 +9,20 @@ return {
     local wk = require('which-key')
 
     local function apply_highlights()
-      local colors = require('catppuccin.palettes').get_palette('mocha')
+      local theme_ok, theme = pcall(require, 'core.theme')
+      if not theme_ok then
+        theme = { family = 'catppuccin', variant = 'mocha' }
+      end
+      local colors
+      if theme.family == 'catppuccin' then
+        local ok, catppuccin = pcall(require, 'catppuccin.palettes')
+        colors = ok and catppuccin.get_palette(theme.variant) or {}
+      else
+        colors = {}
+      end
+      if not colors.mauve then
+        colors = { mauve = '#cba6f7', blue = '#89b4fa', yellow = '#f9e2af', sapphire = '#74c7ec', base = '#1e1e2e', surface2 = '#585b70' }
+      end
       local highlights = {
         WhichKey = { fg = colors.mauve },
         WhichKeyGroup = { fg = colors.blue },
@@ -43,7 +56,7 @@ return {
     })
 
     apply_highlights()
-    vim.api.nvim_create_autocmd('ColorScheme', { pattern = 'catppuccin*', callback = apply_highlights })
+    vim.api.nvim_create_autocmd('ColorScheme', { pattern = '*', callback = apply_highlights })
     _G.refresh_which_key_highlights = apply_highlights
 
     local groups = {
@@ -54,7 +67,7 @@ return {
       { '<leader>;c', '󰑓 Cache' },
       { '<leader>c', '󰌷 Copy & Quick Access' },
       { '<leader>a', '󰚩 AI' },
-      { '<leader>v', '󰉋 Analysis' },
+      { '<leader>v', '󰌵 Actions' },
       { '<leader><leader>l', '󰞷 LeetCode' },
       { '<leader>f', '󰭎 Find' },
       { '<leader>fc', '󰘖 Commands' },
@@ -93,10 +106,13 @@ return {
 
       { '<leader><leader>n', '󰖲 Window Splits' },
       { '<leader><leader>p', '󰏖 Packages' },
-      { '<leader>r', '󰌱 Capture' },
+      { '<leader>r', '󰌱 Capture & Log' },
       { '<leader>s', '󱖫 Status' },
       { '<leader><leader>s', '󰒺 Sort & Swap' },
       { '<leader>u', '󰦥 URL / Open' },
+      { '<leader>ug', '󰊤 GitHub' },
+      { '<leader>uj', '󰌧 Jira' },
+      { '<leader>ul', '󰌷 Links' },
       { '<leader>z', '󰒲 Lazy' },
       { 'g', '󰬴 Goto' },
       { ']', '󰮯 Next' },

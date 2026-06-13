@@ -9,6 +9,22 @@ main() {
 	log_header "Running macOS setup..."
 
 	if command -v brew >/dev/null 2>&1; then
+		read -rp "Run brew update (fetch latest formulae)? [y/N] " answer </dev/tty
+		if [[ "$answer" =~ ^[Yy]$ ]]; then
+			log_info "Updating Homebrew formulae..."
+			brew update
+		else
+			log_info "Skipping brew update"
+		fi
+
+		read -rp "Run brew upgrade (upgrade installed packages)? [y/N] " answer </dev/tty
+		if [[ "$answer" =~ ^[Yy]$ ]]; then
+			log_info "Upgrading Homebrew packages..."
+			brew upgrade
+		else
+			log_info "Skipping brew upgrade"
+		fi
+
 		read -rp "Run brew bundle install? [y/N] " answer </dev/tty
 		if [[ "$answer" =~ ^[Yy]$ ]]; then
 			log_info "Installing Homebrew packages..."
