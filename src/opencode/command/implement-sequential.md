@@ -44,7 +44,7 @@ Load the **git-workflows** skill.
 
     e. **Commit**: Stage and commit using the format from the **git-workflows** skill (skip hooks during sequential tasks — they run once at the end):
        - `git add -A`
-       - `git commit --no-verify -m "<emoji> <type>(<scope>): <description>"`
+        - `git commit --no-verify -m "<type>(<scope>): <description>"`
 
    f. **Update PR description**: If a PR exists, use `gh pr edit <pr-number> --body` to check off the completed task while preserving all descriptive summaries
 
@@ -52,7 +52,7 @@ Load the **git-workflows** skill.
 
    h. **Mark todo**: Set the current task to `completed` on success or `pending` on failure
 
-5. **Run pre-commit hooks**: Run `git hook run pre-commit` to execute all pre-commit hooks against the current state. If the hooks modify files (e.g., formatting, linting auto-fix), stage and commit the changes: `git add -A && git commit --no-verify -m "💎 style: apply pre-commit hook fixes"`. If hooks fail with errors, launch **fixer** to address them, then re-run the hooks.
+5. **Run pre-commit hooks**: Run `git hook run pre-commit` to execute all pre-commit hooks against the current state. If the hooks modify files (e.g., formatting, linting auto-fix), stage and commit the changes: `git add -A && git commit --no-verify -m "style: apply pre-commit hook fixes"`. If hooks fail with errors, launch **fixer** to address them, then re-run the hooks.
 
 6. **Final review**: Launch the **reviewer** agent on the full diff across all commits. If issues are found, launch **fixer** to address them and commit. If a PR exists, update the PR description to check off the **Review** task.
 
@@ -66,4 +66,4 @@ Important:
 - Skills loaded for one task can be reused for subsequent tasks if still applicable
 - If a task fails, ask the user whether to continue with remaining tasks or stop
 - Do not push to remote unless the user explicitly asks
-- **Spec cleanup**: If `$ARGUMENTS` references files in `plans/` (paths starting with `plans/` or containing `.md` files inside `plans/`), delete each consumed spec file after all its tasks are successfully implemented and committed. If the `plans/` directory is empty after deletion, remove it too. Note in the final summary: "Removed consumed spec: plans/xyz.md"
+- **Spec cleanup + Todoist completion**: Follow the Spec Cleanup and Todoist Completion convention in AGENTS.md.

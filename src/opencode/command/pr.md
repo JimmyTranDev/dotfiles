@@ -30,7 +30,7 @@ Load skills based on mode:
 
 3. Stage and commit the changes using the commit format from the **git-workflows** skill:
    - `git add -A`
-   - `git commit -m "<emoji> <type>(<scope>): <description>"`
+   - `git commit -m "<type>(<scope>): <description>"`
 
 4. Run the review-fix-verify cycle per the `pr-*` conventions in AGENTS.md
 

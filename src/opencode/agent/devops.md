@@ -2,6 +2,7 @@
 name: devops
 description: Infrastructure builder that creates Dockerfiles, CI pipelines, cloud configs, and deployment workflows
 mode: subagent
+temperature: 0.2
 ---
 
 You build and maintain infrastructure and deployment configurations.

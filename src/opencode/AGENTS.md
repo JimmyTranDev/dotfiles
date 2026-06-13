@@ -30,7 +30,7 @@ When a user request is vague, ambiguous, or could be interpreted in multiple way
 ```
 src/opencode/
 ├── AGENTS.md               # Global LLM rules
-├── opencode.json            # OpenCode project config
+├── opencode.jsonc           # OpenCode project config
 ├── tui.json                 # TUI appearance config
 ├── agent/                   # Specialized subagents
 │   ├── auditor.md
@@ -52,48 +52,36 @@ src/opencode/
 │   └── tester.md
 ├── command/                 # Slash commands (/name)
 │   ├── clarify.md
-│   ├── close-dependabot.md
 │   ├── commit.md
 │   ├── fix-conflict.md
-│   ├── fix-pr.md
 │   ├── fix.md
 │   ├── fms.md
+│   ├── implement-parallel.md
 │   ├── implement-sequential.md
 │   ├── implement.md
-│   ├── init.md
-│   ├── jira-test-instructions.md
-│   ├── merge-specs.md
+│   ├── insight.md
+│   ├── learn-nvim.md
+│   ├── learn-opencode.md
 │   ├── merge.md
-│   ├── migration-check.md
-│   ├── pr-audit.md
-│   ├── pr-group.md
+│   ├── opencode.md
 │   ├── pr-parallel.md
+│   ├── pr-reply.md
 │   ├── pr-sequential.md
 │   ├── pr.md
-│   ├── quiz.md
 │   ├── review-plans.md
 │   ├── review.md
-│   ├── specify-agents-md.md
-│   ├── specify-architecture.md
-│   ├── specify-ci.md
-│   ├── specify-comments.md
-│   ├── specify-design.md
-│   ├── specify-devtools.md
-│   ├── specify-engage.md
-│   ├── specify-fix.md
-│   ├── specify-innovate.md
-│   ├── specify-jira.md
-│   ├── specify-opencode.md
-│   ├── specify-optimize.md
-│   ├── specify-quality.md
-│   ├── specify-reuse.md
-│   ├── specify-review.md
-│   ├── specify-security.md
-│   ├── specify-test.md
-│   ├── specify-tutorial.md
+│   ├── simplify.md
+│   ├── specify-parallel.md
 │   ├── specify.md
+│   ├── stock-advisor.md
+│   ├── stock-calendar.md
+│   ├── stock-reddit.md
+│   ├── stock-research.md
 │   ├── structure.md
-│   ├── tutorial-implement-jira.md
+│   ├── system-design.md
+│   ├── triage-comments.md
+│   ├── triage-todoist-section.md
+│   ├── triage.md
 │   ├── tutorial.md
 │   └── weekly-summary.md
 ├── plugins/                 # Event-driven plugins
@@ -113,6 +101,7 @@ src/opencode/
     ├── git-gitignore/
     ├── git-workflows/
     ├── git-worktree-workflow/
+    ├── implement-sequential/
     ├── java-spring-senior/
     ├── mcp-browser/
     ├── mcp-mobile/
@@ -122,7 +111,11 @@ src/opencode/
     ├── meta-shell-scripting/
     ├── meta-skill-learnings/
     ├── meta-structure/
+    ├── performance-patterns/
+    ├── pr-parallel/
+    ├── pr-sequential/
     ├── review-backend/
+    ├── review-output-format/
     ├── security/
     ├── security-npm-vulnerabilities/
     ├── strategy-career/
@@ -151,7 +144,7 @@ src/opencode/
     └── ui-stitch/
 ```
 
-- `opencode.json` loads `AGENTS.md` via its `instructions` array
+- `opencode.jsonc` loads `AGENTS.md` via its `instructions` array
 - Agents in `agent/` are subagents launched via the Task tool
 - Commands in `command/` are slash commands invoked with `/name`
 - Skills in `skills/<name>/SKILL.md` are auto-discovered and loaded on demand via the Skill tool
@@ -173,17 +166,21 @@ src/opencode/
 
 | Command | Purpose |
 |---------|---------|
-| `commit` | Create a well-formatted git commit |
-| `merge` | Merge current branch into base |
-| `init` | Initialize project config |
-| `review` | Review code for correctness |
 | `clarify` | Ask clarifying questions before implementation |
-| `quiz` | Generate quiz questions from a spec file |
+| `commit` | Create a well-formatted git commit |
+| `fix` | Diagnose and fix a bug or issue |
 | `fms` | Generate FMS translation JSON (Norwegian/English i18n keys) |
-| `structure` | Analyze and display project directory layout |
-| `migration-check` | Verify database migrations are safe |
-| `merge-specs` | Combine multiple spec files into one |
+| `insight` | Generate insights from codebase patterns |
+| `merge` | Merge current branch into base |
+| `review` | Review code for correctness |
 | `review-plans` | Review plans/spec files for quality and completeness |
+| `simplify` | Simplify and reduce complexity of selected code |
+| `specify` | Generate implementation specs in plans/ |
+| `structure` | Analyze and display project directory layout |
+| `system-design` | Generate a system design document |
+| `triage` | Interactive walk-through of items with per-item decisions |
+| `triage-comments` | Triage PR review comments one by one |
+| `triage-todoist-section` | Triage tasks from a Todoist section URL |
 | `weekly-summary` | Generate weekly standup summary from git commits and Jira tickets |
 
 ## Parallelization
@@ -285,6 +282,16 @@ All scripts output **minified JSON** to stdout, log to stderr via `log_*` helper
 
 **When to use**: Any time a command or agent needs to detect the tech stack, find the base branch, run tests, run linting, install dependencies, check PR status, or perform any operation listed above — call the script instead of reimplementing with multiple tool calls.
 
+## Spec Cleanup and Todoist Completion
+
+After successful implementation, all commands follow this convention for removing consumed spec files and completing Todoist tasks:
+
+1. If `$ARGUMENTS` references a file in `plans/` (path starts with `plans/` or contains a `.md` file inside `plans/`), ask the user for confirmation before deleting the consumed spec file
+2. If confirmed and the file is tracked by git, use `git rm`; otherwise use `rm`
+3. If the `plans/` directory is empty after deletion, remove it too
+4. Note in the final summary: "Removed consumed spec: plans/xyz.md"
+5. If the consumed spec contains YAML frontmatter with a `todoist:` field, load the **tool-todoist-cli** skill and run `td task complete "<url>"` for each URL listed. Only complete after successful implementation. If implementation failed, do NOT complete the Todoist task.
+
 ## `pr-*` Command Conventions
 
 All `pr-*` commands follow these shared conventions. Individual commands only need to define their specific workflow.
@@ -306,12 +313,7 @@ After implementation, run this cycle:
 4. Run **reviewer** once more to verify (max 2 iterations)
 
 ### Spec Cleanup
-After successful implementation and PR creation, remove consumed spec files:
-1. If `$ARGUMENTS` references a `plans/` file (path starts with `plans/` or contains a `.md` file inside `plans/`), ask the user for confirmation before deleting the consumed spec file
-2. If confirmed and the file is tracked by git, use `git rm`; otherwise use `rm`
-3. If the `plans/` directory is empty after deletion, remove it too
-4. Note in the final summary: "Removed consumed spec: plans/xyz.md"
-5. If the consumed spec contains YAML frontmatter with a `todoist:` field, load the **tool-todoist-cli** skill and run `td task complete "<url>"` for each URL
+After successful implementation and PR creation, follow the **Spec Cleanup and Todoist Completion** convention above.
 
 ### PR Rules
 - All work happens in the worktree directory, never in the main repo

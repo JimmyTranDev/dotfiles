@@ -62,29 +62,7 @@ If the diff exceeds 1000 lines:
 
 ## Output Format
 
-Present findings with this structure:
-
-```
-## Review Summary
-- 🔴 X critical | 🟡 Y important | 💡 Z suggestions
-- Files reviewed: [list]
-- Verdict: ship ✅ / fix first ⚠️ / needs rework 🚫
-
-## Critical
-🔴 **file.ts:45** — SQL injection via string concatenation
-   Fix: Use parameterized query
-
-## Important
-🟡 **file.ts:78-92** — Function does 3 things, hard to test
-   Fix: Split into separate functions
-
-## Suggestions
-💡 **file.ts:12** — Variable name `data` is vague
-   Fix: Rename to `userProfile`
-
-## Good Patterns Noticed
-- Clean error handling in auth module
-```
+The **reviewer** agent formats its own output using the **review-output-format** skill. See `agent/reviewer.md` for the output structure.
 
 ## Post-Review Fix Offer
 

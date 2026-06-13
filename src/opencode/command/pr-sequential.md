@@ -19,7 +19,7 @@ Load the **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** 
 2. Set up the worktree per the `pr-*` conventions in AGENTS.md
 
 3. Create an initial empty commit and push:
-    - `git commit --allow-empty --no-verify -m "🔧 chore: initialize <branch-name>"`
+     - `git commit --allow-empty --no-verify -m "chore: initialize <branch-name>"`
    - `git push -u origin <branch-name>`
 
 4. Create the PR with `gh pr create` targeting the base branch:
@@ -37,7 +37,7 @@ Load the **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** 
 
      a. **Implement**: Apply the changes in the worktree directory (`~/Programming/wcreated/<branch-name>/`), stage, and commit using the format from the **git-workflows** skill (skip hooks during sequential tasks — they run once at the end):
         - `git add -A`
-        - `git commit --no-verify -m "<emoji> <type>(<scope>): <description>"`
+        - `git commit --no-verify -m "<type>(<scope>): <description>"`
 
     b. **Review**: Launch **reviewer** and **auditor** agents in parallel on the diff from `git diff HEAD~1...HEAD`
 
@@ -56,7 +56,7 @@ Load the **git-worktree-workflow**, **git-workflows**, and **tool-todoist-cli** 
 
     f. **Mark todo**: Mark the corresponding TodoWrite todo as `completed` on success or `pending` on failure
 
-6. **Run pre-commit hooks**: Run `git hook run pre-commit` to execute all pre-commit hooks against the current state. If the hooks modify files (e.g., formatting, linting auto-fix), stage and commit the changes: `git add -A && git commit --no-verify -m "💎 style: apply pre-commit hook fixes"` and push. If hooks fail with errors, launch **fixer** to address them, then re-run the hooks.
+6. **Run pre-commit hooks**: Run `git hook run pre-commit` to execute all pre-commit hooks against the current state. If the hooks modify files (e.g., formatting, linting auto-fix), stage and commit the changes: `git add -A && git commit --no-verify -m "style: apply pre-commit hook fixes"` and push. If hooks fail with errors, launch **fixer** to address them, then re-run the hooks.
 
 7. **Final review**: Launch the **reviewer** agent on the full PR diff (`git diff <base-branch>...HEAD`) to review the cumulative changes across all tasks. If issues are found, launch **fixer** to address them, commit, and push. After the final review passes, update the PR description to check off the **Review** task.
 

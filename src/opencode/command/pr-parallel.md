@@ -40,16 +40,15 @@ Load the **git-worktree-workflow**, **git-workflows**, **git-conflict-resolution
 
    a. **Implement**: Apply the changes, stage, and commit:
       - `git add -A`
-      - `git commit --no-verify -m "<type>(<scope>): <emoji> <description>"`
+      - `git commit --no-verify -m "<type>(<scope>): <description>"`
       - Multiple commits are fine if the task warrants it
-      - Use the commit type/emoji mapping from the **git-workflows** skill
 
    b. **Review**: Launch **reviewer** and **auditor** agents in parallel on the diff from `git diff <base-branch>...HEAD`
 
-   c. **Fix**: If issues were found, launch **fixer** to address them, then stage and commit: `git add -A && git commit --no-verify -m "fix: 🐛 address review and audit findings"`. Run **reviewer** once more to verify (max 2 iterations).
+   c. **Fix**: If issues were found, launch **fixer** to address them, then stage and commit: `git add -A && git commit --no-verify -m "fix: address review and audit findings"`. Run **reviewer** once more to verify (max 2 iterations).
 
    d. **Merge into integration**: Acquire a sequential lock on the integration worktree (`~/Programming/wcreated/<integration-branch>/`) and merge:
-      - Run `git merge <task-branch> --no-ff -m "chore: 🔧 merge <task-branch>"` in the integration worktree
+      - Run `git merge <task-branch> --no-ff -m "chore: merge <task-branch>"` in the integration worktree
       - If the merge has conflicts, resolve using the **git-conflict-resolution** skill — combine both changes where possible, ask the user when ambiguous, never silently drop code
       - If the merge is catastrophically broken, abort with `git merge --abort`, skip this task, and report it
       - After a successful merge, run a quick build/lint check if available to catch integration issues early
@@ -63,7 +62,7 @@ Load the **git-worktree-workflow**, **git-workflows**, **git-conflict-resolution
 
 10. **Integration review**: Launch **reviewer** and **auditor** agents in parallel on the full combined diff (`git diff <base-branch>...HEAD`) in the integration worktree. If issues are found, launch **fixer** to address them, stage and commit, then run **reviewer** once more to verify (max 2 iterations).
 
-11. Run pre-commit hooks: `git hook run pre-commit` in the integration worktree. If hooks modify files, stage and commit: `git add -A && git commit --no-verify -m "style: 💎 apply pre-commit hook fixes"`. If hooks fail with errors, launch **fixer** to address them, then re-run.
+11. Run pre-commit hooks: `git hook run pre-commit` in the integration worktree. If hooks modify files, stage and commit: `git add -A && git commit --no-verify -m "style: apply pre-commit hook fixes"`. If hooks fail with errors, launch **fixer** to address them, then re-run.
 
 12. Push the integration branch:
     - `git push -u origin <integration-branch>`

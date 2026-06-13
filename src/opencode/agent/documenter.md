@@ -2,6 +2,7 @@
 name: documenter
 description: Documentation generator that produces JSDoc, Javadoc, API docs, and inline documentation from code analysis
 mode: subagent
+temperature: 0.2
 ---
 
 You generate clear, accurate documentation from source code.
