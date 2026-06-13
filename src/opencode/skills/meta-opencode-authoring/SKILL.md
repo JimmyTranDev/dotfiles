@@ -36,6 +36,8 @@ Closing tagline: punchy, memorable, action-oriented.
 | `description` | 5-20 words, starts with a role noun, explains when to use it |
 | `mode` | `subagent` for Task-tool agents, `primary` for tab-switchable agents |
 
+> **Frontmatter quoting**: Do not wrap `description` values in double quotes unless the value contains YAML special characters (`:`, `{`, `}`, `[`, `]`, `#`, `&`, `*`, `!`, `|`, `>`, `'`, `,`, `?`). Unquoted descriptions are consistent with all other YAML string values in agent files.
+
 ### Description Writing
 
 The description determines whether the orchestrating agent picks this agent for a task.
@@ -59,6 +61,7 @@ Bad:
 - **"How You Work" / "Process"** — numbered steps for the workflow
 - **"Output Format"** — exact template using code blocks
 - **"What You Don't Do"** — explicit guardrails as bullet list
+- **"Skill Improvement"** (required for agents that perform analysis) — instructs the agent to load `meta-skill-learnings` and improve skills after completing work. Place at the end, after "What You Don't Do".
 
 **Closing Tagline** — one line, imperative mood, reinforces core behavior:
 - "Find the bug. Fix the bug. Move on."
@@ -68,6 +71,10 @@ Bad:
 ### Differentiation
 
 When two agents overlap in scope, add a "When to Use X (vs Y)" section at the top of each:
+
+**Required**: When two or more agents share overlapping scope, add the section to each participating agent.
+
+**Optional**: When an agent has a clearly unique domain (e.g., stock-researcher) with no realistic chance of confusion, skip the differentiation section.
 
 ```markdown
 ## When to Use Fixer (vs Reviewer)
@@ -84,6 +91,22 @@ When two agents overlap in scope, add a "When to Use X (vs Y)" section at the to
 - [ ] Code examples use realistic patterns from actual codebases
 - [ ] "What You Don't Do" prevents scope creep into other agents
 - [ ] No duplication of content that belongs in skills
+
+### Anti-Patterns
+
+Common mistakes found in agent files — avoid these:
+
+| Anti-Pattern | Example | Fix |
+|-------------|---------|-----|
+| "You are a..." opening | `You are a security auditor.` | `You hunt security vulnerabilities in code.` |
+| Quoted description in frontmatter | `description: "Feature builder..."` | `description: Feature builder...` (no quotes unless YAML special chars present) |
+| Description > 20 words | Long multi-clause description | Trim to core action; cut secondary clauses |
+| Opening duplicates description | Opening sentence = description verbatim | Differentiate — opening adds personality/emphasis, description is purely for orchestrator selection |
+| Weak verb in opening | `You handle migrations...` | Use strong, specific action verbs: generate, hunt, trace, restructure, profile |
+| Stale skill/tool references | Links to removed or renamed skills | Verify all referenced skills exist at `skills/<name>/SKILL.md` before publishing |
+| Missing Skill Improvement | Agent analyzes code but doesn't capture learnings | Every analysis-performing agent should end with a Skill Improvement section |
+| Missing When-to-Use | Two agents share overlapping scope | Add "When to Use X (vs Y)" at the top of both agents |
+| Contradicting global rules | Agent embeds different conventions from AGENTS.md | Defer to AGENTS.md for global rules; reference skills instead of re-defining |
 
 ---
 
@@ -132,7 +155,7 @@ Important notes / constraints.
 Commands describe an action the user triggers, so descriptions start with a verb.
 
 Good:
-- "Create a well-formatted git commit with emoji prefix and conventional format"
+- "Create a well-formatted git commit using conventional commit format"
 - "Scan code for security vulnerabilities and provide exact fixes"
 
 Bad:

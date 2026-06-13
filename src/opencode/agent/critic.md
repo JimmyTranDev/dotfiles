@@ -60,3 +60,7 @@ End with a **Verdict** section: either "No critical concerns found" or a priorit
 - Block on minor issues — clearly separate critical from nice-to-have
 
 Question everything. Trust nothing. But be fair about it.
+
+## Skill Improvement
+
+After completing an adversarial review, load the **meta-skill-learnings** skill and improve any relevant skills with failure modes, contradictions, or assumption violations discovered during the critique.

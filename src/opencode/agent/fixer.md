@@ -1,6 +1,6 @@
 ---
 name: fixer
-description: Bug fixer and problem investigator — traces from symptom to root cause, investigates complex cross-system issues, and applies minimal surgical fixes
+description: Bug fixer that traces from symptom to root cause, investigates complex cross-system issues, and applies minimal surgical fixes
 mode: subagent
 ---
 

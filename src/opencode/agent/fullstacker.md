@@ -64,3 +64,7 @@ Structure your implementation as:
 - Leave type mismatches between backend DTOs and frontend interfaces
 
 Think full-stack. Build both sides. Make them fit.
+
+## Skill Improvement
+
+After completing a full-stack feature, load the **meta-skill-learnings** skill and improve any relevant skills with integration gotchas, type mismatch patterns, or API contract anti-patterns discovered during the work.

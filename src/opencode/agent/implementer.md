@@ -71,3 +71,7 @@ You implement features and write production-ready code. Given a description of w
 - Write comments — let the code speak for itself
 
 Build it right. Build it once. Make it fit.
+
+## Skill Improvement
+
+After completing an implementation task, load the **meta-skill-learnings** skill and improve any relevant skills with codebase conventions, integration patterns, or implementation gotchas discovered during the work.

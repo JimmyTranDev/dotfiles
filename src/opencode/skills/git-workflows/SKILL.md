@@ -5,37 +5,38 @@ description: Branch naming, commit conventions, PR workflows, and base branch st
 
 ## Commit Message Format
 
-`<emoji> <type>(<scope>): <description>`
+`<type>(<scope>): <description>`
 
 - Scope is optional, in parentheses
 - Description is lowercase sentence case, no trailing period
 - Single line, no multi-line body
+- No emoji characters in commit messages
 
-### Emoji Mapping
+### Types
 
-| Emoji | Type | Meaning |
-|-------|------|---------|
-| `✨` | `feat` | New features |
-| `🐛` | `fix` | Bug fixes |
-| `📚` | `docs` | Documentation changes |
-| `🔨` | `refactor` | Code refactoring |
-| `💎` | `style` | Formatting, styling |
-| `🧪` | `test` | Adding/updating tests |
-| `🚀` | `perf` | Performance improvements |
-| `🔧` | `chore` | Maintenance tasks |
-| `👷` | `ci` | CI/CD changes |
-| `📦` | `build` | Build system changes |
-| `⏪` | `revert` | Reverting changes |
+| Type | Meaning |
+|------|---------|
+| `feat` | New features |
+| `fix` | Bug fixes |
+| `docs` | Documentation changes |
+| `refactor` | Code refactoring |
+| `style` | Formatting, styling |
+| `test` | Adding/updating tests |
+| `perf` | Performance improvements |
+| `chore` | Maintenance tasks |
+| `ci` | CI/CD changes |
+| `build` | Build system changes |
+| `revert` | Reverting changes |
 
 ### Examples from History
 
 ```
-✨ feat(opencode): add pr-fix command and prefer develop as base branch
-🐛 fix(zellij): filter nested layout template tabs from awk patterns
-🔨 refactor: generate .gitconfig, settings.xml, and .npmrc from templates
-🔧 chore(yazi): disable previews for non-plain-text file types
-📚 docs: add tech stack section to README and kitty to Brewfile
-⏪ revert(yazi): show hidden files by default
+feat(opencode): add pr-fix command and prefer develop as base branch
+fix(zellij): filter nested layout template tabs from awk patterns
+refactor: generate .gitconfig, settings.xml, and .npmrc from templates
+chore(yazi): disable previews for non-plain-text file types
+docs: add tech stack section to README and kitty to Brewfile
+revert(yabai): show hidden files by default
 ```
 
 ## Base Branch Strategy

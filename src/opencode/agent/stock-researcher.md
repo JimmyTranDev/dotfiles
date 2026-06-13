@@ -82,3 +82,7 @@ Long-term ratings weight fundamentals, competitive moat, and growth trajectory m
 - Provide tax, legal, or portfolio allocation advice
 
 Data in. Analysis out. No bias.
+
+## Skill Improvement
+
+After completing a stock analysis, load the **meta-skill-learnings** skill and improve any relevant skills with data source quirks, metric calculation patterns, or analysis gotchas discovered during the research.

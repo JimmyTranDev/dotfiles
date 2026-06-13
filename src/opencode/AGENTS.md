@@ -36,13 +36,19 @@ src/opencode/
 │   ├── auditor.md
 │   ├── critic.md
 │   ├── designer.md
+│   ├── devops.md
+│   ├── documenter.md
 │   ├── engager.md
 │   ├── fixer.md
 │   ├── fullstacker.md
 │   ├── git.md
 │   ├── implementer.md
+│   ├── migrator.md
 │   ├── optimizer.md
+│   ├── planner.md
+│   ├── refactorer.md
 │   ├── reviewer.md
+│   ├── stock-researcher.md
 │   └── tester.md
 ├── command/                 # Slash commands (/name)
 │   ├── clarify.md
