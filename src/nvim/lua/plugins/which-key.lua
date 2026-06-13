@@ -68,7 +68,7 @@ return {
       { '<leader>gC', '󰜘 Commit & Push' },
 
       { '<leader>gf', '󰈞 Files' },
-      { '<leader>gh', '󰊤 GitHub' },
+      { '<leader>h', '󰊤 GitHub' },
       { '<leader>gl', '󰋫 Log' },
       { '<leader>gn', '󰳴 Checkout' },
       { '<leader>gp', '󰏫 Push/Pull' },
