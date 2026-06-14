@@ -63,6 +63,7 @@ src/opencode/
 │   ├── learn-nvim.md
 │   ├── learn-opencode.md
 │   ├── merge.md
+│   ├── npm-audit-fix.md
 │   ├── opencode.md
 │   ├── pr-parallel.md
 │   ├── pr-reply.md
@@ -172,6 +173,7 @@ src/opencode/
 | `fms` | Generate FMS translation JSON (Norwegian/English i18n keys) |
 | `insight` | Generate insights from codebase patterns |
 | `merge` | Merge current branch into base |
+| `npm-audit-fix` | Audit npm/pnpm dependencies and apply safe vulnerability fixes |
 | `review` | Review code for correctness |
 | `review-plans` | Review plans/spec files for quality and completeness |
 | `simplify` | Simplify and reduce complexity of selected code |
