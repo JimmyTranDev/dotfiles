@@ -70,6 +70,7 @@ src/opencode/
 │   ├── pr-reply.md
 │   ├── pr-sequential.md
 │   ├── pr.md
+│   ├── refactor.md
 │   ├── review-plans.md
 │   ├── review.md
 │   ├── simplify.md
@@ -208,6 +209,7 @@ The common "global engineering team" roles already map to existing agents — re
 | `insight` | Generate insights from codebase patterns |
 | `merge` | Merge current branch into base |
 | `npm-audit-fix` | Audit npm/pnpm dependencies and apply safe vulnerability fixes |
+| `refactor` | Restructure code (extract, inline, rename, move, split, consolidate) preserving behavior |
 | `review` | Review code for correctness |
 | `review-plans` | Review plans/spec files for quality and completeness |
 | `simplify` | Simplify and reduce complexity of selected code |
