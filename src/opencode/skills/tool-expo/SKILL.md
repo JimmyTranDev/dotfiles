@@ -111,10 +111,29 @@ if (update.isAvailable) {
 
 See [EAS docs](https://docs.expo.dev/eas/) for full configuration.
 
+## Hermes Engine Limitations
+
+Hermes implements a subset of modern JS, so code that passes `tsc` and runs in Node/Vitest can still throw `TypeError: undefined is not a function` at runtime on device. Type checking targets ES20xx; the Hermes runtime is the real constraint. Check the bundled version in `node_modules/react-native/sdks/.hermesversion`.
+
+| Feature | Hermes status |
+|---------|---------------|
+| `Array.prototype.toSorted` | **Missing in Hermes 0.16 (RN 0.81 / SDK 56)** — use `.sort()` on a copy: `[...arr].sort(cmp)` |
+| `Array.prototype.toReversed` / `toSpliced` / `with` | Supported in Hermes 0.16 (do not assume all ES2023 copy methods are missing) |
+| `Array.prototype.findLast` / `findLastIndex` | Supported in Hermes 0.16 |
+| `Intl` (full API) | Partial — enable with `jsEngine` config / `hermes-intl`; verify locale methods on device |
+| `Proxy`, `Reflect`, BigInt, `Symbol` | Supported in modern Hermes |
+
+Gotchas:
+- A crash that only reproduces on device (not in Vitest/Node, which run on V8) is a strong signal of a Hermes-unsupported builtin. Binary-search the render path back to the offending method call.
+- Replacing `.toSorted(cmp)` with `.sort(cmp)` is safe ONLY when the receiver is a throwaway array (`[...x]`, `.filter`, `.map`, `Array.from`) since `.sort()` mutates in place.
+- In a monorepo, only the React Native workspace is affected. Electron (V8) and Node CLI/server workspaces support these methods, so do not "fix" their usages.
+- To ban the method project-wide, add an oxlint/eslint `no-restricted-properties` rule for `toSorted`.
+
 ## Common Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
+| `TypeError: undefined is not a function` only on device | Hermes-unsupported builtin (e.g. `Array.prototype.toSorted`) — see Hermes Engine Limitations |
 | Metro bundler cache | `npx expo start --clear` |
 | Native module not found | Run `npx expo run:ios` to rebuild native |
 | Pods out of date | `cd ios && pod install --repo-update` |
