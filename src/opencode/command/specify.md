@@ -137,3 +137,13 @@ After writing all spec files and presenting the summary, automatically iterate t
 4. After each answer, update the spec file inline — replace the open question with a "Decision: [answer]" statement
 5. If the user's answer invalidates an earlier task or architectural decision in the spec, update that section too
 6. After all questions are answered (or skipped), note how many decisions were recorded
+
+## Post-Specification Review Offer
+
+After the Post-Specification Clarification step completes, offer to review the generated spec(s). This is the final action of the command — keep it last so it does not interrupt the clarification loop above.
+
+1. Only run this step if at least one spec file was actually written. If no spec files were produced (e.g., the user aborted before any spec was created), skip this step entirely.
+2. Use the question tool to ask: "Review the generated spec(s) now?" with options:
+   - **Yes, run /review-plans** — invoke `/review-plans` on the spec file(s) just written
+   - **No, skip** — finish without reviewing
+3. Offer only — never auto-run the review. Run `/review-plans` only if the user selects "Yes".

@@ -65,7 +65,13 @@ $ARGUMENTS
 
 9. **Open questions**: For each spec, present a summary of its open questions and ask the user if they want to resolve them now (batch where possible) or skip. Include a "Skip remaining" option.
 
-10. **Post-clarification implementation offer**: After all open questions are resolved (or skipped), ask: "Would you like to implement these specs now?"
+10. **Review offer**: Only run this step if at least one spec file was actually written. If no specs were produced (all agents failed), skip it. Ask: "Review the generated spec(s) now?"
+    - **Yes, run /review-plans** — invoke `/review-plans` on the spec file(s) produced
+    - **No, skip** — continue without reviewing
+
+    Offer only — never auto-run the review. Run `/review-plans` only if the user selects "Yes".
+
+11. **Post-clarification implementation offer**: After the review offer, ask: "Would you like to implement these specs now?"
     - **Yes, implement all** — run `/implement` for each spec file produced
     - **Yes, implement specific specs** — let the user pick which ones
     - **No, just keep the plans** — end the command
