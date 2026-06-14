@@ -19,10 +19,19 @@ None required.
 
 ### Comment Fetching
 
-- Get PR: `gh pr view --json number,title,url,headRefName`
-- Get current user: `gh api user --jq '.login'`
-- Use `gh api graphql` to query `pullRequest.reviewThreads` — only threads where `isResolved: false`
-- Also fetch top-level review comments: `gh pr view {pr_number} --json reviews --jq '.reviews[]'`
+Run `fetch-pr-comments.sh` to fetch PR review comments as JSON — it already
+queries unresolved `pullRequest.reviewThreads` (inline comments) plus PR-level
+reviews via the GitHub API. Pass `--resolved` to include resolved threads; by
+default only unresolved comments are returned. Consume its JSON instead of
+re-deriving the `gh` calls:
+
+```bash
+fetch-pr-comments.sh [PR]          # unresolved inline + PR-level comments
+fetch-pr-comments.sh --resolved    # include resolved threads
+```
+
+To skip your own comments, get the current user with `gh api user --jq '.login'`
+and filter the script's output by author.
 
 ### Comment Filtering
 

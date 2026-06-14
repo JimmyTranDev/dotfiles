@@ -5,6 +5,25 @@ description: Pull and inspect SQLite databases from Android emulators using adb 
 
 Pull SQLite databases from Android emulators, inspect schemas, query data, and verify database state.
 
+## Quick Path: `android-db-inspect.sh`
+
+For the common "pull + verify" workflow, run the script instead of typing the
+commands by hand:
+
+```bash
+etc/scripts/src/ai/android-db-inspect.sh <package> <db-name> [--serial <serial>]
+```
+
+It pulls the database plus its `-wal`/`-shm` sidecars to `/tmp` (trying `run-as`
+for debug builds, falling back to `adb root`), then emits minified JSON with the
+pull method, file size, journal mode, `integrity_check`, `foreign_key_check`,
+`user_version`, and per-table row counts. Consume the JSON instead of re-deriving
+the verification queries.
+
+Pipe it through `python3 -m json.tool` to read it, or `jq` to extract fields.
+Drop to the manual commands below only for ad-hoc queries, custom exports, or
+troubleshooting the script's preconditions.
+
 ## Prerequisites
 
 | Tool | Install | Verify |
@@ -98,6 +117,10 @@ sqlite3 /tmp/<db-name> .dump > /tmp/<db-name>.sql
 ```
 
 ## Verification Checklist
+
+`android-db-inspect.sh` automates the first seven items below (size, WAL/journal
+mode, integrity, tables, schema, counts, FK check). Use this list to interpret
+its JSON output and to cover the remaining judgment-based checks manually.
 
 - [ ] Database file pulled successfully (non-zero size)
 - [ ] WAL file included (or WAL mode not in use: `PRAGMA journal_mode;`)

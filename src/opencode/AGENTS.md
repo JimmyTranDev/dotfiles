@@ -273,6 +273,7 @@ All scripts output **minified JSON** to stdout, log to stderr via `log_*` helper
 | `triage-todoist.sh <section-url> [--priority p1-p4]` | Fetch and filter Todoist tasks for triage | Replaces multiple `td` CLI calls |
 | `move-todoist-tasks.sh <source-url> <dest-url>` | Move all tasks from one Todoist section to another | Replaces manual task-by-task moving |
 | `migration-check.sh [dir]` | Scan migration files for destructive SQL operations | Replaces manual migration file inspection |
+| `android-db-inspect.sh <package> <db-name> [--serial serial]` | Pull a SQLite DB from an Android emulator and emit an integrity/FK/row-count report | Replaces manual adb pull + sqlite3 verification queries |
 | `recover-pr.sh [--dir root]` | Match orphaned worktrees to PRs | Replaces manual worktree + PR matching |
 | `format-check.sh [--fix] [dir]` | Auto-detect and run formatter (prettier/biome/black/gofmt/rustfmt) | Replaces manual formatter detection |
 | `type-check.sh [dir]` | Auto-detect and run type checker (tsc/mypy/cargo check) | Replaces manual type checker detection |
@@ -283,6 +284,15 @@ All scripts output **minified JSON** to stdout, log to stderr via `log_*` helper
 | `version-bump.sh [minor\|major] [--dry-run] [--dir path]` | Bump minor or major version across all monorepo workspaces + app.json | Replaces manual version editing |
 
 **When to use**: Any time a command or agent needs to detect the tech stack, find the base branch, run tests, run linting, install dependencies, check PR status, or perform any operation listed above — call the script instead of reimplementing with multiple tool calls.
+
+### Script-First for Skills
+
+When authoring or editing a skill, extract any embedded **deterministic, repeatable, multi-step procedure** (a fixed sequence of shell commands, API calls, or data transformations) into a reusable script in `etc/scripts/src/ai/` and have the skill instruct the agent to call the script. Keep prose that explains *judgment* — when to run each step, how to interpret results, decision trees, and reference tables — in the skill itself.
+
+- Extract: mechanical command sequences that produce a deterministic result and are re-derived on every run (e.g., adb pull + sqlite3 verification → `android-db-inspect.sh`).
+- Do NOT extract: one-off or exploratory logic, single trivial commands, or judgment-based decision trees and reference material.
+- Before writing a new script, check the AI Utility Scripts table above — if an existing script already covers the operation, wire the skill to call it instead of duplicating the logic.
+- Every extracted script must follow the convention: `set -e`, source `utils/common.sh` (or `utils/logging.sh`), emit minified JSON to stdout, log via `log_*` to stderr, accept `--help`, and be registered in the AI Utility Scripts table.
 
 ## Spec Cleanup and Todoist Completion
 
