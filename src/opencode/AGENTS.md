@@ -24,6 +24,7 @@ When a user request is vague, ambiguous, or could be interpreted in multiple way
 - **No emoji in commits** — never use emoji in commit messages. Use the format `<type>(<scope>): <description>` without any emoji characters.
 - **Spec file naming** — when creating spec files in `plans/`, use descriptive kebab-case names that communicate the subject. Do not prefix with Jira ticket codes — use meaningful names like `plans/auth-session-timeout.md` instead of `plans/PROJ-123-auth-session-timeout.md`.
 - **Cache invalidation** — Todoist and Jira caches in nvim should be auto-invalidated after 1 week. When interacting with stale cached data, refresh it.
+- **Inline comments** — inline comments are not banned. Use them where they add value (non-obvious *why*, workarounds, invariants, warnings, magic values) and avoid them where they are noise (restating code, commented-out code, redundant banners). Load the **inline-comments** skill for the full policy. This supersedes any blanket no-comment stance.
 
 ## OpenCode Config Structure
 
@@ -103,6 +104,7 @@ src/opencode/
     ├── git-workflows/
     ├── git-worktree-workflow/
     ├── implement-sequential/
+    ├── inline-comments/
     ├── java-spring-senior/
     ├── mcp-browser/
     ├── mcp-mobile/
