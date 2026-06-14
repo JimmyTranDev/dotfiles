@@ -150,6 +150,38 @@ src/opencode/
 - Commands in `command/` are slash commands invoked with `/name`
 - Skills in `skills/<name>/SKILL.md` are auto-discovered and loaded on demand via the Skill tool
 
+## Agent Modes and Permission Matrix
+
+A model's reasoning is sharpest when its context is narrow and focused. Split work across **primary** agents (the tab-cyclable workspace you interact with directly) and **subagents** (background specialists invoked via the Task tool or `@mention`) so each agent runs with a tight, single-intent context instead of one agent juggling mixed intents.
+
+### Primary vs Subagent
+
+| Mode | What it is | When to use |
+|------|------------|-------------|
+| `primary` | Tab-switchable agent you drive directly during a session | The two foundational loops: implementing (`build`-style) and planning (`plan`-style). Switch to a read-restricted planning mode for vague prompts or large migrations to brainstorm structure without risking destructive edits; switch to the implementing mode to turn a concrete plan into code. |
+| `subagent` | Specialist launched in the background to guard the primary's context | Heavy, isolated, or read-only work — review, audit, docs, git/test chores. Delegate so the primary's context stays focused. All current agents in `agent/` are subagents. |
+
+The current setup runs `permission` as `allow` globally (see `opencode.jsonc`) and treats every `agent/*.md` as a subagent. The matrix below is the **target permission profile per role** — apply it when scoping an agent's tools rather than granting blanket access.
+
+### Role → Existing Agent Mapping
+
+The common "global engineering team" roles already map to existing agents — reuse these instead of creating duplicates:
+
+| Proposed role | Existing agent | Recommended permission profile |
+|---------------|----------------|--------------------------------|
+| `build` (implementer) | **implementer** / **fullstacker** | Full write/edit + raw bash — the workhorse |
+| `plan` (strategist) | **planner** | Read-only; `edit`/`bash` set to `ask` or `deny` — outputs blueprints, never mutates |
+| `code-reviewer` | **reviewer** | Read-only (`edit: deny`); `bash` limited to `git diff`/`git status` |
+| `security-auditor` | **auditor** | Read-only + static-analysis bash only (`npm audit`, `semgrep`, `trivy`) |
+| `docs-writer` | **documenter** | Write only to `*.md` / schema files; code files restricted |
+| `steward` | **git** | Limited write; `bash` allowed for version control, commits, changelogs, local test runs |
+
+### Guidance
+
+- Prefer a **read-restricted planning pass** before a destructive implementation pass on vague or large-scope work.
+- Scope each subagent's tools to the **minimum** its role needs (the matrix above) rather than relying on the global `allow` default.
+- Do not create a new agent when an existing one covers the role — extend the existing agent's guardrails instead. See the "When to Use X (vs Y)" differentiation rule in agent files.
+
 ## Command Naming Taxonomy
 
 | Prefix | Purpose | Makes Changes? |
