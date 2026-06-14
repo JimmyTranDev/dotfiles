@@ -1,11 +1,12 @@
 ---
 name: strategy-estimation
-description: "Estimation techniques covering story points, t-shirt sizing, PERT, cone of uncertainty, velocity tracking, and decomposition strategies"
+description: Estimation techniques covering story points, t-shirt sizing, PERT, cone of uncertainty, velocity tracking, and decomposition strategies
 ---
 
 ## Story Points
 
 ### Fibonacci Scale
+
 | Points | Meaning |
 |--------|---------|
 | 1 | Trivial, no unknowns, < 1 hour |

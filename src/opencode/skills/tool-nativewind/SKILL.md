@@ -5,7 +5,7 @@ description: NativeWind v4 patterns covering setup, className prop, dark mode, t
 
 ## Setup (v4)
 
-NativeWind v4 uses Tailwind CSS v4 under the hood.
+NativeWind v4 uses Tailwind CSS v3.4 under the hood.
 
 **Required packages**: `nativewind`, `tailwindcss`, `react-native-reanimated`, `react-native-safe-area-context`
 

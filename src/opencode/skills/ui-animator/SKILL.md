@@ -450,19 +450,6 @@ const pageVariants = {
 </AnimatePresence>
 ```
 
-## Animation Checklist
-
-- [ ] Animation has a clear UX purpose (feedback, orientation, delight)
-- [ ] Duration matches the animation purpose (see matrix above)
-- [ ] Only composite properties are animated (transform, opacity)
-- [ ] `prefers-reduced-motion` disables or simplifies all animations
-- [ ] No animation flashes more than 3 times per second
-- [ ] Entrance/exit animations are paired (what animates in, animates out)
-- [ ] Stagger delays are short (30-80ms) to feel connected, not slow
-- [ ] Spring physics used for interactive/gesture-driven motion
-- [ ] `will-change` applied sparingly and removed after animation
-- [ ] Animations don't block user interaction or content access
-
 ## React Native Reanimated
 
 ### Shared Values & Animated Styles
@@ -691,3 +678,16 @@ const animatedStyle = useAnimatedStyle(() => ({
 - Always check `useReducedMotion()` from Reanimated
 - Disable or simplify animations when reduced motion is preferred
 - Ensure essential state changes are still communicated without animation
+
+## Animation Checklist
+
+- [ ] Animation has a clear UX purpose (feedback, orientation, delight)
+- [ ] Duration matches the animation purpose (see matrix above)
+- [ ] Only composite properties are animated (transform, opacity)
+- [ ] `prefers-reduced-motion` disables or simplifies all animations
+- [ ] No animation flashes more than 3 times per second
+- [ ] Entrance/exit animations are paired (what animates in, animates out)
+- [ ] Stagger delays are short (30-80ms) to feel connected, not slow
+- [ ] Spring physics used for interactive/gesture-driven motion
+- [ ] `will-change` applied sparingly and removed after animation
+- [ ] Animations don't block user interaction or content access

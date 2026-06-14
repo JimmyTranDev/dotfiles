@@ -5,6 +5,8 @@ description: npm audit workflow covering vulnerability triage, severity classifi
 
 ## npm audit Commands
 
+To gather outdated packages and audit findings in one pass, run the `check-deps.sh` utility script. Use the commands below for targeted triage.
+
 | Command | Purpose |
 |---------|---------|
 | `npm audit` | List all known vulnerabilities |

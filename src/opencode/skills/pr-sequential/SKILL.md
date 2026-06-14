@@ -13,12 +13,7 @@ Use this pattern when tasks must be done in order, when each task's output affec
 
 1. Parse the task list from arguments (split on newlines, numbered lists, commas, or semicolons)
 2. If only one task is detected, suggest using `/pr` instead and stop
-3. Run `git-branch-info.sh` and use the `base_branch` value
-4. Derive a kebab-case branch name from the overall goal
-5. Check for uncommitted changes: `git status --porcelain` and `git diff --cached --stat` (in parallel)
-6. If staged or unstaged changes exist, stash them: `git stash push -m "<branch-name>"`
-7. Create the worktree: `git worktree add ~/Programming/wcreated/<branch-name> -b <branch-name>`
-8. If changes were stashed, apply in the worktree: `git stash pop`
+3. Complete the shared **Worktree Setup** from the AGENTS.md `pr-*` command conventions: detect the base branch with `git-branch-info.sh`, derive a kebab-case branch name from the overall goal, stash any uncommitted changes, create the worktree under `~/Programming/wcreated/<branch-name>`, and pop the stash inside it
 
 ## PR Creation (Before Any Implementation)
 

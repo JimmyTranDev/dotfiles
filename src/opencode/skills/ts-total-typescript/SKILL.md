@@ -235,6 +235,8 @@ type User = z.infer<typeof userSchema>
 const parseUser = (data: unknown): User => userSchema.parse(data)
 ```
 
+For refinements, transforms, discriminated unions, and coercion, see the **tool-zod** skill.
+
 ## Module Patterns
 
 ### Namespace-style exports for related utilities

@@ -1,7 +1,9 @@
 ---
 name: review-frontend
-description: "Frontend review checklist covering XSS prevention, bundle size, accessibility, performance, state management anti-patterns, and render optimization"
+description: Frontend review checklist covering XSS prevention, bundle size, accessibility, performance, state management anti-patterns, and render optimization
 ---
+
+Format findings using the **review-output-format** skill.
 
 ## XSS Prevention
 

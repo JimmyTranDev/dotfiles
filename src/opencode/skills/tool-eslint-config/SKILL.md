@@ -38,7 +38,7 @@ pnpm add -D eslint @eslint/js typescript typescript-eslint
 | Plugin | Package | Purpose |
 |--------|---------|---------|
 | React | `eslint-plugin-react`, `eslint-plugin-react-hooks` | JSX rules, hooks rules |
-| Next.js | `eslint-plugin-next` | Next.js specific rules |
+| Next.js | `@next/eslint-plugin-next` | Next.js specific rules |
 | Import sorting | `eslint-plugin-simple-import-sort` | Auto-sort imports |
 | Unused imports | `eslint-plugin-unused-imports` | Auto-remove unused imports |
 | A11y | `eslint-plugin-jsx-a11y` | Accessibility checks for JSX |

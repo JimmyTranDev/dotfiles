@@ -28,9 +28,7 @@ If operation B does not depend on operation A's output, run them together in a s
 
 ## Skill Loading
 
-- Load all needed skills in a single parallel batch at the start of a task
-- Skills are read-only reference material with no side effects — always safe to load in parallel
-- Never load skills one at a time sequentially
+Skills are read-only with no side effects — load all needed skills in a single parallel batch at the start of a task, never one at a time.
 
 | Do | Don't |
 |----|-------|
@@ -55,9 +53,7 @@ If operation B does not depend on operation A's output, run them together in a s
 
 ## Codebase Exploration
 
-- Batch related file reads and searches into parallel calls
-- Use the **explore** agent for open-ended searches to avoid sequential tool call chains
-- Never read files one at a time when multiple are needed
+Batch related reads and searches into parallel calls; use the **explore** agent for open-ended searches to avoid sequential tool-call chains.
 
 | Do | Don't |
 |----|-------|

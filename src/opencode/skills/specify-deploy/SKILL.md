@@ -13,7 +13,7 @@ description: Specify skill for deployment analysis — defines analysis categori
 
 ## Agents to Launch
 
-None specified.
+None required.
 
 ## Analysis Categories
 

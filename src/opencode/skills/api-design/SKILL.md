@@ -1,6 +1,6 @@
 ---
 name: api-design
-description: "REST and GraphQL API design covering naming conventions, versioning, pagination, error responses, rate limiting, and documentation"
+description: REST and GraphQL API design covering naming conventions, versioning, pagination, error responses, rate limiting, and documentation
 ---
 
 ## REST Naming Conventions

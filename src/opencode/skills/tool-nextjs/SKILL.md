@@ -1,6 +1,6 @@
 ---
 name: tool-nextjs
-description: "Next.js 16 patterns covering App Router, Server Components, Server Actions, async params, use cache directive, PPR, middleware, API routes, caching, and deployment"
+description: Next.js 16 patterns covering App Router, Server Components, Server Actions, async params, use cache directive, PPR, middleware, API routes, caching, and deployment
 ---
 
 ## App Router Structure
@@ -63,7 +63,7 @@ async function Page() {
 ### Caching Options
 | Option | Behavior |
 |--------|----------|
-| `{ cache: 'force-cache' }` | Cache indefinitely (default in production) |
+| `{ cache: 'force-cache' }` | Cache indefinitely (opt-in; `fetch` is uncached by default in Next 15+) |
 | `{ cache: 'no-store' }` | No caching, always fresh |
 | `{ next: { revalidate: N } }` | ISR: revalidate every N seconds |
 | `{ next: { tags: ['tag'] } }` | Tag-based on-demand revalidation |
@@ -96,8 +96,8 @@ export async function POST(request: NextRequest) {
 ```
 
 ### Route Handler Caching
-- GET handlers are cached by default when no `Request` object is used
-- Add `export const dynamic = 'force-dynamic'` to opt out
+- GET handlers are NOT cached by default in Next 15+ (they are dynamic)
+- Opt into static caching with `export const dynamic = 'force-static'`
 
 ## Middleware
 

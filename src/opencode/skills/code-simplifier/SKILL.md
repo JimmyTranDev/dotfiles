@@ -33,8 +33,8 @@ Simplify complex code by reducing complexity. Every change preserves behavior. S
 
 ## Refactoring Patterns
 
-For DRY extraction patterns (3+ occurrences), see the `deduplicator` skill.
-For inlining trivial abstractions and removing pass-through layers, see the `consolidator` skill.
+For DRY extraction patterns (3+ occurrences), load the **code-deduplicator** skill.
+For inlining trivial abstractions and removing pass-through layers, load the **code-consolidator** skill.
 
 ### Extract Function
 
@@ -151,7 +151,7 @@ function createUser(
 ) { ... }
 
 // after
-interface CreateUserInput {
+type CreateUserInput = {
   name: string
   email: string
   age: number

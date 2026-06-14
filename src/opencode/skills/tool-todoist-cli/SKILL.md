@@ -307,6 +307,8 @@ echo "Detailed notes here" | td comment add "Task name" --stdin
 
 ### Listing tasks in a section (workaround)
 
+For triage workflows, prefer the `triage-todoist.sh <section-url> [--priority p1-p4]` script (in `etc/scripts/src/ai/`) — it automates the steps below, including the priority inversion. Use the manual approach below only when you need custom filtering.
+
 `td task list` has no `--section` flag. To get tasks in a specific section:
 
 1. Find the section ID from the URL or via `td section list <project-name> --json --show-urls`

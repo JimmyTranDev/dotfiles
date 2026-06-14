@@ -3,6 +3,8 @@ name: review-backend
 description: Backend Java Spring review checklist covering SQL injection, N+1 queries, transaction boundaries, thread safety, validation, and error handling
 ---
 
+Format findings using the **review-output-format** skill.
+
 ## Critical Security
 
 | Issue | What to Look For | Fix |

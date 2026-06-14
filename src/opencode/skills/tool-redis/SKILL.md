@@ -1,6 +1,6 @@
 ---
 name: tool-redis
-description: "Redis CLI patterns covering connection, data types, pub/sub, caching strategies, TTL management, transactions, and Lua scripting"
+description: Redis CLI patterns covering connection, data types, pub/sub, caching strategies, TTL management, transactions, and Lua scripting
 ---
 
 ## Connection
@@ -233,7 +233,7 @@ DEL session:token123
 ```redis
 PFADD unique:visitors:2024-01 "user1" "user2"
 PFCOUNT unique:visitors:2024-01
-BITSET logins:user:1 0 1  # day 0 logged in
+SETBIT logins:user:1 0 1  # day 0 logged in
 BITCOUNT logins:user:1
 ```
 

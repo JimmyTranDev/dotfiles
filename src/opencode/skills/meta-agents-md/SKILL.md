@@ -3,7 +3,6 @@ name: meta-agents-md
 description: Structure, conventions, and update workflow for AGENTS.md files that control AI agent behavior
 ---
 
-
 ## What AGENTS.md Is
 
 AGENTS.md files provide persistent instructions that are injected into every AI agent conversation. They control coding style, conventions, and behavioral rules across all interactions.
@@ -22,9 +21,16 @@ This file contains rules that apply to every project:
 
 | Section | Purpose |
 |---------|---------|
-| Critical Code Writing Rule | No-comments policy |
-| Universal Rules | Convention matching, no docs creation, prefer editing, theme |
-| Parallelization | Tool calls, skill loading, agent delegation, codebase exploration, git operations |
+| Critical Code Writing Rules | Always use curly braces on control flow |
+| Clarification Before Action | Ask before acting on ambiguous requests |
+| Universal Rules | Convention matching, no docs creation, prefer editing, scripts-first, inline-comments policy, theme |
+| OpenCode Config Structure | Directory tree of agents, commands, skills |
+| Agent Modes and Permission Matrix | Primary vs subagent roles and tool scoping |
+| Command Naming Taxonomy | Command prefixes and what they change |
+| Parallelization | Tool calls, skill loading, agent delegation, exploration, git operations |
+| `specify-*` / `pr-*` Command Conventions | Shared workflow conventions for those command families |
+| AI Utility Scripts | Table of reusable scripts in `etc/scripts/src/ai/` |
+| Spec Cleanup and Todoist Completion | Post-implementation cleanup convention |
 
 ## Structure of Repo AGENTS.md (`<repo>/AGENTS.md`)
 
@@ -32,8 +38,7 @@ This file contains repo-specific context:
 
 | Section | Purpose |
 |---------|---------|
-| Critical Code Writing Rule | Same no-comments policy (duplicated for non-OpenCode tools) |
-| Universal Rules | Same core rules (duplicated for non-OpenCode tools) |
+| Universal Rules | No docs creation, Catppuccin Mocha theme |
 | Repository Structure | Directory tree with symlink destinations |
 | How Symlinks Work | Platform detection, link targets |
 | Working with This Repo | Adding configs, shell script conventions, OpenCode config structure |
@@ -58,7 +63,7 @@ This file contains repo-specific context:
 1. Determine which AGENTS.md to update:
    - Global rules that apply everywhere -> `~/.config/opencode/AGENTS.md`
    - Repo-specific structure/context -> `<repo>/AGENTS.md`
-   - Both share the "Critical Code Writing Rule" and "Universal Rules" sections — keep them in sync
+   - Both share a "Universal Rules" section — keep the common rules in sync
 
 2. Read the current file to understand existing structure and avoid duplication
 
@@ -74,7 +79,7 @@ This file contains repo-specific context:
 
 | Content | Where It Belongs |
 |---------|-----------------|
-| Commit message format, emoji mapping | `git-workflows` skill |
-| Programming patterns, error handling | `conventions` skill |
-| Shell scripting conventions | `shell-scripting` skill |
-| Worktree lifecycle | `worktree-workflow` skill |
+| Commit message format and types | **git-workflows** skill |
+| Programming patterns, error handling | **code-conventions** skill |
+| Shell scripting conventions | **meta-shell-scripting** skill |
+| Worktree lifecycle | **git-worktree-workflow** skill |

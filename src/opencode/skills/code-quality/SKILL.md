@@ -9,7 +9,7 @@ Structured approach to assessing and improving internal code quality — structu
 
 | Category | What to Look For | Specialized Skill |
 |----------|-----------------|-------------------|
-| Naming clarity | Vague variable/function names, inconsistent conventions, misleading identifiers | **strategy-pragmatic-programmer** (Naming as Documentation) |
+| Naming clarity | Vague variable/function names, inconsistent conventions, misleading identifiers | **code-naming** (conventions, anti-patterns) |
 | Function design | Functions doing too much, unclear responsibilities, deep nesting, high cyclomatic complexity | **code-simplifier** (Code Smell Detection, Complexity Reduction) |
 | Duplication | Repeated patterns, copy-pasted logic, similar implementations that should be unified | **code-deduplicator** (extraction rules and process) |
 | Over-engineering | Premature abstractions, unnecessary indirection, wrappers that add no value | **code-consolidator** (inlining, layer collapsing) |
@@ -117,8 +117,10 @@ Structured approach to assessing and improving internal code quality — structu
 - Detailed refactoring patterns and code smell catalogs — load the **code-simplifier** skill
 - DRY extraction process and rules — load the **code-deduplicator** skill
 - Inlining over-separated code — load the **code-consolidator** skill
+- Naming conventions and anti-patterns — load the **code-naming** skill
 - Design principles (DRY, orthogonality, reversibility) — load the **strategy-pragmatic-programmer** skill
 - Logic correctness (contradictions, invalid assumptions) — load the **code-logic-checker** skill
+- Suspicious patterns and anomalies (looks-wrong code) — load the **code-soundness** skill
 - TypeScript-specific patterns (generics, branded types) — load the **ts-total-typescript** skill
 - ESLint configuration — load the **tool-eslint-config** skill
 - Shell script conventions — load the **meta-shell-scripting** skill

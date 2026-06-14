@@ -10,39 +10,49 @@ $ARGUMENTS
 ## Scope Detection
 
 Parse `$ARGUMENTS` to determine what to refactor:
-- **File mode** — argument is a file path → refactor that file
-- **Directory mode** — argument is a directory path → scan for structural problems in that directory
-- **Description mode** — argument describes a feature or area → search the codebase to locate the relevant code
-- **Local mode** — no arguments → check for uncommitted changes (`git diff` + `git diff --cached`). If changes exist, refactor the changed files. If no changes, fall back to the last commit's diff (`git diff HEAD~1..HEAD`) and refactor those files.
+
+| Argument | Mode | Action |
+|----------|------|--------|
+| File path | File | Refactor that file |
+| Directory path | Directory | Scan that directory for structural problems |
+| Feature/area description | Description | Search the codebase to locate the relevant code |
+| (none) | Local | Refactor uncommitted changes (`git diff` + `git diff --cached`). If none, fall back to the last commit (`git diff HEAD~1..HEAD`). |
 
 ## Skills and Stack Detection
 
-Run `detect-stack.sh` to detect the project's tech stack and load skills accordingly:
-- Java files → load **java-spring-senior**
-- TypeScript/React files → load **ts-total-typescript**
-- Shell scripts → load **meta-shell-scripting**
-- Always load in parallel: **code-follower**, **code-deduplicator**, **code-consolidator**, **code-simplifier**, **code-naming**, **meta-structure**, **code-quality**
+Run `detect-stack.sh`, then load the matching skills in a single parallel batch:
 
-Load all applicable skills in a single parallel batch.
+- **Always**: code-follower, code-deduplicator, code-consolidator, code-simplifier, code-naming, meta-structure, code-quality
+- Java files → also **java-spring-senior**
+- TypeScript/React files → also **ts-total-typescript**
+- Shell scripts → also **meta-shell-scripting**
 
 ## Analysis
 
-1. Read the target files and identify structural problems:
-   - **Duplication** — repeated logic across 3+ sites that belongs in a shared utility
-   - **Misplaced responsibilities** — code living in the wrong file/module/layer
-   - **Over-separation** — over-abstracted layers or indirection that add no value
-   - **God files/functions** — large units doing multiple unrelated things that should be split
-   - **Poor names** — symbols (variables, functions, files, types) whose names don't reflect their purpose
-   - **Tangled coupling** — modules that reach into each other's internals
-   - **Inconsistent structure** — files or folders that diverge from the project's established layout
+### 1. Identify structural problems
 
-2. Prioritize findings:
-   - **High** — duplication or misplaced code that actively causes bugs or blocks current work
-   - **Medium** — god files/functions, tangled coupling, over-separation
-   - **Low** — naming improvements, minor structural inconsistencies
-   - **Skip** — stable code that is rarely touched
+Read the target files and look for these smells:
 
-3. Present findings in this format:
+| Smell | What it is | Typical fix |
+|-------|------------|-------------|
+| Duplication | Same logic across 3+ sites | Extract a shared utility |
+| Misplaced responsibility | Code living in the wrong file/module/layer | Move it to where it belongs |
+| Over-separation | Abstraction or indirection that adds no value | Inline it |
+| God file/function | One large unit doing several unrelated things | Split by responsibility |
+| Poor name | Symbol name doesn't reflect its purpose | Rename to match intent |
+| Tangled coupling | Modules reaching into each other's internals | Introduce a clean boundary |
+| Inconsistent structure | Files/folders that diverge from project layout | Realign to convention |
+
+### 2. Prioritize findings
+
+| Priority | Criteria |
+|----------|----------|
+| High | Duplication or misplaced code that causes bugs or blocks current work |
+| Medium | God files/functions, tangled coupling, over-separation |
+| Low | Naming improvements, minor structural inconsistencies |
+| Skip | Stable code that is rarely touched |
+
+### 3. Present findings
 
 ```
 ## Refactoring Opportunities
@@ -52,8 +62,8 @@ Load all applicable skills in a single parallel batch.
   Suggested: Extract `PricingCalculator`, `OrderRepository`, `OrderNotifier`
 
 ### Medium Priority
-- **utils.ts:30-80** — Date formatting duplicated in 4 call sites
-  Suggested: Extract `formatDate` into a shared utility and replace call sites
+- **utils.ts:30-80** — Date formatting duplicated across 4 call sites
+  Suggested: Extract `formatDate` into a shared utility and update call sites
 
 ### Low Priority
 - **handlers.ts:12** — Function `doIt` has an unclear name
@@ -62,35 +72,34 @@ Load all applicable skills in a single parallel batch.
 
 ## Apply Refactorings
 
-IMPORTANT: Present all findings first, then ask the user what to do. Wait for the user's response before making any edits.
+IMPORTANT: Present all findings first. Wait for the user's response before editing.
 
-Use the question tool to ask the user:
-- **Yes, refactor all** — launch the **refactorer** agent on all findings
-- **Yes, walk through one by one** — present each finding individually (high first, then medium, then low) using the question tool, letting the user choose "Refactor this", "Skip", or "Stop" for each one
+Use the question tool to ask how to proceed:
+
+- **Refactor all** — launch the **refactorer** agent on every finding
+- **Walk through one by one** — present each finding in priority order (high → medium → low), offering "Refactor this", "Skip", or "Stop"
 - **No** — end the command
 
-Delegate the actual restructuring to the **refactorer** agent. When findings are independent and touch different files, launch multiple **refactorer** agents in parallel.
+Delegate all restructuring to the **refactorer** agent. Launch multiple agents in parallel when findings are independent and touch different files.
 
 ## Constraints
 
-- **Preserve behavior** — every change must be purely structural. No functional changes, no new features.
-- **One transformation at a time** — apply each refactoring as an atomic step, verify before moving to the next
-- **Update all references** — imports, usages, and type references must be updated across the codebase after every move/rename/extraction
-- **No dead code** — remove anything left orphaned by a move or extraction
+- **Preserve behavior** — every change is purely structural: no functional changes, no new features
+- **One transformation at a time** — apply each as an atomic step and verify before the next
+- **Update all references** — fix imports, usages, and type references across the codebase after every move/rename/extraction
+- **No dead code** — remove anything orphaned by a move or extraction
 - **Match conventions** — follow the existing codebase patterns and project layout exactly
 - **Do not change public API contracts** — unless the user explicitly asks
 - **Do not add tests** — unless the user explicitly asks
-- **Do not refactor working code that is rarely touched** — focus on code with active development
+- **Do not refactor rarely-touched working code** — focus on code under active development
 
 ## Post-Refactoring Checks
 
-After all refactorings are applied, use the question tool to ask: "Run test, lint, and typecheck?" Options: "Yes, run all checks" / "No, skip checks".
+Use the question tool to ask: "Run test, lint, and typecheck?" Options: "Yes, run all checks" / "No, skip checks".
 
 If yes:
+
 1. Run `detect-stack.sh` to determine available check commands
-2. Run the following in parallel where available:
-   - Tests: `run-tests.sh`
-   - Lint: `lint-check.sh`
-   - Typecheck: `type-check.sh`
+2. Run these in parallel where available: `run-tests.sh`, `lint-check.sh`, `type-check.sh`
 3. Report pass/fail for each check
 4. If any check fails, offer to fix the failures

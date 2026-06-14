@@ -1,6 +1,6 @@
 ---
 name: code-naming
-description: "Naming conventions for variables, functions, files, classes, constants, enums, and modules across TypeScript, Java, and shell scripting"
+description: Naming conventions for variables, functions, files, classes, constants, enums, and modules across TypeScript, Java, and shell scripting
 ---
 
 ## General Principles

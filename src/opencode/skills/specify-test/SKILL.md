@@ -16,7 +16,7 @@ description: Specify skill for test coverage analysis — defines analysis categ
 
 ## Agents to Launch
 
-None specified.
+None required.
 
 ## Analysis Categories
 

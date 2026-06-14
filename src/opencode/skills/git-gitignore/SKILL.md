@@ -7,7 +7,7 @@ Optimize `.gitignore` files based on detected tech stack, organized by category 
 
 ## Tech Stack Detection
 
-Detect the stack by scanning the repo root for manifest files:
+Run `detect-stack.sh` for automated stack detection, or scan the repo root for manifest files manually:
 
 | File | Stack |
 |------|-------|

@@ -19,11 +19,9 @@ None required.
 
 ### Comment Fetching
 
-Run `fetch-pr-comments.sh` to fetch PR review comments as JSON — it already
-queries unresolved `pullRequest.reviewThreads` (inline comments) plus PR-level
-reviews via the GitHub API. Pass `--resolved` to include resolved threads; by
-default only unresolved comments are returned. Consume its JSON instead of
-re-deriving the `gh` calls:
+Run `fetch-pr-comments.sh` to fetch PR review comments as JSON (unresolved
+inline + PR-level by default). Pass `--resolved` to include resolved threads.
+Consume its JSON instead of re-deriving the `gh` calls:
 
 ```bash
 fetch-pr-comments.sh [PR]          # unresolved inline + PR-level comments

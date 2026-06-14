@@ -1,6 +1,6 @@
 ---
 name: tool-turborepo
-description: "Turborepo patterns covering pipeline config, caching, filtering, workspace dependencies, and monorepo task orchestration"
+description: Turborepo patterns covering pipeline config, caching, filtering, workspace dependencies, and monorepo task orchestration
 ---
 
 ## Project Structure

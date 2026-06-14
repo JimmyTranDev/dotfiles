@@ -139,7 +139,7 @@ Use when a component's layout depends on its container, not the viewport:
 | Platform styles | `ios:shadow-md android:elevation-4` |
 | Bottom tabs | `pb-safe` on tab bar content |
 | Notch/island | `pt-safe` on status bar area |
-| Keyboard avoidance | `KeyboardAvoidingView` / `expo-keyboard-controller` |
+| Keyboard avoidance | `KeyboardAvoidingView` / `react-native-keyboard-controller` |
 
 ### Terminal Responsiveness
 

@@ -1,6 +1,6 @@
 ---
 name: tool-docker
-description: "Docker patterns covering Dockerfile best practices, multi-stage builds, Compose services, networking, volumes, health checks, and production optimization"
+description: Docker patterns covering Dockerfile best practices, multi-stage builds, Compose services, networking, volumes, health checks, and production optimization
 ---
 
 ## Dockerfile Patterns

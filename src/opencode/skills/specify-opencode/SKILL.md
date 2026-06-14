@@ -16,7 +16,7 @@ description: Specify skill for OpenCode config analysis — defines analysis cat
 
 ## Agents to Launch
 
-None specified.
+None required.
 
 ## Analysis Categories
 

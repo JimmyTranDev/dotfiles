@@ -13,7 +13,7 @@ None required (domain skills loaded based on project type).
 
 ## Agents to Launch
 
-None specified.
+None required.
 
 ## Analysis Categories
 

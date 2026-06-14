@@ -1,6 +1,6 @@
 ---
 name: tool-zellij
-description: "Zellij terminal multiplexer patterns covering KDL config, keybindings, modes, panes, tabs, layouts, plugins, sessions, and theme configuration"
+description: Zellij terminal multiplexer patterns covering KDL config, keybindings, modes, panes, tabs, layouts, plugins, sessions, and theme configuration
 ---
 
 ## Config Format

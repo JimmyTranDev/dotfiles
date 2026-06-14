@@ -161,13 +161,9 @@ useEffect(() => {
 
 ## Zustand State Management
 
-### Store Definition
+One store per domain in `stores/use<Domain>Store.ts`. Define the state type explicitly, keep actions inside the store, and select narrowly.
 
 ```tsx
-// stores/authStore.ts
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-
 type AuthState = {
   user: User | null;
   token: string | null;
@@ -193,51 +189,27 @@ export const useAuthStore = create<AuthState>()(
 );
 ```
 
-### Rules
+### React Integration Rules
 
-- One store per domain (auth, cart, ui, etc.)
-- Store files live in `stores/` directory
-- Name the hook `use<Domain>Store`
-- Define the state type explicitly (no inference for the full type)
-- Use `useShallow` when selecting multiple fields to prevent unnecessary re-renders
-- Keep stores flat — avoid deep nesting
-- Actions live inside the store, not outside
-- Use `persist` middleware for data that survives page refresh
-- Never put server-state in Zustand — use React Query for that
+- **Never put server state in Zustand** — use React Query for fetched data
+- Select narrowly (`useAuthStore((s) => s.user?.name)`), not the whole store
+- Use `useShallow` for multi-field selects to avoid extra re-renders
+- `persist` middleware for state that survives refresh
 
-### Selectors
-
-```tsx
-import { useShallow } from "zustand/react/shallow";
-
-// Good — select only what you need
-const userName = useAuthStore((state) => state.user?.name);
-
-// Good — multiple fields with useShallow
-const { user, logout } = useAuthStore(
-  useShallow((state) => ({ user: state.user, logout: state.logout })),
-);
-
-// Bad — selecting the entire store
-const store = useAuthStore();
-```
+For slices, subscriptions, middleware, and store testing, see the **tool-zustand** skill.
 
 ---
 
 ## React Query (TanStack Query)
 
-### Query Structure
+Use query-key factories, colocate queries per domain in `api/queries/use<Entity>.ts`, and keep `queryFn` thin by delegating to an API layer.
 
 ```tsx
-// api/queries/useUsers.ts
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
 const userKeys = {
   all: ["users"] as const,
   lists: () => [...userKeys.all, "list"] as const,
   list: (filters: UserFilters) => [...userKeys.lists(), filters] as const,
-  details: () => [...userKeys.all, "detail"] as const,
-  detail: (id: string) => [...userKeys.details(), id] as const,
+  detail: (id: string) => [...userKeys.all, "detail", id] as const,
 };
 
 export function useUsers(filters: UserFilters) {
@@ -247,17 +219,8 @@ export function useUsers(filters: UserFilters) {
   });
 }
 
-export function useUser(id: string) {
-  return useQuery({
-    queryKey: userKeys.detail(id),
-    queryFn: () => userApi.getUser(id),
-    enabled: !!id,
-  });
-}
-
 export function useCreateUser() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: userApi.createUser,
     onSuccess: () => {
@@ -269,40 +232,12 @@ export function useCreateUser() {
 
 ### Rules
 
-- Use query key factories — never inline key arrays
-- Colocate queries with their domain (`api/queries/use<Entity>.ts`)
-- Use `enabled` to conditionally fetch
+- Query-key factories — never inline key arrays
+- `enabled` to conditionally fetch; set a sensible `staleTime` per query
 - Invalidate related queries on mutations — don't refetch everything
-- Use optimistic updates for instant UI feedback on mutations
-- Keep `queryFn` thin — delegate to an API layer function
-- Separate API layer (`api/client.ts`) from query hooks
-- Set sensible `staleTime` per query (default 0 is often too aggressive)
+- Keep server state here, never in Zustand
 
-### Optimistic Updates
-
-```tsx
-export function useUpdateUser() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: userApi.updateUser,
-    onMutate: async (updatedUser) => {
-      await queryClient.cancelQueries({ queryKey: userKeys.detail(updatedUser.id) });
-      const previous = queryClient.getQueryData(userKeys.detail(updatedUser.id));
-      queryClient.setQueryData(userKeys.detail(updatedUser.id), updatedUser);
-      return { previous };
-    },
-    onError: (_err, updatedUser, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(userKeys.detail(updatedUser.id), context.previous);
-      }
-    },
-    onSettled: (_data, _err, updatedUser) => {
-      queryClient.invalidateQueries({ queryKey: userKeys.detail(updatedUser.id) });
-    },
-  });
-}
-```
+For optimistic updates, infinite queries, prefetching, and SSR hydration, see the **tool-react-query** skill.
 
 ---
 
@@ -353,48 +288,14 @@ export function CreateUserForm({ onSubmit }: { onSubmit: (data: CreateUserForm) 
 
 ### Rules
 
-- Define Zod schemas in a separate `schemas.ts` file if reused across forms/API
-- Infer form types from Zod schema (`z.infer<typeof schema>`)
+- Infer form types from the Zod schema (`z.infer<typeof schema>`)
 - Always provide `defaultValues` — never leave fields undefined
 - Use `zodResolver` — don't write manual validation
-- Use `z.coerce` for inputs that come as strings (numbers, dates)
-- Show field-level errors inline, not in a toast
-- Disable submit button during `isSubmitting`
-- Use shadcn/ui `<Form>` components for consistent styling
+- Use `z.coerce` for string inputs (numbers, dates)
+- Show field-level errors inline, not in a toast; disable submit during `isSubmitting`
+- For consistent styling, wrap fields in shadcn/ui `<Form>`/`<FormField>` components
 
-### With shadcn/ui Form
-
-```tsx
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-
-export function CreateUserForm({ onSubmit }: Props) {
-  const form = useForm<CreateUserForm>({
-    resolver: zodResolver(createUserSchema),
-    defaultValues: { name: "", email: "", role: "user" },
-  });
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </form>
-    </Form>
-  );
-}
-```
+Keep reusable schemas in `schemas/`. For schema details (refinements, transforms, unions), see the **tool-zod** skill.
 
 ---
 
@@ -444,63 +345,34 @@ export function LoadingButton({ isLoading, children, className, disabled, ...pro
 
 ## Tailwind CSS Styling
 
-### Rules
-
-- Never use inline `style` props — Tailwind utilities only
-- Use `cn()` for conditional classes
-- Extract repeated class combinations into component abstractions, not `@apply`
-- Use design tokens from `tailwind.config.ts` (colors, spacing, etc.)
-- Mobile-first responsive: `base sm: md: lg: xl:`
-- Use `group` and `peer` for parent/sibling state styling
-- Dark mode via `dark:` prefix with class strategy
-
-### Patterns
+- Tailwind utilities only — never inline `style` props
+- Use `cn()` for conditional classes; mobile-first responsive (`base sm: md: lg:`)
+- Extract repeated class combinations into components, not `@apply`
+- Use `group`/`peer` for parent/sibling state; dark mode via `dark:` with the class strategy
 
 ```tsx
-// Conditional classes
 <div className={cn(
   "rounded-lg border p-4 transition-colors",
   isActive && "border-primary bg-primary/10",
   isDisabled && "cursor-not-allowed opacity-50",
 )} />
-
-// Responsive
-<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" />
-
-// Group hover
-<div className="group cursor-pointer">
-  <span className="group-hover:text-primary">Hover parent</span>
-</div>
 ```
 
-### Do Not
-
-- Don't use Tailwind for one-off magic numbers (`w-[347px]`) — use design tokens
-- Don't chain more than ~8 utilities without extracting a component
-- Don't use `@apply` in CSS files — extract a React component instead
-- Don't mix Tailwind with CSS Modules or styled-components
+Avoid one-off magic numbers (`w-[347px]`), chaining >8 utilities without extracting a component, and mixing Tailwind with CSS Modules or styled-components. For config, design tokens, plugins, and the `cn()` helper, see the **tool-tailwind** skill.
 
 ---
 
 ## Testing
 
-### Vitest Unit/Integration Tests
+Vitest + Testing Library for unit/integration, Playwright for E2E. Test behavior, not implementation.
 
 ```tsx
-// userCard/userCard.test.tsx
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { UserCard } from "./index";
 
 describe("UserCard", () => {
-  it("renders user name and email", () => {
-    render(<UserCard name="John" email="john@example.com" />);
-
-    expect(screen.getByText("John")).toBeInTheDocument();
-    expect(screen.getByText("john@example.com")).toBeInTheDocument();
-  });
-
   it("calls onSelect when clicked", async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
@@ -510,170 +382,37 @@ describe("UserCard", () => {
 
     expect(onSelect).toHaveBeenCalledWith(expect.any(String));
   });
-
-  it("does not render avatar when avatarUrl is undefined", () => {
-    render(<UserCard name="John" email="john@example.com" />);
-
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
-  });
 });
 ```
 
-### Testing Hooks
+### Query Priority
 
-```tsx
-import { renderHook, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useUsers } from "./useUsers";
+1. `getByRole` — matches how users interact (preferred)
+2. `getByLabelText` — form fields
+3. `getByText` — visible content
+4. `getByTestId` — last resort
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-}
+### Rules
 
-describe("useUsers", () => {
-  it("fetches users successfully", async () => {
-    const { result } = renderHook(() => useUsers({ page: 1 }), {
-      wrapper: createWrapper(),
-    });
+- Use `userEvent` over `fireEvent`; mock API at the network level (MSW)
+- Wrap hooks that need providers (React Query, etc.) in a test wrapper
+- Reset Zustand state in `beforeEach`; E2E covers critical flows only
 
-    await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true);
-    });
-
-    expect(result.current.data).toHaveLength(10);
-  });
-});
-```
-
-### Testing Zustand
-
-```tsx
-import { act } from "@testing-library/react";
-import { useAuthStore } from "./authStore";
-
-describe("authStore", () => {
-  beforeEach(() => {
-    useAuthStore.setState({ user: null, token: null });
-  });
-
-  it("sets user on login", async () => {
-    await act(async () => {
-      await useAuthStore.getState().login({ email: "a@b.com", password: "pw" });
-    });
-
-    expect(useAuthStore.getState().user).toEqual(expect.objectContaining({ email: "a@b.com" }));
-  });
-
-  it("clears state on logout", () => {
-    useAuthStore.setState({ user: { id: "1", email: "a@b.com" } as User, token: "abc" });
-
-    act(() => {
-      useAuthStore.getState().logout();
-    });
-
-    expect(useAuthStore.getState().user).toBeNull();
-    expect(useAuthStore.getState().token).toBeNull();
-  });
-});
-```
-
-### Playwright E2E Tests
-
-```tsx
-// e2e/auth.spec.ts
-import { test, expect } from "@playwright/test";
-
-test.describe("Authentication", () => {
-  test("user can log in and see dashboard", async ({ page }) => {
-    await page.goto("/login");
-
-    await page.getByLabel("Email").fill("user@example.com");
-    await page.getByLabel("Password").fill("password123");
-    await page.getByRole("button", { name: "Sign in" }).click();
-
-    await expect(page).toHaveURL("/dashboard");
-    await expect(page.getByRole("heading", { name: "Welcome" })).toBeVisible();
-  });
-
-  test("shows validation errors for empty form", async ({ page }) => {
-    await page.goto("/login");
-    await page.getByRole("button", { name: "Sign in" }).click();
-
-    await expect(page.getByText("Email is required")).toBeVisible();
-    await expect(page.getByText("Password is required")).toBeVisible();
-  });
-});
-```
-
-### Testing Rules
-
-- Test behavior, not implementation details
-- Use `screen.getByRole` over `getByTestId` when possible
-- Use `userEvent` over `fireEvent` for realistic interactions
-- Mock API calls at the network level (MSW) for integration tests
-- Reset store state in `beforeEach` for Zustand tests
-- Wrap hooks that use providers in a test wrapper
-- E2E tests cover critical user flows only — not every edge case
-- Name tests as `it("does X when Y")` — describe behavior
+For Vitest config, mocking, and coverage, see the **tool-vitest** skill. For cross-stack test strategy, see the **test** skill.
 
 ---
 
 ## ESLint + Prettier
 
-### ESLint Flat Config
+Prettier handles formatting; ESLint handles correctness. For React + TypeScript, enable:
 
-```ts
-// eslint.config.ts
-import js from "@eslint/js";
-import tseslint from "typescript-eslint";
-import react from "eslint-plugin-react";
-import reactHooks from "eslint-plugin-react-hooks";
-import prettier from "eslint-config-prettier";
+- `react-hooks/rules-of-hooks` (error) and `react-hooks/exhaustive-deps` (warn)
+- `react/jsx-no-leaked-render` to catch `0 && <X />` render bugs
+- `@typescript-eslint/consistent-type-imports` to enforce `import type`
+- `@typescript-eslint/no-unused-vars` with `argsIgnorePattern: "^_"`
+- `prettier-plugin-tailwindcss` for class sorting
 
-export default tseslint.config(
-  js.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
-  {
-    plugins: { react, "react-hooks": reactHooks },
-    rules: {
-      "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "warn",
-      "react/jsx-no-leaked-render": "error",
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
-      "@typescript-eslint/consistent-type-imports": "error",
-      "@typescript-eslint/no-unnecessary-condition": "error",
-      "no-console": ["warn", { allow: ["warn", "error"] }],
-    },
-  },
-  prettier,
-);
-```
-
-### Prettier Config
-
-```json
-{
-  "semi": true,
-  "singleQuote": false,
-  "tabWidth": 2,
-  "trailingComma": "all",
-  "printWidth": 100,
-  "plugins": ["prettier-plugin-tailwindcss"]
-}
-```
-
-### Rules
-
-- Prettier handles formatting — ESLint handles logic/correctness only
-- Use `prettier-plugin-tailwindcss` for class sorting
-- Use `@typescript-eslint/consistent-type-imports` to enforce `import type`
-- No unused variables (prefix with `_` if intentionally unused)
-- No `console.log` in production code (warn level)
+For the full flat-config, plugin selection, and typed linting, see the **tool-eslint-config** skill.
 
 ---
 
@@ -707,81 +446,45 @@ src/
 
 ---
 
-## TypeScript Patterns
-
-### Discriminated Unions for State
+## TypeScript in React
 
 ```tsx
+// Discriminated unions for async state
 type AsyncState<T> =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "success"; data: T }
   | { status: "error"; error: Error };
-```
 
-### Strict Event Handlers
-
-```tsx
-type EventMap = {
-  "user:created": { user: User };
-  "user:deleted": { userId: string };
-};
-
-function emit<K extends keyof EventMap>(event: K, payload: EventMap[K]): void;
-```
-
-### Utility Types
-
-```tsx
-// Make specific keys optional
-type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-
-// Extract component props
+// Extract props from a component
 type ButtonProps = React.ComponentProps<typeof Button>;
 
-// Strict omit that errors on invalid keys
-type StrictOmit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+// Make specific keys optional
+type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 ```
 
-### Rules
-
-- Prefer `type` over `interface` unless extending/implementing
-- Use `as const` for literal arrays and objects
-- Use `satisfies` for type checking without widening
-- Never use `any` — use `unknown` and narrow
+- Prefer `type` over `interface` for props; use `as const` and `satisfies`
 - Use discriminated unions over boolean flags for state
-- Prefer `Record<string, T>` over `{ [key: string]: T }`
+- Never use `any` — use `unknown` and narrow
+
+For generics, conditional/mapped types, branded types, and utility types, see the **ts-total-typescript** skill.
 
 ---
 
-## Performance Patterns
-
-### Memoization
+## Performance
 
 ```tsx
-// Memoize expensive computations
-const sortedUsers = useMemo(() => {
-  return [...users].sort((a, b) => a.name.localeCompare(b.name));
-}, [users]);
-
-// Memoize callbacks passed to child components
-const handleSelect = useCallback((id: string) => {
-  setSelectedId(id);
-}, []);
-
-// Memoize entire components that receive stable props
+const sortedUsers = useMemo(() => [...users].sort((a, b) => a.name.localeCompare(b.name)), [users]);
+const handleSelect = useCallback((id: string) => setSelectedId(id), []);
 const MemoizedUserCard = memo(UserCard);
 ```
 
-### Rules
-
 - Don't prematurely memoize — measure first
-- Use `useMemo` for expensive computations that depend on changing inputs
-- Use `useCallback` for functions passed as props to memoized children
-- Use `memo()` for components that re-render often with the same props
+- `useMemo` for expensive computations; `useCallback` for functions passed to memoized children; `memo()` for components re-rendering with stable props
 - Virtualize long lists (>100 items) with `@tanstack/react-virtual`
-- Lazy-load routes and heavy components with `React.lazy` + `Suspense`
-- Use `useTransition` for non-urgent state updates
+- Lazy-load routes/heavy components with `React.lazy` + `Suspense`; `useTransition` for non-urgent updates
+
+For runtime, bundle, database, and memory optimization across the stack, see the **performance-patterns** skill.
 
 ---
 
@@ -818,11 +521,19 @@ function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 
 ---
 
-## What This Skill Does NOT Cover
+## Related Skills
 
-- Server-side rendering specifics — see framework docs (Next.js, Remix)
-- Generic TypeScript patterns — see **ts-total-typescript** skill
-- Generic coding conventions — see **code-conventions** skill
-- Component visual design — see **ui-designer** skill
-- Animation patterns — see **ui-animator** skill
-- Accessibility — see **ui-accessibility** skill
+This skill is the React integration overview. For deep dives, load:
+
+- **tool-react-query** — caching, optimistic updates, infinite queries, SSR hydration
+- **tool-zustand** — slices, middleware, store testing
+- **tool-zod** — schema refinements, transforms, discriminated unions
+- **tool-tailwind** — config, design tokens, plugins
+- **tool-vitest** — config, mocking, coverage
+- **tool-eslint-config** — flat config and typed linting
+- **ts-total-typescript** — advanced type-level patterns
+- **performance-patterns** — cross-stack optimization
+- **code-conventions** — generic coding conventions
+- **ui-designer**, **ui-animator**, **ui-accessibility** — visual design, animation, a11y
+
+Server-side rendering specifics live in framework docs (Next.js, Remix).

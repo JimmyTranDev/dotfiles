@@ -186,6 +186,8 @@ export default defineWorkspace([
 
 Run specific workspace: `vitest --project unit`
 
+> Vitest 3.2+ deprecates standalone workspace files (`defineWorkspace`) in favor of a `projects` array inside `test` in `vitest.config.ts`.
+
 ## In-Source Testing
 
 ```ts

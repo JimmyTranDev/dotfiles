@@ -227,6 +227,8 @@ test('disables submit button while form is submitting', async () => {
 - Fail the pipeline on coverage regression > 2%
 - Cache test dependencies and build artifacts
 
+Run the suite with `run-tests.sh` (auto-detects Vitest/Jest/Playwright and reports coverage).
+
 ## Test Smells
 
 | Smell | Problem | Fix |
@@ -241,5 +243,5 @@ test('disables submit button while form is submitting', async () => {
 ## What This Skill Does NOT Cover
 
 - Security-specific testing (penetration, fuzzing) — see **security** skill
-- Performance benchmarking and profiling — see load testing tools directly
+- Performance benchmarking and profiling — see **performance-patterns** skill
 - Shell script testing patterns — covered in the **tester** agent

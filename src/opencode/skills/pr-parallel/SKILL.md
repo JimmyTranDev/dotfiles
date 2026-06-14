@@ -18,12 +18,10 @@ Use this pattern when tasks are independent (they don't depend on each other's o
 
 1. Parse the task list from arguments (split on newlines, numbered lists, commas, or semicolons)
 2. If only one task is detected, suggest using `/pr` instead and stop
-3. Run `git-branch-info.sh` and use the `base_branch` value
-4. Derive the integration branch name and task branch names
-5. Check for uncommitted changes: `git status --porcelain` and `git diff --cached --stat` (in parallel)
-6. If staged or unstaged changes exist, stash: `git stash push -m "pr-parallel-stash"`
-7. Create the **integration worktree**: `git worktree add ~/Programming/wcreated/<integration-branch> -b <integration-branch>`
-8. Create all **task worktrees** in parallel: `git worktree add ~/Programming/wcreated/<task-branch> -b <task-branch>` (one per task — if any creation fails, report the error for that task and continue)
+3. Follow the shared **Worktree Setup** from the AGENTS.md `pr-*` command conventions for base-branch detection (`git-branch-info.sh`), the uncommitted-changes check, and stashing (`git stash push -m "pr-parallel-stash"`)
+4. Derive the integration branch name and one task branch name per task
+5. Create the **integration worktree**: `git worktree add ~/Programming/wcreated/<integration-branch> -b <integration-branch>`
+6. Create all **task worktrees** in parallel: `git worktree add ~/Programming/wcreated/<task-branch> -b <task-branch>` (one per task — if any creation fails, report the error for that task and continue)
 
 ## Parallel Task Implementation
 

@@ -71,7 +71,7 @@ git branch -D <branch-name>
 
 ### Clean Merged Worktrees
 
-Check if each worktree's branch is an ancestor of `main` or `develop` (i.e., merged), then batch-delete confirmed ones.
+Run `worktree-clean.sh` (use `--dry-run` first) to scan and auto-clean stale or merged worktrees — it checks whether each worktree's branch is an ancestor of `main` or `develop` (i.e., merged), then batch-deletes confirmed ones. To match orphaned worktrees back to open PRs before cleaning, use `recover-pr.sh`.
 
 ## Shell Aliases
 

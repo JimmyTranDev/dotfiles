@@ -3,6 +3,8 @@ name: review-mobile
 description: React Native code review checklist covering render performance, list virtualization, memory leaks, offline handling, gesture conflicts, image optimization, and battery impact
 ---
 
+Format findings using the **review-output-format** skill.
+
 ## Render Performance
 
 | Issue | Detection | Fix |
@@ -114,4 +116,4 @@ description: React Native code review checklist covering render performance, lis
 | Navigation | Test navigation state, not rendered screens |
 | Async storage | Mock with in-memory implementation |
 | Network requests | MSW or manual mock |
-| Animations | Skip in tests (jest.useFakeTimers) |
+| Animations | Skip in tests (`vi.useFakeTimers`) |

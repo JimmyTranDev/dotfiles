@@ -1,6 +1,6 @@
 ---
 name: comm-adr-writer
-description: "Architecture Decision Records covering template structure, status lifecycle, consequences, alternatives, and team review workflow"
+description: Architecture Decision Records covering template structure, status lifecycle, consequences, alternatives, and team review workflow
 ---
 
 ## ADR Template

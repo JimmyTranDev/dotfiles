@@ -33,7 +33,7 @@ const increment = useCounterStore((state) => state.increment);
 ### useShallow for Multiple Selectors
 
 ```tsx
-import { useShallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 const { count, increment } = useCounterStore(
   useShallow((state) => ({ count: state.count, increment: state.increment }))
@@ -126,16 +126,17 @@ const useStore = create<Store>()(
 
 ## Subscriptions (Outside React)
 
+Basic subscribe fires on every change with full state:
+
 ```tsx
-const unsub = useStore.subscribe(
-  (state) => state.count,
-  (count, prevCount) => {
-    console.log('Count changed:', prevCount, '->', count);
+const unsub = useStore.subscribe((state, prevState) => {
+  if (state.count !== prevState.count) {
+    console.log('Count changed:', prevState.count, '->', state.count);
   }
-);
+});
 ```
 
-Or with `subscribeWithSelector` middleware:
+Selector-based subscribe (single key + previous value) requires the `subscribeWithSelector` middleware:
 ```tsx
 import { subscribeWithSelector } from 'zustand/middleware';
 
@@ -226,4 +227,4 @@ beforeEach(() => {
 | Stale state in async | Use `get()` inside async, not closure variable |
 | Persist not working | Ensure `createJSONStorage` wraps the storage adapter |
 | Middleware order matters | `persist` should be the outermost middleware |
-| v5 breaking: no more `zustand/vanilla` default | Import from `zustand` directly |
+| v5 removed the default export | Use named `import { create } from 'zustand'` |

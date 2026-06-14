@@ -707,6 +707,8 @@ Migration rules for zero-downtime deployments:
 | Integration (slices) | 20% | seconds | Component + dependencies |
 | E2E (full stack) | 10% | minutes | Full request flow |
 
+For generic test structure, naming, mocking, and coverage goals, see the **test** skill. This section covers Java/Spring-specific concerns (ArchUnit, Testcontainers).
+
 ### Architecture Tests with ArchUnit
 
 ```java
@@ -761,11 +763,7 @@ public abstract class IntegrationTestBase {
 
 ## API Versioning
 
-| Strategy | Example | Pros | Cons |
-|----------|---------|------|------|
-| URI path | `/api/v1/orders` | Simple, explicit | URL pollution |
-| Header | `Accept: application/vnd.app.v1+json` | Clean URLs | Less discoverable |
-| Query param | `/api/orders?version=1` | Easy to test | Not RESTful |
+Prefer URI-path versioning for explicit, cacheable URLs. Run V1 and V2 controllers side by side and support N-1 versions during deprecation.
 
 ```java
 @RestController
@@ -776,6 +774,8 @@ public class OrderControllerV1 { }
 @RequestMapping("/api/v2/orders")
 public class OrderControllerV2 { }
 ```
+
+For the full strategy comparison (URI vs header vs query param), error-response formats, and rate-limit headers, see the **api-design** skill.
 
 ## Configuration Management
 
@@ -804,4 +804,4 @@ app:
 | HashiCorp Vault | Secrets rotation, fine-grained access control |
 | AWS Secrets Manager / GCP Secret Manager | Cloud-native deployments |
 
-Never store secrets in `application.yml` committed to version control. Use `${ENV_VAR}` placeholders or external secret stores.
+Never store secrets in `application.yml` committed to version control. Use `${ENV_VAR}` placeholders or external secret stores. For secret scanning, rotation workflows, and `.env` patterns, see the **security-secrets** skill.

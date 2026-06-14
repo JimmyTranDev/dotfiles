@@ -9,7 +9,7 @@ description: Documentation writing patterns covering README structure, API docs,
 |------|---------|----------|-----------------|
 | README | Project overview, quick start, contribution guide | New users, contributors | Every major feature change |
 | API docs | Endpoint/function reference with parameters, returns, examples | Consumers of the API | Every API change |
-| Architecture Decision Record (ADR) | Why a technical decision was made, alternatives considered, consequences | Future maintainers | Once per decision, never edited |
+| Architecture Decision Record (ADR) | Why a technical decision was made, alternatives considered, consequences | Future maintainers | Per decision; status updated when superseded |
 | Changelog | User-facing summary of changes per version | Users upgrading versions | Every release |
 | Inline code docs | Complex algorithm explanations, non-obvious behavior | Developers reading the code | When the code changes |
 | Onboarding guide | Step-by-step environment setup, tool installation, first task | New team members | Quarterly review |
@@ -55,26 +55,9 @@ Request/call example followed by response/return example.
 | 404  | Resource not found | Verify the ID exists |
 ```
 
-## Architecture Decision Record (ADR) Format
+## Architecture Decision Records (ADRs)
 
-```
-# ADR-NNN: Title of Decision
-
-## Status
-Accepted | Superseded by ADR-XXX | Deprecated
-
-## Context
-What is the problem or situation that requires a decision?
-
-## Decision
-What is the change that we're making?
-
-## Alternatives Considered
-What other options were evaluated and why were they rejected?
-
-## Consequences
-What are the positive, negative, and neutral effects of this decision?
-```
+ADRs capture why a technical decision was made, which alternatives were considered, and the consequences. For the full template, status lifecycle, decision-criteria framework, and team review workflow, load the **comm-adr-writer** skill.
 
 ## Changelog Conventions
 

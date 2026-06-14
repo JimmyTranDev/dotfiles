@@ -32,6 +32,8 @@ description: Security vulnerability categories, severity classification, attack 
 
 ### Secrets and Credentials
 
+These are audit signals only. For scanning, rotation, vault, and CI/CD workflows, see the **security-secrets** skill.
+
 | Type | Signal | Fix |
 |------|--------|-----|
 | Hardcoded secrets | API keys, passwords, tokens in source | Environment variables or secret manager |
@@ -62,6 +64,8 @@ description: Security vulnerability categories, severity classification, attack 
 | File upload | No type/size validation on uploads | Validate MIME type, extension, size limits |
 
 ### Insecure Dependencies
+
+For npm audit triage, override patterns, and supply chain defenses, see the **security-npm-vulnerabilities** skill.
 
 | Type | Signal | Fix |
 |------|--------|-----|
@@ -142,7 +146,8 @@ const handleError = (error: unknown, res: Response) => {
 
 ## What This Skill Does NOT Cover
 
-- Dependency vulnerability triage and npm audit workflows — see `npm-vulnerabilities` skill
-- Supply chain attack prevention (lockfile integrity, release age) — see `npm-vulnerabilities` skill
+- Dependency vulnerability triage and npm audit workflows — see **security-npm-vulnerabilities** skill
+- Supply chain attack prevention (lockfile integrity, release age) — see **security-npm-vulnerabilities** skill
+- Secret scanning, rotation, vault integration, and CI/CD secrets — see **security-secrets** skill
 - Infrastructure security (firewall rules, TLS config, container hardening)
 - Penetration testing methodology

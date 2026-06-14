@@ -143,12 +143,7 @@ function divide(a: number, b: number): number {
 
 ### Naming
 
-- Use camelCase for files, folders, variables, functions, and properties
-- Use PascalCase for types, interfaces, enums, and React components
-- Use SCREAMING_SNAKE_CASE for constants and environment variables
-- Prefix boolean variables with `is`, `has`, `should`, `can`
-- Prefix hooks with `use`
-- Name event handlers `handle<Event>` (internal) or `on<Event>` (prop)
+Core rule: camelCase for values/files, PascalCase for types/components, SCREAMING_SNAKE_CASE for constants. Boolean prefixes (`is`/`has`/`should`/`can`), hook `use` prefix, and event handlers (`handle<Event>`/`on<Event>`). Load the **code-naming** skill for the full convention tables.
 
 ### Module Structure
 

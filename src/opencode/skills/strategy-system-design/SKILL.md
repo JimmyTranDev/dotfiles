@@ -1,6 +1,6 @@
 ---
 name: strategy-system-design
-description: "System design patterns covering load balancing, caching layers, message queues, database scaling, CAP theorem, and common architectures"
+description: System design patterns covering load balancing, caching layers, message queues, database scaling, CAP theorem, and common architectures
 ---
 
 ## Load Balancing Strategies
@@ -246,7 +246,7 @@ Event Handler: Event → Update Read Model
 | 1 billion seconds | ~31.7 years |
 | 1 million requests/day | ~12 QPS |
 | 100 million requests/day | ~1,150 QPS |
-| 1 TB storage | ~1M records at 1KB each |
+| 1 TB storage | ~1B records at 1KB each |
 
 ### SLA Math
 

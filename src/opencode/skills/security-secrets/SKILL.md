@@ -1,7 +1,9 @@
 ---
 name: security-secrets
-description: "Secret management covering scanning, rotation workflows, vault integration, .env patterns, git-secrets, pre-commit hooks, and CI/CD secrets"
+description: Secret management covering scanning, rotation workflows, vault integration, .env patterns, git-secrets, pre-commit hooks, and CI/CD secrets
 ---
+
+This skill owns secret management — scanning, rotation, vault, and CI/CD secrets. Dependency vulnerability triage lives in the **security-npm-vulnerabilities** skill.
 
 ## Secret Scanning Tools
 
@@ -12,6 +14,8 @@ description: "Secret management covering scanning, rotation workflows, vault int
 | `git-secrets` | AWS-focused patterns | Git hooks |
 | GitHub Secret Scanning | Push protection | GitHub native |
 | `detect-secrets` | Yelp's baseline approach | CLI, pre-commit |
+
+For a one-shot combined secret + dependency scan, run the `security-scan.sh` utility script.
 
 ### Gitleaks Quick Start
 

@@ -113,12 +113,12 @@ router.dismiss();
 
 ## Typed Routes
 
-Enable in `tsconfig.json`:
+Enable in app config (`app.json`):
 ```json
-{ "compilerOptions": { "types": ["expo-router/types"] } }
+{ "expo": { "experiments": { "typedRoutes": true } } }
 ```
 
-Provides autocomplete for `href` in `<Link>` and `router.push()`.
+Generates route types into `.expo/types`, providing autocomplete and type-checking for `href` in `<Link>` and `router.push()`.
 
 ## Deep Linking
 

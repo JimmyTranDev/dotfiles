@@ -9,19 +9,17 @@ description: Specify skill for database migration planning — defines analysis 
 
 ## Skills to Load
 
-- **tool-drizzle-orm**: Drizzle ORM patterns (if Drizzle detected)
+Load based on the ORM in use:
+- **tool-drizzle-orm**: Drizzle ORM patterns (if Drizzle is detected)
+- Prisma: look for `prisma/schema.prisma`
+- TypeORM: look for `ormconfig` or `DataSource` config
+- Raw SQL: look for a `migrations/` directory with `.sql` files
 
-### ORM Detection
-
-- Drizzle: load **tool-drizzle-orm**
-- Prisma: look for prisma/schema.prisma
-- TypeORM: look for ormconfig or DataSource config
-- Raw SQL: look for migrations/ directory with .sql files
-- If no database tooling detected, notify and stop
+If no database tooling is detected, notify and stop.
 
 ## Agents to Launch
 
-None specified.
+None required.
 
 ## Analysis Categories
 

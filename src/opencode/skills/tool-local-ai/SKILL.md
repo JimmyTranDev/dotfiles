@@ -45,20 +45,25 @@ ollama run qwen2.5-coder:7b
 Add to `opencode.json`:
 ```json
 {
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "ollama": {
-      "type": "openai",
-      "baseUrl": "http://localhost:11434/v1"
-    }
-  },
-  "model": {
-    "local": {
-      "provider": "ollama",
-      "model": "qwen2.5-coder:7b"
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "qwen2.5-coder:7b": {
+          "name": "Qwen 2.5 Coder 7B"
+        }
+      }
     }
   }
 }
 ```
+
+The `models` keys must match the model IDs Ollama serves (e.g. `qwen2.5-coder:7b`). Select the provider/model with the `/models` command.
 
 ### Ollama API
 
@@ -88,16 +93,19 @@ brew install --cask lm-studio
 
 ```json
 {
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "lmstudio": {
-      "type": "openai",
-      "baseUrl": "http://localhost:1234/v1"
-    }
-  },
-  "model": {
-    "local": {
-      "provider": "lmstudio",
-      "model": "loaded-model-name"
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "LM Studio (local)",
+      "options": {
+        "baseURL": "http://localhost:1234/v1"
+      },
+      "models": {
+        "loaded-model-name": {
+          "name": "Loaded Model"
+        }
+      }
     }
   }
 }

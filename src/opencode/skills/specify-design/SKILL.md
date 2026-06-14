@@ -18,7 +18,7 @@ description: Specify skill for UI/UX design analysis — defines analysis catego
 
 ## Agents to Launch
 
-None specified.
+None required.
 
 ## Analysis Categories
 

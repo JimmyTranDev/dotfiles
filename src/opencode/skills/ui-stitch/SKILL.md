@@ -151,7 +151,7 @@ Each route path must be unique. Verify screen IDs with `list_screens` first.
 
 ### Generate New Designs
 
-1. Call `list_projects` to find an existing project, or `create_project` to create one
+1. Call `list_projects` to find the target project (create one in the Stitch app if you don't have one yet)
 2. Call `generate_screen_from_text` with the project ID and a text prompt
 3. Call `get_screen_code` and `get_screen_image` in parallel to preview
 4. Call `edit_screens` to refine, or `generate_variants` to explore alternatives

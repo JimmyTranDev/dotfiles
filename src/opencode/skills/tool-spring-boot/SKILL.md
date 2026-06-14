@@ -118,10 +118,7 @@ public ResponseEntity<UserResponse> create(@Valid @RequestBody CreateUserRequest
 ```java
 @GetMapping
 public Page<UserResponse> getAll(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size,
-        @RequestParam(defaultValue = "createdAt,desc") String[] sort) {
-    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
     return userService.findAll(pageable);
 }
 ```
