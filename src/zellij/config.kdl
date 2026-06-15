@@ -235,10 +235,10 @@ load_plugins {
 ui {
     pane_frames {
         rounded_corners true
+        hide_session_name true
     }
     tab_bar {
         display_tab_index true
-        hide_session_name true
     }
 }
 
@@ -247,3 +247,9 @@ theme "catppuccin-mocha"
 default_mode "locked"
 
 default_shell "zsh"
+
+// Single-line compact status bar instead of the default two-line tab-bar + status-bar
+default_layout "compact"
+
+// Drop the 1-cell border around every pane to reclaim screen space (toggle back with "z")
+pane_frames false
