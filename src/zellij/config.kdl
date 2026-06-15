@@ -130,7 +130,7 @@ keybinds clear-defaults=true {
         bind "Alt ." { GoToNextTab; }
         bind "Alt i" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/move_tab_and_reindex.sh left" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         bind "Alt o" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/move_tab_and_reindex.sh right" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
-        // Alt a: open a new tab with the 4-pane opencode-quad.kdl layout (4 opencode panes), then reindex tabs. Requires $ZELLIJ + opencode installed.
+        // Alt a: open a plain new tab, then build a 2x2 grid of 4 opencode panes by splitting inside it, then reindex tabs. Requires $ZELLIJ + opencode installed.
         bind "Alt a" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_opencode_quad.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         bind "Alt y" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
 
