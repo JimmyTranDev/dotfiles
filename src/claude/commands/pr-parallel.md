@@ -1,0 +1,90 @@
+---
+description: Implement tasks in parallel worktrees, merge all into an integration worktree resolving conflicts, and create a single PR
+argument-hint: <list of changes to implement>
+---
+
+Usage: /pr-parallel <list of changes to implement>
+
+Implement each task in its own parallel worktree, then merge all completed branches into a single integration worktree — resolving conflicts as they arise — and create one pull request containing the combined result.
+
+$ARGUMENTS
+
+Load the **git-worktree-workflow**, **git-workflows**, **git-conflict-resolution**, and **tool-todoist-cli** skills in parallel.
+
+1. Parse the task list from `$ARGUMENTS`:
+   - Split the input into individual change descriptions (separated by newlines, numbered lists, commas, or semicolons)
+   - Each item is a discrete unit of work
+   - If only one item is detected, notify the user and suggest using `/pr` instead, then stop
+
+2. Run `git-branch-info.sh` and use the `BASE_BRANCH` value
+
+3. Derive branch names:
+   - **Integration branch**: a kebab-case name summarizing the overall goal (e.g., `feat-user-settings-overhaul`)
+   - **Task branches**: one per task, prefixed with the integration branch name and a short task suffix (e.g., `feat-user-settings-overhaul--add-theme-picker`, `feat-user-settings-overhaul--fix-email-validation`). Use `--` as the separator between integration prefix and task suffix.
+
+4. Check for uncommitted changes (run in parallel):
+   - `git status --porcelain`
+   - `git diff --cached --stat`
+
+5. If there are staged or unstaged changes:
+   - Stash them with `git stash push -m "pr-parallel-stash"`
+
+6. Create the integration worktree from the base branch:
+   - `git worktree add ~/Programming/wcreated/<integration-branch> -b <integration-branch>`
+
+7. Create all task worktrees in parallel (one per task):
+   - For each task: `git worktree add ~/Programming/wcreated/<task-branch> -b <task-branch>`
+   - If any worktree creation fails, report the error for that task and continue with the rest
+
+8. Implement all tasks in parallel — launch a separate **general** agent for each task. Each agent works exclusively in its own worktree directory (`~/Programming/wcreated/<task-branch>/`):
+
+   a. **Implement**: Apply the changes, stage, and commit:
+      - `git add -A`
+      - `git commit --no-verify -m "<type>(<scope>): <description>"`
+      - Multiple commits are fine if the task warrants it
+
+   b. **Review**: Launch **reviewer** and **auditor** agents in parallel on the diff from `git diff <base-branch>...HEAD`
+
+   c. **Fix**: If issues were found, launch **fixer** to address them, then stage and commit: `git add -A && git commit --no-verify -m "fix: address review and audit findings"`. Run **reviewer** once more to verify (max 2 iterations).
+
+   d. **Merge into integration**: Acquire a sequential lock on the integration worktree (`~/Programming/wcreated/<integration-branch>/`) and merge:
+      - Run `git merge <task-branch> --no-ff -m "chore: merge <task-branch>"` in the integration worktree
+      - If the merge has conflicts, resolve using the **git-conflict-resolution** skill — combine both changes where possible, ask the user when ambiguous, never silently drop code
+      - If the merge is catastrophically broken, abort with `git merge --abort`, skip this task, and report it
+      - After a successful merge, run a quick build/lint check if available to catch integration issues early
+      - Release the lock so the next completed task can merge
+
+   e. **Report back**: Return the task branch name, commit count, a one-line summary of what was done, merge status, and success/failure
+
+   Each agent works exclusively in its own worktree for implementation, and acquires a sequential lock on the integration worktree only for the merge step. A failure in one task does not block others.
+
+9. Collect results from all parallel agents. If all tasks failed, report the failures and stop.
+
+10. **Integration review**: Launch **reviewer** and **auditor** agents in parallel on the full combined diff (`git diff <base-branch>...HEAD`) in the integration worktree. If issues are found, launch **fixer** to address them, stage and commit, then run **reviewer** once more to verify (max 2 iterations).
+
+11. Run pre-commit hooks: `git hook run pre-commit` in the integration worktree. If hooks modify files, stage and commit: `git add -A && git commit --no-verify -m "style: apply pre-commit hook fixes"`. If hooks fail with errors, launch **fixer** to address them, then re-run.
+
+12. Push the integration branch:
+    - `git push -u origin <integration-branch>`
+
+13. Create the PR with `gh pr create` targeting the base branch:
+    - Title: a concise summary of the overall goal
+    - Body: a summary section, followed by a checklist of all tasks with their status (checked if merged successfully, unchecked with a note if skipped due to conflicts). Include the task branch names as references.
+
+14. **Spec cleanup**: If `$ARGUMENTS` references files in `plans/` (paths starting with `plans/` or containing `.md` files inside `plans/`), ask the user for confirmation before deleting each consumed spec file. If confirmed and the file is tracked by git, use `git rm`; otherwise use `rm`. If the `plans/` directory is empty after deletion, remove it too. Note in the final summary: "Removed consumed spec: plans/xyz.md"
+
+15. **Todoist completion**: If the consumed spec file contains YAML frontmatter with a `todoist:` field, load the **tool-todoist-cli** skill and run `td task complete "<url>"` for each URL listed. Only complete after successful implementation and spec cleanup. If implementation failed, do NOT complete the Todoist task.
+
+16. Report outcome to the user:
+    - PR URL
+    - Table showing each task, its task branch, merge status (merged / skipped / failed), and conflict summary if any
+    - Count of tasks merged vs skipped vs failed
+    - If changes were stashed in step 5, remind the user to `git stash pop` in the main repo
+
+Important:
+- Task implementation is fully parallel — each task gets its own worktree and agent
+- The integration worktree is the single point where all parallel work converges
+- Merges into the integration worktree happen sequentially to allow orderly conflict resolution
+- A failure in one task does not block others — failed tasks are skipped during integration
+- If a merge conflict cannot be resolved, that task branch is skipped and reported — the PR proceeds with the remaining tasks
+- Never silently drop code from either side during conflict resolution
