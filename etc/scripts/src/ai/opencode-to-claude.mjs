@@ -433,9 +433,9 @@ function parseJsonc(text) {
 
 // Copy the hand-maintained notification runtime template into the generated
 // tree at hooks/notify.sh (mode 0755). The editable source lives at
-// etc/scripts/src/ai/templates/claude-notify.sh; src/claude/ is never
-// hand-edited. The template path is resolved relative to this module so the
-// generator is independent of the working directory.
+// etc/scripts/src/ai/templates/claude-notify.sh; the generated ~/.claude/ tree
+// is never hand-edited. The template path is resolved relative to this module so
+// the generator is independent of the working directory.
 async function generateHooksScript(scriptDir, outDir, failed) {
   const template = path.join(scriptDir, "templates", "claude-notify.sh");
   const destDir = path.join(outDir, "hooks");
@@ -473,8 +473,8 @@ async function generateSettings(opencodeDir, outDir, failed) {
     logError(err);
   }
 
-  // The notify.sh hook is shipped to ~/.claude/hooks/notify.sh via the
-  // src/claude -> ~/.claude symlink, so reference it by absolute path.
+  // The notify.sh hook is generated into ~/.claude/hooks/notify.sh, so
+  // reference it by absolute path.
   const HOOK_COMMAND = "$HOME/.claude/hooks/notify.sh";
   const hookEntry = (matcher) => {
     const inner = { hooks: [{ type: "command", command: HOOK_COMMAND }] };
@@ -531,7 +531,7 @@ function showHelp() {
       "",
       "Arguments:",
       "  opencode-dir   source OpenCode config (default: src/opencode)",
-      "  out-dir        generated Claude config (default: src/claude)",
+      "  out-dir        generated Claude config (default: ~/.claude)",
       "",
       "Options:",
       "  --help         show this help message",
@@ -551,11 +551,15 @@ async function main() {
 
   const positional = args.filter((a) => !a.startsWith("-"));
   const opencodeDir = positional[0] || "src/opencode";
-  const outDir = positional[1] || "src/claude";
+  // Default output is the live Claude Code config dir in $HOME. The config is
+  // generated on demand and is not tracked in the repo; OpenCode remains the
+  // single source of truth.
+  const outDir = positional[1] || path.join(os.homedir(), ".claude");
 
-  // The generators force-delete outDir/{agents,commands,skills}. Refuse to run
-  // against the filesystem root or the home directory to avoid a catastrophic
-  // `rm -rf` from a mistaken out-dir argument.
+  // The generators force-delete outDir/{agents,commands,skills,hooks}. Refuse to
+  // run against the filesystem root or the home directory itself to avoid a
+  // catastrophic `rm -rf` from a mistaken out-dir argument. Writing into
+  // ~/.claude (a subdirectory of home) is allowed.
   const resolvedOut = path.resolve(outDir);
   if (
     resolvedOut === path.parse(resolvedOut).root ||

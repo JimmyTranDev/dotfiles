@@ -113,6 +113,39 @@ function M.copy_opencode_link()
   vim.notify('Copied: ' .. link, vim.log.levels.INFO)
 end
 
+function M.copy_ai_file_reference()
+  local file = vim.fn.expand('%:p')
+  if file == '' then
+    vim.notify('No file is currently open', vim.log.levels.WARN)
+    return
+  end
+  local link = ('@%s:%d'):format(vim.fn.fnamemodify(file, ':.'), vim.fn.line('.'))
+  vim.fn.setreg('+', link)
+  vim.notify('Copied: ' .. link, vim.log.levels.INFO)
+end
+
+function M.copy_ai_file_reference_range()
+  local file = vim.fn.expand('%:p')
+  if file == '' then
+    vim.notify('No file is currently open', vim.log.levels.WARN)
+    return
+  end
+  local start_line = vim.fn.line('v')
+  local end_line = vim.fn.line('.')
+  if start_line > end_line then
+    start_line, end_line = end_line, start_line
+  end
+  local rel = vim.fn.fnamemodify(file, ':.')
+  local link
+  if start_line == end_line then
+    link = ('@%s:%d'):format(rel, start_line)
+  else
+    link = ('@%s:%d-%d'):format(rel, start_line, end_line)
+  end
+  vim.fn.setreg('+', link)
+  vim.notify('Copied: ' .. link, vim.log.levels.INFO)
+end
+
 function M.copy_frontend_project_paths()
   local base_dir = vim.fn.expand('~/Programming')
   local stat = vim.uv.fs_stat(base_dir)

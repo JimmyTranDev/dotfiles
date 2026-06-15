@@ -2,7 +2,7 @@
 #
 # claude-notify.sh — Claude Code hook runtime for sound + desktop notifications.
 #
-# GENERATED INTO src/claude/hooks/notify.sh by opencode-to-claude.mjs. The
+# GENERATED INTO ~/.claude/hooks/notify.sh by opencode-to-claude.mjs. The
 # editable source lives at etc/scripts/src/ai/templates/claude-notify.sh — never
 # hand-edit the generated copy; edit the template and re-run the converter.
 #

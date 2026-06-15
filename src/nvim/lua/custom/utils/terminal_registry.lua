@@ -5,7 +5,7 @@ local M = {}
 ---@field name? string Display name (auto-generated if nil)
 ---@field dir? string Working directory
 ---@field direction? "horizontal"|"vertical"|"float" Direction (default: "horizontal")
----@field close_on_exit? boolean Close terminal when process exits
+---@field close_on_exit? boolean Close terminal when process exits (default: false, keep open)
 
 ---@class TerminalInfo
 ---@field id number Terminal ID
@@ -97,7 +97,8 @@ function M.create(opts)
     direction = opts.direction or 'horizontal',
     display_name = name,
     dir = opts.dir,
-    close_on_exit = opts.close_on_exit,
+    -- Keep terminals open by default; only close when explicitly requested.
+    close_on_exit = opts.close_on_exit == true,
   })
 
   _terminals[name] = term
@@ -131,7 +132,8 @@ function M.get_or_create(name, opts)
     direction = opts.direction or 'horizontal',
     display_name = name,
     dir = opts.dir,
-    close_on_exit = opts.close_on_exit,
+    -- Keep terminals open by default; only close when explicitly requested.
+    close_on_exit = opts.close_on_exit == true,
   })
 
   _terminals[name] = term

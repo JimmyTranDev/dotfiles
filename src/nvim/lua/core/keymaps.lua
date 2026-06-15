@@ -148,29 +148,18 @@ map('n', '<leader>cf', file_actions.copy_frontend_project_paths, { desc = '󰆓 
 map('n', '<leader>cr', file_actions.copy_repo_path, { desc = '󰆓 Copy: repo path' })
 map('n', '<leader>cu', file_actions.copy_current_file_url, { desc = '󰆓 Copy: current file URL' })
 map('n', '<leader>co', file_actions.copy_opencode_link, { desc = '󰆓 Copy: OpenCode link' })
+map('n', '<leader>cR', file_actions.copy_ai_file_reference, { desc = '󰆓 Copy: AI file reference (line)' })
+map('x', '<leader>cR', file_actions.copy_ai_file_reference_range, { desc = '󰆓 Copy: AI file reference (range)' })
 map('n', '<leader>ce', errors_actions.copy_diagnostic_under_cursor, { desc = '󰆓 Copy: diagnostic' })
 map('n', '<leader>cg', function()
-  vim.notify('Starting GCloud auth...', vim.log.levels.INFO)
-  local url_copied = false
-  vim.fn.jobstart({ 'gcloud', 'auth', 'application-default', 'login', '--no-launch-browser' }, {
-    on_stderr = function(_, data)
-      if url_copied then
-        return
-      end
-      for _, line in ipairs(data) do
-        local url = line:match('https://[^ ]+')
-        if url then
-          url_copied = true
-          vim.schedule(function()
-            vim.fn.setreg('+', url)
-            vim.notify('GCloud auth URL copied to clipboard', vim.log.levels.INFO)
-          end)
-          return
-        end
-      end
-    end,
+  -- Run the interactive gcloud auth flow inside a toggleterm and force the
+  -- OAuth consent page to open in Firefox (BROWSER is honoured by gcloud's
+  -- underlying Python webbrowser module; %s is substituted with the URL).
+  require('custom.utils.terminal_registry').get_or_create('gcloud-auth', {
+    cmd = "BROWSER='open -a Firefox %s' gcloud auth application-default login",
+    direction = 'float',
   })
-end, { desc = '󰆓 Copy: GCloud auth URL' })
+end, { desc = '󰊭 GCloud auth (Firefox)' })
 
 map('n', '<Leader>ud', file_actions.open_current_dir, { desc = '󰦥 Open current directory' })
 
