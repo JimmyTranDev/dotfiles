@@ -1,6 +1,6 @@
 ---
 description: Walk through PR review comments and interactively reply to each one
-argument-hint: [PR URL or number]
+argument-hint: "[PR URL or number]"
 ---
 
 Usage: /pr-reply [PR URL or number]

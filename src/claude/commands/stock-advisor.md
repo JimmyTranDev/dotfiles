@@ -1,6 +1,6 @@
 ---
 description: Provide personal finance guidance on budgeting, investing, and financial planning
-argument-hint: $ARGUMENTS
+argument-hint: "$ARGUMENTS"
 ---
 
 Usage: /stock-advisor $ARGUMENTS

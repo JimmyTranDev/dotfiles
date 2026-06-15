@@ -1,6 +1,6 @@
 ---
 description: Generate upcoming stock events calendar for tracked tickers
-argument-hint: $ARGUMENTS
+argument-hint: "$ARGUMENTS"
 ---
 
 Usage: /stock-calendar $ARGUMENTS

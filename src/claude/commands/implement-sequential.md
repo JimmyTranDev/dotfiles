@@ -1,6 +1,6 @@
 ---
 description: Implement an ordered list of changes sequentially, committing after each completed task
-argument-hint: <ordered list of changes to implement>
+argument-hint: "<ordered list of changes to implement>"
 ---
 
 Usage: /implement-sequential <ordered list of changes to implement>

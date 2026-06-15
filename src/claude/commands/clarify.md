@@ -1,6 +1,6 @@
 ---
 description: Analyze a vague request or spec and generate targeted clarifying questions to remove ambiguity
-argument-hint: $ARGUMENTS
+argument-hint: "$ARGUMENTS"
 ---
 
 Usage: /clarify $ARGUMENTS

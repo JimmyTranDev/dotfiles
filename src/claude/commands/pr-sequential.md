@@ -1,6 +1,6 @@
 ---
 description: Create a worktree and PR upfront, then implement tasks sequentially, pushing and updating the PR after each
-argument-hint: <ordered list of changes to implement>
+argument-hint: "<ordered list of changes to implement>"
 ---
 
 Usage: /pr-sequential <ordered list of changes to implement>

@@ -1,6 +1,6 @@
 ---
 description: Simplify complex code by reducing nesting, extracting functions, and removing unnecessary abstractions
-argument-hint: [file path, directory, or description of area to simplify]
+argument-hint: "[file path, directory, or description of area to simplify]"
 ---
 
 Usage: /simplify [file path, directory, or description of area to simplify]

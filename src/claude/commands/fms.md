@@ -1,6 +1,6 @@
 ---
 description: Generate FMS JSON array with key, no, and en translation fields
-argument-hint: $ARGUMENTS
+argument-hint: "$ARGUMENTS"
 ---
 
 Usage: /fms $ARGUMENTS

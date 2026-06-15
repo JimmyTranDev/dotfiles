@@ -1,6 +1,6 @@
 ---
 description: Generate implementation specs in plans/ — one file per task group, scaled to complexity
-argument-hint: [category] [scope or description]
+argument-hint: "[category] [scope or description]"
 ---
 
 Usage: /specify [category] [scope or description]

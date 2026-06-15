@@ -1,6 +1,6 @@
 ---
 description: Implement changes in a worktree and create a PR
-argument-hint: [description or task list]
+argument-hint: "[description or task list]"
 ---
 
 Usage: /pr [description or task list]

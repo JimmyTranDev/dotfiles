@@ -1,6 +1,6 @@
 ---
 description: Implement changes based on a description using skills and specialized agents
-argument-hint: [description or task list]
+argument-hint: "[description or task list]"
 ---
 
 Usage: /implement [description or task list]

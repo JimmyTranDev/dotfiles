@@ -1,6 +1,6 @@
 ---
 description: Restructure code by extracting, inlining, renaming, moving, splitting, and consolidating while preserving behavior
-argument-hint: [file path, directory, or description of area to refactor]
+argument-hint: "[file path, directory, or description of area to refactor]"
 ---
 
 Usage: /refactor [file path, directory, or description of area to refactor]

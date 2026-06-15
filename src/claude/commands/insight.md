@@ -1,6 +1,6 @@
 ---
 description: Generate a Dr. K-style insight about the mind, ego, and detachment in bold-key format
-argument-hint: $ARGUMENTS
+argument-hint: "$ARGUMENTS"
 ---
 
 Usage: /insight $ARGUMENTS

@@ -1,6 +1,6 @@
 ---
 description: Generate a weekly standup summary combining git commits and Jira ticket statuses
-argument-hint: [--dir <path>] [--since <date>]
+argument-hint: "[--dir <path>] [--since <date>]"
 ---
 
 Usage: /weekly-summary [--dir <path>] [--since <date>]

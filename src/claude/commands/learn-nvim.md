@@ -1,6 +1,6 @@
 ---
 description: Extract learnings from the current chat and update Neovim config (AGENTS.md, plugin settings, keymaps)
-argument-hint: [specific topic or "all" or "--dry-run"]
+argument-hint: "[specific topic or \"all\" or \"--dry-run\"]"
 ---
 
 Usage: /learn-nvim [specific topic or "all" or "--dry-run"]

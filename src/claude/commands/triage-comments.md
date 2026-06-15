@@ -1,6 +1,6 @@
 ---
 description: Walk through PR review comments one by one with fix, skip, or custom action per comment
-argument-hint: [PR URL or number]
+argument-hint: "[PR URL or number]"
 ---
 
 Usage: /triage-comments [PR URL or number]

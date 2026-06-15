@@ -1,6 +1,5 @@
 ---
 description: Resolve conflict markers in all conflicted files
-argument-hint: Resolve conflict markers in files that are currently in a conflicted state — for use when mid-merge, mid-rebase, or mid-cherry-pick.
 ---
 
 Usage: /fix-conflict

@@ -1,6 +1,6 @@
 ---
 description: Merge specified PRs and clean up worktrees
-argument-hint: <PR numbers, URLs, or branch names>
+argument-hint: "<PR numbers, URLs, or branch names>"
 ---
 
 Usage: /merge <PR numbers, URLs, or branch names>

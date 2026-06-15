@@ -1,6 +1,6 @@
 ---
 description: Research a stock ticker with fundamentals, technicals, peer comparison, and timeframe-based ratings
-argument-hint: $ARGUMENTS
+argument-hint: "$ARGUMENTS"
 ---
 
 Usage: /stock-research $ARGUMENTS

@@ -1,6 +1,6 @@
 ---
 description: Investigate and fix a bug from a symptom, error, or failing test
-argument-hint: <description of the bug, error message, or failing test>
+argument-hint: "<description of the bug, error message, or failing test>"
 ---
 
 Usage: /fix <description of the bug, error message, or failing test>

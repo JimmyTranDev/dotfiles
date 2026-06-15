@@ -1,6 +1,6 @@
 ---
 description: Implement multiple changes in parallel in the current working directory, committing all results together
-argument-hint: <list of changes to implement>
+argument-hint: "<list of changes to implement>"
 ---
 
 Usage: /implement-parallel <list of changes to implement>

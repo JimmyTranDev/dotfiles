@@ -11,6 +11,7 @@
 // prints a minified JSON summary to stdout. Exits non-zero on any failed transform.
 
 import { promises as fs } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 // --- logging (stderr only; stdout is reserved for the JSON summary) ---
@@ -154,6 +155,14 @@ function buildFrontmatter(pairs) {
   return out.join("\n");
 }
 
+// Emit a value as a YAML double-quoted scalar. Used for values derived from free
+// text (e.g. argument-hint from a Usage line) that may contain YAML-significant
+// characters such as `[`, `]`, `:`, or `"` and would otherwise produce invalid
+// or wrong-typed frontmatter.
+function yamlDoubleQuote(value) {
+  return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+}
+
 // Invert an OpenCode disabled-tools map into a Claude allowed-tools comma string.
 // Returns null when there is no tools block (agent inherits all tools).
 function invertTools(tools) {
@@ -201,9 +210,12 @@ function transformCommand(text) {
   const pairs = [["description", fields.description || ""]];
 
   // Derive an argument-hint from a leading `Usage: /name [args]` line if present.
-  const usage = body.match(/^Usage:\s*\/\S+\s+(.+)$/m);
+  // The gap before the args must stay on the same line ([ \t]+, not \s+, which
+  // would cross a newline and grab the next line for arg-less commands). The hint
+  // is double-quoted because it often contains YAML-significant chars (`[`, `"`).
+  const usage = body.match(/^Usage:[ \t]*\/\S+[ \t]+(.+)$/m);
   if (usage) {
-    pairs.push(["argument-hint", usage[1].trim()]);
+    pairs.push(["argument-hint", yamlDoubleQuote(usage[1].trim())]);
   }
 
   const model = mapModel(fields.model);
@@ -243,10 +255,19 @@ async function copyDir(src, dest) {
   for (const entry of entries) {
     const s = path.join(src, entry.name);
     const d = path.join(dest, entry.name);
+    // Refuse to follow symlinks: fs.copyFile would dereference them and copy the
+    // target's contents into the git-tracked output, which could exfiltrate
+    // arbitrary readable files (e.g. a skill shipping `leak -> ~/.ssh/id_ed25519`).
+    if (entry.isSymbolicLink()) {
+      logWarning(`Skipping symlink ${s} (refusing to dereference)`);
+      continue;
+    }
     if (entry.isDirectory()) {
       await copyDir(s, d);
-    } else {
+    } else if (entry.isFile()) {
       await fs.copyFile(s, d);
+    } else {
+      logWarning(`Skipping non-regular file ${s}`);
     }
   }
 }
@@ -266,8 +287,12 @@ async function generateAgents(opencodeDir, outDir, failed) {
   const destDir = path.join(outDir, "agents");
   await emptyDir(destDir);
   let count = 0;
-  const entries = await fs.readdir(srcDir);
-  for (const file of entries.filter((f) => f.endsWith(".md")).sort()) {
+  const entries = await fs.readdir(srcDir, { withFileTypes: true });
+  const files = entries
+    .filter((e) => e.isFile() && e.name.endsWith(".md"))
+    .map((e) => e.name)
+    .sort();
+  for (const file of files) {
     const name = path.basename(file, ".md");
     try {
       const text = await fs.readFile(path.join(srcDir, file), "utf8");
@@ -287,8 +312,12 @@ async function generateCommands(opencodeDir, outDir, failed) {
   const destDir = path.join(outDir, "commands");
   await emptyDir(destDir);
   let count = 0;
-  const entries = await fs.readdir(srcDir);
-  for (const file of entries.filter((f) => f.endsWith(".md")).sort()) {
+  const entries = await fs.readdir(srcDir, { withFileTypes: true });
+  const files = entries
+    .filter((e) => e.isFile() && e.name.endsWith(".md"))
+    .map((e) => e.name)
+    .sort();
+  for (const file of files) {
     const name = path.basename(file, ".md");
     try {
       const text = await fs.readFile(path.join(srcDir, file), "utf8");
@@ -408,6 +437,18 @@ async function main() {
   const positional = args.filter((a) => !a.startsWith("-"));
   const opencodeDir = positional[0] || "src/opencode";
   const outDir = positional[1] || "src/claude";
+
+  // The generators force-delete outDir/{agents,commands,skills}. Refuse to run
+  // against the filesystem root or the home directory to avoid a catastrophic
+  // `rm -rf` from a mistaken out-dir argument.
+  const resolvedOut = path.resolve(outDir);
+  if (
+    resolvedOut === path.parse(resolvedOut).root ||
+    resolvedOut === os.homedir()
+  ) {
+    logError(`Refusing to write/delete in '${resolvedOut}'`);
+    return 1;
+  }
 
   logInfo(`Converting ${opencodeDir} -> ${outDir}`);
 

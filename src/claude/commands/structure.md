@@ -1,6 +1,6 @@
 ---
 description: Analyze project directory layout and file placement using the meta-structure skill
-argument-hint: [scope or description]
+argument-hint: "[scope or description]"
 ---
 
 Usage: /structure [scope or description]

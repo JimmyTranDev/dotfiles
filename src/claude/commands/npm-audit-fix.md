@@ -1,6 +1,6 @@
 ---
 description: Audit npm/pnpm dependencies for vulnerabilities and apply safe fixes
-argument-hint: [directory]
+argument-hint: "[directory]"
 ---
 
 Usage: /npm-audit-fix [directory]

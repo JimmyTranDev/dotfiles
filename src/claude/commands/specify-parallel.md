@@ -1,6 +1,6 @@
 ---
 description: Run multiple specify-* analyses in parallel, producing one spec file per category in plans/
-argument-hint: [--all] [category1 category2 ...] [scope or description]
+argument-hint: "[--all] [category1 category2 ...] [scope or description]"
 ---
 
 Usage: /specify-parallel [--all] [category1 category2 ...] [scope or description]

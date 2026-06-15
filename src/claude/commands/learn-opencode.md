@@ -1,6 +1,6 @@
 ---
 description: Extract learnings from the current chat and update OpenCode config (skills, agents, AGENTS.md)
-argument-hint: [specific topic or "all" or "--dry-run"]
+argument-hint: "[specific topic or \"all\" or \"--dry-run\"]"
 ---
 
 Usage: /learn-opencode [specific topic or "all" or "--dry-run"]

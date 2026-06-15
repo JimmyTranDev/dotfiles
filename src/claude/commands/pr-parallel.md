@@ -1,6 +1,6 @@
 ---
 description: Implement tasks in parallel worktrees, merge all into an integration worktree resolving conflicts, and create a single PR
-argument-hint: <list of changes to implement>
+argument-hint: "<list of changes to implement>"
 ---
 
 Usage: /pr-parallel <list of changes to implement>

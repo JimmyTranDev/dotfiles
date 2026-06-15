@@ -1,6 +1,6 @@
 ---
 description: Review plan files one by one, presenting each decision with pros/cons for approval or denial
-argument-hint: $ARGUMENTS
+argument-hint: "$ARGUMENTS"
 ---
 
 Usage: /review-plans $ARGUMENTS

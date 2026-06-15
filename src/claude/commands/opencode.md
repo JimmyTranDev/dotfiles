@@ -1,6 +1,6 @@
 ---
 description: Analyze the current project, suggest agents/commands/skills, and create or update AGENTS.md with project conventions
-argument-hint: [focus area or constraints]
+argument-hint: "[focus area or constraints]"
 ---
 
 Usage: /generate-config [focus area or constraints]

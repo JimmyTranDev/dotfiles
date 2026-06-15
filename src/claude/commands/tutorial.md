@@ -1,6 +1,6 @@
 ---
 description: Implement changes one step at a time, explaining each step before and after, pausing for questions between steps
-argument-hint: [description]
+argument-hint: "[description]"
 ---
 
 Usage: /tutorial [description]

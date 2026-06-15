@@ -1,6 +1,6 @@
 ---
 description: Review local uncommitted changes, a PR diff, or a branch diff for correctness and quality
-argument-hint: [PR URL, branch name, or file/directory path]
+argument-hint: "[PR URL, branch name, or file/directory path]"
 ---
 
 Usage: /review [PR URL, branch name, or file/directory path]

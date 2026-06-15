@@ -1,6 +1,6 @@
 ---
 description: Clarify and consolidate Todoist tasks in a section by collecting all decisions then executing in batch
-argument-hint: $ARGUMENTS
+argument-hint: "$ARGUMENTS"
 ---
 
 Usage: /triage-todoist-section $ARGUMENTS

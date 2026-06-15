@@ -1,6 +1,6 @@
 ---
 description: Summarize today's top posts from investment-related subreddits
-argument-hint: $ARGUMENTS
+argument-hint: "$ARGUMENTS"
 ---
 
 Usage: /stock-reddit $ARGUMENTS

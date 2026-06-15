@@ -1,6 +1,5 @@
 ---
 description: Walk through review findings one by one, decide actions for all, then execute
-argument-hint: $ARGUMENTS
 ---
 
 Usage: /triage

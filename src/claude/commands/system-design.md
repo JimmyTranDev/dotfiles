@@ -1,6 +1,6 @@
 ---
 description: Generate a realistic system design problem, walk through solving it step-by-step, and save the solution to ~/notes
-argument-hint: [$ARGUMENTS]
+argument-hint: "[$ARGUMENTS]"
 ---
 
 Usage: /system-design [$ARGUMENTS]
