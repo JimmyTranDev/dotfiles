@@ -220,3 +220,61 @@ elif [ "$(uname)" == "Linux" ]; then
     fi
 fi
 ```
+
+## Common Bash Gotchas
+
+### Multi-character IFS does not join with the full string
+
+`"${array[*]}"` separates elements with only the **first character** of `IFS`,
+never the whole string. Setting `IFS=" | "` joins with a single space.
+
+```bash
+# BAD — intends "a | b | c", actually produces "a b c"
+local IFS=" | "
+echo "${parts[*]}"
+
+# GOOD — join manually for multi-char separators
+local joined="" p
+for p in "${parts[@]}"; do
+    if [[ -n "$joined" ]]; then
+        joined="${joined} | "
+    fi
+    joined="${joined}${p}"
+done
+```
+
+### Millisecond timestamps are not portable (`date +%N`)
+
+GNU `date` supports `%N` (nanoseconds); BSD/macOS `date` does not and emits a
+literal `N` in the output. Detect and fall back to whole-second math.
+
+```bash
+ms="$(date +%s%3N 2>/dev/null)"
+if [[ "$ms" == *N* || -z "$ms" ]]; then   # macOS path: %3N leaked through
+    ms="$(($(date +%s) * 1000))"
+fi
+```
+
+### `find -mtime +N` truncates to whole days
+
+`-mtime +1` matches files older than **2 days**, not 1 (fractional days are
+dropped). Use `-mmin +<minutes>` when you need an exact hour/day threshold
+(e.g. `-mmin +1440` for 24h).
+
+### Hot-path hooks: avoid per-invocation subprocesses
+
+A script wired to a per-tool-call hook (e.g. Claude `PostToolUse`) runs on every
+action. Spawning `find`/`node`/etc. on every call adds avoidable latency. Move
+periodic work (stale-file cleanup) to infrequent events (a `Stop`/teardown hook)
+or background it with `&`.
+
+### Feed `read` loops with a heredoc, not a pipe
+
+`echo "$x" | { read a; read b; }` runs the block in a subshell, so `a`/`b` are
+lost afterward. Use a heredoc group to keep the variables in the current shell:
+
+```bash
+{ IFS= read -r a; IFS= read -r b; } <<EOF
+$payload
+EOF
+```

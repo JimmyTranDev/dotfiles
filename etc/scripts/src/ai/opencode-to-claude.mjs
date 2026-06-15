@@ -2,10 +2,9 @@
 // opencode-to-claude.mjs
 //
 // Generate a Claude Code config (CLAUDE.md, agents/, commands/, skills/,
-// settings.json) from an OpenCode config (AGENTS.md, agent/, command/, skills/,
-// opencode.jsonc). OpenCode is the single source of truth; this output is
-// regenerated and must never be hand-edited. See
-// architecture/0001-claude-config-generated-from-opencode.md.
+// settings.json, .mcp.json, hooks/) from an OpenCode config (AGENTS.md, agent/,
+// command/, skills/, opencode.jsonc, plugins/). OpenCode is the single source of
+// truth; this output is regenerated and must never be hand-edited.
 //
 // Invoked via the opencode-to-claude.sh wrapper. Logs progress to stderr and
 // prints a minified JSON summary to stdout. Exits non-zero on any failed transform.
@@ -13,6 +12,7 @@
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 // --- logging (stderr only; stdout is reserved for the JSON summary) ---
 const RED = "\x1b[0;31m";
@@ -242,6 +242,62 @@ function validateSkill(fields, name) {
   return null;
 }
 
+// Translate the OpenCode `mcp` block into a Claude `.mcp.json` server map.
+//
+// OpenCode shapes:
+//   local:  { type: "local",  command: [bin, ...args], env?, enabled? }
+//   remote: { type: "remote", url: string,             enabled? }
+// Claude shapes:
+//   stdio:  { type: "stdio", command: bin, args: [...], env? }
+//   http:   { type: "http",  url: string }
+//
+// All OpenCode "remote" servers map to Claude "http"; OpenCode does not
+// distinguish SSE from streamable-HTTP, so http is the safe default. Every
+// server whose `enabled === false` is also collected into `disabled` so it
+// appears in settings.json's `disabledMcpjsonServers` (available but off).
+// Unknown types or malformed entries are recorded in `errors` and skipped.
+function translateMcpServers(mcp) {
+  const servers = {};
+  const disabled = [];
+  const errors = [];
+  if (!mcp || typeof mcp !== "object") {
+    return { servers, disabled, errors };
+  }
+  for (const name of Object.keys(mcp).sort()) {
+    const entry = mcp[name];
+    if (!entry || typeof entry !== "object") {
+      errors.push(`mcp ${name}: not an object`);
+      continue;
+    }
+    if (entry.type === "local") {
+      if (!Array.isArray(entry.command) || entry.command.length === 0) {
+        errors.push(`mcp ${name}: local server missing 'command' array`);
+        continue;
+      }
+      const [command, ...args] = entry.command;
+      const server = { type: "stdio", command, args };
+      if (entry.env && typeof entry.env === "object") {
+        server.env = entry.env;
+      }
+      servers[name] = server;
+    } else if (entry.type === "remote") {
+      if (!entry.url || typeof entry.url !== "string") {
+        errors.push(`mcp ${name}: remote server missing 'url'`);
+        continue;
+      }
+      servers[name] = { type: "http", url: entry.url };
+    } else {
+      errors.push(`mcp ${name}: unknown type '${entry.type}'`);
+      continue;
+    }
+    if (entry.enabled === false) {
+      disabled.push(name);
+    }
+  }
+  disabled.sort();
+  return { servers, disabled, errors };
+}
+
 // --- filesystem helpers ---
 
 async function emptyDir(dir) {
@@ -375,7 +431,29 @@ function parseJsonc(text) {
   return JSON.parse(noTrailingCommas);
 }
 
-async function generateSettings(opencodeDir, outDir) {
+// Copy the hand-maintained notification runtime template into the generated
+// tree at hooks/notify.sh (mode 0755). The editable source lives at
+// etc/scripts/src/ai/templates/claude-notify.sh; src/claude/ is never
+// hand-edited. The template path is resolved relative to this module so the
+// generator is independent of the working directory.
+async function generateHooksScript(scriptDir, outDir, failed) {
+  const template = path.join(scriptDir, "templates", "claude-notify.sh");
+  const destDir = path.join(outDir, "hooks");
+  const dest = path.join(destDir, "notify.sh");
+  try {
+    await emptyDir(destDir);
+    await fs.copyFile(template, dest);
+    await fs.chmod(dest, 0o755);
+    logSuccess("Generated hooks/notify.sh");
+    return 1;
+  } catch (err) {
+    failed.push(`hooks: ${err.message}`);
+    logError(`hooks: ${err.message}`);
+    return 0;
+  }
+}
+
+async function generateSettings(opencodeDir, outDir, failed) {
   const src = path.join(opencodeDir, "opencode.jsonc");
   const config = parseJsonc(await fs.readFile(src, "utf8"));
 
@@ -384,25 +462,60 @@ async function generateSettings(opencodeDir, outDir) {
   const allAllow =
     config.permission &&
     Object.values(config.permission).every((v) => v === "allow");
+
+  // Translate the MCP servers up front so settings.json can list the disabled
+  // ones while .mcp.json carries the full server map.
+  const { servers: mcpServers, disabled, errors } = translateMcpServers(
+    config.mcp,
+  );
+  for (const err of errors) {
+    failed.push(err);
+    logError(err);
+  }
+
+  // The notify.sh hook is shipped to ~/.claude/hooks/notify.sh via the
+  // src/claude -> ~/.claude symlink, so reference it by absolute path.
+  const HOOK_COMMAND = "$HOME/.claude/hooks/notify.sh";
+  const hookEntry = (matcher) => {
+    const inner = { hooks: [{ type: "command", command: HOOK_COMMAND }] };
+    if (matcher) {
+      return { matcher, ...inner };
+    }
+    return inner;
+  };
+
   const settings = {
     $schema: "https://json.schemastore.org/claude-code-settings.json",
     permissions: { defaultMode: allAllow ? "bypassPermissions" : "default" },
+    // Sound defaults inherited by notify.sh; mirror the OpenCode plugin.
+    env: {
+      CLAUDE_SOUND_IDLE: "Glass",
+      CLAUDE_SOUND_PERMISSION: "Ping",
+      CLAUDE_SOUND_VOLUME: "0.3",
+    },
+    hooks: {
+      PostToolUse: [hookEntry("*")],
+      Stop: [hookEntry(null)],
+      Notification: [hookEntry(null)],
+    },
   };
+  if (disabled.length > 0) {
+    settings.disabledMcpjsonServers = disabled;
+  }
   await fs.writeFile(
     path.join(outDir, "settings.json"),
     JSON.stringify(settings, null, 2) + "\n",
   );
 
-  // MCP servers map to .mcp.json. They are all disabled today, so emit an empty
-  // server map as a placeholder for when one is enabled per-project.
-  const mcpServers = {};
   await fs.writeFile(
     path.join(outDir, ".mcp.json"),
     JSON.stringify({ mcpServers }, null, 2) + "\n",
   );
 
-  logSuccess("Generated settings.json and .mcp.json");
-  return 1;
+  logSuccess(
+    `Generated settings.json and .mcp.json (${Object.keys(mcpServers).length} MCP servers)`,
+  );
+  return { settings: 1, mcpServers: Object.keys(mcpServers).length };
 }
 
 // --- entry point ---
@@ -413,6 +526,8 @@ function showHelp() {
       "Usage: opencode-to-claude.sh [opencode-dir] [out-dir]",
       "",
       "Generate a Claude Code config from an OpenCode config.",
+      "Generates: CLAUDE.md, agents/, commands/, skills/, hooks/notify.sh,",
+      "settings.json (permissions, env, hooks, disabledMcpjsonServers), .mcp.json.",
       "",
       "Arguments:",
       "  opencode-dir   source OpenCode config (default: src/opencode)",
@@ -455,18 +570,31 @@ async function main() {
   await fs.mkdir(outDir, { recursive: true });
   const failed = [];
 
+  const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+
   const claudeMd = await generateClaudeMd(opencodeDir, outDir);
   const agents = await generateAgents(opencodeDir, outDir, failed);
   const commands = await generateCommands(opencodeDir, outDir, failed);
   const skills = await generateSkills(opencodeDir, outDir, failed);
-  const settings = await generateSettings(opencodeDir, outDir);
+  const hooks = await generateHooksScript(scriptDir, outDir, failed);
+  const { settings, mcpServers } = await generateSettings(
+    opencodeDir,
+    outDir,
+    failed,
+  );
+
+  // tui.jsonc has no Claude equivalent (TUI appearance is OpenCode-only); skip
+  // it explicitly so the omission is intentional and visible.
+  logInfo("Skipping tui.jsonc — no Claude equivalent");
 
   const summary = {
     claudeMd,
     agents,
     commands,
     skills,
+    hooks,
     settings,
+    mcpServers,
     failed,
   };
   process.stdout.write(JSON.stringify(summary) + "\n");

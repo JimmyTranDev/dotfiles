@@ -32,7 +32,7 @@ When a user request is vague, ambiguous, or could be interpreted in multiple way
 src/opencode/
 ├── AGENTS.md               # Global LLM rules
 ├── opencode.jsonc           # OpenCode project config
-├── tui.json                 # TUI appearance config
+├── tui.jsonc                # TUI appearance config
 ├── agent/                   # Specialized subagents
 │   ├── auditor.md
 │   ├── critic.md
@@ -88,7 +88,7 @@ src/opencode/
 │   ├── tutorial.md
 │   └── weekly-summary.md
 ├── plugins/                 # Event-driven plugins
-│   └── sound-notification.js
+│   └── notification.js
 └── skills/                  # On-demand knowledge (auto-discovered)
     ├── code-consolidator/
     ├── code-conventions/
@@ -319,7 +319,7 @@ All scripts output **minified JSON** to stdout, log to stderr via `log_*` helper
 | `scan-style.sh [dir]` | Gather file stats, naming patterns, and code samples for style analysis | Replaces manual file sampling |
 | `spec-cleanup.sh <file>` | Remove consumed spec file after successful implementation with git-aware deletion | Replaces manual spec file cleanup |
 | `version-bump.sh [minor\|major] [--dry-run] [--dir path]` | Bump minor or major version across all monorepo workspaces + app.json | Replaces manual version editing |
-| `opencode-to-claude.sh [opencode-dir] [out-dir]` | Regenerate `src/claude/` Claude Code config from `src/opencode/` (agents, commands, skills, CLAUDE.md, settings) | Replaces manual config porting; run after editing `src/opencode/` |
+| `opencode-to-claude.sh [opencode-dir] [out-dir]` | Regenerate `src/claude/` Claude Code config from `src/opencode/` (agents, commands, skills, CLAUDE.md, settings, hooks/notify.sh, and MCP servers in .mcp.json) | Replaces manual config porting; run after editing `src/opencode/` |
 
 **When to use**: Any time a command or agent needs to detect the tech stack, find the base branch, run tests, run linting, install dependencies, check PR status, or perform any operation listed above — call the script instead of reimplementing with multiple tool calls.
 

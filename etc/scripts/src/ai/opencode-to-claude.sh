@@ -2,10 +2,9 @@
 set -e
 
 # Thin wrapper around opencode-to-claude.mjs. Generates a Claude Code config
-# (CLAUDE.md, agents/, commands/, skills/, settings.json) from the OpenCode
-# config. OpenCode is the single source of truth; the output is regenerated and
-# must never be hand-edited.
-# See architecture/0001-claude-config-generated-from-opencode.md.
+# (CLAUDE.md, agents/, commands/, skills/, hooks/, settings.json, .mcp.json)
+# from the OpenCode config. OpenCode is the single source of truth; the output
+# is regenerated and must never be hand-edited.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
