@@ -152,6 +152,7 @@ src/opencode/
 - Agents in `agent/` are subagents launched via the Task tool
 - Commands in `command/` are slash commands invoked with `/name`
 - Skills in `skills/<name>/SKILL.md` are auto-discovered and loaded on demand via the Skill tool
+- `src/claude/` (symlinked to `~/.claude/`) is **generated** from this `src/opencode/` tree by `etc/scripts/src/ai/opencode-to-claude.sh`. OpenCode is the single source of truth — never hand-edit `src/claude/`; edit here and re-run the converter to regenerate it.
 
 ## Agent Modes and Permission Matrix
 
@@ -318,6 +319,7 @@ All scripts output **minified JSON** to stdout, log to stderr via `log_*` helper
 | `scan-style.sh [dir]` | Gather file stats, naming patterns, and code samples for style analysis | Replaces manual file sampling |
 | `spec-cleanup.sh <file>` | Remove consumed spec file after successful implementation with git-aware deletion | Replaces manual spec file cleanup |
 | `version-bump.sh [minor\|major] [--dry-run] [--dir path]` | Bump minor or major version across all monorepo workspaces + app.json | Replaces manual version editing |
+| `opencode-to-claude.sh [opencode-dir] [out-dir]` | Regenerate `src/claude/` Claude Code config from `src/opencode/` (agents, commands, skills, CLAUDE.md, settings) | Replaces manual config porting; run after editing `src/opencode/` |
 
 **When to use**: Any time a command or agent needs to detect the tech stack, find the base branch, run tests, run linting, install dependencies, check PR status, or perform any operation listed above — call the script instead of reimplementing with multiple tool calls.
 
