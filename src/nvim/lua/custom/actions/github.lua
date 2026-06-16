@@ -202,38 +202,6 @@ function M.copy_open_prs()
   )
 end
 
-function M.select_own_open_prs()
-  local valid_owners = github_utils.get_github_owners()
-
-  if #valid_owners == 0 then
-    vim.notify('No GitHub organizations configured in environment', vim.log.levels.ERROR)
-    return
-  end
-
-  github_utils.fetch_my_prs_across_owners(valid_owners, {}, function(all_prs)
-    if #all_prs == 0 then
-      vim.notify('No open PRs found', vim.log.levels.INFO)
-      return
-    end
-
-    table.sort(all_prs, function(a, b) return a.repo < b.repo end)
-
-    local snacks_ok, snacks = pcall(require, 'snacks')
-    if not snacks_ok then return end
-
-    snacks.picker({
-      title = 'My Open PRs',
-      items = all_prs,
-      format = function(item) return { { item.text, 'Normal' } } end,
-      confirm = function(picker, item)
-        picker:close()
-        file_utils.open(item.url)
-        vim.notify('Opened PR #' .. item.number .. ' in browser', vim.log.levels.INFO)
-      end,
-    })
-  end)
-end
-
 function M.select_and_copy_pr()
   local valid_owners = github_utils.get_github_owners()
 
@@ -446,7 +414,63 @@ local function fetch_and_show_prs(org_name, usernames)
   vim.notify('Fetching open PRs for ' .. #usernames .. ' team members...', vim.log.levels.INFO)
 
   local all_prs = {}
+  local seen_urls = {}
   local pending = #usernames
+
+  local function add_pr(pr)
+    if pr.url and seen_urls[pr.url] then return end
+    if pr.url then seen_urls[pr.url] = true end
+    table.insert(all_prs, pr)
+  end
+
+  local function show_picker()
+    if #all_prs == 0 then
+      vim.notify('No open PRs found for team members', vim.log.levels.INFO)
+      return
+    end
+
+    table.sort(all_prs, function(a, b)
+      if a.author ~= b.author then return a.author < b.author end
+      return a.repo < b.repo
+    end)
+
+    github_utils.append_review_decisions(all_prs, function(enriched_prs)
+      local snacks_ok, snacks = pcall(require, 'snacks')
+      if not snacks_ok then return end
+
+      snacks.picker({
+        title = 'Open PRs by People',
+        items = enriched_prs,
+        format = function(item) return { { item.text, 'Normal' } } end,
+        confirm = function(picker, item)
+          picker:close()
+          file_utils.open(item.url)
+          vim.notify('Opened PR #' .. item.number .. ' in browser', vim.log.levels.INFO)
+        end,
+      })
+    end)
+  end
+
+  -- After team PRs are collected, merge in the current user's own open PRs
+  -- across all configured owners (previously the standalone `ugm` picker).
+  local function merge_my_prs_and_show()
+    github_utils.get_current_login(function(my_login)
+      github_utils.fetch_my_prs_across_owners(github_utils.get_github_owners(), {}, function(my_prs)
+        for _, pr in ipairs(my_prs) do
+          local author = my_login or 'me'
+          add_pr({
+            text = string.format('[%s] #%d %s [%s]', author, pr.number, pr.title, pr.repo),
+            number = pr.number,
+            title = pr.title,
+            url = pr.url,
+            repo = pr.repo,
+            author = author,
+          })
+        end
+        show_picker()
+      end)
+    end)
+  end
 
   for _, username in ipairs(usernames) do
     vim.system(
@@ -472,7 +496,7 @@ local function fetch_and_show_prs(org_name, usernames)
           if ok and type(prs) == 'table' then
             for _, pr in ipairs(prs) do
               local repo_name = pr.repository and pr.repository.nameWithOwner or ''
-              table.insert(all_prs, {
+              add_pr({
                 text = string.format('[%s] #%d %s [%s]', username, pr.number, pr.title, repo_name),
                 number = pr.number,
                 title = pr.title,
@@ -487,29 +511,7 @@ local function fetch_and_show_prs(org_name, usernames)
         pending = pending - 1
         if pending > 0 then return end
 
-        if #all_prs == 0 then
-          vim.notify('No open PRs found for team members', vim.log.levels.INFO)
-          return
-        end
-
-        table.sort(all_prs, function(a, b)
-          if a.author ~= b.author then return a.author < b.author end
-          return a.repo < b.repo
-        end)
-
-        local snacks_ok, snacks = pcall(require, 'snacks')
-        if not snacks_ok then return end
-
-        snacks.picker({
-          title = 'Open PRs by People',
-          items = all_prs,
-          format = function(item) return { { item.text, 'Normal' } } end,
-          confirm = function(picker, item)
-            picker:close()
-            file_utils.open(item.url)
-            vim.notify('Opened PR #' .. item.number .. ' in browser', vim.log.levels.INFO)
-          end,
-        })
+        merge_my_prs_and_show()
       end)
     )
   end
@@ -1073,16 +1075,37 @@ local function fetch_notifications(callback)
   )
 end
 
+local COMMENT_REASONS = { comment = true, mention = true, team_mention = true }
+
+--- Keep only notifications whose reason is a comment or mention.
+---@param notifications table[]
+---@return table[]
+local function filter_comment_notifications(notifications)
+  local filtered = {}
+  for _, notif in ipairs(notifications) do
+    if COMMENT_REASONS[notif.reason] then
+      table.insert(filtered, notif)
+    end
+  end
+  return filtered
+end
+
 function M.show_notifications()
   fetch_notifications(function(notifications)
-    show_notifications_picker(notifications, nil)
+    local filtered = filter_comment_notifications(notifications)
+    if #filtered == 0 then
+      vim.notify('No comment or mention notifications', vim.log.levels.INFO)
+      return
+    end
+    show_notifications_picker(filtered, 'Comments & Mentions')
   end)
 end
 
 ---@param org_name string
 ---@param slugs string[]
 ---@param label string
-local function fetch_notifications_for_team(org_name, slugs, label)
+---@param comment_only boolean|nil when true, keep only comment/mention notifications
+local function fetch_notifications_for_team(org_name, slugs, label, comment_only)
   get_team_members_for_slugs(org_name, slugs, function(usernames)
     if #usernames == 0 then
       vim.notify('No members found for selected team', vim.log.levels.WARN)
@@ -1095,6 +1118,9 @@ local function fetch_notifications_for_team(org_name, slugs, label)
     end
 
     fetch_notifications(function(notifications)
+      if comment_only then
+        notifications = filter_comment_notifications(notifications)
+      end
       vim.notify('Resolving notification authors...', vim.log.levels.INFO)
       local pending = #notifications
       local author_map = {}
@@ -1184,7 +1210,7 @@ function M.show_notifications_by_default_team()
     return
   end
 
-  fetch_notifications_for_team(org_name, { team_slugs[1] }, team_slugs[1])
+  fetch_notifications_for_team(org_name, { team_slugs[1] }, team_slugs[1], true)
 end
 
 function M.redeploy_pr()

@@ -1,5 +1,20 @@
 local M = {}
 
+--- Format a GitHub PR reviewDecision into an emoji indicator.
+---@param decision string|nil one of APPROVED, CHANGES_REQUESTED, REVIEW_REQUIRED, or empty
+---@return string emoji
+function M.format_review_decision(decision)
+  local emojis = {
+    APPROVED = '✅',
+    CHANGES_REQUESTED = '❌',
+    REVIEW_REQUIRED = '⏳',
+  }
+  if not decision or decision == '' then
+    return '⏳'
+  end
+  return emojis[decision] or '⏳'
+end
+
 function M.get_pulls(repo)
   local result = vim.fn.system({ 'gh', 'pr', 'list', '--repo', repo, '--json', 'number,title,url,state' })
   if vim.v.shell_error ~= 0 then return {} end
@@ -32,6 +47,28 @@ function M.get_github_owners()
   end
 
   return valid
+end
+
+local cached_login = nil
+
+--- Resolve the current authenticated GitHub login, cached after first lookup.
+---@param callback fun(login: string|nil)
+function M.get_current_login(callback)
+  if cached_login then
+    callback(cached_login)
+    return
+  end
+
+  vim.system(
+    { 'gh', 'api', 'user', '--jq', '.login' },
+    { text = true },
+    vim.schedule_wrap(function(result)
+      if result.code == 0 and result.stdout and result.stdout ~= '' then
+        cached_login = vim.trim(result.stdout)
+      end
+      callback(cached_login)
+    end)
+  )
 end
 
 function M.fetch_my_prs_across_owners(owners, opts, callback)
@@ -88,6 +125,54 @@ function M.fetch_my_prs_across_owners(owners, opts, callback)
         if pending == 0 then callback(all_prs) end
       end)
     )
+  end
+end
+
+--- Enrich a list of PR items with their review decision, rebuilding each item's
+--- `text` to include an approval emoji right after the username (or at the start
+--- when there is no username). `gh search prs` cannot return reviewDecision, so
+--- it is fetched per PR here.
+---@param prs table[] items with `repo`, `number`, `title`, optional `author`
+---@param callback fun(prs: table[])
+function M.append_review_decisions(prs, callback)
+  if #prs == 0 then
+    callback(prs)
+    return
+  end
+
+  local function apply(pr, decision)
+    pr.review_decision = decision
+    local emoji = M.format_review_decision(decision)
+    if pr.author then
+      pr.text = string.format('[%s] %s #%d %s [%s]', pr.author, emoji, pr.number, pr.title, pr.repo)
+    else
+      pr.text = string.format('%s #%d %s [%s]', emoji, pr.number, pr.title, pr.repo)
+    end
+  end
+
+  local pending = #prs
+
+  for _, pr in ipairs(prs) do
+    if not pr.repo or pr.repo == '' or not pr.number then
+      apply(pr, nil)
+      pending = pending - 1
+      if pending == 0 then callback(prs) end
+    else
+      vim.system(
+        { 'gh', 'pr', 'view', tostring(pr.number), '--repo', pr.repo, '--json', 'reviewDecision' },
+        { text = true },
+        vim.schedule_wrap(function(result)
+          local decision = nil
+          if result.code == 0 and result.stdout and result.stdout ~= '' then
+            local ok, data = pcall(vim.fn.json_decode, result.stdout)
+            if ok and type(data) == 'table' then decision = data.reviewDecision end
+          end
+          apply(pr, decision)
+          pending = pending - 1
+          if pending == 0 then callback(prs) end
+        end)
+      )
+    end
   end
 end
 
