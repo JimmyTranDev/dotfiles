@@ -16,6 +16,10 @@ main() {
 		exit 0
 	fi
 
+	# Let any preceding native tab action (NewTab/CloseTab/MoveTab dispatched
+	# from the same keybind) settle before querying the tab list.
+	sleep 0.1
+
 	local tabs_json
 	tabs_json=$(zellij action list-tabs --json 2>/dev/null)
 	if [[ -z "$tabs_json" ]]; then

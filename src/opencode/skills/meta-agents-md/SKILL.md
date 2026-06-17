@@ -71,6 +71,7 @@ This file contains repo-specific context:
    - Add new sections with `##` headers
    - Keep rules as bullet points or tables
    - Preserve existing section ordering
+   - When inserting a new command/agent/skill into the OpenCode Config Structure tree, match `ls` byte ordering (`-` sorts before `.`, so `foo-bar.md` precedes `foo.md`); the Utility Command Reference table instead uses plain alphabetical ordering
    - Do not duplicate content that belongs in a skill
 
 4. If both files share a section (e.g., Universal Rules), update both to stay in sync

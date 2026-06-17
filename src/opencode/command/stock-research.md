@@ -8,7 +8,7 @@ Usage: /stock-research $ARGUMENTS
 
 $ARGUMENTS
 
-Research the given stock ticker(s) and produce a comprehensive buy/sell analysis report. If multiple tickers are provided, produce individual reports followed by a comparison table.
+Research the given stock ticker(s) and produce a comprehensive buy/sell analysis report. If multiple tickers are provided, produce individual reports followed by a comparison table. Pass `--focus` (or "all from focus list") to research every ticker in the focus list — see **Focus List Mode**.
 
 ## Output Structure
 
@@ -35,7 +35,10 @@ If a saved report already exists for the same ticker (any previous date in `~/Pr
 
 ## Workflow
 
-1. Parse `$ARGUMENTS` for ticker symbol(s). If none found, ask the user which stock(s) to analyze. If multiple tickers are provided (e.g., `ASTS RKLB`), analyze each individually then produce a comparison section at the end.
+1. Parse `$ARGUMENTS` for ticker symbol(s) or focus-list mode:
+   - If `$ARGUMENTS` contains `--focus` (or a phrase like "all from focus list"), enter **Focus List Mode** (see below) and research every ticker in the focus list.
+   - Otherwise, parse ticker symbol(s). If none found, ask the user which stock(s) to analyze.
+   - If multiple tickers are provided (e.g., `ASTS RKLB`) or focus mode yields multiple tickers, analyze each individually then produce a comparison section at the end.
 
 2. Fetch data from multiple sources in parallel for each ticker:
    - `https://finance.yahoo.com/quote/<TICKER>/` for price, market cap, PE, EPS, volume, 52-week range, earnings date, analyst targets
@@ -210,6 +213,33 @@ Use directional indicators throughout the report for any metric that has a trend
 
 Apply to: SMA trend directions, revenue/EPS growth, analyst target changes, sentiment shifts, insider transaction trends.
 
+## Focus List Mode
+
+When `$ARGUMENTS` contains `--focus` (or "all from focus list"), research every ticker in the focus list instead of (or in addition to) any tickers passed explicitly.
+
+The focus list lives at `~/Programming/JimmyTranDev/dotfiles/src/opencode/stock-focus-list.json`:
+
+```json
+{
+  "tickers": [
+    { "ticker": "ASTS", "target_weight": null, "notes": "..." }
+  ]
+}
+```
+
+- `ticker` (required): the symbol to research
+- `target_weight` (optional number): target portfolio weight as a percent — surface it in the Position Sizing & Risk Management section when set
+- `notes` (optional string): freeform context to factor into the thesis
+
+Behavior:
+1. Read the focus list and collect every `ticker` value, preserving order. Deduplicate repeated symbols so each is researched once.
+2. Research each ticker individually using the standard workflow above, emitting one full report per ticker (each saved to its own `<TICKER>/<YYYY-MM-DD>.md`), then a Head-to-Head Comparison at the end (same as a multi-ticker run).
+3. If explicit tickers are ALSO passed alongside `--focus`, merge them with the focus-list tickers (deduplicated) and research the combined set.
+
+Edge cases:
+- **Empty focus list** (missing file, or `tickers` is empty): print `Focus list is empty — nothing to research.` and exit cleanly without fetching anything or saving files.
+- **Invalid / unresolvable ticker** (no data on any source — 404 across Yahoo, Finviz, and StockAnalysis): skip it with a warning like `Skipping <TICKER>: no data found on any source` and continue the batch. Never abort the whole run for one bad ticker.
+
 ## Multi-Ticker Comparison
 
 When multiple tickers are analyzed, add a final section after all individual reports:
@@ -242,4 +272,5 @@ For multi-ticker runs, save individual report files per ticker (each in their ow
 - Position sizing suggestions should be conservative -- never suggest more than 5% of portfolio for speculative stocks
 - If a previous report exists for the same ticker but data cannot be compared meaningfully, skip the "Changes Since Last Report" section
 - If repeat analysis is run on the same day, overwrite the existing file (same date = same filename)
+- In Focus List Mode, an empty focus list exits cleanly with "nothing to research"; an invalid ticker is skipped with a warning and the batch continues
 - After saving the report, commit and push the notes repo: `git -C ~/Programming/JimmyTranDev/notes add -A && git -C ~/Programming/JimmyTranDev/notes commit -m "stock(<TICKER>): report <YYYY-MM-DD>" && git -C ~/Programming/JimmyTranDev/notes push`

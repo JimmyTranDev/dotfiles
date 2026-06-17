@@ -52,6 +52,7 @@ src/opencode/
 │   ├── stock-researcher.md
 │   └── tester.md
 ├── command/                 # Slash commands (/name)
+│   ├── clarify-todoist.md
 │   ├── clarify.md
 │   ├── commit.md
 │   ├── fix-conflict.md
@@ -60,9 +61,11 @@ src/opencode/
 │   ├── implement-parallel.md
 │   ├── implement-sequential.md
 │   ├── implement.md
+│   ├── innovate-opencode.md
 │   ├── insight.md
 │   ├── learn-nvim.md
 │   ├── learn-opencode.md
+│   ├── learn.md
 │   ├── merge.md
 │   ├── npm-audit-fix.md
 │   ├── opencode.md
@@ -204,10 +207,13 @@ The common "global engineering team" roles already map to existing agents — re
 | Command | Purpose |
 |---------|---------|
 | `clarify` | Ask clarifying questions before implementation |
+| `clarify-todoist` | Walk through Todoist tasks with per-task explain/downgrade/delete/skip options |
 | `commit` | Create a well-formatted git commit |
 | `fix` | Diagnose and fix a bug or issue |
 | `fms` | Generate FMS translation JSON (Norwegian/English i18n keys) |
+| `innovate-opencode` | Brainstorm and propose improvements to the local OpenCode config |
 | `insight` | Generate insights from codebase patterns |
+| `learn` | Create or update skills from session learnings |
 | `merge` | Merge current branch into base |
 | `npm-audit-fix` | Audit npm/pnpm dependencies and apply safe vulnerability fixes |
 | `refactor` | Restructure code (extract, inline, rename, move, split, consolidate) preserving behavior |
@@ -293,6 +299,7 @@ All scripts output **minified JSON** to stdout, log to stderr via `log_*` helper
 | `install-deps.sh [--frozen] [dir]` | Auto-detect package manager and install dependencies | Replaces manual lockfile inspection + install |
 | `lint-check.sh [--fix] [dir]` | Auto-detect linter and run it (eslint/biome/ruff/clippy/checkstyle) | Replaces manual linter detection and execution |
 | `run-tests.sh [dir]` | Auto-detect test framework and run tests with coverage | Replaces manual test runner detection |
+| `uncommitted-coverage.sh [--no-run] [dir]` | Test coverage of currently-uncommitted (changed) lines vs the project coverage report | Replaces manual diff + coverage cross-referencing |
 | `check-deps.sh [dir]` | Dependency outdated check + security audit | Replaces manual `npm outdated` / `npm audit` calls |
 | `pr-status.sh [--mine]` | List open PRs with check/review/merge status | Replaces `gh pr list` + `gh pr view` chains |
 | `scaffold-spec.sh <prefix> <name> [--todoist url] [--dir path]` | Create plans/*.md with standard sections | Replaces manual spec file boilerplate |

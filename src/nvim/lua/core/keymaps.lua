@@ -102,6 +102,7 @@ maps('n', {
   { '<leader>cf', file_actions.copy_frontend_project_paths, '󰆓 Copy: frontend project paths' },
   { '<leader>cr', file_actions.copy_repo_path, '󰆓 Copy: repo path' },
   { '<leader>cR', project_actions.copy_project_path, '󰆓 Copy: project path (pick)' },
+  { '<leader>cg', project_actions.pull_and_copy_project_path, '󰆓 Copy: pull repo + copy path' },
   { '<leader>cs', git_actions.stash_pull_rebase, '󰓦 Git: stash + pull --rebase + pop' },
   { '<leader>cu', file_actions.copy_current_file_url, '󰆓 Copy: current file URL' },
   { '<leader>co', file_actions.copy_opencode_link, '󰆓 Copy: OpenCode link' },
@@ -131,18 +132,24 @@ map('n', '<Leader>Q', ':qa!<CR>', { desc = '󰩈 Force quit all' })
 map('n', '<Leader>w', ':w<CR>', { desc = '󰆓 Write' })
 map('n', '<Leader>W', ':wa<CR>', { desc = '󰆓 Write all' })
 
-map('n', '<Leader>rt', todoist_actions.log_todoist_task_all_projects(), { desc = '󰌱 Log todoist task' })
-map('n', '<Leader>rT', todoist_actions.edit_recent_task, { desc = '󰌱 Edit recent Todoist task' })
-map('n', '<Leader>rD', todoist_actions.delete_recent_task, { desc = '󰌱 Delete recent Todoist task' })
-map('n', '<Leader>rw', jira_actions.create_jira_task(), { desc = '󰌱 Create Jira task' })
-map('n', '<Leader>rW', jira_actions.create_jira_task_with_link(), { desc = '󰌱 Create Jira task + open link' })
-map('n', '<Leader>rj', journal_actions.add_journal_entry, { desc = '󰌱 Add journal entry' })
-map('n', '<Leader>rJ', journal_actions.open_journal, { desc = '󰌱 Open journal' })
-map('n', '<Leader>rr', notes_actions.quick_note, { desc = ' Quick note' })
-map('n', '<Leader>rp', notes_actions.add_notes_entry, { desc = '󰌱 Add notes entry' })
-map('n', '<Leader>rn', notes_actions.add_sentence, { desc = '󰌱 Add sentence to notes' })
-map('n', '<Leader>rN', notes_actions.save_task, { desc = '󰌱 Save task to notes' })
-map('n', '<Leader>rc', jira_actions.add_comment_from_branch, { desc = '󰌱 Add Jira comment from branch' })
+-- <leader>r — Capture & Log
+maps('n', {
+  { '<Leader>rt', todoist_actions.log_todoist_task_all_projects(), '󰌱 Todoist: log task' },
+  { '<Leader>rT', todoist_actions.edit_recent_task, '󰌱 Todoist: edit recent task' },
+  { '<Leader>rD', todoist_actions.delete_recent_task, '󰌱 Todoist: delete recent task' },
+  { '<Leader>rw', jira_actions.create_jira_task(), '󰌱 Jira: create task' },
+  { '<Leader>rW', jira_actions.create_jira_task_with_link(), '󰌱 Jira: create task + open link' },
+  { '<Leader>rc', jira_actions.add_comment_from_branch, '󰌱 Jira: comment from branch' },
+  { '<Leader>rj', journal_actions.add_journal_entry, '󰌱 Journal: add entry' },
+  { '<Leader>rJ', journal_actions.open_journal, '󰌱 Journal: open' },
+  { '<Leader>rr', notes_actions.quick_note, '󰌱 Notes: quick note' },
+  { '<Leader>rp', notes_actions.add_notes_entry, '󰌱 Notes: person entry' },
+  { '<Leader>rn', notes_actions.add_sentence, '󰌱 Notes: add sentence' },
+  { '<Leader>rN', notes_actions.save_task, '󰌱 Notes: save task' },
+  { '<Leader>rs', notes_actions.save_to_notes, '󰌱 Notes: quick save' },
+  { '<Leader>rk', notes_actions.add_work_note, '󰌱 Work: add note' },
+  { '<Leader>rK', notes_actions.search_work_notes, '󰌱 Work: search notes' },
+})
 
 maps('n', {
   { '<leader>zc', ':Lazy clean<CR>', '󰒲 Lazy clean' },
@@ -193,8 +200,8 @@ map('n', '<Leader>ujt', jira_actions.browse_recently_updated_tasks, { desc = '�
 -- Links sub-group (<leader>ul)
 map('n', '<Leader>ull', link_actions.open_useful_link, { desc = '󰦥 Links: useful links' })
 map('n', '<Leader>ulL', link_actions.open_private_useful_link, { desc = '󰦥 Links: private links' })
-map('n', '<Leader>ult', link_actions.open_technical_link_current_repo, { desc = '󰦥 Links: technical (repo)' })
-map('n', '<Leader>ulT', link_actions.open_technical_link, { desc = '󰦥 Links: technical (select)' })
+map('n', '<Leader>ult', link_actions.open_technical_link, { desc = '󰦥 Links: technical (select)' })
+map('n', '<Leader>ulT', link_actions.open_technical_link_current_repo, { desc = '󰦥 Links: technical (repo)' })
 
 -- Search
 map('n', '<Leader>us', link_actions.search_google, { desc = '󰦥 Search: Google' })

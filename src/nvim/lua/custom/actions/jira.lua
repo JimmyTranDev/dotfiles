@@ -207,7 +207,7 @@ local function fetch_parent_issues(callback, force_refresh)
   )
 end
 
-local function create_jira_task_workflow(summary, fallback_project, should_open_link)
+local function create_jira_task_workflow(summary, description, fallback_project, should_open_link)
   local select_project, select_type, select_label, select_parent
 
   select_project = function()
@@ -287,15 +287,17 @@ local function create_jira_task_workflow(summary, fallback_project, should_open_
         local assignee_email = get_current_user_email()
         local assignee_flag = assignee_email and string.format(' --assignee "%s"', assignee_email) or ''
         local label_flag = selected_label.value and string.format(' --label "%s"', selected_label.value) or ''
+        local description_flag = (description and description ~= '') and string.format(' --description "%s"', description:gsub('"', '\\"')) or ''
 
         local cmd = string.format(
-          'acli jira workitem create --summary "%s" --project "%s" --type "%s" --parent "%s"%s%s',
+          'acli jira workitem create --summary "%s" --project "%s" --type "%s" --parent "%s"%s%s%s',
           summary:gsub('"', '\\"'),
           project,
           selected_type.value,
           selected_parent.value,
           assignee_flag,
-          label_flag
+          label_flag,
+          description_flag
         )
 
         vim.notify('Creating Jira task...', vim.log.levels.INFO)
@@ -375,10 +377,11 @@ end
 local function create_task_handler(should_open_link)
   return function(fallback_project)
     return function()
-      get_user_input(
-        'Enter task summary: ',
-        function(summary) create_jira_task_workflow(summary, fallback_project or CONFIG.DEFAULT_PROJECT, should_open_link) end
-      )
+      get_user_input('Enter task summary: ', function(summary)
+        vim.ui.input({ prompt = 'Enter description (optional): ' }, function(description)
+          create_jira_task_workflow(summary, description, fallback_project or CONFIG.DEFAULT_PROJECT, should_open_link)
+        end)
+      end)
     end
   end
 end

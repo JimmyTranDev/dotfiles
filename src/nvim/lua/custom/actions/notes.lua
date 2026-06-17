@@ -9,6 +9,8 @@ local ui_utils = require('custom.utils.ui')
 local NOTES_PATH = vim.fn.expand('~/Programming/JimmyTranDev/notes/people')
 local SENTENCES_PATH = vim.fn.expand('~/Programming/JimmyTranDev/notes/notes')
 local TASKS_FILE = vim.fn.expand('~/Programming/JimmyTranDev/notes/tasks.md')
+local WORK_NOTES_PATH = vim.fn.expand('~/Programming/JimmyTranDev/notes/work')
+local QUICK_NOTES_FILE = vim.fn.expand('~/Programming/JimmyTranDev/notes/quick.md')
 
 local function get_md_files(dir)
   local files = {}
@@ -103,6 +105,79 @@ function M.add_sentence()
           vim.notify('Failed to write sentence', vim.log.levels.ERROR)
         end
       end)
+    end
+  end)
+end
+
+function M.add_work_note()
+  local files = get_md_files(WORK_NOTES_PATH)
+  local options = { { name = '+ Create new topic', is_new = true } }
+  for _, file in ipairs(files) do
+    table.insert(options, { name = file:gsub('%.md$', ''), filename = file })
+  end
+
+  ui_utils.safe_select(options, {
+    prompt = 'Select work topic:',
+    format_item = function(item) return item.name end,
+  }, function(selected)
+    if selected.is_new then
+      vim.ui.input({ prompt = 'New topic name: ' }, function(name)
+        if not name or name == '' then return end
+        local filename = name:gsub('%s+', '-'):lower() .. '.md'
+        local filepath = WORK_NOTES_PATH .. '/' .. filename
+        vim.ui.input({ prompt = 'Entry: ' }, function(entry)
+          if not entry or entry == '' then return end
+          entry = string_utils.capitalize_first_char(entry)
+          file_utils.ensure_directory_exists(filepath)
+          local lines = { '# ' .. name, '', entry .. '  ' }
+          if file_utils.write_lines(filepath, lines) then
+            vim.notify('Work note created: ' .. filename, vim.log.levels.INFO)
+            git_utils.sync_notes_repo()
+          else
+            vim.notify('Failed to create work note', vim.log.levels.ERROR)
+          end
+        end)
+      end)
+    else
+      local filepath = WORK_NOTES_PATH .. '/' .. selected.filename
+      vim.ui.input({ prompt = 'Entry for ' .. selected.name .. ': ' }, function(entry)
+        if not entry or entry == '' then return end
+        entry = string_utils.capitalize_first_char(entry)
+        local lines = file_utils.read_lines(filepath)
+        table.insert(lines, entry .. '  ')
+        if file_utils.write_lines(filepath, lines) then
+          vim.notify('Entry added to ' .. selected.name, vim.log.levels.INFO)
+          git_utils.sync_notes_repo()
+        else
+          vim.notify('Failed to write entry', vim.log.levels.ERROR)
+        end
+      end)
+    end
+  end)
+end
+
+function M.search_work_notes()
+  if vim.fn.isdirectory(WORK_NOTES_PATH) == 0 then
+    vim.notify('No work notes directory found', vim.log.levels.WARN)
+    return
+  end
+  Snacks.picker.grep({ cwd = WORK_NOTES_PATH, hidden = true })
+end
+
+function M.save_to_notes()
+  vim.ui.input({ prompt = 'Save to notes: ' }, function(input)
+    if not input or input == '' then return end
+    input = string_utils.capitalize_first_char(input)
+    local lines = file_utils.read_lines(QUICK_NOTES_FILE)
+    if #lines == 0 then
+      lines = { '# Quick Notes', '' }
+    end
+    table.insert(lines, '- ' .. os.date('%Y-%m-%d %H:%M') .. ' — ' .. input)
+    if file_utils.write_lines(QUICK_NOTES_FILE, lines) then
+      vim.notify('Saved to notes', vim.log.levels.INFO)
+      git_utils.sync_notes_repo()
+    else
+      vim.notify('Failed to save note', vim.log.levels.ERROR)
     end
   end)
 end

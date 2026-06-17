@@ -46,11 +46,11 @@ keybinds clear-defaults=true {
         bind "j" { GoToNextTab; }
         bind "k" { GoToPreviousTab; }
         bind "l" { GoToNextTab; }
-        bind "n" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/new_tab_and_reindex.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        bind "n" { NewTab; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
         bind "r" { SwitchToMode "renametab"; TabNameInput 0; }
         bind "s" { ToggleActiveSyncTab; SwitchToMode "locked"; }
         bind "t" { SwitchToMode "normal"; }
-        bind "x" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/close_and_reindex.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        bind "x" { CloseTab; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
         bind "tab" { ToggleTab; }
     }
     resize {
@@ -124,15 +124,15 @@ keybinds clear-defaults=true {
     }
     shared_among "normal" "locked" {
         bind "Alt r" { SwitchToMode "renametab"; TabNameInput 0; }
-        bind "Alt n" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/new_tab_and_reindex.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
-        bind "Alt q" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/close_and_reindex.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        bind "Alt n" { NewTab; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
+        bind "Alt q" { CloseTab; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
         bind "Alt ," { GoToPreviousTab; }
         bind "Alt ." { GoToNextTab; }
-        bind "Alt i" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/move_tab_and_reindex.sh left" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
-        bind "Alt o" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/move_tab_and_reindex.sh right" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        bind "Alt i" { MoveTab "Left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
+        bind "Alt o" { MoveTab "Right"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
         // Alt a: open a plain new tab, then build a 2x2 grid of 4 opencode panes by splitting inside it, then reindex tabs. Requires $ZELLIJ + opencode installed.
         bind "Alt a" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_opencode_quad.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
-        bind "Alt y" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        bind "Alt y" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
 
         bind "Alt d" { NewPane "down"; SwitchToMode "locked"; }
         bind "Alt e" { NewPane "right"; SwitchToMode "locked"; }
@@ -142,6 +142,10 @@ keybinds clear-defaults=true {
         bind "Alt down" { MoveFocus "down"; }
         bind "Alt up" { MoveFocus "up"; }
         bind "Alt right" { MoveFocus "right"; }
+        bind "Alt h" { MoveFocus "left"; }
+        bind "Alt j" { MoveFocus "down"; }
+        bind "Alt k" { MoveFocus "up"; }
+        bind "Alt l" { MoveFocus "right"; }
 
         bind "Alt 1" { GoToTab 1; SwitchToMode "locked"; }
         bind "Alt 2" { GoToTab 2; SwitchToMode "locked"; }

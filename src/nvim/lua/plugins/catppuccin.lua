@@ -33,7 +33,37 @@ return {
         -- miscs = {}, -- Uncomment to turn off hard-coded styles
       },
       color_overrides = {},
-      custom_highlights = {},
+      -- Pin Snacks accent groups to the Mocha palette so the picker, dashboard,
+      -- notifier and input UIs match the rest of the Catppuccin Mocha theme.
+      -- The `snacks` integration below already links the base groups; these
+      -- overrides only sharpen the accents and are harmless if a group is unused.
+      custom_highlights = function(colors)
+        return {
+          -- Picker
+          SnacksPickerTitle = { fg = colors.mauve, style = { 'bold' } },
+          SnacksPickerBorder = { fg = colors.surface1, bg = colors.mantle },
+          SnacksPickerInputBorder = { fg = colors.surface1, bg = colors.mantle },
+          SnacksPickerPreviewTitle = { fg = colors.blue, style = { 'bold' } },
+          SnacksPickerMatch = { fg = colors.peach, style = { 'bold' } },
+          -- Dashboard
+          SnacksDashboardHeader = { fg = colors.mauve },
+          SnacksDashboardTitle = { fg = colors.blue, style = { 'bold' } },
+          SnacksDashboardIcon = { fg = colors.peach },
+          SnacksDashboardKey = { fg = colors.yellow },
+          SnacksDashboardFooter = { fg = colors.overlay1 },
+          -- Notifier
+          SnacksNotifierInfo = { fg = colors.green },
+          SnacksNotifierWarn = { fg = colors.yellow },
+          SnacksNotifierError = { fg = colors.red },
+          SnacksNotifierDebug = { fg = colors.overlay1 },
+          SnacksNotifierTitleInfo = { fg = colors.green, style = { 'bold' } },
+          SnacksNotifierTitleWarn = { fg = colors.yellow, style = { 'bold' } },
+          SnacksNotifierTitleError = { fg = colors.red, style = { 'bold' } },
+          -- Input
+          SnacksInputTitle = { fg = colors.mauve, style = { 'bold' } },
+          SnacksInputBorder = { fg = colors.surface1, bg = colors.mantle },
+        }
+      end,
       default_integrations = true,
       integrations = {
         cmp = true,

@@ -115,4 +115,46 @@ function M.copy_project_path()
   })
 end
 
+function M.pull_and_copy_project_path()
+  local ok, snacks = pcall(require, 'snacks')
+  if not ok then return vim.notify('Snacks not available', vim.log.levels.WARN) end
+
+  local projects = scan_projects()
+  if #projects == 0 then return vim.notify('No projects found in ' .. PROGRAMMING_DIR, vim.log.levels.WARN) end
+
+  snacks.picker({
+    title = 'Pull & Copy Project Path (' .. #projects .. ' projects)',
+    items = projects,
+    format = function(item)
+      return {
+        { item.org .. '/', 'Comment' },
+        { item.name, 'Function' },
+      }
+    end,
+    confirm = function(picker, item)
+      picker:close()
+      local stat = vim.uv.fs_stat(item.path)
+      if not stat or stat.type ~= 'directory' then
+        vim.notify('Repo not found locally: ' .. item.path, vim.log.levels.WARN)
+        return
+      end
+
+      vim.notify('Pulling ' .. item.text .. '...', vim.log.levels.INFO)
+      vim.system(
+        { 'git', '-C', item.path, 'pull', '--ff-only' },
+        { text = true },
+        vim.schedule_wrap(function(result)
+          vim.fn.setreg('+', item.path)
+          if result.code == 0 then
+            vim.notify('Pulled & copied: ' .. item.path, vim.log.levels.INFO)
+          else
+            local err = result.stderr ~= '' and result.stderr or result.stdout
+            vim.notify('Pull failed (path copied): ' .. err, vim.log.levels.WARN)
+          end
+        end)
+      )
+    end,
+  })
+end
+
 return M

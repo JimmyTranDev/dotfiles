@@ -225,6 +225,40 @@ local TASK_INPUT_OPTIONS = {
   { name = 'Enter description' },
 }
 
+local function pick_file_reference(text, on_result)
+  if not text:match('@%s*$') then
+    on_result(text)
+    return
+  end
+
+  local ok, snacks = pcall(require, 'snacks')
+  if not ok then
+    on_result(text)
+    return
+  end
+
+  local finished = false
+  local function finish(result)
+    if finished then return end
+    finished = true
+    on_result(result)
+  end
+
+  snacks.picker.files({
+    confirm = function(picker, item)
+      picker:close()
+      local file = item and (item.file or item.filename)
+      if file then
+        local rel = vim.fn.fnamemodify(file, ':.')
+        finish((text:gsub('@%s*$', function() return '@' .. rel end)))
+      else
+        finish(text)
+      end
+    end,
+    on_close = function() finish(text) end,
+  })
+end
+
 local function prompt_task_input(on_result)
   ui_utils.safe_select(TASK_INPUT_OPTIONS, {
     prompt = 'What do you want to enter?',
@@ -237,7 +271,9 @@ local function prompt_task_input(on_result)
         on_result('Task', opts)
       end)
     else
-      ui_utils.safe_input({ prompt = 'Enter task summary: ' }, function(task_name) on_result(task_name, {}) end)
+      ui_utils.safe_input({ prompt = 'Enter task summary (end with @ to attach a file): ' }, function(task_name)
+        pick_file_reference(task_name, function(resolved) on_result(resolved, {}) end)
+      end)
     end
   end)
 end
