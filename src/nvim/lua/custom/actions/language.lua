@@ -225,6 +225,42 @@ function M.create_package_command_runner(command, should_exit)
   end
 end
 
+local function find_nearest_script_dir(script_name)
+  local dir = vim.fn.expand('%:p:h')
+  if dir == '' then dir = vim.fn.getcwd() end
+
+  while dir and dir ~= '' do
+    local package_json = dir .. '/package.json'
+    if vim.fn.filereadable(package_json) == 1 then
+      local scripts = language_utils.get_scripts_from_package_json(package_json)
+      for _, script in ipairs(scripts or {}) do
+        if script == script_name then return dir end
+      end
+    end
+
+    local parent = vim.fn.fnamemodify(dir, ':h')
+    if parent == dir then break end
+    dir = parent
+  end
+
+  return nil
+end
+
+function M.run_test_coverage()
+  local pm = get_pm()
+  if not pm then return end
+
+  local dir = find_nearest_script_dir('test:coverage')
+  if not dir then
+    vim.notify('No package.json with a "test:coverage" script found', vim.log.levels.WARN)
+    return
+  end
+
+  local label = vim.fn.fnamemodify(dir, ':t')
+  local cmd = ('cd %s && %s test:coverage'):format(vim.fn.shellescape(dir), pm)
+  ui_utils.exec_in_terminal(cmd, 'Test coverage: ' .. label, { name = 'test-coverage' })
+end
+
 function M.run_eslint_picker()
   ui_utils.show_success('Running ESLint...')
   local npx = language_utils.get_npx_equivalent()

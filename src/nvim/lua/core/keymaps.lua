@@ -84,6 +84,7 @@ map('n', '<leader>ve', language_actions.run_eslint_picker, { desc = '󰒡 ESLint
 map('n', '<leader>vK', language_actions.run_knip_unused_files, { desc = '󰒡 Knip unused files' })
 map('n', '<leader>vk', language_actions.run_knip_unused_code, { desc = '󰒡 Knip unused code' })
 map('n', '<leader>vd', github_actions.redeploy_pr, { desc = '󰚴 Redeploy PR (#deploy + clean bot comments)' })
+map('n', '<leader>vc', language_actions.run_test_coverage, { desc = '󰊕 Run test coverage' })
 
 map('n', '<leader>;ct', todoist_actions.refresh_todoist_cache(), { desc = '󰆘 Refresh Todoist cache' })
 map('n', '<leader>;cw', jira_actions.refresh_jira_cache, { desc = '󰆘 Refresh Jira cache' })
