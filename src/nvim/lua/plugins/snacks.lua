@@ -361,6 +361,18 @@ return {
       desc = '󰜁 Goto Type Definition',
     },
     {
+      'gn',
+      function() vim.lsp.buf.rename(vim.fn.expand('<cword>')) end,
+      desc = '󰈮 LSP Rename Word',
+      mode = { 'n', 'v' },
+    },
+    {
+      'gN',
+      function() vim.lsp.buf.rename() end,
+      desc = '󰈮 LSP Rename',
+      mode = { 'n', 'v' },
+    },
+    {
       '<leader>fs',
       function() Snacks.picker.lsp_symbols() end,
       desc = '󰘧 LSP Symbols',
