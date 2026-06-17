@@ -149,8 +149,8 @@ map('n', '<leader>cf', file_actions.copy_frontend_project_paths, { desc = '󰆓 
 map('n', '<leader>cr', file_actions.copy_repo_path, { desc = '󰆓 Copy: repo path' })
 map('n', '<leader>cu', file_actions.copy_current_file_url, { desc = '󰆓 Copy: current file URL' })
 map('n', '<leader>co', file_actions.copy_opencode_link, { desc = '󰆓 Copy: OpenCode link' })
-map('n', '<leader>cR', file_actions.copy_ai_file_reference, { desc = '󰆓 Copy: AI file reference (line)' })
-map('x', '<leader>cR', file_actions.copy_ai_file_reference_range, { desc = '󰆓 Copy: AI file reference (range)' })
+map('n', '<leader>cc', file_actions.copy_ai_file_reference, { desc = '󰆓 Copy: AI file reference (line)' })
+map('x', '<leader>cc', file_actions.copy_ai_file_reference_range, { desc = '󰆓 Copy: AI file reference (range)' })
 map('n', '<leader>ce', errors_actions.copy_diagnostic_under_cursor, { desc = '󰆓 Copy: diagnostic' })
 
 map('n', '<Leader>ud', file_actions.open_current_dir, { desc = '󰦥 Open current directory' })
@@ -161,12 +161,10 @@ map('n', '<Leader>ua', function()
   -- gcloud's underlying Python webbrowser module; %s is substituted with the
   -- URL).
   require('custom.utils.terminal_registry').get_or_create('gcloud-auth', {
-    cmd = "export BROWSER='open -a \"Google Chrome\" %s'; "
-      .. 'gcloud auth login && gcloud auth application-default login',
+    cmd = 'export BROWSER=\'open -a "Google Chrome" %s\'; ' .. 'gcloud auth login && gcloud auth application-default login',
     direction = 'float',
   })
 end, { desc = '󰊭 GCloud auth (Chrome)' })
-
 
 -- GitHub sub-group (<leader>ug)
 map('n', '<Leader>ugc', github_actions.open_current_commit_in_github, { desc = '󰦥 GitHub: current commit' })
