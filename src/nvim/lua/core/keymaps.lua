@@ -165,37 +165,37 @@ map('x', '<leader>cc', file_actions.copy_ai_file_reference_range, { desc = '󰆓
 
 -- Todoist sub-group (<leader>rt)
 maps('n', {
-  { '<Leader>rtl', todoist_actions.log_todoist_task_all_projects(), '󰌱 Todoist: log task' },
-  { '<Leader>rte', todoist_actions.edit_recent_task, '󰌱 Todoist: edit recent task' },
-  { '<Leader>rtd', todoist_actions.delete_recent_task, '󰌱 Todoist: delete recent task' },
+  { '<Leader>rtl', todoist_actions.log_todoist_task_all_projects(), 'log task' },
+  { '<Leader>rte', todoist_actions.edit_recent_task, 'edit recent task' },
+  { '<Leader>rtd', todoist_actions.delete_recent_task, 'delete recent task' },
 })
 
 -- Jira sub-group (<leader>rj)
 maps('n', {
-  { '<Leader>rjc', jira_actions.create_jira_task(), '󰌧 Jira: create task' },
-  { '<Leader>rjC', jira_actions.create_jira_task_with_link(), '󰌧 Jira: create task + open link' },
-  { '<Leader>rjm', jira_actions.add_comment_from_branch, '󰌧 Jira: comment from branch' },
+  { '<Leader>rjc', jira_actions.create_jira_task(), 'create task' },
+  { '<Leader>rjC', jira_actions.create_jira_task_with_link(), 'create task + open link' },
+  { '<Leader>rjm', jira_actions.add_comment_from_branch, 'comment from branch' },
 })
 
 -- Journal/Log sub-group (<leader>rl)
 maps('n', {
-  { '<Leader>rla', journal_actions.add_journal_entry, '󰈙 Journal: add entry' },
-  { '<Leader>rlo', journal_actions.open_journal, '󰈙 Journal: open' },
+  { '<Leader>rla', journal_actions.add_journal_entry, 'add entry' },
+  { '<Leader>rlo', journal_actions.open_journal, 'open' },
 })
 
 -- Notes sub-group (<leader>rn)
 maps('n', {
-  { '<Leader>rnn', notes_actions.quick_note, '󰠮 Notes: quick note' },
-  { '<Leader>rnp', notes_actions.add_notes_entry, '󰠮 Notes: person entry' },
-  { '<Leader>rns', notes_actions.add_sentence, '󰠮 Notes: add sentence' },
-  { '<Leader>rnt', notes_actions.save_task, '󰠮 Notes: save task' },
-  { '<Leader>rnS', notes_actions.save_to_notes, '󰠮 Notes: quick save' },
+  { '<Leader>rnn', notes_actions.quick_note, 'quick note' },
+  { '<Leader>rnp', notes_actions.add_notes_entry, 'person entry' },
+  { '<Leader>rns', notes_actions.add_sentence, 'add sentence' },
+  { '<Leader>rnt', notes_actions.save_task, 'save task' },
+  { '<Leader>rnS', notes_actions.save_to_notes, 'quick save' },
 })
 
 -- Work sub-group (<leader>rw)
 maps('n', {
-  { '<Leader>rwa', notes_actions.add_work_note, '󰒓 Work: add note' },
-  { '<Leader>rws', notes_actions.search_work_notes, '󰒓 Work: search notes' },
+  { '<Leader>rwa', notes_actions.add_work_note, 'add note' },
+  { '<Leader>rws', notes_actions.search_work_notes, 'search notes' },
 })
 
 -- ============================================================================
@@ -217,40 +217,40 @@ end, { desc = '󰊭 GCloud auth (Chrome)' })
 
 -- GitHub sub-group (<leader>ug)
 maps('n', {
-  { '<Leader>ugc', github_actions.open_current_commit_in_github, '󰦥 GitHub: current commit' },
-  { '<Leader>ugp', git_actions.open_or_create_pull_request, '󰦥 GitHub: open/create PR' },
-  { '<Leader>ugP', git_actions.copy_pr_link, '󰦥 GitHub: copy PR link' },
-  { '<Leader>ugr', link_actions.open_current_github_repo, '󰦥 GitHub: repo page' },
-  { '<Leader>uga', link_actions.open_current_github_prs, '󰦥 GitHub: all PRs' },
-  { '<Leader>ugh', github_actions.open_current_repo_in_browser, '󰦥 GitHub: repo homepage' },
-  { '<Leader>ugo', github_actions.list_org_repos_and_open, '󰦥 GitHub: org repos' },
-  { '<Leader>ugN', github_actions.show_notifications, '󰦥 GitHub: comment/mention notifications' },
-  { '<Leader>ugn', github_actions.show_notifications_by_default_team, '󰦥 GitHub: team comment/mention notifications' },
-  { '<Leader>ugb', github_actions.show_notifications_by_team, '󰦥 GitHub: team notifications (select)' },
-  { '<Leader>ugw', github_actions.select_open_prs_by_default_team, '󰦥 GitHub: team + my PRs' },
-  { '<Leader>ugW', github_actions.select_open_prs_by_people, '󰦥 GitHub: team + my PRs (select)' },
-  { '<Leader>ugf', github_actions.open_file_from_clipboard_url, '󰦥 Open file from clipboard URL' },
-  { '<Leader>ugi', github_actions.show_current_branch_pr_diff, '󰦥 GitHub: PR diff (current branch)' },
+  { '<Leader>ugc', github_actions.open_current_commit_in_github, 'Current commit' },
+  { '<Leader>ugp', git_actions.open_or_create_pull_request, 'Open/create PR' },
+  { '<Leader>ugP', git_actions.copy_pr_link, 'Copy PR link' },
+  { '<Leader>ugr', link_actions.open_current_github_repo, 'Repo page' },
+  -- { '<Leader>uga', link_actions.open_current_github_prs, 'All PRs' },
+  { '<Leader>ugh', github_actions.open_current_repo_in_browser, 'Repo homepage' },
+  { '<Leader>ugo', github_actions.list_org_repos_and_open, 'Org repos' },
+  { '<Leader>ugn', github_actions.show_notifications_by_default_team, 'Team comment/mention notifications' },
+  -- { '<Leader>ugN', github_actions.show_notifications, 'Comment/mention notifications' },
+  { '<Leader>ugN', github_actions.show_notifications_by_team, 'Team notifications (select)' },
+  { '<Leader>ugt', github_actions.select_open_prs_by_default_team, 'Team + my PRs' },
+  { '<Leader>ugT', github_actions.select_open_prs_by_people, 'Team + my PRs (select)' },
+  { '<Leader>ugo', github_actions.open_file_from_clipboard_url, 'Open file from clipboard URL' },
+  { '<Leader>ugd', github_actions.show_current_branch_pr_diff, 'PR diff (current branch)' },
 })
 
 -- Jira sub-group (<leader>uj)
 maps('n', {
-  { '<Leader>ujj', link_actions.open_jira_ticket, '󰦥 Jira: open ticket from branch' },
-  { '<Leader>ujJ', jira_actions.browse_my_tasks, '󰦥 Jira: browse my tasks' },
-  { '<Leader>ujt', jira_actions.browse_recently_updated_tasks, '󰦥 Jira: recently updated tasks' },
+  { '<Leader>ujj', link_actions.open_jira_ticket, 'open ticket from branch' },
+  { '<Leader>ujJ', jira_actions.browse_my_tasks, 'browse my tasks' },
+  { '<Leader>ujt', jira_actions.browse_recently_updated_tasks, 'recently updated tasks' },
 })
 
 -- Links sub-group (<leader>ul)
 maps('n', {
-  { '<Leader>ull', link_actions.open_useful_link, '󰦥 Links: useful links' },
-  { '<Leader>ulL', link_actions.open_private_useful_link, '󰦥 Links: private links' },
-  { '<Leader>ult', link_actions.open_technical_link_current_repo, '󰦥 Links: technical (repo)' },
-  { '<Leader>ulT', link_actions.open_technical_link, '󰦥 Links: technical (select)' },
+  { '<Leader>ull', link_actions.open_useful_link, 'useful links' },
+  { '<Leader>ulL', link_actions.open_private_useful_link, 'private links' },
+  { '<Leader>ult', link_actions.open_technical_link_current_repo, 'technical (repo)' },
+  { '<Leader>ulT', link_actions.open_technical_link, 'technical (select)' },
 })
 
 -- Search sub-group (<leader>us)
-map('n', '<Leader>us', link_actions.search_google, { desc = '󰦥 Search: Google' })
-map('v', '<Leader>us', link_actions.search_google, { desc = '󰦥 Search: Google (selection)' })
+map('n', '<Leader>us', link_actions.search_google, { desc = 'Google' })
+map('v', '<Leader>us', link_actions.search_google, { desc = 'Google (selection)' })
 
 -- ============================================================================
 -- Status (<leader>s)
