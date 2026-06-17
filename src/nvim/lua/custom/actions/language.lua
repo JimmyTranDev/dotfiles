@@ -225,40 +225,77 @@ function M.create_package_command_runner(command, should_exit)
   end
 end
 
-local function find_nearest_script_dir(script_name)
+local function find_nearest_package_json()
   local dir = vim.fn.expand('%:p:h')
   if dir == '' then dir = vim.fn.getcwd() end
 
   while dir and dir ~= '' do
     local package_json = dir .. '/package.json'
-    if vim.fn.filereadable(package_json) == 1 then
-      local scripts = language_utils.get_scripts_from_package_json(package_json)
-      for _, script in ipairs(scripts or {}) do
-        if script == script_name then return dir end
-      end
-    end
+    if vim.fn.filereadable(package_json) == 1 then return dir, package_json end
 
     local parent = vim.fn.fnamemodify(dir, ':h')
     if parent == dir then break end
     dir = parent
   end
 
+  return nil, nil
+end
+
+local TEST_RUNNER_CONFIGS = {
+  vitest = { 'vitest.config.ts', 'vitest.config.js', 'vitest.config.mjs', 'vitest.config.mts', 'vitest.config.cjs', 'vitest.workspace.ts', 'vitest.workspace.js' },
+  jest = { 'jest.config.ts', 'jest.config.js', 'jest.config.mjs', 'jest.config.cjs', 'jest.config.json' },
+}
+
+local function detect_js_test_runner(dir, package_json)
+  for runner, configs in pairs(TEST_RUNNER_CONFIGS) do
+    for _, config in ipairs(configs) do
+      if vim.fn.filereadable(dir .. '/' .. config) == 1 then return runner end
+    end
+  end
+
+  local content = vim.fn.readfile(package_json)
+  local ok, data = pcall(vim.fn.json_decode, table.concat(content, '\n'))
+  if ok and data then
+    local deps = vim.tbl_extend('force', data.dependencies or {}, data.devDependencies or {})
+    if deps.vitest then return 'vitest' end
+    if deps.jest then return 'jest' end
+  end
+
   return nil
 end
+
+local PM_EXEC = {
+  npm = 'npx',
+  pnpm = 'pnpm exec',
+  yarn = 'yarn',
+  bun = 'bunx',
+}
+
+local RUNNER_COVERAGE_CMD = {
+  vitest = 'vitest run --coverage',
+  jest = 'jest --coverage',
+}
 
 function M.run_test_coverage()
   local pm = get_pm()
   if not pm then return end
 
-  local dir = find_nearest_script_dir('test:coverage')
+  local dir, package_json = find_nearest_package_json()
   if not dir then
-    vim.notify('No package.json with a "test:coverage" script found', vim.log.levels.WARN)
+    vim.notify('No package.json found', vim.log.levels.WARN)
     return
   end
 
+  local runner = detect_js_test_runner(dir, package_json)
+  if not runner then
+    vim.notify('No supported test runner (vitest/jest) found', vim.log.levels.WARN)
+    return
+  end
+
+  local exec = PM_EXEC[pm] or 'npx'
   local label = vim.fn.fnamemodify(dir, ':t')
-  local cmd = ('cd %s && %s test:coverage'):format(vim.fn.shellescape(dir), pm)
-  ui_utils.exec_in_terminal(cmd, 'Test coverage: ' .. label, { name = 'test-coverage' })
+  local cmd = ('cd %s && %s %s'):format(vim.fn.shellescape(dir), exec, RUNNER_COVERAGE_CMD[runner])
+  ui_utils.exec_in_terminal(cmd, ('Test coverage (%s): %s'):format(runner, label), { name = 'test-coverage' })
 end
 
 function M.run_eslint_picker()
