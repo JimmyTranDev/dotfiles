@@ -220,7 +220,7 @@ maps('n', {
   { '<Leader>ugc', github_actions.open_current_commit_in_github, 'Current commit' },
   { '<Leader>ugp', git_actions.open_or_create_pull_request, 'Open/create PR' },
   { '<Leader>ugP', git_actions.copy_pr_link, 'Copy PR link' },
-  { '<Leader>ugr', link_actions.open_current_github_repo, 'Repo page' },
+  -- { '<Leader>ugr', link_actions.open_current_github_repo, 'Repo page' },
   -- { '<Leader>uga', link_actions.open_current_github_prs, 'All PRs' },
   { '<Leader>ugh', github_actions.open_current_repo_in_browser, 'Repo homepage' },
   { '<Leader>ugo', github_actions.list_org_repos_and_open, 'Org repos' },
@@ -229,8 +229,8 @@ maps('n', {
   { '<Leader>ugN', github_actions.show_notifications_by_team, 'Team notifications (select)' },
   { '<Leader>ugt', github_actions.select_open_prs_by_default_team, 'Team + my PRs' },
   { '<Leader>ugT', github_actions.select_open_prs_by_people, 'Team + my PRs (select)' },
-  { '<Leader>ugo', github_actions.open_file_from_clipboard_url, 'Open file from clipboard URL' },
-  { '<Leader>ugd', github_actions.show_current_branch_pr_diff, 'PR diff (current branch)' },
+  -- { '<Leader>ugo', github_actions.open_file_from_clipboard_url, 'Open file from clipboard URL' },
+  -- { '<Leader>ugd', github_actions.show_current_branch_pr_diff, 'PR diff (current branch)' },
 })
 
 -- Jira sub-group (<leader>uj)
