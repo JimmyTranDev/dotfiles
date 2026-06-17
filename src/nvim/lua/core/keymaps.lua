@@ -165,21 +165,21 @@ map('x', '<leader>cc', file_actions.copy_ai_file_reference_range, { desc = '󰆓
 
 -- Todoist sub-group (<leader>rt)
 maps('n', {
-  { '<Leader>rtl', todoist_actions.log_todoist_task_all_projects(), 'log task' },
+  { '<Leader>rtt', todoist_actions.log_todoist_task_all_projects(), 'log task' },
   { '<Leader>rte', todoist_actions.edit_recent_task, 'edit recent task' },
   { '<Leader>rtd', todoist_actions.delete_recent_task, 'delete recent task' },
 })
 
 -- Jira sub-group (<leader>rj)
 maps('n', {
-  { '<Leader>rjc', jira_actions.create_jira_task(), 'create task' },
-  { '<Leader>rjC', jira_actions.create_jira_task_with_link(), 'create task + open link' },
+  { '<Leader>rjj', jira_actions.create_jira_task(), 'create task' },
+  { '<Leader>rjJ', jira_actions.create_jira_task_with_link(), 'create task + open link' },
   { '<Leader>rjm', jira_actions.add_comment_from_branch, 'comment from branch' },
 })
 
 -- Journal/Log sub-group (<leader>rl)
 maps('n', {
-  { '<Leader>rla', journal_actions.add_journal_entry, 'add entry' },
+  { '<Leader>rll', journal_actions.add_journal_entry, 'add entry' },
   { '<Leader>rlo', journal_actions.open_journal, 'open' },
 })
 
@@ -194,8 +194,8 @@ maps('n', {
 
 -- Work sub-group (<leader>rw)
 maps('n', {
-  { '<Leader>rwa', notes_actions.add_work_note, 'add note' },
-  { '<Leader>rws', notes_actions.search_work_notes, 'search notes' },
+  { '<Leader>rww', notes_actions.add_work_note, 'add note' },
+  { '<Leader>rww', notes_actions.search_work_notes, 'search notes' },
 })
 
 -- ============================================================================
