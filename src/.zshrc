@@ -81,7 +81,10 @@ if command -v starship >/dev/null 2>&1; then
 fi
 
 if command -v fnm >/dev/null 2>&1; then
-  eval "$(fnm env --use-on-cd --shell zsh)"
+  eval "$(fnm env --use-on-cd --version-file-strategy=local --resolve-engines --shell zsh)"
+  if [[ -f .nvmrc || -f .node-version ]]; then
+    fnm use --install-if-missing >/dev/null 2>&1
+  fi
 fi
 
 if command -v zoxide >/dev/null 2>&1; then
