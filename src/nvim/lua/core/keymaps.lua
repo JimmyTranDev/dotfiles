@@ -152,17 +152,21 @@ map('n', '<leader>co', file_actions.copy_opencode_link, { desc = '󰆓 Copy: Ope
 map('n', '<leader>cR', file_actions.copy_ai_file_reference, { desc = '󰆓 Copy: AI file reference (line)' })
 map('x', '<leader>cR', file_actions.copy_ai_file_reference_range, { desc = '󰆓 Copy: AI file reference (range)' })
 map('n', '<leader>ce', errors_actions.copy_diagnostic_under_cursor, { desc = '󰆓 Copy: diagnostic' })
-map('n', '<leader>cg', function()
-  -- Run the interactive gcloud auth flow inside a toggleterm and force the
-  -- OAuth consent page to open in Firefox (BROWSER is honoured by gcloud's
-  -- underlying Python webbrowser module; %s is substituted with the URL).
-  require('custom.utils.terminal_registry').get_or_create('gcloud-auth', {
-    cmd = "BROWSER='open -a Firefox %s' gcloud auth application-default login",
-    direction = 'float',
-  })
-end, { desc = '󰊭 GCloud auth (Firefox)' })
 
 map('n', '<Leader>ud', file_actions.open_current_dir, { desc = '󰦥 Open current directory' })
+
+map('n', '<Leader>ua', function()
+  -- Run both interactive gcloud auth flows inside a toggleterm and force the
+  -- OAuth consent pages to open in Google Chrome (BROWSER is honoured by
+  -- gcloud's underlying Python webbrowser module; %s is substituted with the
+  -- URL).
+  require('custom.utils.terminal_registry').get_or_create('gcloud-auth', {
+    cmd = "export BROWSER='open -a \"Google Chrome\" %s'; "
+      .. 'gcloud auth login && gcloud auth application-default login',
+    direction = 'float',
+  })
+end, { desc = '󰊭 GCloud auth (Chrome)' })
+
 
 -- GitHub sub-group (<leader>ug)
 map('n', '<Leader>ugc', github_actions.open_current_commit_in_github, { desc = '󰦥 GitHub: current commit' })
