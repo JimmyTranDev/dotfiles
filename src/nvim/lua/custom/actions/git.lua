@@ -284,6 +284,14 @@ local function stash_with_flags(extra_flags, success_msg)
   end)
 end
 
+-- Stash local changes (if any), pull with rebase, then re-apply the stash.
+-- The porcelain check avoids popping an unrelated existing stash when the
+-- working tree is clean (git stash exits 0 without creating a stash).
+function M.stash_pull_rebase()
+  local cmd = [==[if [ -n "$(git status --porcelain)" ]; then git stash push -m "nvim stash-pull" && git pull --rebase && git stash pop; else git pull --rebase; fi]==]
+  require('custom.utils.terminal_registry').get_or_create('stash-pull', { cmd = cmd })
+end
+
 function M.stash_all_changes() stash_with_flags('', 'Changes stashed successfully') end
 
 function M.stash_keep_changes() stash_with_flags(' --keep-index', 'Changes stashed (keeping staged changes)') end

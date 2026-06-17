@@ -6,8 +6,8 @@ return {
   'akinsho/nvim-toggleterm.lua',
   keys = {
 
-    { mode = 'n', '<leader>tt', toggle_term_actions.open_terminal_picker, desc = '󰆍 Terminal Picker', silent = true },
-    { mode = 'n', '<leader>tc', toggle_term_actions.create_blank_terminal, desc = '󰆍 New Terminal', silent = true },
+    { mode = 'n', '<leader>tf', toggle_term_actions.open_terminal_picker, desc = '󰆍 Terminal Picker', silent = true },
+    { mode = 'n', '<leader>tt', toggle_term_actions.create_blank_terminal, desc = '󰆍 New Terminal', silent = true },
 
     { mode = 't', '<C-h>', [[<Cmd>wincmd h<CR>]], desc = '󰖲 Terminal left window', silent = true },
     { mode = 't', '<C-j>', [[<Cmd>wincmd j<CR>]], desc = '󰖲 Terminal down window', silent = true },

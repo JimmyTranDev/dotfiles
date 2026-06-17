@@ -89,12 +89,27 @@ map('n', '<leader>vc', language_actions.run_test_coverage, { desc = '󰊕 Run te
 map('n', '<leader>;ct', todoist_actions.refresh_todoist_cache(), { desc = '󰆘 Refresh Todoist cache' })
 map('n', '<leader>;cw', jira_actions.refresh_jira_cache, { desc = '󰆘 Refresh Jira cache' })
 
-map('n', '<leader>cj', jira_actions.copy_ticket_with_title, { desc = '󰆓 Copy: Jira ticket + title' })
-map('n', '<leader>ct', jira_actions.copy_testable_message, { desc = '󰆓 Copy: Jira testable message' })
 map('n', '<leader>;J', jira_actions.generate_done_md, { desc = '󰌧 Generate this week jira tasks' })
 
-map('n', '<leader>cp', github_actions.copy_open_prs, { desc = '󰆓 Copy: open PRs' })
-map('n', '<leader>cP', github_actions.select_and_copy_pr, { desc = '󰆓 Copy: select PR' })
+-- <leader>c — Copy & Quick Access
+maps('n', {
+  { '<leader>cj', jira_actions.copy_ticket_with_title, '󰆓 Copy: Jira ticket + title' },
+  { '<leader>ct', jira_actions.copy_testable_message, '󰆓 Copy: Jira testable message' },
+  { '<leader>cp', github_actions.copy_open_prs, '󰆓 Copy: open PRs' },
+  { '<leader>cP', github_actions.select_and_copy_pr, '󰆓 Copy: select PR' },
+  { '<leader>cl', github_actions.copy_github_line_url, '󰆓 Copy: GitHub line URL' },
+  { '<leader>ca', file_actions.copy_all_files_content, '󰆓 Copy: all files content' },
+  { '<leader>cf', file_actions.copy_frontend_project_paths, '󰆓 Copy: frontend project paths' },
+  { '<leader>cr', file_actions.copy_repo_path, '󰆓 Copy: repo path' },
+  { '<leader>cR', project_actions.copy_project_path, '󰆓 Copy: project path (pick)' },
+  { '<leader>cs', git_actions.stash_pull_rebase, '󰓦 Git: stash + pull --rebase + pop' },
+  { '<leader>cu', file_actions.copy_current_file_url, '󰆓 Copy: current file URL' },
+  { '<leader>co', file_actions.copy_opencode_link, '󰆓 Copy: OpenCode link' },
+  { '<leader>cc', file_actions.copy_ai_file_reference, '󰆓 Copy: AI file reference (line)' },
+  { '<leader>ce', errors_actions.copy_diagnostic_under_cursor, '󰆓 Copy: diagnostic' },
+})
+map('v', '<leader>cl', github_actions.copy_github_line_url, { desc = '󰆓 Copy: GitHub line URL' })
+map('x', '<leader>cc', file_actions.copy_ai_file_reference_range, { desc = '󰆓 Copy: AI file reference (range)' })
 
 -- map('n', '<leader><leader>ri', replacement_actions.replace_interactive, { desc = 'Interactive replace' })
 -- map('n', '<leader><leader>rb', replacement_actions.replace_buffer, { desc = 'Replace in buffer' })
@@ -129,9 +144,6 @@ map('n', '<Leader>rn', notes_actions.add_sentence, { desc = '󰌱 Add sentence t
 map('n', '<Leader>rN', notes_actions.save_task, { desc = '󰌱 Save task to notes' })
 map('n', '<Leader>rc', jira_actions.add_comment_from_branch, { desc = '󰌱 Add Jira comment from branch' })
 
-map('n', '<leader>cl', github_actions.copy_github_line_url, { desc = '󰆓 Copy: GitHub line URL' })
-map('v', '<leader>cl', github_actions.copy_github_line_url, { desc = '󰆓 Copy: GitHub line URL' })
-
 maps('n', {
   { '<leader>zc', ':Lazy clean<CR>', '󰒲 Lazy clean' },
   { '<leader>zh', ':Lazy health<CR>', '󰒲 Lazy health' },
@@ -144,15 +156,6 @@ maps('n', {
 -- map('n', '<Leader><Leader>tt', ':Typr<CR>', { desc = 'Start typing test' })
 -- map('n', '<Leader><Leader>ts', ':TyprStats<CR>', { desc = 'Show typing stats' })
 
-map('n', '<leader>ca', file_actions.copy_all_files_content, { desc = '󰆓 Copy: all files content' })
-map('n', '<leader>cf', file_actions.copy_frontend_project_paths, { desc = '󰆓 Copy: frontend project paths' })
-map('n', '<leader>cr', file_actions.copy_repo_path, { desc = '󰆓 Copy: repo path' })
-map('n', '<leader>cu', file_actions.copy_current_file_url, { desc = '󰆓 Copy: current file URL' })
-map('n', '<leader>co', file_actions.copy_opencode_link, { desc = '󰆓 Copy: OpenCode link' })
-map('n', '<leader>cc', file_actions.copy_ai_file_reference, { desc = '󰆓 Copy: AI file reference (line)' })
-map('x', '<leader>cc', file_actions.copy_ai_file_reference_range, { desc = '󰆓 Copy: AI file reference (range)' })
-map('n', '<leader>ce', errors_actions.copy_diagnostic_under_cursor, { desc = '󰆓 Copy: diagnostic' })
-
 map('n', '<Leader>ud', file_actions.open_current_dir, { desc = '󰦥 Open current directory' })
 
 map('n', '<Leader>ua', function()
@@ -162,7 +165,7 @@ map('n', '<Leader>ua', function()
   -- URL).
   require('custom.utils.terminal_registry').get_or_create('gcloud-auth', {
     cmd = 'export BROWSER=\'open -a "Google Chrome" %s\'; ' .. 'gcloud auth login && gcloud auth application-default login',
-    direction = 'float',
+    direction = 'horizontal',
   })
 end, { desc = '󰊭 GCloud auth (Chrome)' })
 
@@ -183,13 +186,13 @@ map('n', '<Leader>ugf', github_actions.open_file_from_clipboard_url, { desc = '�
 map('n', '<Leader>ugi', github_actions.show_current_branch_pr_diff, { desc = '󰦥 GitHub: PR diff (current branch)' })
 
 -- Jira sub-group (<leader>uj)
-map('n', '<Leader>ujt', link_actions.open_jira_ticket, { desc = '󰦥 Jira: open ticket from branch' })
-map('n', '<Leader>ujb', jira_actions.browse_my_tasks, { desc = '󰦥 Jira: browse my tasks' })
-map('n', '<Leader>ujr', jira_actions.browse_recently_updated_tasks, { desc = '󰦥 Jira: recently updated tasks' })
+map('n', '<Leader>ujj', link_actions.open_jira_ticket, { desc = '󰦥 Jira: open ticket from branch' })
+map('n', '<Leader>ujJ', jira_actions.browse_my_tasks, { desc = '󰦥 Jira: browse my tasks' })
+map('n', '<Leader>ujt', jira_actions.browse_recently_updated_tasks, { desc = '󰦥 Jira: recently updated tasks' })
 
 -- Links sub-group (<leader>ul)
 map('n', '<Leader>ull', link_actions.open_useful_link, { desc = '󰦥 Links: useful links' })
-map('n', '<Leader>ulp', link_actions.open_private_useful_link, { desc = '󰦥 Links: private links' })
+map('n', '<Leader>ulL', link_actions.open_private_useful_link, { desc = '󰦥 Links: private links' })
 map('n', '<Leader>ult', link_actions.open_technical_link_current_repo, { desc = '󰦥 Links: technical (repo)' })
 map('n', '<Leader>ulT', link_actions.open_technical_link, { desc = '󰦥 Links: technical (select)' })
 

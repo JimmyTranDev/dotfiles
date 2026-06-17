@@ -91,4 +91,28 @@ function M.switch_project()
   })
 end
 
+function M.copy_project_path()
+  local ok, snacks = pcall(require, 'snacks')
+  if not ok then return vim.notify('Snacks not available', vim.log.levels.WARN) end
+
+  local projects = scan_projects()
+  if #projects == 0 then return vim.notify('No projects found in ' .. PROGRAMMING_DIR, vim.log.levels.WARN) end
+
+  snacks.picker({
+    title = 'Copy Project Path (' .. #projects .. ' projects)',
+    items = projects,
+    format = function(item)
+      return {
+        { item.org .. '/', 'Comment' },
+        { item.name, 'Function' },
+      }
+    end,
+    confirm = function(picker, item)
+      picker:close()
+      vim.fn.setreg('+', item.path)
+      vim.notify('Copied: ' .. item.path, vim.log.levels.INFO)
+    end,
+  })
+end
+
 return M

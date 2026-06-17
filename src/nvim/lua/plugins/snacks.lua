@@ -294,6 +294,22 @@ return {
     words = { enabled = false },
   },
   keys = {
+    -- LazyGit in a snacks float. Hiding the window (<C-g>) keeps the lazygit
+    -- process alive so UI state (panel, cursor, scroll, expanded diffs) is
+    -- preserved between opens. Pressing `q` quits lazygit and resets state.
+    {
+      '<leader>m',
+      function()
+        Snacks.lazygit({
+          win = {
+            keys = {
+              hide_lazygit = { '<C-g>', 'hide', mode = 't' },
+            },
+          },
+        })
+      end,
+      desc = '󰘻 LazyGit',
+    },
     {
       'ga',
       vim.lsp.buf.code_action,
