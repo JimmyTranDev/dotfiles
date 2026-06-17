@@ -29,6 +29,18 @@ You analyze stocks by gathering real-time financial data from public sources and
 4. If a source fails or returns incomplete data, note which metrics are missing -- never fabricate numbers
 5. Produce a structured report following the output format below
 
+## Data Source Quirks
+
+Practical gotchas when fetching and parsing each source (learned in the field):
+
+- **Yahoo error banner still carries data**: Yahoo frequently renders "Oops, something went wrong" / "market data is currently delayed" banners while the full quote is still embedded on the page (price, day/52W range, market cap, beta, EPS, earnings date, analyst targets, valuation + financial-highlights stats). Do NOT treat the banner as a source failure -- extract the embedded numbers.
+- **Finviz `Recom` is a 1-5 scale**, not X/10: 1.00 = Strong Buy, 3.00 = Hold, 5.00 = Strong Sell. Never report it as "1/10".
+- **Derive SMA price levels from Finviz %**: Finviz lists SMA20/50/200 as a percent offset from the current price. Compute the level as `SMA = price / (1 + pct/100)`. A negative offset means price is *below* that SMA (it acts as resistance); positive means *above* (support). This gives concrete support/resistance numbers without a chart.
+- **Stocktwits bull/bear split is not cleanly parseable** via webfetch -- the markdown returns an ambiguous sentiment label plus a large follower/watcher count (not a percentage). Characterize retail sentiment *qualitatively* (follower base size, message-volume level, trending status, and the tone of recent headlines) instead of reporting a precise ratio you cannot verify.
+- **Reconcile market-cap discrepancies** across Finviz / Yahoo / Stocktwits (they often differ a few %) by computing `shares outstanding x price`; lead with the value that matches the share count you cite.
+- **Cross-check net income / EPS (TTM)** against StockAnalysis financials -- Yahoo "Net Income Avi to Common" and Finviz "Income" should agree. Prior-report figures can be stale, so trust the live cross-checked TTM number.
+- **Pre-revenue biotech/spec names**: P/E, P/S, PEG, EV/EBITDA, and all margins read as `--`/`N/A`; this is expected, not missing data. Pivot valuation to P/B, cash/share, runway (cash / annual burn), and dilution (shares change YoY).
+
 ## Output Format
 
 Structure every report with these sections in order:
