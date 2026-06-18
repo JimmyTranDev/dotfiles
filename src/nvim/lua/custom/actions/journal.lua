@@ -4,7 +4,7 @@ local file_utils = require('custom.utils.files')
 local string_utils = require('custom.utils.string')
 local git_utils = require('custom.utils.git')
 
-local JOURNAL_BASE_PATH = vim.fn.expand('~/Programming/JimmyTranDev/notes/journal')
+local JOURNAL_BASE_PATH = vim.fn.expand('~/Programming/JimmyTranDev/notes/notes/journal')
 
 local function format_day_header()
   local weekday = os.date('%A')
@@ -94,25 +94,34 @@ local function ensure_today_header(filepath)
   return lines, existing_days, today
 end
 
+local function write_journal_entry(input)
+  input = string_utils.capitalize_first_char(input)
+
+  local filepath = get_journal_path()
+  local lines, existing_days, today = ensure_today_header(filepath)
+
+  local entry_line = find_entry_insert_line(lines, today, existing_days)
+  if entry_line then table.insert(lines, entry_line, '- ' .. input) end
+
+  if file_utils.write_lines(filepath, lines) then
+    vim.notify('Journal entry added', vim.log.levels.INFO)
+    git_utils.sync_notes_repo()
+  else
+    vim.notify('Failed to write journal entry', vim.log.levels.ERROR)
+  end
+end
+
 function M.add_journal_entry()
-  vim.ui.input({ prompt = 'Journal entry: ' }, function(input)
-    if not input or input == '' then return end
+  local function prompt_entry()
+    vim.ui.input({ prompt = 'Journal entry: ' }, function(input)
+      if not input or input == '' then return end
 
-    input = string_utils.capitalize_first_char(input)
+      write_journal_entry(input)
+      prompt_entry()
+    end)
+  end
 
-    local filepath = get_journal_path()
-    local lines, existing_days, today = ensure_today_header(filepath)
-
-    local entry_line = find_entry_insert_line(lines, today, existing_days)
-    if entry_line then table.insert(lines, entry_line, '- ' .. input) end
-
-    if file_utils.write_lines(filepath, lines) then
-      vim.notify('Journal entry added', vim.log.levels.INFO)
-      git_utils.sync_notes_repo()
-    else
-      vim.notify('Failed to write journal entry', vim.log.levels.ERROR)
-    end
-  end)
+  prompt_entry()
 end
 
 function M.open_journal()

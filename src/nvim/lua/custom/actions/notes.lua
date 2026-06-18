@@ -3,14 +3,51 @@ local M = {}
 local file_utils = require('custom.utils.files')
 local string_utils = require('custom.utils.string')
 local git_utils = require('custom.utils.git')
+local json_utils = require('custom.utils.json')
 
 local ui_utils = require('custom.utils.ui')
 
-local NOTES_PATH = vim.fn.expand('~/Programming/JimmyTranDev/notes/people')
 local SENTENCES_PATH = vim.fn.expand('~/Programming/JimmyTranDev/notes/notes')
-local TASKS_FILE = vim.fn.expand('~/Programming/JimmyTranDev/notes/tasks.md')
-local WORK_NOTES_PATH = vim.fn.expand('~/Programming/JimmyTranDev/notes/work')
-local QUICK_NOTES_FILE = vim.fn.expand('~/Programming/JimmyTranDev/notes/quick.md')
+
+local RECENT_CATEGORIES_FILE = vim.fn.stdpath('data') .. '/notes_recent_categories.json'
+local MAX_RECENT_CATEGORIES = 10
+
+local function get_recent_categories()
+  if not vim.uv.fs_stat(RECENT_CATEGORIES_FILE) then return {} end
+  local data = json_utils.parse_json_from_file(RECENT_CATEGORIES_FILE)
+  if type(data) == 'table' and data.recent_categories then return data.recent_categories end
+  return {}
+end
+
+local function save_recent_categories(recent_categories) json_utils.write_json_to_file(RECENT_CATEGORIES_FILE, { recent_categories = recent_categories }) end
+
+local function add_recent_category(name)
+  local recent_categories = get_recent_categories()
+
+  for i, category_name in ipairs(recent_categories) do
+    if category_name == name then
+      table.remove(recent_categories, i)
+      break
+    end
+  end
+
+  table.insert(recent_categories, 1, name)
+
+  while #recent_categories > MAX_RECENT_CATEGORIES do
+    table.remove(recent_categories, #recent_categories)
+  end
+
+  save_recent_categories(recent_categories)
+end
+
+local function build_category_priority_map()
+  local recent_categories = get_recent_categories()
+  local map = {}
+  for i, category_name in ipairs(recent_categories) do
+    map[category_name] = i - 1
+  end
+  return map
+end
 
 local function get_md_files(dir)
   local files = {}
@@ -27,241 +64,132 @@ local function get_md_files(dir)
   return files
 end
 
-local function get_notes_files() return get_md_files(NOTES_PATH) end
+local function get_subdirs(dir)
+  local dirs = {}
+  local handle = vim.uv.fs_scandir(dir)
+  if not handle then return dirs end
 
-function M.add_notes_entry()
-  local files = get_notes_files()
-  if #files == 0 then
-    vim.notify('No files found in notes/people', vim.log.levels.WARN)
+  while true do
+    local name, type = vim.uv.fs_scandir_next(handle)
+    if not name then break end
+    if type == 'directory' then table.insert(dirs, name) end
+  end
+
+  table.sort(dirs)
+  return dirs
+end
+
+-- Auto-discover a category (subfolder of notes/notes), then let the user pick an
+-- existing document or create a new one. Resolves the chosen filepath and a
+-- friendly display name, then hands off to `callback(filepath, display_name)`.
+local function select_category_then_doc(action_label, callback)
+  local categories = get_subdirs(SENTENCES_PATH)
+  if #categories == 0 then
+    vim.notify('No categories found in notes/notes', vim.log.levels.WARN)
     return
   end
 
-  local display_names = {}
-  for _, file in ipairs(files) do
-    table.insert(display_names, file:gsub('%.md$', ''))
+  local category_options = {}
+  for _, dir in ipairs(categories) do
+    if dir ~= 'journal' then table.insert(category_options, { name = dir, dir = dir }) end
   end
 
-  vim.ui.select(display_names, { prompt = 'Select note: ' }, function(choice, idx)
-    if not choice then return end
+  local priority_map = build_category_priority_map()
+  table.sort(category_options, function(a, b)
+    local a_priority = priority_map[a.dir] or 999
+    local b_priority = priority_map[b.dir] or 999
+    if a_priority ~= b_priority then return a_priority < b_priority end
+    return a.name < b.name
+  end)
 
-    vim.ui.input({ prompt = 'Entry for ' .. choice .. ': ' }, function(input)
-      if not input or input == '' then return end
+  ui_utils.safe_select(category_options, {
+    prompt = action_label .. ' — select category:',
+    format_item = function(item) return item.name end,
+  }, function(category)
+    add_recent_category(category.dir)
+    local category_path = SENTENCES_PATH .. '/' .. category.dir
+    local files = get_md_files(category_path)
 
-      input = string_utils.capitalize_first_char(input)
+    local doc_options = { { name = '+ Create new note', is_new = true } }
+    for _, file in ipairs(files) do
+      table.insert(doc_options, { name = file:gsub('%.md$', ''), filename = file })
+    end
 
-      local filepath = NOTES_PATH .. '/' .. files[idx]
-      local lines = file_utils.read_lines(filepath)
-      table.insert(lines, '🩷 ' .. input .. '  ')
-
-      if file_utils.write_lines(filepath, lines) then
-        vim.notify('Entry added to ' .. choice, vim.log.levels.INFO)
-        git_utils.sync_notes_repo()
+    ui_utils.safe_select(doc_options, {
+      prompt = action_label .. ' — select note:',
+      format_item = function(item) return item.name end,
+    }, function(selected)
+      if selected.is_new then
+        vim.ui.input({ prompt = 'New note name: ' }, function(name)
+          if not name or name == '' then return end
+          local filename = name:gsub('%s+', '-'):lower() .. '.md'
+          local filepath = category_path .. '/' .. filename
+          file_utils.ensure_directory_exists(filepath)
+          if vim.fn.filereadable(filepath) == 0 then file_utils.write_lines(filepath, { '# ' .. name, '' }) end
+          callback(filepath, name)
+        end)
       else
-        vim.notify('Failed to write entry', vim.log.levels.ERROR)
+        callback(category_path .. '/' .. selected.filename, selected.name)
       end
     end)
   end)
 end
 
-function M.add_sentence()
-  local files = get_md_files(SENTENCES_PATH)
-  local options = { { name = '+ Create new note', is_new = true } }
-  for _, file in ipairs(files) do
-    table.insert(options, { name = file:gsub('%.md$', ''), filename = file })
-  end
-
-  ui_utils.safe_select(options, {
-    prompt = 'Select note:',
-    format_item = function(item) return item.name end,
-  }, function(selected)
-    if selected.is_new then
-      vim.ui.input({ prompt = 'New note name: ' }, function(name)
-        if not name or name == '' then return end
-        local filename = name:gsub('%s+', '-'):lower() .. '.md'
-        local filepath = SENTENCES_PATH .. '/' .. filename
-        vim.ui.input({ prompt = 'Sentence: ' }, function(sentence)
-          if not sentence or sentence == '' then return end
-          sentence = string_utils.capitalize_first_char(sentence)
-          local lines = { '# ' .. name, '', sentence .. '  ' }
-          if file_utils.write_lines(filepath, lines) then
-            vim.notify('Note created: ' .. filename, vim.log.levels.INFO)
-            git_utils.sync_notes_repo()
-          else
-            vim.notify('Failed to create note', vim.log.levels.ERROR)
-          end
-        end)
-      end)
-    else
-      local filepath = SENTENCES_PATH .. '/' .. selected.filename
-      vim.ui.input({ prompt = 'Sentence for ' .. selected.name .. ': ' }, function(sentence)
-        if not sentence or sentence == '' then return end
-        sentence = string_utils.capitalize_first_char(sentence)
+-- Continuously prompt for bullet entries (like the journal flow) and append
+-- each one to the selected categorized note until an empty line is submitted.
+function M.add_categorized_note()
+  select_category_then_doc('Add note', function(filepath, name)
+    local function prompt_entry()
+      vim.ui.input({ prompt = 'Note for ' .. name .. ': ' }, function(input)
+        if not input or input == '' then return end
+        input = string_utils.capitalize_first_char(input)
         local lines = file_utils.read_lines(filepath)
-        table.insert(lines, sentence .. '  ')
+        table.insert(lines, '- ' .. input)
         if file_utils.write_lines(filepath, lines) then
-          vim.notify('Sentence added to ' .. selected.name, vim.log.levels.INFO)
           git_utils.sync_notes_repo()
+          prompt_entry()
         else
-          vim.notify('Failed to write sentence', vim.log.levels.ERROR)
+          vim.notify('Failed to write note', vim.log.levels.ERROR)
         end
       end)
     end
+
+    prompt_entry()
   end)
 end
 
-function M.add_work_note()
-  local files = get_md_files(WORK_NOTES_PATH)
-  local options = { { name = '+ Create new topic', is_new = true } }
-  for _, file in ipairs(files) do
-    table.insert(options, { name = file:gsub('%.md$', ''), filename = file })
-  end
-
-  ui_utils.safe_select(options, {
-    prompt = 'Select work topic:',
-    format_item = function(item) return item.name end,
-  }, function(selected)
-    if selected.is_new then
-      vim.ui.input({ prompt = 'New topic name: ' }, function(name)
-        if not name or name == '' then return end
-        local filename = name:gsub('%s+', '-'):lower() .. '.md'
-        local filepath = WORK_NOTES_PATH .. '/' .. filename
-        vim.ui.input({ prompt = 'Entry: ' }, function(entry)
-          if not entry or entry == '' then return end
-          entry = string_utils.capitalize_first_char(entry)
-          file_utils.ensure_directory_exists(filepath)
-          local lines = { '# ' .. name, '', entry .. '  ' }
-          if file_utils.write_lines(filepath, lines) then
-            vim.notify('Work note created: ' .. filename, vim.log.levels.INFO)
-            git_utils.sync_notes_repo()
-          else
-            vim.notify('Failed to create work note', vim.log.levels.ERROR)
-          end
-        end)
-      end)
-    else
-      local filepath = WORK_NOTES_PATH .. '/' .. selected.filename
-      vim.ui.input({ prompt = 'Entry for ' .. selected.name .. ': ' }, function(entry)
-        if not entry or entry == '' then return end
-        entry = string_utils.capitalize_first_char(entry)
-        local lines = file_utils.read_lines(filepath)
-        table.insert(lines, entry .. '  ')
-        if file_utils.write_lines(filepath, lines) then
-          vim.notify('Entry added to ' .. selected.name, vim.log.levels.INFO)
-          git_utils.sync_notes_repo()
-        else
-          vim.notify('Failed to write entry', vim.log.levels.ERROR)
-        end
-      end)
-    end
-  end)
-end
-
-function M.search_work_notes()
-  if vim.fn.isdirectory(WORK_NOTES_PATH) == 0 then
-    vim.notify('No work notes directory found', vim.log.levels.WARN)
-    return
-  end
-  Snacks.picker.grep({ cwd = WORK_NOTES_PATH, hidden = true })
-end
-
-function M.save_to_notes()
-  vim.ui.input({ prompt = 'Save to notes: ' }, function(input)
-    if not input or input == '' then return end
-    input = string_utils.capitalize_first_char(input)
-    local lines = file_utils.read_lines(QUICK_NOTES_FILE)
-    if #lines == 0 then
-      lines = { '# Quick Notes', '' }
-    end
-    table.insert(lines, '- ' .. os.date('%Y-%m-%d %H:%M') .. ' — ' .. input)
-    if file_utils.write_lines(QUICK_NOTES_FILE, lines) then
-      vim.notify('Saved to notes', vim.log.levels.INFO)
-      git_utils.sync_notes_repo()
-    else
-      vim.notify('Failed to save note', vim.log.levels.ERROR)
-    end
-  end)
-end
-
-function M.save_task()
-  local TASK_INPUT_OPTIONS = {
-    { name = 'Enter title' },
-    { name = 'Enter description' },
-  }
-
-  ui_utils.safe_select(TASK_INPUT_OPTIONS, {
-    prompt = 'What do you want to enter?',
-    format_item = function(item) return item.name end,
-  }, function(selected)
-    if selected.name == 'Enter description' then
-      ui_utils.multiline_input({ title = 'Task description' }, function(description)
-        if not description or description == '' then return end
-        local timestamp = os.date('%Y-%m-%d %H:%M')
-        local entry = '\n## Task — ' .. timestamp .. '\n\n' .. description .. '\n'
-        local lines = file_utils.read_lines(TASKS_FILE)
-        if #lines == 0 then
-          lines = { '# Tasks', '' }
-        end
-        table.insert(lines, entry)
-        if file_utils.write_lines(TASKS_FILE, lines) then
-          vim.notify('Task saved to notes', vim.log.levels.INFO)
-          git_utils.sync_notes_repo()
-        else
-          vim.notify('Failed to save task', vim.log.levels.ERROR)
-        end
-      end)
-    else
-      vim.ui.input({ prompt = 'Task title: ' }, function(title)
-        if not title or title == '' then return end
-        title = string_utils.capitalize_first_char(title)
-
-        ui_utils.multiline_input({ title = 'Task description (optional)' }, function(description)
-          local timestamp = os.date('%Y-%m-%d %H:%M')
-          local entry = '\n## ' .. title .. ' — ' .. timestamp .. '\n'
-          if description and description ~= '' then
-            entry = entry .. '\n' .. description .. '\n'
-          end
-          local lines = file_utils.read_lines(TASKS_FILE)
-          if #lines == 0 then
-            lines = { '# Tasks', '' }
-          end
-          table.insert(lines, entry)
-          if file_utils.write_lines(TASKS_FILE, lines) then
-            vim.notify('Task saved to notes', vim.log.levels.INFO)
-            git_utils.sync_notes_repo()
-          else
-            vim.notify('Failed to save task', vim.log.levels.ERROR)
-          end
-        end)
-      end)
-    end
-  end)
-end
-
-local NOTE_TYPE_OPTIONS = {
-  { name = 'Journal entry', action = 'journal' },
-  { name = 'Person note', action = 'person' },
-  { name = 'Topic note', action = 'sentence' },
-  { name = 'Task', action = 'task' },
+local HEADING_SIZES = {
+  { name = 'H1  #', level = 1 },
+  { name = 'H2  ##', level = 2 },
+  { name = 'H3  ###', level = 3 },
+  { name = 'H4  ####', level = 4 },
+  { name = 'H5  #####', level = 5 },
+  { name = 'H6  ######', level = 6 },
 }
 
-function M.quick_note()
-  local journal_actions = require('custom.actions.journal')
-
-  vim.ui.select(NOTE_TYPE_OPTIONS, {
-    prompt = 'Quick note:',
-    format_item = function(item) return item.name end,
-  }, function(selected)
-    if not selected then return end
-
-    if selected.action == 'journal' then
-      journal_actions.add_journal_entry()
-    elseif selected.action == 'person' then
-      M.add_notes_entry()
-    elseif selected.action == 'sentence' then
-      M.add_sentence()
-    elseif selected.action == 'task' then
-      M.save_task()
-    end
+-- Add a markdown heading to a selected categorized note, choosing the heading
+-- level (H1-H6) before entering the heading text.
+function M.add_categorized_heading()
+  select_category_then_doc('Add heading', function(filepath, name)
+    ui_utils.safe_select(HEADING_SIZES, {
+      prompt = 'Heading size:',
+      format_item = function(item) return item.name end,
+    }, function(size)
+      vim.ui.input({ prompt = 'Heading text: ' }, function(text)
+        if not text or text == '' then return end
+        text = string_utils.capitalize_first_char(text)
+        local lines = file_utils.read_lines(filepath)
+        if #lines > 0 and lines[#lines] ~= '' then table.insert(lines, '') end
+        table.insert(lines, string.rep('#', size.level) .. ' ' .. text)
+        table.insert(lines, '')
+        if file_utils.write_lines(filepath, lines) then
+          vim.notify('Heading added to ' .. name, vim.log.levels.INFO)
+          git_utils.sync_notes_repo()
+        else
+          vim.notify('Failed to write heading', vim.log.levels.ERROR)
+        end
+      end)
+    end)
   end)
 end
 

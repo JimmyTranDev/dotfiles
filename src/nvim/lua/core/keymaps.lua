@@ -85,7 +85,6 @@ maps('n', {
   { '<leader>;r', editor_actions.switch_repo_by_zellij_tab, '󰖲 Switch repo + rename Zellij tab' },
   { '<leader>fa', file_actions.grep_current_file_dir, '󰊄 Grep in current file dir' },
   { '<leader>fW', project_actions.switch_project, '󰉋 Switch project' },
-  { '<leader>;cp', file_actions.clear_plan_files, '󰃢 Clear plan files' },
 })
 
 map('x', '<leader>;Tr', [["zy:%s/\V<C-r>=escape(@z, '/')<CR>//gc<left><left><left>]], { desc = '󰕈 Visual search replace' })
@@ -101,14 +100,15 @@ maps('n', {
   { '<leader>vk', language_actions.run_knip_unused_code, '󰒡 Knip unused code' },
   { '<leader>vd', github_actions.redeploy_pr, '󰚴 Redeploy PR (#deploy + clean bot comments)' },
   { '<leader>vc', language_actions.run_test_coverage, '󰊕 Run test coverage' },
+  { '<leader>vp', file_actions.clear_plan_files, '󰃢 Clear plan files' },
 })
 
 -- ============================================================================
--- Caches & Jira Reports (<leader>;c, <leader>;J)
+-- Caches & Jira Reports (<leader>rc, <leader>;J)
 -- ============================================================================
 maps('n', {
-  { '<leader>;ct', todoist_actions.refresh_todoist_cache(), '󰆘 Refresh Todoist cache' },
-  { '<leader>;cw', jira_actions.refresh_jira_cache, '󰆘 Refresh Jira cache' },
+  { '<leader>rct', todoist_actions.refresh_todoist_cache(), '󰆘 Refresh Todoist cache' },
+  { '<leader>rcw', jira_actions.refresh_jira_cache, '󰆘 Refresh Jira cache' },
   { '<leader>;J', jira_actions.generate_done_md, '󰌧 Generate this week jira tasks' },
 })
 
@@ -183,19 +183,10 @@ maps('n', {
   { '<Leader>rlo', journal_actions.open_journal, '󰈙 Open journal' },
 })
 
--- Notes sub-group (<leader>rn)
+-- Categorized notes sub-group (<leader>rN)
 maps('n', {
-  { '<Leader>rnn', notes_actions.quick_note, '󰠮 Quick note' },
-  { '<Leader>rnp', notes_actions.add_notes_entry, '󰀄 Person entry' },
-  { '<Leader>rns', notes_actions.add_sentence, '󰈙 Add sentence' },
-  { '<Leader>rnt', notes_actions.save_task, '󰆓 Save task' },
-  { '<Leader>rnS', notes_actions.save_to_notes, '󰆓 Quick save' },
-})
-
--- Work sub-group (<leader>rw)
-maps('n', {
-  { '<Leader>rww', notes_actions.add_work_note, '󰠮 Add note' },
-  { '<Leader>rww', notes_actions.search_work_notes, '󰊄 Search notes' },
+  { '<Leader>rnn', notes_actions.add_categorized_note, '󰠮 Add note (continuous)' },
+  { '<Leader>rnh', notes_actions.add_categorized_heading, '󰉫 Add heading' },
 })
 
 -- ============================================================================
