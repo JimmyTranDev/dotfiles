@@ -18,8 +18,8 @@ select_worktrees_multi() {
         local repo_root="${gitdir%/.git/worktrees/*}"
         local project_name="${repo_root##*/}"
         local label="[$project_name] $wt_name"
-        local mtime
-        mtime=$(zstat +mtime "$git_file" 2>/dev/null) || mtime=0
+        local mtime="$(zstat +mtime "$git_file" 2>/dev/null)"
+        [[ -n "$mtime" ]] || mtime=0
         entries+=("$mtime $label")
         label_to_path[$label]="${wt_dir%/}"
       done

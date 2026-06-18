@@ -74,6 +74,11 @@ cmd_create() {
 		}
 	fi
 
+	if [[ "$main_repo" == *$'\n'* || ! -d "$main_repo" ]]; then
+		print_color red "Error: Invalid repository path resolved: $main_repo"
+		return 1
+	fi
+
 	print_color yellow "Using repository: $(basename "$main_repo")"
 	print_color yellow "Repository path: $main_repo"
 
@@ -196,8 +201,8 @@ cmd_create() {
 				commit_type=$(printf '%s\n' "${commit_types[@]}" | fzf --prompt="Select commit type: " --height=40% --reverse)
 			else
 				echo "Available commit types:"
-				for i in "${!commit_types[@]}"; do
-					echo "$((i + 1)). ${commit_types[$i]}"
+				for i in {1..${#commit_types[@]}}; do
+					echo "$i. ${commit_types[$i]}"
 				done
 				echo -n "Enter number (1-${#commit_types[@]}) or type name [default: feat]: "
 				read -r selection

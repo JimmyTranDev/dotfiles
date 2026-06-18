@@ -176,8 +176,7 @@ get_repository() {
 	local wcheckout_dir="${WCHECKOUT_DIR:-$programming_dir/wcheckout}"
 	for wt_dir in "$wcreated_dir" "$wcheckout_dir"; do
 		[[ ! -d "$wt_dir" ]] && continue
-		local wt_label
-		wt_label=$(basename "$wt_dir")
+		local wt_label="$(basename "$wt_dir")"
 		for wt_entry in "$wt_dir"/*/; do
 			[[ ! -d "$wt_entry" ]] && continue
 			if [[ -d "$wt_entry/.git" ]] || [[ -f "$wt_entry/.git" ]]; then
@@ -211,7 +210,7 @@ get_repository() {
 		[[ -z "$selected" ]] && return 1
 
 		# Match by both label and basename to handle duplicate names across categories
-		for i in "${!repo_labels[@]}"; do
+		for i in {1..${#repo_labels[@]}}; do
 			if [[ "${repo_labels[$i]}" == "$selected" ]]; then
 				echo "${repos[$i]}"
 				return 0
