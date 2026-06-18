@@ -64,30 +64,30 @@ maps('n', {
 })
 
 -- ============================================================================
--- Dev Tools (<leader>;d)
+-- Dev Tools (<leader>;)
 -- ============================================================================
 maps('n', {
-  { '<leader>;df', language_actions.fix_and_organize_typescript_imports, '󰉼 Fix and organize imports (TS)' },
-  { '<leader>;dm', language_actions.serve_markdown_folder, '󰌠 Markserve' },
-  { '<leader>;ds', ':4TermExec cmd="live-server --port=9090"<CR>', '󰌐 Live Server' },
-  { '<leader>;dM', language_actions.compile_mjml_file, '󰈮 Compile Mjml Html' },
+  { '<leader>;i', language_actions.fix_and_organize_typescript_imports, '󰉼 Fix and organize imports (TS)' },
+  { '<leader>;m', language_actions.serve_markdown_folder, '󰌠 Markserve' },
+  { '<leader>;s', ':4TermExec cmd="live-server --port=9090"<CR>', '󰌐 Live Server' },
+  { '<leader>;M', language_actions.compile_mjml_file, '󰈮 Compile Mjml Html' },
 })
 
 -- ============================================================================
 -- File & Editor
 -- ============================================================================
 maps('n', {
-  { '<leader>;fs', editor_actions.toggle_spellcheck, '󰓆 Toggle spellcheck' },
-  { '<leader>;fm', editor_actions.toggle_markview, '󰙈 Toggle Markview' },
-  { '<leader>;fw', editor_actions.toggle_wrap, '󰌪 Toggle text wrap' },
+  { '<leader>;S', editor_actions.toggle_spellcheck, '󰓆 Toggle spellcheck' },
+  { '<leader>;v', editor_actions.toggle_markview, '󰙈 Toggle Markview' },
+  { '<leader>;w', editor_actions.toggle_wrap, '󰌪 Toggle text wrap' },
   { '<leader>;R', ':e!<CR>', '󰔁 Reload file from disk' },
   { '<leader>j', ':e!<CR>', '󰔁 Refresh current file' },
-  { '<leader>;r', editor_actions.switch_repo_by_zellij_tab, '󰖲 Switch repo + rename Zellij tab' },
+  { '<leader>fR', editor_actions.switch_repo_by_zellij_tab, '󰖲 Switch repo + rename Zellij tab' },
   { '<leader>fa', file_actions.grep_current_file_dir, '󰊄 Grep in current file dir' },
   { '<leader>fW', project_actions.switch_project, '󰉋 Switch project' },
 })
 
-map('x', '<leader>;Tr', [["zy:%s/\V<C-r>=escape(@z, '/')<CR>//gc<left><left><left>]], { desc = '󰕈 Visual search replace' })
+map('x', '<leader>;T', [["zy:%s/\V<C-r>=escape(@z, '/')<CR>//gc<left><left><left>]], { desc = '󰕈 Visual search replace' })
 
 -- ============================================================================
 -- Code Quality & Verification (<leader>v)

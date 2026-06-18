@@ -61,9 +61,6 @@ return {
 
     local groups = {
       { '<leader>;', '󰌌 Secondary' },
-      { '<leader>;d', '󰠷 Development' },
-      { '<leader>;f', '󰉋 Files' },
-      { '<leader>;T', '󰦅 Text' },
       { '<leader>rc', '󰑓 Cache' },
       { '<leader>c', '󰌷 Copy & Quick Access' },
       { '<leader>a', '󰚩 AI' },
@@ -134,7 +131,7 @@ return {
     }
 
     local descs = {
-      { '<leader>;j', '󰌧 Generate this week jira tasks' },
+      { '<leader>;J', '󰌧 Generate this week jira tasks' },
 
       { '<leader>i', '󰘻 Jump In' },
       { '<leader>m', '󰊢 Lazygit' },
