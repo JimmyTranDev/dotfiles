@@ -2,6 +2,7 @@ local M = {}
 
 local file_utils = require('custom.utils.files')
 local string_utils = require('custom.utils.string')
+local grammar_utils = require('custom.utils.grammar')
 local git_utils = require('custom.utils.git')
 local json_utils = require('custom.utils.json')
 
@@ -142,7 +143,7 @@ function M.add_categorized_note()
     local function prompt_entry()
       vim.ui.input({ prompt = 'Note for ' .. name .. ': ' }, function(input)
         if not input or input == '' then return end
-        input = string_utils.capitalize_first_char(input)
+        input = string_utils.capitalize_first_char(grammar_utils.fix(input))
         local lines = file_utils.read_lines(filepath)
         table.insert(lines, '- ' .. input)
         if file_utils.write_lines(filepath, lines) then
@@ -177,7 +178,7 @@ function M.add_categorized_heading()
     }, function(size)
       vim.ui.input({ prompt = 'Heading text: ' }, function(text)
         if not text or text == '' then return end
-        text = string_utils.capitalize_first_char(text)
+        text = string_utils.capitalize_first_char(grammar_utils.fix(text))
         local lines = file_utils.read_lines(filepath)
         if #lines > 0 and lines[#lines] ~= '' then table.insert(lines, '') end
         table.insert(lines, string.rep('#', size.level) .. ' ' .. text)

@@ -2,6 +2,7 @@ local M = {}
 
 local file_utils = require('custom.utils.files')
 local string_utils = require('custom.utils.string')
+local grammar_utils = require('custom.utils.grammar')
 local git_utils = require('custom.utils.git')
 
 local JOURNAL_BASE_PATH = vim.fn.expand('~/Programming/JimmyTranDev/notes/notes/journal')
@@ -95,7 +96,7 @@ local function ensure_today_header(filepath)
 end
 
 local function write_journal_entry(input)
-  input = string_utils.capitalize_first_char(input)
+  input = string_utils.capitalize_first_char(grammar_utils.fix(input))
 
   local filepath = get_journal_path()
   local lines, existing_days, today = ensure_today_header(filepath)
