@@ -53,6 +53,10 @@ map('n', 'gK', 'K', { desc = '󰋼 Keyword lookup' })
 map('n', '<Leader>i', '<C-i>', { desc = '󰮯 Jump forward' })
 map('n', '<Leader>o', '<C-o>', { desc = '󰮲 Jump backward' })
 
+-- Disable macro recording
+map('n', 'q', '<Nop>', { desc = '󰜺 Macro recording disabled' })
+map('x', 'q', '<Nop>', { desc = '󰜺 Macro recording disabled' })
+
 -- ============================================================================
 -- Quit & Write
 -- ============================================================================
