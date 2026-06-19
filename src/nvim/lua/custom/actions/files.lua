@@ -146,33 +146,38 @@ function M.copy_ai_file_reference_range()
   vim.notify('Copied: ' .. link, vim.log.levels.INFO)
 end
 
-function M.copy_as_markdown_code_block()
+local function copy_markdown_block(start_line, end_line, label)
   if vim.fn.expand('%:p') == '' then
     vim.notify('No file is currently open', vim.log.levels.WARN)
     return
   end
-  local lang = vim.bo.filetype
-  local content = table.concat(vim.fn.getline(1, '$'), '\n')
-  local block = string.format('```%s\n%s\n```', lang, content)
+  local content = table.concat(vim.fn.getline(start_line, end_line), '\n')
+  -- Pick a fence longer than the longest backtick run in the content so embedded
+  -- ``` fences (common in markdown/docs) can't close the block early (CommonMark
+  -- allows variable-length fences).
+  local max_run = 0
+  for run in content:gmatch('`+') do
+    if #run > max_run then
+      max_run = #run
+    end
+  end
+  local fence = string.rep('`', math.max(3, max_run + 1))
+  local block = string.format('%s%s\n%s\n%s', fence, vim.bo.filetype, content, fence)
   vim.fn.setreg('+', block)
-  vim.notify('Copied buffer as markdown code block', vim.log.levels.INFO)
+  vim.notify('Copied ' .. label .. ' as markdown code block', vim.log.levels.INFO)
+end
+
+function M.copy_as_markdown_code_block()
+  copy_markdown_block(1, vim.fn.line('$'), 'buffer')
 end
 
 function M.copy_as_markdown_code_block_range()
-  if vim.fn.expand('%:p') == '' then
-    vim.notify('No file is currently open', vim.log.levels.WARN)
-    return
-  end
   local start_line = vim.fn.line('v')
   local end_line = vim.fn.line('.')
   if start_line > end_line then
     start_line, end_line = end_line, start_line
   end
-  local lang = vim.bo.filetype
-  local content = table.concat(vim.fn.getline(start_line, end_line), '\n')
-  local block = string.format('```%s\n%s\n```', lang, content)
-  vim.fn.setreg('+', block)
-  vim.notify('Copied selection as markdown code block', vim.log.levels.INFO)
+  copy_markdown_block(start_line, end_line, 'selection')
 end
 
 function M.copy_frontend_project_paths()

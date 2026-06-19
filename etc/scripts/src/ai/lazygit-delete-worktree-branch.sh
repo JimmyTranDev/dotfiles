@@ -46,6 +46,35 @@ worktree_path_for_branch() {
 	return 0
 }
 
+# Guard a directory before `rm -rf`: canonicalize it (resolving symlinks and
+# '..') then refuse catastrophic targets — empty, '/', $HOME, the main worktree
+# itself, or any ancestor of the main worktree (removing which would take the
+# repo down). Returns 0 only when the path is safe to delete.
+is_safe_to_remove() {
+	local path="$1"
+	local main_worktree="$2"
+
+	if [[ -z "$path" || ! -d "$path" ]]; then
+		return 1
+	fi
+
+	local real_path real_main
+	real_path=$(cd "$path" 2>/dev/null && pwd -P) || return 1
+	real_main=$(cd "$main_worktree" 2>/dev/null && pwd -P) || real_main="${main_worktree%/}"
+
+	if [[ -z "$real_path" || "$real_path" == "/" || "$real_path" == "$HOME" ]]; then
+		return 1
+	fi
+	if [[ "$real_path" == "$real_main" ]]; then
+		return 1
+	fi
+	# Refuse if the main worktree lives inside $real_path (i.e. path is an ancestor).
+	if [[ "$real_main" == "$real_path"/* ]]; then
+		return 1
+	fi
+	return 0
+}
+
 # Remove the worktree at $path. Never touches the main worktree. Sets
 # RESULT_WORKTREE to one of: none, skipped_main, removed, pruned.
 remove_worktree() {
@@ -71,8 +100,10 @@ remove_worktree() {
 		# Worktree already gone or never registered — drop any leftover
 		# directory so the path can't block re-creation; prune handles git's metadata.
 		log_warning "Could not remove via git (already gone or unregistered); cleaning up"
-		if [[ -d "$path" ]]; then
+		if is_safe_to_remove "$path" "$main_worktree"; then
 			rm -rf "$path" 2>/dev/null || true
+		elif [[ -d "$path" ]]; then
+			log_error "Refusing to rm -rf unsafe path: $path"
 		fi
 		RESULT_WORKTREE="pruned"
 	fi

@@ -24,6 +24,9 @@ local CONFIG = {
   LIMIT = 50,
   AUTO_TRANSITION = true,
   TRANSITION_STATUSES = { 'In Progress Concept', 'Done Concept', 'Prioritised Issues Development' },
+  -- Sentinel marking where the "Done Concept only" path stops within TRANSITION_STATUSES.
+  -- Must exist in the chain above; the slice fails closed if it does not.
+  DONE_CONCEPT_STATUS = 'Done Concept',
 }
 
 local ISSUE_TYPES = {
@@ -352,12 +355,28 @@ local function create_jira_task_workflow(summary, description, fallback_project,
 
                     local statuses = CONFIG.TRANSITION_STATUSES
                     if transition_choice == 'done_concept' then
-                      -- Slice the configured chain up to and including 'Done Concept' rather than
-                      -- duplicating a status list, so this stays correct if CONFIG.TRANSITION_STATUSES changes
+                      -- Slice the configured chain up to and including the Done Concept sentinel
+                      -- rather than duplicating a status list, so this tracks TRANSITION_STATUSES.
                       local subset = {}
+                      local found = false
                       for _, status in ipairs(CONFIG.TRANSITION_STATUSES) do
                         table.insert(subset, status)
-                        if status == 'Done Concept' then break end
+                        if status == CONFIG.DONE_CONCEPT_STATUS then
+                          found = true
+                          break
+                        end
+                      end
+                      -- Fail closed: if the sentinel is missing (e.g. chain renamed), do NOT fall
+                      -- through to the full chain and over-transition past Done Concept — abort instead.
+                      if not found then
+                        vim.notify(
+                          string.format(
+                            "Transition status '%s' not in chain; skipping auto-transition",
+                            CONFIG.DONE_CONCEPT_STATUS
+                          ),
+                          vim.log.levels.WARN
+                        )
+                        subset = {}
                       end
                       statuses = subset
                     end
