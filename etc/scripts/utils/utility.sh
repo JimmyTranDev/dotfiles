@@ -41,14 +41,14 @@ reorder_last_first() {
 	local item
 	if [[ -n "$last_value" ]]; then
 		for item in "$@"; do
-			[[ "$item" == "$last_value" ]] && echo "$item"
+			[[ "$item" == "$last_value" ]] && printf '%s\n' "$item"
 		done
 		for item in "$@"; do
-			[[ "$item" != "$last_value" ]] && echo "$item"
+			[[ "$item" != "$last_value" ]] && printf '%s\n' "$item"
 		done
 	else
 		for item in "$@"; do
-			echo "$item"
+			printf '%s\n' "$item"
 		done
 	fi
 }
@@ -132,7 +132,11 @@ find_git_worktrees_categorized() {
 	local base_dir_with_slash="${base_dir}/"
 
 	_emit_git_worktree_paths "$base_dir" "$max_depth" "$base_dir_with_slash" | while IFS= read -r relative_path; do
-		worktree_path="${base_dir_with_slash}${relative_path}"
+		if [[ "$relative_path" == /* ]]; then
+			worktree_path="$relative_path"
+		else
+			worktree_path="${base_dir_with_slash}${relative_path}"
+		fi
 		if git -C "$worktree_path" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; then
 			echo "[checkout] $relative_path"
 		else

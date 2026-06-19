@@ -122,7 +122,7 @@ detect_linter() {
 		return
 	fi
 
-	if ls "$dir"/eslint.config.* 2>/dev/null | head -1 &>/dev/null; then
+	if [[ -f "$dir/eslint.config.js" ]] || [[ -f "$dir/eslint.config.mjs" ]] || [[ -f "$dir/eslint.config.cjs" ]] || [[ -f "$dir/eslint.config.ts" ]]; then
 		echo "eslint"
 		return
 	fi

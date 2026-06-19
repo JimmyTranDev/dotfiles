@@ -95,9 +95,10 @@ json_output() {
 }
 
 # Run a command in a directory; capture its exit code and elapsed seconds.
-# Streams the command's output live via the `2>&1 >&2` idiom, matching the
-# check scripts' existing behavior. Does NOT emit JSON or dictate output keys —
-# callers build their own JSON from the result globals.
+# Streams the command's stdout+stderr live to the script's stderr via the
+# `>&2 2>&1` idiom, keeping the script's stdout clean for the JSON line.
+# Does NOT emit JSON or dictate output keys — callers build their own JSON
+# from the result globals.
 # Sets globals: RUN_EXIT_CODE (int), RUN_DURATION (whole seconds).
 # Usage: run_capture_exit <dir> <cmd>
 run_capture_exit() {
@@ -106,6 +107,6 @@ run_capture_exit() {
 
 	RUN_EXIT_CODE=0
 	SECONDS=0
-	(cd "$dir" && eval "$cmd") 2>&1 >&2 || RUN_EXIT_CODE=$?
+	(cd "$dir" && eval "$cmd") >&2 2>&1 || RUN_EXIT_CODE=$?
 	RUN_DURATION=$SECONDS
 }

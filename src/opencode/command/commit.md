@@ -1,6 +1,5 @@
 ---
 name: commit
-model: github-copilot/claude-haiku-4.5
 subtask: true
 description: Create a well-formatted git commit using conventional commit format
 ---
