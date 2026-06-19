@@ -314,6 +314,7 @@ All scripts output **minified JSON** to stdout, log to stderr via `log_*` helper
 | `diff-summary.sh [--base branch] [dir]` | Structured diff summary against base branch | Replaces 3-4 separate git diff/log calls |
 | `fix-checks.sh [--pr number] [dir]` | Fetch failing CI checks with log content from GitHub | Replaces multiple `gh` API calls for CI failures |
 | `worktree-clean.sh [--dry-run] [--dir root]` | Scan and auto-clean stale git worktrees | Replaces manual worktree inspection and cleanup |
+| `lazygit-delete-worktree-branch.sh [--path worktree] [--branch name]` | Remove a worktree AND delete its branch in the correct order (worktree first, then branch, then prune); derives the missing half from `git worktree list` | Replaces unreliable separate worktree/branch deletion (lazygit `D` keybinding) |
 | `pr-create.sh --branch name --title t --body b [--base] [--draft]` | Create worktree + push + PR via gh | Replaces multi-step git/gh PR creation plumbing |
 | `triage-todoist.sh <section-url> [--priority p1-p4]` | Fetch and filter Todoist tasks for triage | Replaces multiple `td` CLI calls |
 | `move-todoist-tasks.sh <source-url> <dest-url>` | Move all tasks from one Todoist section to another | Replaces manual task-by-task moving |

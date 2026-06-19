@@ -69,6 +69,8 @@ git branch -D <branch-name>
 7. If branch is not fully merged, warn and ask before `git branch -D <branch-name>`
 8. Run `git worktree prune` to remove stale references
 
+**Why the order matters**: `git branch -d/-D` refuses to delete a branch that is currently checked out in *any* worktree (`error: cannot delete branch '<x>' used by worktree at '<path>'`). The worktree **must** be removed first, then the branch, then prune. Doing them in the wrong order — or deleting the branch before its worktree — is why a naive "delete branch" or repeated attempts fail. For a single reliable action (used by the lazygit `D` keybindings), run `lazygit-delete-worktree-branch.sh --path <worktree-path>` and/or `--branch <branch-name>`; it derives the missing half from `git worktree list`, removes the worktree, force-deletes the branch, and prunes — never touching the main worktree or the current HEAD.
+
 ### Clean Merged Worktrees
 
 Run `worktree-clean.sh` (use `--dry-run` first) to scan and auto-clean stale or merged worktrees — it checks whether each worktree's branch is an ancestor of `main` or `develop` (i.e., merged), then batch-deletes confirmed ones. To match orphaned worktrees back to open PRs before cleaning, use `recover-pr.sh`.

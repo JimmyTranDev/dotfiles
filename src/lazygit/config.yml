@@ -30,3 +30,30 @@ theme:
 
 authorColors:
   '*': '#b4befe'
+
+customCommands:
+  # Worktrees view: remove the selected worktree AND delete its branch in one
+  # pass. Doing them separately is what makes lazygit's built-ins fail (a branch
+  # checked out in a worktree can't be deleted until the worktree is gone).
+  - key: 'D'
+    context: 'worktrees'
+    description: 'Remove worktree + delete its branch'
+    command: '$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/ai/lazygit-delete-worktree-branch.sh --path {{.SelectedWorktree.Path | quote}} --branch {{.SelectedWorktree.Branch | quote}}'
+    loadingText: 'Removing worktree and deleting branch'
+    output: log
+    prompts:
+      - type: 'confirm'
+        title: 'Delete worktree and branch'
+        body: "Remove worktree '{{.SelectedWorktree.Path}}' and force-delete branch '{{.SelectedWorktree.Branch}}'?"
+  # Local branches view: delete the selected branch AND first remove the linked
+  # worktree it is checked out in (if any), so the branch is free to delete.
+  - key: 'D'
+    context: 'localBranches'
+    description: 'Delete branch + its linked worktree'
+    command: '$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/ai/lazygit-delete-worktree-branch.sh --branch {{.SelectedLocalBranch.Name | quote}}'
+    loadingText: 'Deleting branch and its worktree'
+    output: log
+    prompts:
+      - type: 'confirm'
+        title: 'Delete branch and worktree'
+        body: "Force-delete branch '{{.SelectedLocalBranch.Name}}' and remove its linked worktree (if any)?"
