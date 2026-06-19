@@ -33,3 +33,5 @@ shift + alt - m : yabai -m window --toggle zoom-fullscreen
 shift + alt - e : yabai -m space --balance
 
 shift + alt - q : yabai -m window --close
+
+shift + alt - s : pmset sleepnow
