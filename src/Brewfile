@@ -69,6 +69,7 @@ brew "stylua"
 
 # Casks
 cask "android-studio"
+cask "drawpen"
 cask "espanso"
 cask "firefox"
 cask "font-fira-code-nerd-font"
