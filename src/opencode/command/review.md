@@ -32,24 +32,24 @@ Load all applicable skills in a single parallel batch.
 2. If uncommitted changes exist, review those: `git diff` (unstaged) + `git diff --cached` (staged)
 3. If no uncommitted changes, fall back to the last commit: `git diff HEAD~1..HEAD`
 4. If no commits exist and no changes, notify the user and stop
-5. Launch the **reviewer** agent on the diff
+5. Launch the **reviewer** and **refactorer** agents in parallel on the diff
 
 ## Branch Mode
 
 1. Run `git-branch-info.sh` and use the `BASE_BRANCH` value
 2. Run `git diff <base-branch>...<branch-name>` to gather the full feature diff
-3. Launch the **reviewer** agent on the diff
+3. Launch the **reviewer** and **refactorer** agents in parallel on the diff
 
 ## File/Directory Mode
 
 1. Run `git diff` and `git diff --cached` filtered to the specified path
 2. If no changes in that path, notify the user and stop
-3. Launch the **reviewer** agent on the filtered diff
+3. Launch the **reviewer** and **refactorer** agents in parallel on the filtered diff
 
 ## PR Mode
 
 1. Fetch the PR diff using `gh pr diff <ref>`
-2. Launch the **reviewer** and **auditor** agents in parallel on the diff
+2. Launch the **reviewer**, **auditor**, and **refactorer** agents in parallel on the diff
 3. Deduplicate findings across agents before presenting
 
 ## Large Diff Handling
@@ -63,6 +63,8 @@ If the diff exceeds 1000 lines:
 ## Output Format
 
 The **reviewer** agent formats its own output using the **review-output-format** skill. See `agent/reviewer.md` for the output structure.
+
+When the **refactorer** (and **auditor** in PR mode) run alongside the reviewer, merge and deduplicate their findings into the reviewer's output before presenting. Group refactoring suggestions (extract, inline, rename, move, split) under the reviewer's suggestion tier unless they are correctness-affecting.
 
 ## Post-Review Fix Offer
 
