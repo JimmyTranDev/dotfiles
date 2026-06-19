@@ -58,6 +58,7 @@ src/opencode/
 │   ├── fix-conflict.md
 │   ├── fix.md
 │   ├── fms.md
+│   ├── implement-frontend.md
 │   ├── implement-parallel.md
 │   ├── implement-sequential.md
 │   ├── implement.md

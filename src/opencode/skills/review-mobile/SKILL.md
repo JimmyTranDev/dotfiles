@@ -108,6 +108,15 @@ Format findings using the **review-output-format** skill.
 | Clipboard data | Clear sensitive clipboard content |
 | Debug logging in prod | Strip console.log in production builds |
 
+## Text & Internationalization
+
+| Issue | Detection | Fix |
+|-------|-----------|-----|
+| Splitting strings by code point | `Array.from(str)`, `[...str]`, or `str.split('')` for per-character UI (tiles, cursors, truncation, counters) | Use `Intl.Segmenter(locale, { granularity: 'grapheme' })` — code-point splits orphan combining marks / dependent vowels / viramas / emoji ZWJ sequences for Indic, Thai, Tamil, Bengali |
+| `Intl.Segmenter` assumed present | Crash where it is `undefined` on older Hermes/RN runtimes | Guard `typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function'`, fall back to `Array.from` |
+| Untrusted local-DB strings | `.normalize()`/`.trim()`/etc. on a column value (even `notNull`) inside render or a `useState` initializer | Offline-first rows are not trusted at runtime; coerce `typeof v === 'string' ? v : ''` before string ops to avoid a render-time TypeError red-screen |
+| Loop stride from data/config | `for (i += step)` where `step` can be `0` | Clamp with `Math.max(1, step)` to avoid an infinite loop |
+
 ## Testing Considerations
 
 | Area | Approach |
