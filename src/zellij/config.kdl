@@ -132,6 +132,8 @@ keybinds clear-defaults=true {
         bind "Alt o" { MoveTab "Right"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
         // Alt a: open a plain new tab, then build a 2x2 grid of 4 opencode panes by splitting inside it, then reindex tabs. Requires $ZELLIJ + opencode installed.
         bind "Alt a" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_opencode_quad.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        // Alt g: open a new tab with a 4x2 grid (4 columns x 2 rows = 8 opencode panes) via layout, then reindex tabs. Requires $ZELLIJ + opencode installed.
+        bind "Alt g" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_opencode_4x2.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         bind "Alt y" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
 
         bind "Alt d" { NewPane "down"; SwitchToMode "locked"; }

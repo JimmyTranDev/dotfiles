@@ -1,0 +1,17 @@
+layout {
+    pane split_direction="vertical" {
+        pane command="opencode"
+        pane command="opencode"
+        pane command="opencode"
+        pane command="opencode"
+    }
+    pane split_direction="vertical" {
+        pane command="opencode"
+        pane command="opencode"
+        pane command="opencode"
+        pane command="opencode"
+    }
+    pane size=1 borderless=true {
+        plugin location="zellij:compact-bar"
+    }
+}
