@@ -142,11 +142,12 @@ maps('n', {
   { '<leader>cg', project_actions.pull_and_copy_project_path, '󰆓 Pull repo + copy path' },
 })
 
--- File reference sub-group (<leader>cu/co/cc)
+-- File reference sub-group (<leader>cu/co/cc/cm)
 maps('n', {
   { '<leader>cu', file_actions.copy_current_file_url, '󰆓 Current file URL' },
   { '<leader>co', file_actions.copy_opencode_link, '󰆓 OpenCode link' },
   { '<leader>cc', file_actions.copy_ai_file_reference, '󰆓 AI file reference (line)' },
+  { '<leader>cm', file_actions.copy_as_markdown_code_block, '󰆓 Markdown code block (buffer)' },
 })
 
 -- Diagnostics sub-group (<leader>ce)
@@ -162,6 +163,7 @@ maps('n', {
 -- Visual mode copy
 map('v', '<leader>cl', github_actions.copy_github_line_url, { desc = '󰆓 GitHub line URL' })
 map('x', '<leader>cc', file_actions.copy_ai_file_reference_range, { desc = '󰆓 AI file reference (range)' })
+map('x', '<leader>cm', file_actions.copy_as_markdown_code_block_range, { desc = '󰆓 Markdown code block (selection)' })
 
 -- ============================================================================
 -- Capture & Log (<leader>r)
@@ -213,6 +215,7 @@ end, { desc = '󰊭 GCloud auth (Chrome)' })
 -- GitHub sub-group (<leader>ug)
 maps('n', {
   { '<Leader>ugc', github_actions.open_current_commit_in_github, '󰜘 Current commit' },
+  { '<Leader>ugl', git_actions.show_commits_current_folder, '󰜘 Commits affecting current folder' },
   { '<Leader>ugp', git_actions.open_or_create_pull_request, '󰓢 Open/create PR' },
   { '<Leader>ugP', git_actions.copy_pr_link, '󰆏 Copy PR link' },
   -- { '<Leader>ugr', link_actions.open_current_github_repo, 'Repo page' },

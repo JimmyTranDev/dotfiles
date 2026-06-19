@@ -15,6 +15,16 @@ function M.format_review_decision(decision)
   return emojis[decision] or '⏳'
 end
 
+--- Format a PR draft flag into an emoji indicator.
+---@param is_draft boolean|nil true when the PR is a draft, falsy when open
+---@return string emoji
+function M.format_draft_state(is_draft)
+  if is_draft then
+    return '📝'
+  end
+  return '🟢'
+end
+
 function M.get_pulls(repo)
   local result = vim.fn.system({ 'gh', 'pr', 'list', '--repo', repo, '--json', 'number,title,url,state' })
   if vim.v.shell_error ~= 0 then return {} end
@@ -96,7 +106,7 @@ function M.fetch_my_prs_across_owners(owners, opts, callback)
       '--author',
       '@me',
       '--json',
-      'number,title,repository,url',
+      'number,title,repository,url,isDraft',
       '--limit',
       '100',
     })
@@ -116,6 +126,7 @@ function M.fetch_my_prs_across_owners(owners, opts, callback)
                 title = pr.title,
                 url = pr.url,
                 repo = repo_name,
+                draft = pr.isDraft,
               })
             end
           end
@@ -129,10 +140,10 @@ function M.fetch_my_prs_across_owners(owners, opts, callback)
 end
 
 --- Enrich a list of PR items with their review decision, rebuilding each item's
---- `text` to include an approval emoji right after the username (or at the start
---- when there is no username). `gh search prs` cannot return reviewDecision, so
---- it is fetched per PR here.
----@param prs table[] items with `repo`, `number`, `title`, optional `author`
+--- `text` to include a leading draft/open emoji followed by an approval emoji
+--- right after the username (or at the start when there is no username).
+--- `gh search prs` cannot return reviewDecision, so it is fetched per PR here.
+---@param prs table[] items with `repo`, `number`, `title`, optional `author`, optional `draft`
 ---@param callback fun(prs: table[])
 function M.append_review_decisions(prs, callback)
   if #prs == 0 then
@@ -143,10 +154,11 @@ function M.append_review_decisions(prs, callback)
   local function apply(pr, decision)
     pr.review_decision = decision
     local emoji = M.format_review_decision(decision)
+    local draft_emoji = M.format_draft_state(pr.draft)
     if pr.author then
-      pr.text = string.format('[%s] %s #%d %s [%s]', pr.author, emoji, pr.number, pr.title, pr.repo)
+      pr.text = string.format('%s [%s] %s #%d %s [%s]', draft_emoji, pr.author, emoji, pr.number, pr.title, pr.repo)
     else
-      pr.text = string.format('%s #%d %s [%s]', emoji, pr.number, pr.title, pr.repo)
+      pr.text = string.format('%s %s #%d %s [%s]', draft_emoji, emoji, pr.number, pr.title, pr.repo)
     end
   end
 

@@ -338,11 +338,36 @@ local function create_jira_task_workflow(summary, description, fallback_project,
                     )
                   end
 
-                  run_transitions(CONFIG.TRANSITION_STATUSES, 1, function()
-                    if should_open_link then
-                      local jira_link = link_utils.get_jira_link_with_ticket(work_item_id)
-                      if jira_link then vim.system({ 'open', jira_link }) end
+                  local transition_options = {
+                    { name = 'Done Concept only', value = 'done_concept' },
+                    { name = 'Prioritise', value = 'prioritise' },
+                  }
+
+                  vim.ui.select(transition_options, {
+                    prompt = 'Select transition target:',
+                    format_item = function(item) return item.name end,
+                  }, function(selected_transition)
+                    -- Default to Done Concept only (safer, non-final) when the prompt is dismissed
+                    local transition_choice = selected_transition and selected_transition.value or 'done_concept'
+
+                    local statuses = CONFIG.TRANSITION_STATUSES
+                    if transition_choice == 'done_concept' then
+                      -- Slice the configured chain up to and including 'Done Concept' rather than
+                      -- duplicating a status list, so this stays correct if CONFIG.TRANSITION_STATUSES changes
+                      local subset = {}
+                      for _, status in ipairs(CONFIG.TRANSITION_STATUSES) do
+                        table.insert(subset, status)
+                        if status == 'Done Concept' then break end
+                      end
+                      statuses = subset
                     end
+
+                    run_transitions(statuses, 1, function()
+                      if should_open_link then
+                        local jira_link = link_utils.get_jira_link_with_ticket(work_item_id)
+                        if jira_link then vim.system({ 'open', jira_link }) end
+                      end
+                    end)
                   end)
                 else
                   if should_open_link then

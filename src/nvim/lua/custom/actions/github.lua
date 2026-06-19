@@ -465,6 +465,7 @@ local function fetch_and_show_prs(org_name, usernames)
             url = pr.url,
             repo = pr.repo,
             author = author,
+            draft = pr.draft,
           })
         end
         show_picker()
@@ -485,7 +486,7 @@ local function fetch_and_show_prs(org_name, usernames)
         '--author',
         username,
         '--json',
-        'number,title,repository,url',
+        'number,title,repository,url,isDraft',
         '--limit',
         '100',
       },
@@ -503,6 +504,7 @@ local function fetch_and_show_prs(org_name, usernames)
                 url = pr.url,
                 repo = repo_name,
                 author = username,
+                draft = pr.isDraft,
               })
             end
           end

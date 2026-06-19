@@ -598,6 +598,31 @@ function M.diff_vs_develop()
   if ok then snacks.picker.git_diff({ args = { 'develop' } }) end
 end
 
+function M.show_commits_current_folder()
+  local ok, snacks = pcall(require, 'snacks')
+  if not ok then
+    vim.notify('snacks.nvim is not available', vim.log.levels.ERROR)
+    return
+  end
+
+  local dir = vim.fn.expand('%:p:h')
+  if dir == '' then dir = vim.fn.getcwd() end
+
+  local in_work_tree = vim.fn.system({ 'git', '-C', dir, 'rev-parse', '--is-inside-work-tree' })
+  if vim.v.shell_error ~= 0 or not in_work_tree:match('true') then
+    vim.notify('Not inside a git repository: ' .. dir, vim.log.levels.WARN)
+    return
+  end
+
+  -- snacks resolves `cwd` to the git root before running, so a `.` pathspec
+  -- would match the whole repo. Pass the absolute folder as the pathspec to
+  -- restrict the log to commits that touch this folder.
+  snacks.picker.git_log({
+    cwd = dir,
+    cmd_args = { '--', dir },
+  })
+end
+
 function M.create_pr_from_branch()
   local branch = git_utils.get_current_branch()
   if not branch or branch == '' then

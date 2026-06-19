@@ -146,6 +146,35 @@ function M.copy_ai_file_reference_range()
   vim.notify('Copied: ' .. link, vim.log.levels.INFO)
 end
 
+function M.copy_as_markdown_code_block()
+  if vim.fn.expand('%:p') == '' then
+    vim.notify('No file is currently open', vim.log.levels.WARN)
+    return
+  end
+  local lang = vim.bo.filetype
+  local content = table.concat(vim.fn.getline(1, '$'), '\n')
+  local block = string.format('```%s\n%s\n```', lang, content)
+  vim.fn.setreg('+', block)
+  vim.notify('Copied buffer as markdown code block', vim.log.levels.INFO)
+end
+
+function M.copy_as_markdown_code_block_range()
+  if vim.fn.expand('%:p') == '' then
+    vim.notify('No file is currently open', vim.log.levels.WARN)
+    return
+  end
+  local start_line = vim.fn.line('v')
+  local end_line = vim.fn.line('.')
+  if start_line > end_line then
+    start_line, end_line = end_line, start_line
+  end
+  local lang = vim.bo.filetype
+  local content = table.concat(vim.fn.getline(start_line, end_line), '\n')
+  local block = string.format('```%s\n%s\n```', lang, content)
+  vim.fn.setreg('+', block)
+  vim.notify('Copied selection as markdown code block', vim.log.levels.INFO)
+end
+
 function M.copy_frontend_project_paths()
   local base_dir = vim.fn.expand('~/Programming')
   local stat = vim.uv.fs_stat(base_dir)
