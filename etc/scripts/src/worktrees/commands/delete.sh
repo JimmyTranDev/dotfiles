@@ -1,11 +1,5 @@
 #!/bin/zsh
 
-select_fzf_multi() {
-	local prompt="$1"
-	shift
-	[[ $# -gt 0 ]] && printf "%s\n" "$@" | fzf --multi --prompt="$prompt" || fzf --multi --prompt="$prompt"
-}
-
 is_wcreated_worktree() {
 	local worktree_path="$1"
 	local resolved_wt="${worktree_path:A}"
@@ -42,19 +36,11 @@ delete_single_worktree() {
 		return 0
 	fi
 
-	local gitdir_line
-	gitdir_line=$(head -n1 "$worktree_path/.git")
-
-	local worktree_gitdir
-	if [[ "$gitdir_line" =~ ^gitdir:\ (.*)$ ]]; then
-		worktree_gitdir="${match[1]}"
-	else
+	local main_repo
+	main_repo=$(resolve_main_repo_from_worktree "$worktree_path") || {
 		print_color red "Error: Could not parse .git file in $worktree_path"
 		return 1
-	fi
-
-	local main_repo
-	main_repo=$(dirname "$(dirname "$worktree_gitdir")")
+	}
 	print_color yellow "Main repo detected at: $main_repo"
 
 	cd "$main_repo" || {
@@ -78,40 +64,18 @@ delete_single_worktree() {
 	fi
 
 	if [[ -z "$branch_name" ]]; then
-		local worktree_list_output
-		worktree_list_output=$(git worktree list --porcelain 2>/dev/null)
-
-		local found_worktree=false
-		while IFS= read -r line; do
-			if [[ "$line" == "worktree $worktree_path" ]]; then
-				found_worktree=true
-			elif [[ "$found_worktree" == true && "$line" =~ ^branch ]]; then
-				branch_name=$(echo "$line" | sed 's/^branch refs\/heads\///')
-				print_color green "Found branch from worktree list: $branch_name"
-				break
-			elif [[ "$found_worktree" == true && "$line" =~ ^worktree ]]; then
-				break
-			fi
-		done <<<"$worktree_list_output"
+		branch_name=$(worktree_branch_from_porcelain "$main_repo" "$worktree_path" exact)
+		if [[ -n "$branch_name" ]]; then
+			print_color green "Found branch from worktree list: $branch_name"
+		fi
 	fi
 
 	if [[ -z "$branch_name" ]]; then
 		local worktree_basename=$(basename "$worktree_path")
-		local worktree_list_output
-		worktree_list_output=$(git worktree list --porcelain 2>/dev/null)
-
-		local found_worktree=false
-		while IFS= read -r line; do
-			if [[ "$line" =~ worktree.*/$worktree_basename$ ]]; then
-				found_worktree=true
-			elif [[ "$found_worktree" == true && "$line" =~ ^branch ]]; then
-				branch_name=$(echo "$line" | sed 's/^branch refs\/heads\///')
-				print_color green "Found branch from basename matching: $branch_name"
-				break
-			elif [[ "$found_worktree" == true && "$line" =~ ^worktree ]]; then
-				break
-			fi
-		done <<<"$worktree_list_output"
+		branch_name=$(worktree_branch_from_porcelain "$main_repo" "$worktree_basename" basename)
+		if [[ -n "$branch_name" ]]; then
+			print_color green "Found branch from basename matching: $branch_name"
+		fi
 	fi
 
 	if [[ -z "$branch_name" ]]; then
@@ -261,7 +225,7 @@ cmd_delete() {
 		local success_count=0
 		typeset -A remote_branches_by_repo
 
-		local wt_path should_delete_remote gitdir_line worktree_gitdir main_repo branch_name old_pwd worktree_list_output found_wt repo_key
+		local wt_path should_delete_remote main_repo branch_name old_pwd repo_key
 		for i in {1..$total_count}; do
 			wt_path="${worktrees_to_delete[$i]}"
 			print_color cyan "Worktree $i/$total_count: $(basename "$wt_path")"
@@ -283,15 +247,10 @@ cmd_delete() {
 				continue
 			fi
 
-			gitdir_line=$(head -n1 "$wt_path/.git")
-			if [[ "$gitdir_line" =~ ^gitdir:\ (.*)$ ]]; then
-				worktree_gitdir="${match[1]}"
-			else
+			main_repo=$(resolve_main_repo_from_worktree "$wt_path") || {
 				print_color red "Error: Could not parse .git file in $wt_path"
 				continue
-			fi
-
-			main_repo=$(dirname "$(dirname "$worktree_gitdir")")
+			}
 
 			branch_name=""
 			old_pwd="$PWD"
@@ -301,20 +260,7 @@ cmd_delete() {
 			}
 
 			if [[ -z "$branch_name" ]]; then
-				cd "$main_repo" 2>/dev/null || continue
-				worktree_list_output=$(git worktree list --porcelain 2>/dev/null)
-				found_wt=false
-				while IFS= read -r line; do
-					if [[ "$line" == "worktree $wt_path" ]]; then
-						found_wt=true
-					elif [[ "$found_wt" == true && "$line" =~ ^branch ]]; then
-						branch_name=$(echo "$line" | sed 's/^branch refs\/heads\///')
-						break
-					elif [[ "$found_wt" == true && "$line" =~ ^worktree ]]; then
-						break
-					fi
-				done <<<"$worktree_list_output"
-				cd "$old_pwd" 2>/dev/null
+				branch_name=$(worktree_branch_from_porcelain "$main_repo" "$wt_path" exact)
 			fi
 
 			cd "$main_repo" 2>/dev/null || continue

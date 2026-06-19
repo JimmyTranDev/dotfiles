@@ -33,6 +33,26 @@ slugify() {
 	echo "$input" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//'
 }
 
+# Print items with last_value first (if present), then the rest in original order.
+# One item per line.
+reorder_last_first() {
+	local last_value="$1"
+	shift
+	local item
+	if [[ -n "$last_value" ]]; then
+		for item in "$@"; do
+			[[ "$item" == "$last_value" ]] && echo "$item"
+		done
+		for item in "$@"; do
+			[[ "$item" != "$last_value" ]] && echo "$item"
+		done
+	else
+		for item in "$@"; do
+			echo "$item"
+		done
+	fi
+}
+
 _fzf_select_items_and_cd() {
 	local prompt="$1"
 	local base_dir="$2"
@@ -50,21 +70,9 @@ _fzf_select_items_and_cd() {
 
 	local last_sel=""
 	[[ -f "$last_file" ]] && last_sel=$(<"$last_file")
-	local sorted_items=()
-
-	if [[ -n "$last_sel" ]]; then
-		for i in "${items[@]}"; do
-			[[ "$i" == "$last_sel" ]] && sorted_items=("$i")
-		done
-		for i in "${items[@]}"; do
-			[[ "$i" != "$last_sel" ]] && sorted_items+=("$i")
-		done
-	else
-		sorted_items=("${items[@]}")
-	fi
 
 	local selected
-	selected=$(printf "%s\n" "${sorted_items[@]}" | fzf --prompt="$prompt")
+	selected=$(reorder_last_first "$last_sel" "${items[@]}" | fzf --prompt="$prompt")
 	if [[ -n "$selected" ]]; then
 		echo "$selected" >"$last_file"
 		local normalized_base_dir="${base_dir%/}"
@@ -75,17 +83,37 @@ _fzf_select_items_and_cd() {
 	fi
 }
 
+# Emit repo paths (dirs containing a .git directory) relative to base_dir.
+_emit_git_repo_paths() {
+	local base_dir="$1"
+	local max_depth="$2"
+	local base_dir_with_slash="$3"
+	find "$base_dir" -maxdepth "$max_depth" -name ".git" -type d 2>/dev/null | while IFS= read -r git_dir; do
+		repo_path=$(dirname "$git_dir")
+		echo "${repo_path#$base_dir_with_slash}"
+	done
+}
+
+# Emit worktree paths (dirs whose .git file points to a gitdir) relative to base_dir.
+_emit_git_worktree_paths() {
+	local base_dir="$1"
+	local max_depth="$2"
+	local base_dir_with_slash="$3"
+	find "$base_dir" -maxdepth "$max_depth" -name ".git" -type f 2>/dev/null | while IFS= read -r git_file; do
+		if grep -q "^gitdir:" "$git_file" 2>/dev/null; then
+			worktree_path=$(dirname "$git_file")
+			echo "${worktree_path#$base_dir_with_slash}"
+		fi
+	done
+}
+
 find_git_repos() {
 	local base_dir="$1"
 	local max_depth="${2:-2}"
 	base_dir="${base_dir%/}"
 	local base_dir_with_slash="${base_dir}/"
 
-	find "$base_dir" -maxdepth "$max_depth" -name ".git" -type d 2>/dev/null | while IFS= read -r git_dir; do
-		repo_path=$(dirname "$git_dir")
-		relative_path="${repo_path#$base_dir_with_slash}"
-		echo "$relative_path"
-	done | sort
+	_emit_git_repo_paths "$base_dir" "$max_depth" "$base_dir_with_slash" | sort
 }
 
 find_git_worktrees() {
@@ -94,13 +122,7 @@ find_git_worktrees() {
 	base_dir="${base_dir%/}"
 	local base_dir_with_slash="${base_dir}/"
 
-	find "$base_dir" -maxdepth "$max_depth" -name ".git" -type f 2>/dev/null | while IFS= read -r git_file; do
-		if grep -q "^gitdir:" "$git_file" 2>/dev/null; then
-			worktree_path=$(dirname "$git_file")
-			relative_path="${worktree_path#$base_dir_with_slash}"
-			echo "$relative_path"
-		fi
-	done | sort
+	_emit_git_worktree_paths "$base_dir" "$max_depth" "$base_dir_with_slash" | sort
 }
 
 find_git_worktrees_categorized() {
@@ -109,15 +131,12 @@ find_git_worktrees_categorized() {
 	base_dir="${base_dir%/}"
 	local base_dir_with_slash="${base_dir}/"
 
-	find "$base_dir" -maxdepth "$max_depth" -name ".git" -type f 2>/dev/null | while IFS= read -r git_file; do
-		if grep -q "^gitdir:" "$git_file" 2>/dev/null; then
-			worktree_path=$(dirname "$git_file")
-			relative_path="${worktree_path#$base_dir_with_slash}"
-			if git -C "$worktree_path" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; then
-				echo "[checkout] $relative_path"
-			else
-				echo "[created]  $relative_path"
-			fi
+	_emit_git_worktree_paths "$base_dir" "$max_depth" "$base_dir_with_slash" | while IFS= read -r relative_path; do
+		worktree_path="${base_dir_with_slash}${relative_path}"
+		if git -C "$worktree_path" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; then
+			echo "[checkout] $relative_path"
+		else
+			echo "[created]  $relative_path"
 		fi
 	done | sort
 }
@@ -145,18 +164,7 @@ find_git_repos_and_worktrees() {
 	local base_dir_with_slash="${base_dir}/"
 
 	{
-		find "$base_dir" -maxdepth "$max_depth" -name ".git" -type d 2>/dev/null | while IFS= read -r git_dir; do
-			repo_path=$(dirname "$git_dir")
-			relative_path="${repo_path#$base_dir_with_slash}"
-			echo "$relative_path"
-		done
-
-		find "$base_dir" -maxdepth "$max_depth" -name ".git" -type f 2>/dev/null | while IFS= read -r git_file; do
-			if grep -q "^gitdir:" "$git_file" 2>/dev/null; then
-				worktree_path=$(dirname "$git_file")
-				relative_path="${worktree_path#$base_dir_with_slash}"
-				echo "$relative_path"
-			fi
-		done
+		_emit_git_repo_paths "$base_dir" "$max_depth" "$base_dir_with_slash"
+		_emit_git_worktree_paths "$base_dir" "$max_depth" "$base_dir_with_slash"
 	} | sort -u
 }

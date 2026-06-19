@@ -207,7 +207,7 @@ main() {
 
 	local project_type package_manager test_runner linter ci framework monorepo css_framework database
 	project_type=$(detect_project_type "$dir")
-	package_manager=$(detect_package_manager "$dir")
+	package_manager=$(detect_project_package_manager "$dir")
 	test_runner=$(detect_test_runner "$dir")
 	linter=$(detect_linter "$dir")
 	ci=$(detect_ci "$dir")

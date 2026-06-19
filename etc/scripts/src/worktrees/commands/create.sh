@@ -1,5 +1,16 @@
 #!/bin/zsh
 
+# Run `<pm> install`, falling back to npm if the package manager isn't installed.
+install_with_fallback() {
+	local pm="$1"
+	if command -v "$pm" >/dev/null 2>&1; then
+		"$pm" install
+	else
+		print_color yellow "$pm not found, falling back to npm"
+		npm install
+	fi
+}
+
 cmd_create() {
 	if ! check_tool git; then
 		return 1
@@ -301,31 +312,15 @@ Jira: https://${ORG_NAME}.atlassian.net/browse/${jira_ticket}"
 		}
 
 		local package_manager
-		package_manager=$(detect_package_manager)
+		package_manager=$(detect_project_package_manager)
 
 		if [[ -n "$package_manager" ]]; then
 			print_color cyan "Using package manager: $package_manager"
 
 			case "$package_manager" in
-			"pnpm")
-				if command -v pnpm >/dev/null 2>&1; then
-					pnpm install
-				else
-					print_color yellow "pnpm not found, falling back to npm"
-					npm install
-				fi
-				;;
-			"yarn")
-				if command -v yarn >/dev/null 2>&1; then
-					yarn install
-				else
-					print_color yellow "yarn not found, falling back to npm"
-					npm install
-				fi
-				;;
-			"npm" | *)
-				npm install
-				;;
+			"pnpm") install_with_fallback pnpm ;;
+			"yarn") install_with_fallback yarn ;;
+			"npm" | *) npm install ;;
 			esac
 		else
 			print_color yellow "No lock file found, using npm"

@@ -74,13 +74,12 @@ run_formatter() {
 
 	log_info "Running: $cmd"
 
-	local exit_code=0
-	(cd "$dir" && eval "$cmd") 2>&1 >&2 || exit_code=$?
+	run_capture_exit "$dir" "$cmd"
 
 	json_output "$(json_obj_raw \
 		"formatter" "$(json_escape "$formatter")" \
 		"command" "$(json_escape "$cmd")" \
-		"exit_code" "$exit_code")"
+		"exit_code" "$RUN_EXIT_CODE")"
 }
 
 show_help() {

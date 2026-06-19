@@ -34,6 +34,64 @@ select_fzf() {
 	[[ $# -gt 0 ]] && printf "%s\n" "$@" | fzf --prompt="$prompt" || fzf --prompt="$prompt"
 }
 
+select_fzf_multi() {
+	local prompt="$1"
+	shift
+	[[ $# -gt 0 ]] && printf "%s\n" "$@" | fzf --multi --prompt="$prompt" || fzf --multi --prompt="$prompt"
+}
+
+# Parse the gitdir path from a worktree's .git file.
+# Echoes the gitdir on success; returns 1 if the .git file can't be parsed.
+parse_worktree_gitdir() {
+	local worktree_path="$1"
+	local gitdir_line
+	gitdir_line=$(head -n1 "$worktree_path/.git")
+	if [[ "$gitdir_line" =~ ^gitdir:\ (.*)$ ]]; then
+		echo "${match[1]}"
+		return 0
+	fi
+	return 1
+}
+
+# Resolve a worktree's main repository path (two dirnames up from its gitdir).
+# Echoes the main repo path on success; returns 1 if the .git file can't be parsed.
+resolve_main_repo_from_worktree() {
+	local worktree_path="$1"
+	local worktree_gitdir
+	worktree_gitdir=$(parse_worktree_gitdir "$worktree_path") || return 1
+	dirname "$(dirname "$worktree_gitdir")"
+}
+
+# Find a branch name by scanning `git worktree list --porcelain` in a repo.
+# $1 = main repo path; $2 = match target (full worktree path for exact mode,
+# basename for basename mode); $3 = mode: "exact" (default) or "basename".
+# Echoes the branch name if found, empty otherwise.
+worktree_branch_from_porcelain() {
+	local main_repo="$1"
+	local match_target="$2"
+	local mode="${3:-exact}"
+	local worktree_list_output line branch="" found_worktree=false is_target
+	worktree_list_output=$(git -C "$main_repo" worktree list --porcelain 2>/dev/null)
+	while IFS= read -r line; do
+		is_target=false
+		if [[ "$mode" == "exact" && "$line" == "worktree $match_target" ]]; then
+			is_target=true
+		elif [[ "$mode" == "basename" && "$line" =~ worktree.*/$match_target$ ]]; then
+			is_target=true
+		fi
+
+		if [[ "$is_target" == true ]]; then
+			found_worktree=true
+		elif [[ "$found_worktree" == true && "$line" =~ ^branch ]]; then
+			branch=$(echo "$line" | sed 's/^branch refs\/heads\///')
+			break
+		elif [[ "$found_worktree" == true && "$line" =~ ^worktree ]]; then
+			break
+		fi
+	done <<<"$worktree_list_output"
+	echo "$branch"
+}
+
 resolve_unique_dir() {
 	local base_dir="$1"
 
@@ -103,16 +161,9 @@ select_project() {
 	fi
 
 	local projects_list=()
-	if [[ -n "$last_proj" ]]; then
-		for p in "${all_projects[@]}"; do
-			[[ "$p" == "$last_proj" ]] && projects_list+=("$p")
-		done
-		for p in "${all_projects[@]}"; do
-			[[ "$p" != "$last_proj" ]] && projects_list+=("$p")
-		done
-	else
-		projects_list=("${all_projects[@]}")
-	fi
+	while IFS= read -r p; do
+		projects_list+=("$p")
+	done < <(reorder_last_first "$last_proj" "${all_projects[@]}")
 
 	select_fzf "Select project folder: " "${projects_list[@]}"
 }

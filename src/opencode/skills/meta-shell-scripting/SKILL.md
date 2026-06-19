@@ -61,7 +61,7 @@ my_function() {
   - `log_` for logging: `log_info`, `log_success`, `log_error`
   - `check_` for health checks: `check_pass`, `check_fail`, `check_command`
   - `fzf_select_` for interactive selectors
-- **verb_noun** for utilities: `get_org_dirs`, `find_git_repos`, `detect_package_manager`
+- **verb_noun** for utilities: `get_org_dirs`, `find_git_repos`, `detect_project_package_manager`
 - **`_` prefix** for private/internal functions: `_fzf_select_items_and_cd`
 - **`main()`** as entry point for scripts with argument parsing
 
@@ -278,3 +278,22 @@ lost afterward. Use a heredoc group to keep the variables in the current shell:
 $payload
 EOF
 ```
+
+### `cmd 2>&1 >&2` sends BOTH streams to stdout, not stderr
+
+Redirections apply left-to-right as `dup2` snapshots. `2>&1` first points fd 2
+at fd 1's *current* target (stdout), then `>&2` points fd 1 at fd 2's *new*
+target — which is already stdout. Net result: the command's stdout **and**
+stderr both flow to the script's fd 1, and nothing reaches fd 2. It does NOT
+"redirect output to stderr" despite reading that way.
+
+```bash
+# cmd writes OUT to stdout, ERR to stderr
+( cmd ) 2>&1 >&2        # BOTH OUT and ERR land on the script's stdout (fd 1)
+( cmd ) >&2 2>&1        # GOOD — both land on stderr (fd 2): redirect fd1 first
+```
+
+To genuinely swap the two streams, use a temp fd: `cmd 3>&1 1>&2 2>&3 3>&-`.
+When refactoring such a line into a shared helper, replicate the exact token
+sequence rather than "simplifying" it — and call the helper from the same fd
+context so the inherited fd 1/fd 2 targets are unchanged.

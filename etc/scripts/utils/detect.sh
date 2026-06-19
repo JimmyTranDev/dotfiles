@@ -3,7 +3,10 @@
 [[ -n "${_COMMON_DETECT_LOADED:-}" ]] && return 0
 _COMMON_DETECT_LOADED=1
 
-detect_node_package_manager() {
+# Maps node lockfiles to a manager name with fixed precedence:
+# pnpm > yarn > bun > npm (package-lock.json); empty when none match.
+# Callers treat "npm" specially: detect_node_runner maps it to "npx".
+_detect_node_lock() {
 	local dir="${1:-.}"
 
 	if [[ -f "$dir/pnpm-lock.yaml" ]]; then
@@ -19,17 +22,17 @@ detect_node_package_manager() {
 	fi
 }
 
-detect_package_manager() {
-	local dir="${1:-.}"
+detect_node_package_manager() {
+	_detect_node_lock "${1:-.}"
+}
 
-	if [[ -f "$dir/pnpm-lock.yaml" ]]; then
-		echo "pnpm"
-	elif [[ -f "$dir/yarn.lock" ]]; then
-		echo "yarn"
-	elif [[ -f "$dir/bun.lockb" ]] || [[ -f "$dir/bun.lock" ]]; then
-		echo "bun"
-	elif [[ -f "$dir/package-lock.json" ]]; then
-		echo "npm"
+detect_project_package_manager() {
+	local dir="${1:-.}"
+	local node_pm
+	node_pm=$(_detect_node_lock "$dir")
+
+	if [[ -n "$node_pm" ]]; then
+		echo "$node_pm"
 	elif [[ -f "$dir/pom.xml" ]]; then
 		echo "mvn"
 	elif [[ -f "$dir/build.gradle" ]] || [[ -f "$dir/build.gradle.kts" ]]; then
@@ -52,14 +55,12 @@ detect_package_manager() {
 }
 
 detect_node_runner() {
-	local dir="${1:-.}"
+	local node_pm
+	node_pm=$(_detect_node_lock "${1:-.}")
 
-	if [[ -f "$dir/pnpm-lock.yaml" ]]; then
-		echo "pnpm"
-	elif [[ -f "$dir/yarn.lock" ]]; then
-		echo "yarn"
-	elif [[ -f "$dir/bun.lockb" ]] || [[ -f "$dir/bun.lock" ]]; then
-		echo "bun"
+	# pnpm/yarn/bun pass through; npm (package-lock.json) and none fall back to npx.
+	if [[ -n "$node_pm" && "$node_pm" != "npm" ]]; then
+		echo "$node_pm"
 	else
 		echo "npx"
 	fi

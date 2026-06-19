@@ -62,16 +62,13 @@ run_build() {
 
 	log_info "Running: $cmd"
 
-	local exit_code=0
-	SECONDS=0
-	(cd "$dir" && eval "$cmd") 2>&1 >&2 || exit_code=$?
-	local duration=$SECONDS
+	run_capture_exit "$dir" "$cmd"
 
 	json_output "$(json_obj_raw \
 		"build_tool" "$(json_escape "$tool")" \
 		"command" "$(json_escape "$cmd")" \
-		"exit_code" "$exit_code" \
-		"duration_seconds" "$duration")"
+		"exit_code" "$RUN_EXIT_CODE" \
+		"duration_seconds" "$RUN_DURATION")"
 }
 
 show_help() {

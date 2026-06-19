@@ -94,37 +94,18 @@ json_output() {
 	printf '%s\n' "$1"
 }
 
-# Run a tool command in a directory, capture output and exit code, emit JSON
-# Usage: run_tool_json <tool_key> <tool_name> <cmd> <dir> [extra_key extra_val ...]
-# Example: run_tool_json "linter" "eslint" "npx eslint ." "/path"
-# Output: {"<tool_key>":"<tool_name>","command":"<cmd>","exit_code":0}
-run_tool_json() {
-	local tool_key="$1"
-	local tool_name="$2"
-	local cmd="$3"
-	local dir="$4"
-	shift 4
+# Run a command in a directory; capture its exit code and elapsed seconds.
+# Streams the command's output live via the `2>&1 >&2` idiom, matching the
+# check scripts' existing behavior. Does NOT emit JSON or dictate output keys —
+# callers build their own JSON from the result globals.
+# Sets globals: RUN_EXIT_CODE (int), RUN_DURATION (whole seconds).
+# Usage: run_capture_exit <dir> <cmd>
+run_capture_exit() {
+	local dir="$1"
+	local cmd="$2"
 
-	local exit_code=0
-	local output=""
+	RUN_EXIT_CODE=0
 	SECONDS=0
-	output=$( (cd "$dir" && eval "$cmd") 2>&1) || exit_code=$?
-	local duration=$SECONDS
-
-	if [[ -n "$output" ]]; then
-		echo "$output" >&2
-	fi
-
-	local -a args=(
-		"$tool_key" "$(json_escape "$tool_name")"
-		"command" "$(json_escape "$cmd")"
-		"exit_code" "$exit_code"
-	)
-
-	while [[ $# -ge 2 ]]; do
-		args+=("$1" "$2")
-		shift 2
-	done
-
-	json_output "$(json_obj_raw "${args[@]}")"
+	(cd "$dir" && eval "$cmd") 2>&1 >&2 || RUN_EXIT_CODE=$?
+	RUN_DURATION=$SECONDS
 }
