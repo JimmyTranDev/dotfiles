@@ -55,6 +55,8 @@ Map every request to the appropriate skill before acting.
 | Removing/sunsetting systems, migrating implementations | `deprecation-and-migration` |
 | ADRs, decision records, API/feature documentation | `documentation-and-adrs` |
 | New session setup, rules files, context configuration | `context-engineering` |
+| Read live output of CLIs running in nvim toggleterm terminals | `nvim-toggleterm-read` |
+| Browse/pull an Android emulator app's private data folder (/data/data) | `android-app-data` |
 | Which skill applies? (meta) | `using-agent-skills` |
 
 ## Execution Model
