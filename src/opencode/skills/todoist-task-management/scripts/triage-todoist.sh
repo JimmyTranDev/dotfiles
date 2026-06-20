@@ -2,7 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/common.sh"
+source "$SCRIPT_DIR/../../../../../etc/scripts/utils/common.sh"
 
 extract_section_id() {
 	local url="$1"
@@ -34,10 +34,24 @@ fetch_tasks() {
 	local section_id
 	section_id=$(extract_section_id "$section_url")
 
-	log_info "Fetching tasks for section $section_id" >&2
+	# `td task list` has NO --section/--section-id flag (verified on td 1.69.0).
+	# Resolve the owning project, list its tasks, then filter by sectionId.
+	log_info "Resolving project for section $section_id" >&2
+	local project_json project_id
+	if ! project_json=$("$SCRIPT_DIR/find-todoist-section-project.sh" "id:$section_id" 2>/dev/null); then
+		log_error "Could not find a project containing section: $section_id"
+		return 1
+	fi
+	project_id=$(echo "$project_json" | jq -r '.project_id')
 
+	log_info "Fetching tasks for section $section_id (project id:$project_id)" >&2
+
+	local project_tasks_json
+	project_tasks_json=$(td task list --project "id:$project_id" --json --full --all 2>/dev/null || echo '{"results":[]}')
+
+	# Reduce to tasks in this section. Output a flat JSON array.
 	local tasks_json
-	tasks_json=$(td task list --section-id "$section_id" --json 2>/dev/null || echo "[]")
+	tasks_json=$(echo "$project_tasks_json" | jq -c --arg s "$section_id" '[.results[] | select(.sectionId == $s)]')
 
 	local api_priority=""
 	if [[ -n "$priority_filter" ]]; then
@@ -119,7 +133,8 @@ main() {
 		return 1
 	fi
 
-	require_command "td" "pip install todoist-cli"
+	require_command "td" "pnpm add -g @doist/todoist-cli"
+	require_command "jq" "brew install jq"
 	fetch_tasks "$section_url" "$priority"
 }
 

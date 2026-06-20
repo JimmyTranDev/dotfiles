@@ -2,7 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/common.sh"
+source "$SCRIPT_DIR/../../../../../etc/scripts/utils/common.sh"
 
 extract_section_id() {
 	local url="$1"

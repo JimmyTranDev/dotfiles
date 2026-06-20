@@ -11,6 +11,17 @@ description: Manages Todoist tasks via the `td` CLI. Use when interacting with T
 
 Install via `pnpm add -g @doist/todoist-cli`.
 
+## Bundled Scripts
+
+This skill ships self-contained helper scripts in its own `scripts/` directory (they share `scripts/_common.sh` and depend only on `td`, `jq`, and `curl` — no repo utilities). Prefer these over hand-rolling multi-step `td` pipelines:
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/triage-todoist.sh <section-url> [--priority p1-p4]` | List + filter a section's tasks as JSON (handles inverted priority) |
+| `scripts/move-todoist-tasks.sh <source-url> <dest-url>` | Move all tasks from one section to another |
+| `scripts/find-todoist-section-project.sh <section-url\|id:xxx\|section-id>` | Resolve which project owns a section |
+| `scripts/resolve-tiktok-link.sh <tiktok-url>` | Resolve a TikTok link to title/author via oEmbed |
+
 Operating conventions:
 
 - Use `td task add` (not `td add`) for structured task creation with flags
@@ -336,7 +347,7 @@ echo "Detailed notes here" | td comment add "Task name" --stdin
 
 ### Listing tasks in a section (workaround)
 
-For triage workflows, prefer the `triage-todoist.sh <section-url> [--priority p1-p4]` script (in `etc/scripts/src/ai/`) — it automates the steps below, including the priority inversion. Use the manual approach below only when you need custom filtering.
+For triage workflows, prefer the `triage-todoist.sh <section-url> [--priority p1-p4]` script (in this skill's `scripts/` directory) — it automates the steps below, including the priority inversion. Use the manual approach below only when you need custom filtering.
 
 `td task list` has no `--section` flag. To get tasks in a specific section:
 
@@ -359,7 +370,14 @@ for t in data.get('results', []):
 
 ### Finding which project owns a section URL
 
-Given a section URL like `https://app.todoist.com/app/section/dotfiles-6f29Fcgcv4993gQG`, there's no direct lookup. You must iterate projects:
+Given a section URL like `https://app.todoist.com/app/section/dotfiles-6f29Fcgcv4993gQG`, there's no direct lookup. Prefer the `find-todoist-section-project.sh <section-url|id:xxx|section-id>` script (in this skill's `scripts/` directory) — it extracts the section ID and iterates projects for you, returning `{section_id, project_id, project_name}` as JSON:
+
+```bash
+find-todoist-section-project.sh "https://app.todoist.com/app/section/dotfiles-6f29Fcgcv4993gQG"
+# {"section_id":"6f29Fcgcv4993gQG","project_id":"...","project_name":"🤖 Dotfiles"}
+```
+
+Use the manual loop below only when you need custom per-project filtering:
 
 ```bash
 # Extract the section ID from the URL (last segment after final -)
@@ -381,7 +399,14 @@ done
 
 ### Resolving TikTok links in tasks
 
-TikTok short URLs (`vt.tiktok.com/...`) can't be scraped — they return a generic "TikTok - Make Your Day" page. Use the oEmbed API instead:
+TikTok short URLs (`vt.tiktok.com/...`) can't be scraped — they return a generic "TikTok - Make Your Day" page. Prefer the `resolve-tiktok-link.sh <tiktok-url>` script (in this skill's `scripts/` directory), which calls the oEmbed API and returns `{url, title, author_name, author_url}` as JSON:
+
+```bash
+resolve-tiktok-link.sh "https://vt.tiktok.com/ZSHXEnE8d/"
+# {"url":"...","title":"...","author_name":"...","author_url":"..."}
+```
+
+Manual equivalent if you need raw oEmbed fields:
 
 ```bash
 # Returns JSON with title, author_name, author_url
