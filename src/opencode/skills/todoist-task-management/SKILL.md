@@ -1,17 +1,46 @@
 ---
-name: tool-todoist-cli
-description: Todoist CLI (td) command reference for task management, projects, labels, filters, comments, and JSON output for automation
+name: todoist-task-management
+description: Manages Todoist tasks via the `td` CLI. Use when interacting with Todoist URLs or when creating, listing, updating, completing, moving, or triaging tasks, projects, labels, sections, filters, or comments from the command line.
 ---
+
+# Todoist Task Management
 
 ## Overview
 
-The `td` command is the Todoist CLI. Install via `pnpm add -g @doist/todoist-cli`.
+`td` is the Todoist CLI — the canonical way to read and mutate Todoist from the terminal. It is the **single tool of record for any Todoist URL**: never use WebFetch or a browser to inspect `app.todoist.com/...` links, because those return generic shell pages with no task data. Route every Todoist interaction through `td` (or the wrapper scripts below) so behavior stays scriptable, JSON-parseable, and consistent.
+
+Install via `pnpm add -g @doist/todoist-cli`.
+
+Operating conventions:
 
 - Use `td task add` (not `td add`) for structured task creation with flags
 - Use `--json` or `--ndjson` for machine-readable output
 - Use `--full` with JSON to include all fields
 - Reference entities by name, `id:xxx`, or Todoist web URL
 - **`td view` only supports task and project URLs** — section URLs (`/app/section/...`) return `INVALID_URL`. To work with sections, use `td section list --project <name> --json` and filter by section ID
+
+## When to Use
+
+- Any time a Todoist URL (`app.todoist.com/...`) appears — view, complete, update, or move the referenced task/project with `td`
+- Creating, listing, updating, completing, or moving tasks, projects, labels, sections, filters, or comments
+- Completing a Todoist task referenced in a consumed spec's `todoist:` frontmatter after successful implementation
+- Triaging a section of tasks (prefer `triage-todoist.sh <section-url> [--priority p1-p4]`, which automates the listing + priority inversion)
+- Generating activity/stats reports or auditing completed work
+
+**When NOT to use:**
+
+- Do **not** use WebFetch or browser tools for Todoist URLs — they cannot read task data. Always use `td`.
+- For bulk section-to-section moves, prefer `move-todoist-tasks.sh <source-url> <dest-url>` over manual per-task `td task move` calls.
+
+## Gotchas
+
+Quick-scan of the traps documented in detail below — internalize these before scripting against `td`:
+
+- **Priority is INVERTED in JSON** — API `priority: 4` is UI `p1` (urgent); `priority: 1` is `p4` (no priority). The `--priority` flag still takes UI labels (`p1`–`p4`). See [Priority Mapping](#priority-mapping-inverted).
+- **`td section list` takes the project as a POSITIONAL arg**, not `--project` — unlike `td task list`. Passing `--project` fails silently.
+- **`td task list` has no `--section` flag** — list by project and filter on `sectionId` in JSON (or use `triage-todoist.sh`).
+- **`td view` rejects section URLs** (`/app/section/...`) with `INVALID_URL` — extract the section ID from the URL's last `-` segment instead.
+- **`td task uncomplete` requires `id:xxx`** — name/URL refs won't resolve a completed task.
 
 ## Authentication
 
