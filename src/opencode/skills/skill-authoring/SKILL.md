@@ -29,7 +29,7 @@ In this repo, skills are the source of truth under:
 src/opencode/skills/<skill-name>/SKILL.md
 ```
 
-`src/opencode/` is symlinked to `~/.config/opencode/`, and `~/.claude/` is generated from it by `etc/scripts/src/ai/opencode-to-claude.sh`. Never hand-edit the generated copies — author here.
+`src/opencode/` is symlinked to `~/.config/opencode/`. Author skills here.
 
 ```
 src/opencode/skills/
@@ -117,13 +117,7 @@ Auto-discovery picks up the new `SKILL.md` from frontmatter, but this repo also 
 
 ### 8. Verify and propagate
 
-Run the verification checklist below, then regenerate the Claude copy if needed:
-
-```bash
-bash etc/scripts/src/ai/opencode-to-claude.sh
-```
-
-Remind the user to **quit and restart opencode** — skills are loaded at startup and not hot-reloaded.
+Run the verification checklist below, then remind the user to **quit and restart opencode** — skills are loaded at startup and not hot-reloaded.
 
 ## Writing Principles
 
@@ -167,5 +161,4 @@ After authoring the skill, confirm:
 - [ ] Body has Overview, When to Use, a Workflow, Common Rationalizations, Red Flags, and Verification (or clear equivalents).
 - [ ] No empty `scripts/` directory; supporting files added only when justified.
 - [ ] Registered in `src/opencode/AGENTS.md` and `using-agent-skills/SKILL.md` (and global AGENTS.md if applicable).
-- [ ] Claude copy regenerated via `opencode-to-claude.sh` if that surface is in use.
 - [ ] User reminded to restart opencode so the skill loads.

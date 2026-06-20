@@ -50,6 +50,7 @@ Map every request to the appropriate skill before acting.
 | Untrusted input, auth, sessions, data storage, integrations | `security-and-hardening` |
 | Logging, metrics, tracing, alerting | `observability-and-instrumentation` |
 | Build/deploy pipelines, quality gates in CI | `ci-cd-and-automation` |
+| Commit already-staged changes with a conventional message | `commit` |
 | Commits, branching, conflicts, parallel work | `git-workflow-and-versioning` |
 | Removing/sunsetting systems, migrating implementations | `deprecation-and-migration` |
 | ADRs, decision records, API/feature documentation | `documentation-and-adrs` |
