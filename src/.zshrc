@@ -94,13 +94,7 @@ fi
 alias c='clear'
 alias g='rg'
 alias n='nvim'
-y() {
-  if [[ -n "$ZELLIJ" ]]; then
-    TERM=xterm-kitty command yazi "$@"
-  else
-    command yazi "$@"
-  fi
-}
+alias y='yazi'
 alias z='zellij'
 alias a='eval "$(poetry env activate)"'
 alias d="$DOTFILES_DIR/etc/scripts/utils/git_diff_commits.sh"
