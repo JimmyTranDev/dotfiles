@@ -1,7 +1,7 @@
 local github_utils = require('custom.utils.github')
 local file_utils = require('custom.utils.files')
 local async_utils = require('custom.utils.async')
-local frequency_cache = require('custom.utils.frequency_cache')
+local usage_cache = require('custom.utils.usage_cache')
 
 local M = {}
 
@@ -80,7 +80,7 @@ function M.select_repo_and_open_pr(org_name)
     return
   end
 
-  local ok, repos = pcall(vim.fn.json_decode, result)
+  local ok, repos = pcall(vim.json.decode, result)
   if not ok or #repos == 0 then
     vim.notify('No repositories found for ' .. org_name, vim.log.levels.ERROR)
     return
@@ -171,7 +171,7 @@ function M.copy_open_prs()
         return
       end
 
-      local ok, prs = pcall(vim.fn.json_decode, result.stdout)
+      local ok, prs = pcall(vim.json.decode, result.stdout)
       if not ok or not prs or #prs == 0 then
         vim.notify('No open PRs found', vim.log.levels.INFO)
         return
@@ -259,7 +259,7 @@ function M.select_org_repo_and_create_issue()
           return
         end
 
-        local ok, repos = pcall(vim.fn.json_decode, result.stdout)
+        local ok, repos = pcall(vim.json.decode, result.stdout)
         if not ok or type(repos) ~= 'table' or #repos == 0 then
           vim.notify('No repositories found for ' .. selected_org, vim.log.levels.ERROR)
           return
@@ -493,7 +493,7 @@ local function fetch_and_show_prs(org_name, usernames)
       { text = true },
       vim.schedule_wrap(function(result)
         if result.code == 0 and result.stdout and result.stdout ~= '' then
-          local ok, prs = pcall(vim.fn.json_decode, result.stdout)
+          local ok, prs = pcall(vim.json.decode, result.stdout)
           if ok and type(prs) == 'table' then
             for _, pr in ipairs(prs) do
               local repo_name = pr.repository and pr.repository.nameWithOwner or ''
@@ -557,41 +557,24 @@ end
 
 function M.list_org_repos_and_open()
   local programming_dir = vim.fn.expand('~/Programming')
-  local org_handle = vim.uv.fs_scandir(programming_dir)
-  if not org_handle then
-    vim.notify('Could not scan ~/Programming', vim.log.levels.ERROR)
-    return
-  end
+  local org_exclude = { Worktrees = true, wcreated = true, wcheckout = true }
 
   local items = {}
 
-  while true do
-    local org_name, org_type = vim.uv.fs_scandir_next(org_handle)
-    if not org_name then break end
-    if org_type ~= 'directory' or org_name == 'Worktrees' or org_name == 'wcreated' or org_name == 'wcheckout' then goto continue_org end
-
-    local repo_handle = vim.uv.fs_scandir(programming_dir .. '/' .. org_name)
-    if not repo_handle then goto continue_org end
-
-    while true do
-      local repo_name, repo_type = vim.uv.fs_scandir_next(repo_handle)
-      if not repo_name then break end
-      if repo_type == 'directory' then
-        table.insert(items, {
-          text = '[' .. org_name .. '] ' .. repo_name,
-          name = repo_name,
-          url = 'https://github.com/' .. org_name .. '/' .. repo_name,
-          org = org_name,
-        })
-      end
+  for _, org in ipairs(file_utils.scan(programming_dir, { type = 'directory', exclude = org_exclude, hidden = true })) do
+    for _, repo in ipairs(file_utils.scan(org.path, { type = 'directory', hidden = true })) do
+      table.insert(items, {
+        text = '[' .. org.name .. '] ' .. repo.name,
+        name = repo.name,
+        url = 'https://github.com/' .. org.name .. '/' .. repo.name,
+        org = org.name,
+      })
     end
-
-    ::continue_org::
   end
 
   table.sort(items, function(a, b) return a.text < b.text end)
 
-  frequency_cache.sort_by_frequency('org_repos', items, function(item) return item.org .. '/' .. item.name end)
+  usage_cache.sort_by_frequency('org_repos', items, function(item) return item.org .. '/' .. item.name end)
 
   -- Move current repo to the top
   local cwd = vim.fn.getcwd()
@@ -619,7 +602,7 @@ function M.list_org_repos_and_open()
     format = function(item) return { { item.text, 'Normal' } } end,
     confirm = function(picker, item)
       picker:close()
-      frequency_cache.record('org_repos', item.org .. '/' .. item.name)
+      usage_cache.record('org_repos', item.org .. '/' .. item.name)
       file_utils.open(item.url)
       vim.notify('Opened ' .. item.name .. ' in browser', vim.log.levels.INFO)
     end,
@@ -631,7 +614,7 @@ function M.pr_review_mode()
   local repo_slug = repo_info and repo_info.nameWithOwner or ''
 
   async_utils.run('gh pr list --json number,title,headRefName,author --limit 20', function(stdout)
-    local ok, prs = pcall(vim.fn.json_decode, stdout)
+    local ok, prs = pcall(vim.json.decode, stdout)
     if not ok or not prs or #prs == 0 then
       vim.notify('No open PRs found in this repo', vim.log.levels.INFO)
       return
@@ -851,7 +834,7 @@ function M._submit_pr_review(pr_number, review_type)
   end)
 end
 
-local function show_notifications_picker(notifications, title_suffix)
+local function show_notifications_picker(notifications)
   local items = {}
   for _, notif in ipairs(notifications) do
     local type_icon = ({ PullRequest = '', Issue = '', Discussion = '󰍩' })[notif.subject_type] or ''
@@ -863,11 +846,6 @@ local function show_notifications_picker(notifications, title_suffix)
 
   local snacks_ok, snacks = pcall(require, 'snacks')
   if not snacks_ok then return end
-
-  local title = 'GitHub Notifications (' .. #items .. ')'
-  if title_suffix then
-    title = title .. ' - ' .. title_suffix
-  end
 
       -- Cache for fetched notification details (keyed by subject_url)
       local detail_cache = {}
@@ -951,7 +929,7 @@ local function show_notifications_picker(notifications, title_suffix)
               if detail_result.code ~= 0 or not detail_result.stdout or detail_result.stdout == '' then
                 detail_cache[api_url] = { '(Could not load details)' }
               else
-                local ok, detail = pcall(vim.fn.json_decode, detail_result.stdout)
+                local ok, detail = pcall(vim.json.decode, detail_result.stdout)
                 if not ok or not detail then
                   detail_cache[api_url] = { '(Failed to parse details)' }
                 else
@@ -1061,7 +1039,7 @@ local function fetch_notifications(callback)
 
       local notifications = {}
       for line in result.stdout:gmatch('[^\n]+') do
-        local ok, notif = pcall(vim.fn.json_decode, line)
+        local ok, notif = pcall(vim.json.decode, line)
         if ok and notif then
           table.insert(notifications, notif)
         end
@@ -1099,15 +1077,14 @@ function M.show_notifications()
       vim.notify('No comment or mention notifications', vim.log.levels.INFO)
       return
     end
-    show_notifications_picker(filtered, 'Comments & Mentions')
+    show_notifications_picker(filtered)
   end)
 end
 
 ---@param org_name string
 ---@param slugs string[]
----@param label string
 ---@param comment_only boolean|nil when true, keep only comment/mention notifications
-local function fetch_notifications_for_team(org_name, slugs, label, comment_only)
+local function fetch_notifications_for_team(org_name, slugs, comment_only)
   get_team_members_for_slugs(org_name, slugs, function(usernames)
     if #usernames == 0 then
       vim.notify('No members found for selected team', vim.log.levels.WARN)
@@ -1149,7 +1126,7 @@ local function fetch_notifications_for_team(org_name, slugs, label, comment_only
                 vim.notify('No notifications from team members', vim.log.levels.INFO)
                 return
               end
-              show_notifications_picker(filtered, label)
+              show_notifications_picker(filtered)
             end)
           end
         else
@@ -1173,7 +1150,7 @@ local function fetch_notifications_for_team(org_name, slugs, label, comment_only
                   vim.notify('No notifications from team members', vim.log.levels.INFO)
                   return
                 end
-                show_notifications_picker(filtered, label)
+                show_notifications_picker(filtered)
               end
             end)
           )
@@ -1202,7 +1179,7 @@ function M.show_notifications_by_team()
     if not choice then
       return
     end
-    fetch_notifications_for_team(org_name, choice.slugs, choice.text)
+    fetch_notifications_for_team(org_name, choice.slugs)
   end)
 end
 
@@ -1212,7 +1189,7 @@ function M.show_notifications_by_default_team()
     return
   end
 
-  fetch_notifications_for_team(org_name, { team_slugs[1] }, team_slugs[1], true)
+  fetch_notifications_for_team(org_name, { team_slugs[1] }, true)
 end
 
 function M.redeploy_pr()
@@ -1236,7 +1213,7 @@ function M.redeploy_pr()
             return
           end
 
-          local ok, comments = pcall(vim.fn.json_decode, comments_result.stdout)
+          local ok, comments = pcall(vim.json.decode, comments_result.stdout)
           if not ok then
             comments = {}
           end
@@ -1388,7 +1365,7 @@ function M.show_current_branch_pr_diff()
         return
       end
 
-      local ok, pr = pcall(vim.fn.json_decode, result.stdout)
+      local ok, pr = pcall(vim.json.decode, result.stdout)
       if not ok or not pr or not pr.number then
         vim.notify('Could not parse PR info', vim.log.levels.ERROR)
         return
@@ -1400,8 +1377,8 @@ function M.show_current_branch_pr_diff()
 end
 
 -- ===========================================================================
--- Clone a remote repo into ~/Programming/<folder>/<repo>
--- Flow: pick GitHub owner -> pick repo -> pick destination folder -> clone.
+-- Clone a remote repo into ~/Programming/<owner>/<repo>
+-- Flow: pick GitHub owner -> pick repo -> clone into the owner's folder.
 -- ===========================================================================
 
 local PROGRAMMING_DIR = vim.fn.expand('$HOME/Programming')
@@ -1411,17 +1388,9 @@ local EXCLUDED_PROGRAMMING_DIRS = { Worktrees = true, wcreated = true, wcheckout
 ---@return string[] sorted directory names
 local function scan_programming_org_dirs()
   local dirs = {}
-  local handle = vim.uv.fs_scandir(PROGRAMMING_DIR)
-  if not handle then return dirs end
-
-  while true do
-    local name, entry_type = vim.uv.fs_scandir_next(handle)
-    if not name then break end
-    if entry_type == 'directory' and not EXCLUDED_PROGRAMMING_DIRS[name] and not name:match('^%.') then
-      table.insert(dirs, name)
-    end
+  for _, entry in ipairs(file_utils.scan(PROGRAMMING_DIR, { type = 'directory', exclude = EXCLUDED_PROGRAMMING_DIRS })) do
+    table.insert(dirs, entry.name)
   end
-
   table.sort(dirs)
   return dirs
 end
@@ -1491,6 +1460,16 @@ local function select_destination_and_clone(name_with_owner, repo_name, owner)
   end)
 end
 
+--- Clone a repo straight into ~/Programming/<owner>/<repo>, deriving the
+--- destination folder from the repo's owner (no folder prompt).
+---@param name_with_owner string e.g. "JimmyTranDev/dotfiles"
+---@param repo_name string the bare repo name used for the local directory
+---@param owner string fallback owner when name_with_owner has no owner segment
+local function clone_repo_into_owner_folder(name_with_owner, repo_name, owner)
+  local dest_folder = name_with_owner:match('^([^/]+)/') or owner
+  clone_repo(name_with_owner, repo_name, dest_folder)
+end
+
 --- Fetch the owner's repos and present a picker to choose one to clone.
 ---@param owner string GitHub owner/org login
 local function select_repo_and_clone(owner)
@@ -1504,7 +1483,7 @@ local function select_repo_and_clone(owner)
         return
       end
 
-      local ok, repos = pcall(vim.fn.json_decode, result.stdout)
+      local ok, repos = pcall(vim.json.decode, result.stdout)
       if not ok or type(repos) ~= 'table' or #repos == 0 then
         vim.notify('No repositories found for ' .. owner, vim.log.levels.WARN)
         return
@@ -1531,7 +1510,7 @@ local function select_repo_and_clone(owner)
           format_item = function(item) return item.name end,
         }, function(item)
           if not item then return end
-          select_destination_and_clone(item.name_with_owner, item.name, owner)
+          clone_repo_into_owner_folder(item.name_with_owner, item.name, owner)
         end)
         return
       end
@@ -1547,7 +1526,7 @@ local function select_repo_and_clone(owner)
         end,
         confirm = function(picker, item)
           picker:close()
-          select_destination_and_clone(item.name_with_owner, item.name, owner)
+          clone_repo_into_owner_folder(item.name_with_owner, item.name, owner)
         end,
       })
     end)
@@ -1555,7 +1534,7 @@ local function select_repo_and_clone(owner)
 end
 
 --- Entry point: pick a GitHub owner (auto-skipped when only one), then a repo,
---- then a destination folder under ~/Programming, then clone it.
+--- then clone it into ~/Programming/<owner>/<repo> (folder derived from owner).
 function M.select_owner_repo_and_clone()
   local owners = github_utils.get_github_owners()
   if #owners == 0 then

@@ -1,4 +1,5 @@
 local registry = require('custom.utils.terminal_registry')
+local ui = require('custom.utils.ui')
 
 local M = {}
 
@@ -19,49 +20,40 @@ function M.open_terminal_picker()
     })
   end
 
-  local ok, snacks = pcall(require, 'snacks')
-  if not ok then
-    vim.notify('Snacks not available', vim.log.levels.ERROR)
-    return
-  end
-
-  snacks.picker({
+  ui.pick({
     title = 'Terminals',
     items = items,
-    format = function(item)
-      return { { item.text } }
+    format = function(item) return { { item.text } } end,
+    on_confirm = function(item)
+      if item then registry.toggle(item.terminal_name) end
     end,
-    confirm = function(picker, item)
-      picker:close()
-      if item then
-        registry.toggle(item.terminal_name)
-      end
-    end,
-    actions = {
-      kill_terminal = function(picker, item)
-        if item then
-          registry.kill(item.terminal_name)
+    extra = {
+      actions = {
+        kill_terminal = function(picker, item)
+          if item then
+            registry.kill(item.terminal_name)
+            picker:close()
+            vim.schedule(function() M.open_terminal_picker() end)
+          end
+        end,
+        kill_all_terminals = function(picker)
           picker:close()
-          vim.schedule(function() M.open_terminal_picker() end)
-        end
-      end,
-      kill_all_terminals = function(picker)
-        picker:close()
-        registry.kill_all()
-        vim.notify('All terminals killed', vim.log.levels.INFO)
-      end,
-    },
-    win = {
-      input = {
-        keys = {
-          ['<C-x>'] = { 'kill_terminal', desc = 'Kill terminal', mode = { 'n', 'i' } },
-          ['<C-a>'] = { 'kill_all_terminals', desc = 'Kill all terminals', mode = { 'n', 'i' } },
-        },
+          registry.kill_all()
+          vim.notify('All terminals killed', vim.log.levels.INFO)
+        end,
       },
-      list = {
-        keys = {
-          ['<C-x>'] = { 'kill_terminal', desc = 'Kill terminal', mode = { 'n' } },
-          ['<C-a>'] = { 'kill_all_terminals', desc = 'Kill all terminals', mode = { 'n' } },
+      win = {
+        input = {
+          keys = {
+            ['<C-x>'] = { 'kill_terminal', desc = 'Kill terminal', mode = { 'n', 'i' } },
+            ['<C-a>'] = { 'kill_all_terminals', desc = 'Kill all terminals', mode = { 'n', 'i' } },
+          },
+        },
+        list = {
+          keys = {
+            ['<C-x>'] = { 'kill_terminal', desc = 'Kill terminal', mode = { 'n' } },
+            ['<C-a>'] = { 'kill_all_terminals', desc = 'Kill all terminals', mode = { 'n' } },
+          },
         },
       },
     },

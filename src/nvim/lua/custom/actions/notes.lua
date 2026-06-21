@@ -4,78 +4,39 @@ local file_utils = require('custom.utils.files')
 local string_utils = require('custom.utils.string')
 local grammar_utils = require('custom.utils.grammar')
 local git_utils = require('custom.utils.git')
-local json_utils = require('custom.utils.json')
+local usage_cache = require('custom.utils.usage_cache')
 
 local ui_utils = require('custom.utils.ui')
 
 local SENTENCES_PATH = vim.fn.expand('~/Programming/JimmyTranDev/notes/notes')
 
-local RECENT_CATEGORIES_FILE = vim.fn.stdpath('data') .. '/notes_recent_categories.json'
+local NOTE_CATEGORIES_NS = 'note_categories'
 local MAX_RECENT_CATEGORIES = 10
 
-local function get_recent_categories()
-  if not vim.uv.fs_stat(RECENT_CATEGORIES_FILE) then return {} end
-  local data = json_utils.parse_json_from_file(RECENT_CATEGORIES_FILE)
-  if type(data) == 'table' and data.recent_categories then return data.recent_categories end
-  return {}
-end
-
-local function save_recent_categories(recent_categories) json_utils.write_json_to_file(RECENT_CATEGORIES_FILE, { recent_categories = recent_categories }) end
-
-local function add_recent_category(name)
-  local recent_categories = get_recent_categories()
-
-  for i, category_name in ipairs(recent_categories) do
-    if category_name == name then
-      table.remove(recent_categories, i)
-      break
-    end
-  end
-
-  table.insert(recent_categories, 1, name)
-
-  while #recent_categories > MAX_RECENT_CATEGORIES do
-    table.remove(recent_categories, #recent_categories)
-  end
-
-  save_recent_categories(recent_categories)
-end
+local function add_recent_category(name) usage_cache.record(NOTE_CATEGORIES_NS, name) end
 
 local function build_category_priority_map()
-  local recent_categories = get_recent_categories()
   local map = {}
-  for i, category_name in ipairs(recent_categories) do
-    map[category_name] = i - 1
+  for index, name in ipairs(usage_cache.recent(NOTE_CATEGORIES_NS, MAX_RECENT_CATEGORIES)) do
+    map[name] = index - 1
   end
   return map
 end
 
 local function get_md_files(dir)
   local files = {}
-  local handle = vim.uv.fs_scandir(dir)
-  if not handle then return files end
-
-  while true do
-    local name, type = vim.uv.fs_scandir_next(handle)
-    if not name then break end
-    if type == 'file' and name:match('%.md$') then table.insert(files, name) end
+  for _, f in ipairs(file_utils.scan(dir, { type = 'file', hidden = true })) do
+    if f.name:match('%.md$') then table.insert(files, f.name) end
   end
-
   table.sort(files)
   return files
 end
 
 local function get_subdirs(dir)
   local dirs = {}
-  local handle = vim.uv.fs_scandir(dir)
-  if not handle then return dirs end
-
-  while true do
-    local name, type = vim.uv.fs_scandir_next(handle)
-    if not name then break end
-    if type == 'directory' then table.insert(dirs, name) end
+  for _, d in ipairs(file_utils.scan(dir, { type = 'directory', hidden = true })) do
+    table.insert(dirs, d.name)
   end
-
   table.sort(dirs)
   return dirs
 end

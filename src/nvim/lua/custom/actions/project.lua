@@ -1,9 +1,10 @@
 local async = require('custom.utils.async')
+local files = require('custom.utils.files')
+local ui = require('custom.utils.ui')
 
 local M = {}
 
 local PROGRAMMING_DIR = vim.fn.expand('$HOME/Programming')
-local EXCLUDED_DIRS = { Worktrees = true, wcreated = true, wcheckout = true }
 local MAX_TAB_NAME_LENGTH = 20
 
 local function rename_zellij_tab(name)
@@ -22,51 +23,13 @@ local function rename_zellij_tab(name)
   vim.fn.system('zellij action rename-tab "' .. tab_name .. '"')
 end
 
-local function scan_projects()
-  local projects = {}
-  local org_dir = vim.uv.fs_scandir(PROGRAMMING_DIR)
-  if not org_dir then return projects end
-
-  while true do
-    local org_name, org_type = vim.uv.fs_scandir_next(org_dir)
-    if not org_name then break end
-    if org_type == 'directory' and not EXCLUDED_DIRS[org_name] then
-      local org_path = PROGRAMMING_DIR .. '/' .. org_name
-      local repo_dir = vim.uv.fs_scandir(org_path)
-      if repo_dir then
-        while true do
-          local repo_name, repo_type = vim.uv.fs_scandir_next(repo_dir)
-          if not repo_name then break end
-          if repo_type == 'directory' and not repo_name:match('^%.') then
-            table.insert(projects, {
-              org = org_name,
-              name = repo_name,
-              path = org_path .. '/' .. repo_name,
-              text = org_name .. '/' .. repo_name,
-            })
-          end
-        end
-      end
-    end
-  end
-
-  table.sort(projects, function(a, b) return a.text < b.text end)
-  for i, p in ipairs(projects) do
-    p.idx = i
-  end
-  return projects
-end
-
 function M.switch_project()
-  local ok, snacks = pcall(require, 'snacks')
-  if not ok then return vim.notify('Snacks not available', vim.log.levels.WARN) end
-
-  local projects = scan_projects()
+  local projects = files.scan_programming()
   if #projects == 0 then return vim.notify('No projects found in ' .. PROGRAMMING_DIR, vim.log.levels.WARN) end
 
   local current_cwd = vim.fn.getcwd()
 
-  snacks.picker({
+  ui.pick({
     title = 'Switch Project (' .. #projects .. ' projects)',
     items = projects,
     format = function(item)
@@ -78,8 +41,7 @@ function M.switch_project()
         { item.name, is_current and 'DiagnosticOk' or 'Function' },
       }
     end,
-    confirm = function(picker, item)
-      picker:close()
+    on_confirm = function(item)
       if item.path == current_cwd then
         vim.notify('Already in ' .. item.text, vim.log.levels.INFO)
         return
@@ -92,13 +54,10 @@ function M.switch_project()
 end
 
 function M.copy_project_path()
-  local ok, snacks = pcall(require, 'snacks')
-  if not ok then return vim.notify('Snacks not available', vim.log.levels.WARN) end
-
-  local projects = scan_projects()
+  local projects = files.scan_programming()
   if #projects == 0 then return vim.notify('No projects found in ' .. PROGRAMMING_DIR, vim.log.levels.WARN) end
 
-  snacks.picker({
+  ui.pick({
     title = 'Copy Project Path (' .. #projects .. ' projects)',
     items = projects,
     format = function(item)
@@ -107,8 +66,7 @@ function M.copy_project_path()
         { item.name, 'Function' },
       }
     end,
-    confirm = function(picker, item)
-      picker:close()
+    on_confirm = function(item)
       vim.fn.setreg('+', item.path)
       vim.notify('Copied: ' .. item.path, vim.log.levels.INFO)
     end,
@@ -116,13 +74,10 @@ function M.copy_project_path()
 end
 
 function M.pull_and_copy_project_path()
-  local ok, snacks = pcall(require, 'snacks')
-  if not ok then return vim.notify('Snacks not available', vim.log.levels.WARN) end
-
-  local projects = scan_projects()
+  local projects = files.scan_programming()
   if #projects == 0 then return vim.notify('No projects found in ' .. PROGRAMMING_DIR, vim.log.levels.WARN) end
 
-  snacks.picker({
+  ui.pick({
     title = 'Pull & Copy Project Path (' .. #projects .. ' projects)',
     items = projects,
     format = function(item)
@@ -131,8 +86,7 @@ function M.pull_and_copy_project_path()
         { item.name, 'Function' },
       }
     end,
-    confirm = function(picker, item)
-      picker:close()
+    on_confirm = function(item)
       local stat = vim.uv.fs_stat(item.path)
       if not stat or stat.type ~= 'directory' then
         vim.notify('Repo not found locally: ' .. item.path, vim.log.levels.WARN)

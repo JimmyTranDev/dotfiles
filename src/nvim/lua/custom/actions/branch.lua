@@ -1,4 +1,5 @@
 local async = require('custom.utils.async')
+local ui = require('custom.utils.ui')
 
 local M = {}
 
@@ -132,18 +133,14 @@ function M.stale_branch_cleanup()
           })
         end
 
-        local snacks_ok, snacks = pcall(require, 'snacks')
-        if not snacks_ok then return end
-
-        snacks.picker({
+        ui.pick({
           title = string.format('Stale Branches (%d found, >%dd old)', #items, STALE_DAYS),
           items = items,
           format = function(item)
             local hl = item.branch.merged and 'DiagnosticOk' or 'DiagnosticWarn'
             return { { item.text, hl } }
           end,
-          confirm = function(picker, item)
-            picker:close()
+          on_confirm = function(item)
             local msg = string.format('Delete branch "%s"?', item.branch.name)
             if not item.branch.merged then msg = msg .. ' (WARNING: unmerged)' end
             vim.ui.select({ 'Yes', 'No' }, { prompt = msg }, function(choice)

@@ -1,5 +1,5 @@
 local todoist_utils = require('custom.utils.todoist')
-local json_utils = require('custom.utils.json')
+local usage_cache = require('custom.utils.usage_cache')
 local ui_utils = require('custom.utils.ui')
 local async_utils = require('custom.utils.async')
 
@@ -13,83 +13,19 @@ local PRIORITY_OPTIONS = {
   { name = 'None', value = nil },
 }
 
-local RECENT_PROJECTS_FILE = vim.fn.stdpath('data') .. '/todoist_recent_projects.json'
-local RECENT_SECTIONS_FILE = vim.fn.stdpath('data') .. '/todoist_recent_sections.json'
+local RECENT_PROJECTS_NS = 'todoist_projects'
+local RECENT_SECTIONS_NS = 'todoist_sections'
 local MAX_RECENT_PROJECTS = 10
 local MAX_RECENT_SECTIONS = 10
 
 local format_by_name = function(item) return item.name end
 
-local function get_recent_projects()
-  if not vim.uv.fs_stat(RECENT_PROJECTS_FILE) then return {} end
-  local data = json_utils.parse_json_from_file(RECENT_PROJECTS_FILE)
-  if type(data) == 'table' and data.recent_projects then return data.recent_projects end
-  return {}
-end
+local function add_recent_id(ns, id) usage_cache.record(ns, id) end
 
-local function save_recent_projects(recent_projects) json_utils.write_json_to_file(RECENT_PROJECTS_FILE, { recent_projects = recent_projects }) end
-
-local function add_recent_project_id(id)
-  local recent_projects = get_recent_projects()
-
-  for i, project_id in ipairs(recent_projects) do
-    if project_id == id then
-      table.remove(recent_projects, i)
-      break
-    end
-  end
-
-  table.insert(recent_projects, 1, id)
-
-  while #recent_projects > MAX_RECENT_PROJECTS do
-    table.remove(recent_projects, #recent_projects)
-  end
-
-  save_recent_projects(recent_projects)
-end
-
-local function build_project_priority_map()
-  local recent_projects = get_recent_projects()
+local function build_recent_priority_map(ns, max)
   local map = {}
-  for i, project_id in ipairs(recent_projects) do
-    map[project_id] = i - 1
-  end
-  return map
-end
-
-local function get_recent_sections()
-  if not vim.uv.fs_stat(RECENT_SECTIONS_FILE) then return {} end
-  local data = json_utils.parse_json_from_file(RECENT_SECTIONS_FILE)
-  if type(data) == 'table' and data.recent_sections then return data.recent_sections end
-  return {}
-end
-
-local function save_recent_sections(recent_sections) json_utils.write_json_to_file(RECENT_SECTIONS_FILE, { recent_sections = recent_sections }) end
-
-local function add_recent_section_id(id)
-  local recent_sections = get_recent_sections()
-
-  for i, section_id in ipairs(recent_sections) do
-    if section_id == id then
-      table.remove(recent_sections, i)
-      break
-    end
-  end
-
-  table.insert(recent_sections, 1, id)
-
-  while #recent_sections > MAX_RECENT_SECTIONS do
-    table.remove(recent_sections, #recent_sections)
-  end
-
-  save_recent_sections(recent_sections)
-end
-
-local function build_section_priority_map()
-  local recent_sections = get_recent_sections()
-  local map = {}
-  for i, section_id in ipairs(recent_sections) do
-    map[section_id] = i - 1
+  for index, id in ipairs(usage_cache.recent(ns, max)) do
+    map[id] = index - 1
   end
   return map
 end
@@ -98,7 +34,7 @@ local function create_task_with_navigation(task_name, projects, opts, on_back_to
   local select_project, select_section, select_priority
 
   select_project = function()
-    local priority_map = build_project_priority_map()
+    local priority_map = build_recent_priority_map(RECENT_PROJECTS_NS, MAX_RECENT_PROJECTS)
 
     table.sort(projects, function(a, b)
       local a_priority = priority_map[a.id] or 999
@@ -123,7 +59,7 @@ local function create_task_with_navigation(task_name, projects, opts, on_back_to
       format_item = format_by_name,
       on_back = on_back_to_description,
     }, function(selected)
-      add_recent_project_id(selected.id)
+      add_recent_id(RECENT_PROJECTS_NS, selected.id)
       select_section(selected)
     end)
   end
@@ -145,7 +81,7 @@ local function create_task_with_navigation(task_name, projects, opts, on_back_to
         table.insert(section_options, { name = section.name, id = section.id })
       end
 
-      local section_priority_map = build_section_priority_map()
+      local section_priority_map = build_recent_priority_map(RECENT_SECTIONS_NS, MAX_RECENT_SECTIONS)
       table.sort(section_options, function(a, b)
         local a_priority = section_priority_map[a.id] or 999
         local b_priority = section_priority_map[b.id] or 999
@@ -154,7 +90,7 @@ local function create_task_with_navigation(task_name, projects, opts, on_back_to
       end)
 
       if #section_options == 1 then
-        add_recent_section_id(section_options[1].id)
+        add_recent_id(RECENT_SECTIONS_NS, section_options[1].id)
         select_priority(selected_project, section_options[1], true)
         return
       end
@@ -171,7 +107,7 @@ local function create_task_with_navigation(task_name, projects, opts, on_back_to
           return
         end
 
-        if selected_section.id then add_recent_section_id(selected_section.id) end
+        if selected_section.id then add_recent_id(RECENT_SECTIONS_NS, selected_section.id) end
         select_priority(selected_project, selected_section)
       end)
     end)
@@ -449,14 +385,14 @@ local function edit_task_field(task, on_done)
   end)
 end
 
-function M.edit_recent_task()
+local function pick_recent_task(prompt, on_select)
   async_utils.execute({ 'td', 'task', 'list', '--json', '--full', '--limit', '20', '--all' }, function(success, stdout, stderr)
     if not success then
       vim.schedule(function() vim.notify('Failed to fetch tasks: ' .. stderr, vim.log.levels.ERROR) end)
       return
     end
 
-    local ok, data = pcall(vim.fn.json_decode, stdout)
+    local ok, data = pcall(vim.json.decode, stdout)
     if not ok or not data then
       vim.schedule(function() vim.notify('Failed to parse Todoist response', vim.log.levels.ERROR) end)
       return
@@ -476,85 +412,44 @@ function M.edit_recent_task()
 
     local items = {}
     for i, task in ipairs(tasks) do
-      if task.id and task.content and i <= 20 then
-        table.insert(items, { id = tostring(task.id), content = task.content })
-      end
+      if task.id and task.content and i <= 20 then table.insert(items, { id = tostring(task.id), content = task.content }) end
     end
 
     vim.schedule(function()
       vim.ui.select(items, {
-        prompt = 'Select task to edit (most recent first):',
+        prompt = prompt,
         format_item = function(item) return item.content end,
       }, function(selected)
         if not selected then return end
-
-        local function show_field_picker()
-          edit_task_field(selected, function() show_field_picker() end)
-        end
-        show_field_picker()
+        on_select(selected)
       end)
     end)
   end)
 end
 
+function M.edit_recent_task()
+  pick_recent_task('Select task to edit (most recent first):', function(selected)
+    local function show_field_picker()
+      edit_task_field(selected, function() show_field_picker() end)
+    end
+    show_field_picker()
+  end)
+end
+
 function M.delete_recent_task()
-  local async_utils = require('custom.utils.async')
+  pick_recent_task('Select task to delete (most recent first):', function(selected)
+    vim.ui.select({ 'Yes', 'No' }, {
+      prompt = 'Delete "' .. selected.content .. '"?',
+    }, function(confirm)
+      if confirm ~= 'Yes' then return end
 
-  async_utils.execute({ 'td', 'task', 'list', '--json', '--full', '--limit', '20', '--all' }, function(success, stdout, stderr)
-    if not success then
-      vim.schedule(function() vim.notify('Failed to fetch tasks: ' .. stderr, vim.log.levels.ERROR) end)
-      return
-    end
-
-    local ok, data = pcall(vim.fn.json_decode, stdout)
-    if not ok or not data then
-      vim.schedule(function() vim.notify('Failed to parse Todoist response', vim.log.levels.ERROR) end)
-      return
-    end
-
-    local tasks = data.results or data
-    if #tasks == 0 then
-      vim.schedule(function() vim.notify('No recent tasks found', vim.log.levels.WARN) end)
-      return
-    end
-
-    table.sort(tasks, function(a, b)
-      local a_date = a.addedAt or a.added_at or ''
-      local b_date = b.addedAt or b.added_at or ''
-      return a_date > b_date
-    end)
-
-    local items = {}
-    for i, task in ipairs(tasks) do
-      if task.id and task.content and i <= 20 then
-        table.insert(items, { id = tostring(task.id), content = task.content })
-      end
-    end
-
-    vim.schedule(function()
-      vim.ui.select(items, {
-        prompt = 'Select task to delete (most recent first):',
-        format_item = function(item) return item.content end,
-      }, function(selected)
-        if not selected then return end
-
-        vim.ui.select({ 'Yes', 'No' }, {
-          prompt = 'Delete "' .. selected.content .. '"?',
-        }, function(confirm)
-          if confirm ~= 'Yes' then return end
-
-          async_utils.execute(
-            { 'td', 'task', 'delete', 'id:' .. selected.id },
-            function(delete_success, _, delete_stderr)
-              vim.schedule(function()
-                if delete_success then
-                  vim.notify('Task deleted: ' .. selected.content, vim.log.levels.INFO)
-                else
-                  vim.notify('Failed to delete task: ' .. delete_stderr, vim.log.levels.ERROR)
-                end
-              end)
-            end
-          )
+      async_utils.execute({ 'td', 'task', 'delete', 'id:' .. selected.id }, function(delete_success, _, delete_stderr)
+        vim.schedule(function()
+          if delete_success then
+            vim.notify('Task deleted: ' .. selected.content, vim.log.levels.INFO)
+          else
+            vim.notify('Failed to delete task: ' .. delete_stderr, vim.log.levels.ERROR)
+          end
         end)
       end)
     end)

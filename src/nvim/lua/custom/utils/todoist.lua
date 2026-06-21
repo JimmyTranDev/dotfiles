@@ -48,7 +48,7 @@ local function td_command(args, callback)
       return
     end
 
-    local ok, decoded = pcall(vim.fn.json_decode, stdout)
+    local ok, decoded = pcall(vim.json.decode, stdout)
     if not ok then
       callback(false, 'Invalid JSON response from td')
       return

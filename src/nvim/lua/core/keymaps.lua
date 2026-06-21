@@ -307,8 +307,8 @@ maps('n', {
 -- map('n', '<Leader>ugw', github_actions.select_open_prs_by_people, { desc = 'Open PRs by people' })
 -- map('n', '<Leader>ugI', github_actions.select_org_repo_and_create_issue, { desc = 'Create GitHub issue' })
 -- map('n', '<Leader>ugR', github_actions.pr_review_mode, { desc = 'PR review mode' })
--- map('n', '<Leader>ugM', git_actions.diff_vs_main, { desc = 'Diff vs main' })
--- map('n', '<Leader>ugD', git_actions.diff_vs_develop, { desc = 'Diff vs develop' })
+-- map('n', '<Leader>ugM', function() git_actions.diff_vs('main') end, { desc = 'Diff vs main' })
+-- map('n', '<Leader>ugD', function() git_actions.diff_vs('develop') end, { desc = 'Diff vs develop' })
 -- map('n', '<Leader>ugB', branch_actions.stale_branch_cleanup(), { desc = 'Stale branch cleanup' })
 
 -- Sessions

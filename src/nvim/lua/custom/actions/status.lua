@@ -1,4 +1,5 @@
 local async = require('custom.utils.async')
+local ui = require('custom.utils.ui')
 
 local M = {}
 
@@ -51,15 +52,11 @@ function M.show_ci_checks()
       })
     end
 
-    local ok, snacks = pcall(require, 'snacks')
-    if not ok then return end
-
-    snacks.picker({
+    ui.pick({
       title = 'CI Checks',
       items = items,
       format = function(item) return { { item.text, item.icon_hl } } end,
-      confirm = function(picker, item)
-        picker:close()
+      on_confirm = function(item)
         if item and item.url then vim.ui.open(item.url) end
       end,
     })
@@ -142,15 +139,11 @@ function M.show_pr_status()
       table.insert(items, { text = '  CI: ' .. pass_count .. ' pass, ' .. fail_count .. ' fail, ' .. pending_count .. ' pending' })
     end
 
-    local ok, snacks = pcall(require, 'snacks')
-    if not ok then return end
-
-    snacks.picker({
+    ui.pick({
       title = 'PR Status',
       items = items,
       format = function(item) return { { item.text, item.hl or 'Normal' } } end,
-      confirm = function(picker, item)
-        picker:close()
+      on_confirm = function(item)
         if item and item.url then vim.ui.open(item.url) end
       end,
     })
@@ -198,15 +191,11 @@ function M.show_pipeline_overview()
       return
     end
 
-    local ok, snacks = pcall(require, 'snacks')
-    if not ok then return end
-
-    snacks.picker({
+    ui.pick({
       title = 'Pipeline Overview',
       items = items,
       format = function(item) return { { item.text, item.hl or 'Normal' } } end,
-      confirm = function(picker, item)
-        picker:close()
+      on_confirm = function(item)
         if item and item.url then vim.ui.open(item.url) end
       end,
     })

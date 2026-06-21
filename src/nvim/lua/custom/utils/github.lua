@@ -28,7 +28,7 @@ end
 function M.get_pulls(repo)
   local result = vim.fn.system({ 'gh', 'pr', 'list', '--repo', repo, '--json', 'number,title,url,state' })
   if vim.v.shell_error ~= 0 then return {} end
-  local ok, json = pcall(vim.fn.json_decode, result)
+  local ok, json = pcall(vim.json.decode, result)
   if not ok or not json then return {} end
   return json
 end
@@ -36,7 +36,7 @@ end
 function M.get_repo_info()
   local output = vim.fn.system('gh repo view --json name,owner,nameWithOwner,url 2>/dev/null')
   if vim.v.shell_error ~= 0 then return nil end
-  local ok, repo_info = pcall(vim.fn.json_decode, output)
+  local ok, repo_info = pcall(vim.json.decode, output)
   return ok and repo_info or nil
 end
 
@@ -116,7 +116,7 @@ function M.fetch_my_prs_across_owners(owners, opts, callback)
       { text = true },
       vim.schedule_wrap(function(result)
         if result.code == 0 and result.stdout and result.stdout ~= '' then
-          local ok, prs = pcall(vim.fn.json_decode, result.stdout)
+          local ok, prs = pcall(vim.json.decode, result.stdout)
           if ok and type(prs) == 'table' then
             for _, pr in ipairs(prs) do
               local repo_name = pr.repository and pr.repository.nameWithOwner or ''
@@ -176,7 +176,7 @@ function M.append_review_decisions(prs, callback)
         vim.schedule_wrap(function(result)
           local decision = nil
           if result.code == 0 and result.stdout and result.stdout ~= '' then
-            local ok, data = pcall(vim.fn.json_decode, result.stdout)
+            local ok, data = pcall(vim.json.decode, result.stdout)
             if ok and type(data) == 'table' then decision = data.reviewDecision end
           end
           apply(pr, decision)
@@ -198,7 +198,7 @@ function M.get_pr_file_stats(repo, pr_number, callback)
       local additions = 0
       local deletions = 0
       if result.code == 0 then
-        local ok, files = pcall(vim.fn.json_decode, result.stdout)
+        local ok, files = pcall(vim.json.decode, result.stdout)
         if ok and files then
           for _, file in ipairs(files) do
             if file.filename ~= 'pnpm-lock.yaml' then

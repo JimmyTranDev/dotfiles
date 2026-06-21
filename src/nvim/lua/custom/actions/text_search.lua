@@ -1,3 +1,5 @@
+local ui = require('custom.utils.ui')
+
 local M = {}
 
 local function is_test_file(filepath)
@@ -128,21 +130,16 @@ function M.search_user_text()
       return
     end
 
-    local ok, snacks = pcall(require, 'snacks')
-    if not ok then
-      return
-    end
-
-    snacks.picker({
+    ui.pick({
       title = 'User-Facing Text',
       items = items,
       preview = 'file',
       format = function(item)
+        local snacks = require('snacks')
         local icon, hl = snacks.util.icon(item.file, 'file')
         return { { icon, hl }, { ' ' }, { item.text } }
       end,
-      confirm = function(picker, item)
-        picker:close()
+      on_confirm = function(item)
         vim.cmd('edit ' .. vim.fn.fnameescape(item.file))
         vim.api.nvim_win_set_cursor(0, { item.pos[1], item.pos[2] })
       end,

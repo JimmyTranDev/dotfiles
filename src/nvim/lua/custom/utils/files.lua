@@ -1,5 +1,8 @@
 local M = {}
 
+local PROGRAMMING_DIR = vim.fn.expand('$HOME/Programming')
+local PROGRAMMING_EXCLUDE = { Worktrees = true, wcreated = true, wcheckout = true }
+
 function M.list_files(dir)
   if type(dir) ~= 'string' then return {} end
   local result = vim.fn.systemlist('ls -t ' .. vim.fn.shellescape(dir))
@@ -76,6 +79,42 @@ function M.get_recursive_file_contents()
 
   process_dir(current_dir, '')
   return table.concat(content, '\n')
+end
+
+--- One-level scan of a directory. exclude may be a set { name = true } or a
+--- predicate(name) -> boolean. Hidden (dot) entries are skipped unless hidden=true.
+---@param dir string
+---@param opts? { type?: 'directory'|'file', exclude?: table|fun(name: string): boolean, hidden?: boolean }
+---@return { name: string, path: string, type: string }[]
+function M.scan(dir, opts)
+  opts = opts or {}
+  local out, handle = {}, vim.uv.fs_scandir(dir)
+  if not handle then return out end
+  while true do
+    local name, t = vim.uv.fs_scandir_next(handle)
+    if not name then break end
+    local excluded = type(opts.exclude) == 'function' and opts.exclude(name) or (type(opts.exclude) == 'table' and opts.exclude[name])
+    local hidden = not opts.hidden and name:match('^%.')
+    if (not opts.type or opts.type == t) and not excluded and not hidden then out[#out + 1] = { name = name, path = dir .. '/' .. name, type = t } end
+  end
+  return out
+end
+
+--- Two-level org/repo walk of ~/Programming. Hidden orgs are kept but hidden
+--- repos are skipped (matching the historical project scan). Returns items
+--- { org, name, path, text = 'org/name' } sorted by text.
+---@param exclude? table org dir names to skip (default { Worktrees, wcreated, wcheckout })
+---@return { org: string, name: string, path: string, text: string }[]
+function M.scan_programming(exclude)
+  exclude = exclude or PROGRAMMING_EXCLUDE
+  local projects = {}
+  for _, org in ipairs(M.scan(PROGRAMMING_DIR, { type = 'directory', exclude = exclude, hidden = true })) do
+    for _, repo in ipairs(M.scan(org.path, { type = 'directory' })) do
+      projects[#projects + 1] = { org = org.name, name = repo.name, path = repo.path, text = org.name .. '/' .. repo.name }
+    end
+  end
+  table.sort(projects, function(a, b) return a.text < b.text end)
+  return projects
 end
 
 return M

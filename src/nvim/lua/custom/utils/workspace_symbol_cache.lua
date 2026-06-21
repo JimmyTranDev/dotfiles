@@ -27,7 +27,7 @@ local function read_cache()
   end
 
   local json_str = table.concat(content, '\n')
-  local ok_decode, data = pcall(vim.fn.json_decode, json_str)
+  local ok_decode, data = pcall(vim.json.decode, json_str)
   if not ok_decode or not data then
     return nil
   end
@@ -53,7 +53,7 @@ local function write_cache(symbols)
     symbols = symbols,
   }
 
-  local json_str = vim.fn.json_encode(data)
+  local json_str = vim.json.encode(data)
   local ok = pcall(vim.fn.writefile, { json_str }, cache_file)
   return ok
 end

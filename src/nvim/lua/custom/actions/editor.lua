@@ -1,4 +1,5 @@
 local async = require('custom.utils.async')
+local files = require('custom.utils.files')
 
 local M = {}
 
@@ -10,15 +11,9 @@ function M.toggle_markview() vim.cmd('Markview Toggle') end
 
 local function scan_dirs(dir)
   local names = {}
-  local handle = vim.uv.fs_scandir(dir)
-  if not handle then return names end
-
-  while true do
-    local name, entry_type = vim.uv.fs_scandir_next(handle)
-    if not name then break end
-    if entry_type == 'directory' and not name:match('^%.') then table.insert(names, name) end
+  for _, entry in ipairs(files.scan(dir, { type = 'directory' })) do
+    names[#names + 1] = entry.name
   end
-
   return names
 end
 

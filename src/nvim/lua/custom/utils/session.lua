@@ -1,3 +1,5 @@
+local ui = require('custom.utils.ui')
+
 local M = {}
 
 local SESSION_DIR = vim.fn.stdpath('data') .. '/sessions'
@@ -48,9 +50,6 @@ function M.setup_autosave()
 end
 
 function M.list_sessions()
-  local ok, snacks = pcall(require, 'snacks')
-  if not ok then return vim.notify('Snacks not available', vim.log.levels.WARN) end
-
   ensure_session_dir()
   local files = vim.fn.globpath(SESSION_DIR, '*.vim', false, true)
   if #files == 0 then return vim.notify('No saved sessions', vim.log.levels.INFO) end
@@ -75,7 +74,7 @@ function M.list_sessions()
     item.idx = i
   end
 
-  snacks.picker({
+  ui.pick({
     title = 'Sessions (' .. #items .. ')',
     items = items,
     format = function(item)
@@ -88,8 +87,7 @@ function M.list_sessions()
         { date, 'Comment' },
       }
     end,
-    confirm = function(picker, item)
-      picker:close()
+    on_confirm = function(item)
       vim.cmd('cd ' .. vim.fn.fnameescape(item.path))
       vim.cmd('source ' .. vim.fn.fnameescape(item.file))
       vim.notify('Restored session: ' .. item.path, vim.log.levels.INFO)

@@ -72,21 +72,11 @@ local function _unique_name(base_name)
   end
 end
 
----@param opts? TerminalOpts
+---@param name string
+---@param opts TerminalOpts
 ---@return table
-function M.create(opts)
-  opts = opts or {}
+local function _new_term(name, opts)
   local Terminal = require('toggleterm.terminal').Terminal
-
-  local name
-  if opts.name then
-    name = _unique_name(opts.name)
-  elseif opts.cmd then
-    name = _unique_name(_make_name(opts.cmd))
-  else
-    _blank_counter = _blank_counter + 1
-    name = _unique_name('terminal-' .. _blank_counter)
-  end
 
   local id = _next_id
   _next_id = _next_id + 1
@@ -105,6 +95,24 @@ function M.create(opts)
   return term
 end
 
+---@param opts? TerminalOpts
+---@return table
+function M.create(opts)
+  opts = opts or {}
+
+  local name
+  if opts.name then
+    name = _unique_name(opts.name)
+  elseif opts.cmd then
+    name = _unique_name(_make_name(opts.cmd))
+  else
+    _blank_counter = _blank_counter + 1
+    name = _unique_name('terminal-' .. _blank_counter)
+  end
+
+  return _new_term(name, opts)
+end
+
 ---@param name string
 ---@param opts? TerminalOpts
 ---@return table
@@ -120,23 +128,23 @@ function M.get_or_create(name, opts)
     _terminals[name] = nil
   end
 
-  opts = opts or {}
-  local Terminal = require('toggleterm.terminal').Terminal
+  local term = _new_term(name, opts or {})
+  term:toggle()
+  return term
+end
 
-  local id = _next_id
-  _next_id = _next_id + 1
+--- Kill any existing terminal with this name and start it fresh.
+---@param name string
+---@param opts? TerminalOpts
+---@return table
+function M.restart(name, opts)
+  local existing = _terminals[name]
+  if existing then
+    existing:shutdown()
+    _terminals[name] = nil
+  end
 
-  local term = Terminal:new({
-    cmd = opts.cmd,
-    count = id,
-    direction = opts.direction or 'horizontal',
-    display_name = name,
-    dir = opts.dir,
-    -- Keep terminals open by default; only close when explicitly requested.
-    close_on_exit = opts.close_on_exit == true,
-  })
-
-  _terminals[name] = term
+  local term = _new_term(name, opts or {})
   term:toggle()
   return term
 end

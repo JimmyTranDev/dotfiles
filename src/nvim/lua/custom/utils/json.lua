@@ -33,7 +33,7 @@ function M.parse_json_from_file(file_path)
   local json_string = file:read('*a')
   file:close()
 
-  local ok, result = pcall(vim.fn.json_decode, json_string)
+  local ok, result = pcall(vim.json.decode, json_string)
   if ok then
     return result
   else
@@ -48,7 +48,7 @@ function M.write_json_to_file(file_path, data)
     vim.notify('Failed to write: ' .. file_path, vim.log.levels.WARN)
     return false
   end
-  f:write(vim.fn.json_encode(data))
+  f:write(vim.json.encode(data))
   f:close()
   return true
 end

@@ -2,6 +2,7 @@ local language_utils = require('custom.utils.language')
 local ui_utils = require('custom.utils.ui')
 local async_utils = require('custom.utils.async')
 local validation = require('custom.utils.validation')
+local registry = require('custom.utils.terminal_registry')
 
 local M = {}
 
@@ -122,7 +123,9 @@ function M.run_package_script()
   if #scripts > 0 then
     ui_utils.safe_select(scripts, { prompt = 'Select script:' }, function(script)
       local pm = get_pm()
-      if pm then ui_utils.exec_in_terminal(pm .. ' ' .. script, 'Running: ' .. script, { name = 'npm-' .. script }) end
+      if pm then
+        registry.restart('npm-' .. script, { cmd = pm .. ' ' .. script })
+      end
     end)
     return
   end
@@ -138,9 +141,8 @@ function M.run_package_script()
     end
 
     if #targets > 0 then
-      local registry = require('custom.utils.terminal_registry')
       ui_utils.safe_select(targets, { prompt = 'Make target:' }, function(target)
-        registry.get_or_create('make-' .. target, { cmd = 'make ' .. target })
+        registry.restart('make-' .. target, { cmd = 'make ' .. target })
       end)
       return
     end
@@ -183,7 +185,6 @@ function M.run_multiple_package_scripts()
 
         if #selected > max_splits then vim.notify('Capped to ' .. max_splits .. ' scripts (selected ' .. #selected .. ')', vim.log.levels.WARN) end
 
-        local registry = require('custom.utils.terminal_registry')
         local count = math.min(#selected, max_splits)
         for i = 1, count do
           local script = selected[i].script
@@ -199,7 +200,6 @@ end
 
 function M.kill_multiple_package_script_terms()
   return function()
-    local registry = require('custom.utils.terminal_registry')
     local terminals = registry.list()
     local killed = 0
     for _, info in ipairs(terminals) do
@@ -216,7 +216,6 @@ function M.create_package_command_runner(command, should_exit)
   return function()
     local pm = get_pm()
     if not pm or not command then return end
-    local registry = require('custom.utils.terminal_registry')
     local full_cmd = pm .. ' ' .. command
     if should_exit then
       full_cmd = full_cmd .. ' && exit'
@@ -254,7 +253,7 @@ local function detect_js_test_runner(dir, package_json)
   end
 
   local content = vim.fn.readfile(package_json)
-  local ok, data = pcall(vim.fn.json_decode, table.concat(content, '\n'))
+  local ok, data = pcall(vim.json.decode, table.concat(content, '\n'))
   if ok and data then
     local deps = vim.tbl_extend('force', data.dependencies or {}, data.devDependencies or {})
     if deps.vitest then return 'vitest' end
@@ -350,7 +349,7 @@ local function run_knip(args, _title, process_result)
       return
     end
 
-    local ok, result = pcall(vim.fn.json_decode, output)
+    local ok, result = pcall(vim.json.decode, output)
     if not ok or not result then
       if code == 0 then
         ui_utils.show_success('Knip completed:\n' .. output:sub(1, 300))
@@ -483,7 +482,6 @@ function M.create_make_command_runner()
       end
     end
 
-    local registry = require('custom.utils.terminal_registry')
     ui_utils.safe_select(targets, { prompt = 'Make target:' }, function(target)
       registry.get_or_create('make-' .. target, { cmd = 'make ' .. target })
     end)
@@ -498,7 +496,6 @@ end
 
 function M.create_npm_update_executor(type)
   return function()
-    local registry = require('custom.utils.terminal_registry')
     registry.get_or_create('npm-update-' .. type, { cmd = M.create_npm_update_command(type) })
   end
 end
@@ -515,7 +512,7 @@ function M.fms_key_lookup()
   local fallback_path = result[1]
 
   local content = vim.fn.readfile(fallback_path)
-  local ok, data = pcall(vim.fn.json_decode, table.concat(content, '\n'))
+  local ok, data = pcall(vim.json.decode, table.concat(content, '\n'))
   if not ok or not data then
     vim.notify('Failed to parse fallback-no.json', vim.log.levels.ERROR)
     return

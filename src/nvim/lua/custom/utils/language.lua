@@ -53,7 +53,7 @@ local function is_workspace(root_path)
 
   local package_json_path = root_path .. '/package.json'
   if vim.fn.filereadable(package_json_path) == 1 then
-    local ok, package_json = pcall(vim.fn.json_decode, vim.fn.readfile(package_json_path))
+    local ok, package_json = pcall(vim.json.decode, table.concat(vim.fn.readfile(package_json_path), '\n'))
     if ok and package_json and package_json.workspaces then return true end
   end
 
@@ -132,7 +132,7 @@ end
 function M.get_scripts_from_package_json(package_json_path)
   local result = vim.fn.system("jq '.scripts | keys_unsorted' " .. package_json_path)
   if vim.v.shell_error ~= 0 then return {} end
-  local ok, scripts = pcall(vim.fn.json_decode, result)
+  local ok, scripts = pcall(vim.json.decode, result)
   if ok and scripts then return scripts end
   return {}
 end

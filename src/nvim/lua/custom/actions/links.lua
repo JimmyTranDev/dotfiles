@@ -6,34 +6,19 @@ local file_utils = require('custom.utils.files')
 local github_utils = require('custom.utils.github')
 local ui_utils = require('custom.utils.ui')
 local url_utils = require('custom.utils.url')
-local json_utils = require('custom.utils.json')
+local usage_cache = require('custom.utils.usage_cache')
 
 local M = {}
 
-local LINK_USAGE_FILE = vim.fn.stdpath('data') .. '/link_usage.json'
+local LINK_USAGE_NS = 'links'
 
-local function load_link_usage()
-  return json_utils.parse_json_from_file(LINK_USAGE_FILE)
-end
-
-local function save_link_usage(usage)
-  json_utils.write_json_to_file(LINK_USAGE_FILE, usage)
-end
-
-local function record_link_usage(link_name)
-  local usage = load_link_usage()
-  usage[link_name] = os.time()
-  save_link_usage(usage)
-end
+local function record_link_usage(link_name) usage_cache.record(LINK_USAGE_NS, link_name) end
 
 local function sort_by_recent_use(link_names)
-  local usage = load_link_usage()
   table.sort(link_names, function(a, b)
-    local ta = usage[a] or 0
-    local tb = usage[b] or 0
-    if ta ~= tb then
-      return ta > tb
-    end
+    local ta = usage_cache.get_last_used(LINK_USAGE_NS, a)
+    local tb = usage_cache.get_last_used(LINK_USAGE_NS, b)
+    if ta ~= tb then return ta > tb end
     return a < b
   end)
   return link_names
@@ -48,39 +33,32 @@ local function open_url(url, description)
   if description then vim.notify('Opened: ' .. description, vim.log.levels.INFO) end
 end
 
-function M.open_current_github_repo()
+local function open_repo_path(suffix, description)
   local repo_info = github_utils.get_repo_info()
   if not repo_info or not repo_info.url then
     vim.notify('Failed to get repository info. Make sure you are in a git repository and gh CLI is authenticated.', vim.log.levels.ERROR)
     return
   end
-  open_url(repo_info.url .. '/pulls', 'GitHub pull requests')
+  open_url(repo_info.url .. suffix, description)
 end
 
-function M.open_current_github_prs()
-  local repo_info = github_utils.get_repo_info()
-  if not repo_info or not repo_info.url then
-    vim.notify('Failed to get repository info. Make sure you are in a git repository and gh CLI is authenticated.', vim.log.levels.ERROR)
-    return
-  end
-  open_url(repo_info.url .. '/pulls?q=is:pr+is:open+author:@me', 'My GitHub pull requests')
-end
+function M.open_current_github_repo() open_repo_path('/pulls', 'GitHub pull requests') end
+
+function M.open_current_github_prs() open_repo_path('/pulls?q=is:pr+is:open+author:@me', 'My GitHub pull requests') end
 
 function M.open_dev_server() language_utils.open_server_url('dev') end
 
-function M.open_useful_link()
-  local link_names = vim.deepcopy(link_constants.useful_link_names)
-  local useful_links = link_constants.useful_link
-
-  if not link_names or #link_names == 0 then
-    vim.notify('No useful links configured', vim.log.levels.WARN)
+local function select_link(opts)
+  local names = vim.deepcopy(opts.names)
+  if not names or #names == 0 then
+    vim.notify(opts.empty_msg, vim.log.levels.WARN)
     return
   end
 
-  sort_by_recent_use(link_names)
+  sort_by_recent_use(names)
 
-  ui_utils.safe_select(link_names, { prompt = 'Select link to open:' }, function(link_name)
-    local url = useful_links[link_name]
+  ui_utils.safe_select(names, { prompt = opts.prompt }, function(link_name)
+    local url = opts.links[link_name]
     if url then
       record_link_usage(link_name)
       open_url(url, link_name)
@@ -90,26 +68,22 @@ function M.open_useful_link()
   end)
 end
 
+function M.open_useful_link()
+  select_link({
+    names = link_constants.useful_link_names,
+    links = link_constants.useful_link,
+    empty_msg = 'No useful links configured',
+    prompt = 'Select link to open:',
+  })
+end
+
 function M.open_private_useful_link()
-  local link_names = vim.deepcopy(link_constants.private_useful_link_names)
-  local private_useful_links = link_constants.private_useful_link
-
-  if not link_names or #link_names == 0 then
-    vim.notify('No private useful links configured', vim.log.levels.WARN)
-    return
-  end
-
-  sort_by_recent_use(link_names)
-
-  ui_utils.safe_select(link_names, { prompt = 'Select private link to open:' }, function(link_name)
-    local url = private_useful_links[link_name]
-    if url then
-      record_link_usage(link_name)
-      open_url(url, link_name)
-    else
-      vim.notify('Link not found: ' .. link_name, vim.log.levels.ERROR)
-    end
-  end)
+  select_link({
+    names = link_constants.private_useful_link_names,
+    links = link_constants.private_useful_link,
+    empty_msg = 'No private useful links configured',
+    prompt = 'Select private link to open:',
+  })
 end
 
 function M.open_jira_ticket()
@@ -172,6 +146,22 @@ function M.search_google()
   end)
 end
 
+local function select_route(name, routes)
+  local route_names = {}
+  for key in pairs(routes) do
+    table.insert(route_names, key)
+  end
+  table.sort(route_names)
+
+  ui_utils.safe_select(route_names, { prompt = 'Select link type:' }, function(route_name)
+    local url = routes[route_name]
+    if url then
+      record_link_usage(name .. ':' .. route_name)
+      open_url(url, name .. ' (' .. route_name .. ')')
+    end
+  end)
+end
+
 function M.open_technical_link()
   local project_names = vim.deepcopy(link_constants.project_names)
   if #project_names == 0 then
@@ -187,20 +177,7 @@ function M.open_technical_link()
       vim.notify('No routes found for: ' .. project_name, vim.log.levels.WARN)
       return
     end
-
-    local route_names = {}
-    for key in pairs(routes) do
-      table.insert(route_names, key)
-    end
-    table.sort(route_names)
-
-    ui_utils.safe_select(route_names, { prompt = 'Select link type:' }, function(route_name)
-      local url = routes[route_name]
-      if url then
-        record_link_usage(project_name .. ':' .. route_name)
-        open_url(url, project_name .. ' (' .. route_name .. ')')
-      end
-    end)
+    select_route(project_name, routes)
   end)
 end
 
@@ -217,19 +194,7 @@ function M.open_technical_link_current_repo()
     return
   end
 
-  local route_names = {}
-  for key in pairs(routes) do
-    table.insert(route_names, key)
-  end
-  table.sort(route_names)
-
-  ui_utils.safe_select(route_names, { prompt = 'Select link type:' }, function(route_name)
-    local url = routes[route_name]
-    if url then
-      record_link_usage(repo_name .. ':' .. route_name)
-      open_url(url, repo_name .. ' (' .. route_name .. ')')
-    end
-  end)
+  select_route(repo_name, routes)
 end
 
 function M.open_firefox_container()

@@ -17,15 +17,8 @@ local function get_scope_suggestions(callback)
       if scope and scope ~= '' then scope_counts[scope] = (scope_counts[scope] or 0) + 1 end
     end
 
-    local dir_handle = vim.uv.fs_scandir(vim.fn.getcwd())
-    if dir_handle then
-      while true do
-        local name, entry_type = vim.uv.fs_scandir_next(dir_handle)
-        if not name then break end
-        if entry_type == 'directory' and not name:match('^%.') and name ~= 'node_modules' then
-          if not scope_counts[name] then scope_counts[name] = 0 end
-        end
-      end
+    for _, entry in ipairs(file_utils.scan(vim.fn.getcwd(), { type = 'directory', exclude = { node_modules = true } })) do
+      if not scope_counts[entry.name] then scope_counts[entry.name] = 0 end
     end
 
     for scope, count in pairs(scope_counts) do
@@ -413,7 +406,7 @@ local function get_pr_for_branch(branch)
   local pr_list_json = vim.fn.system('gh pr list --json number,headRefName,url')
   if vim.v.shell_error ~= 0 or not pr_list_json or pr_list_json == '' then return nil end
 
-  local ok, pr_list = pcall(vim.fn.json_decode, pr_list_json)
+  local ok, pr_list = pcall(vim.json.decode, pr_list_json)
   if not ok or not pr_list then return nil end
 
   for _, pr in ipairs(pr_list) do
@@ -588,14 +581,9 @@ function M.init_repo_and_push()
   end)
 end
 
-function M.diff_vs_main()
+function M.diff_vs(ref)
   local ok, snacks = pcall(require, 'snacks')
-  if ok then snacks.picker.git_diff({ args = { 'main' } }) end
-end
-
-function M.diff_vs_develop()
-  local ok, snacks = pcall(require, 'snacks')
-  if ok then snacks.picker.git_diff({ args = { 'develop' } }) end
+  if ok then snacks.picker.git_diff({ args = { ref } }) end
 end
 
 function M.show_commits_current_folder()

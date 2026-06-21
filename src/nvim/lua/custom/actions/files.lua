@@ -103,7 +103,7 @@ function M.copy_current_file_url()
   vim.notify('Copied: ' .. url, vim.log.levels.INFO)
 end
 
-function M.copy_opencode_link()
+local function copy_current_file_reference()
   local file = vim.fn.expand('%:p')
   if file == '' then
     vim.notify('No file is currently open', vim.log.levels.WARN)
@@ -114,16 +114,9 @@ function M.copy_opencode_link()
   vim.notify('Copied: ' .. link, vim.log.levels.INFO)
 end
 
-function M.copy_ai_file_reference()
-  local file = vim.fn.expand('%:p')
-  if file == '' then
-    vim.notify('No file is currently open', vim.log.levels.WARN)
-    return
-  end
-  local link = ('@%s:%d'):format(vim.fn.fnamemodify(file, ':.'), vim.fn.line('.'))
-  vim.fn.setreg('+', link)
-  vim.notify('Copied: ' .. link, vim.log.levels.INFO)
-end
+function M.copy_opencode_link() copy_current_file_reference() end
+
+function M.copy_ai_file_reference() copy_current_file_reference() end
 
 function M.copy_ai_file_reference_range()
   local file = vim.fn.expand('%:p')
@@ -186,20 +179,8 @@ function M.copy_frontend_project_paths()
   end
 
   local paths = {}
-  local handle = vim.uv.fs_scandir(base_dir)
-  if not handle then
-    vim.notify('Could not scan: ' .. base_dir, vim.log.levels.WARN)
-    return
-  end
-
-  while true do
-    local name, type = vim.uv.fs_scandir_next(handle)
-    if not name then break end
-    if type == 'directory' then
-      local pkg_path = base_dir .. '/' .. name .. '/package.json'
-      local pkg_stat = vim.uv.fs_stat(pkg_path)
-      if pkg_stat then table.insert(paths, base_dir .. '/' .. name) end
-    end
+  for _, dir in ipairs(file_utils.scan(base_dir, { type = 'directory', hidden = true })) do
+    if vim.uv.fs_stat(dir.path .. '/package.json') then table.insert(paths, dir.path) end
   end
 
   if #paths == 0 then
@@ -261,16 +242,8 @@ function M.clear_plan_files()
   end
 
   local files = {}
-  local handle = vim.uv.fs_scandir(plans_dir)
-  if not handle then
-    vim.notify('Could not read plans/ directory', vim.log.levels.WARN)
-    return
-  end
-
-  while true do
-    local name, type = vim.uv.fs_scandir_next(handle)
-    if not name then break end
-    if type == 'file' then table.insert(files, name) end
+  for _, f in ipairs(file_utils.scan(plans_dir, { type = 'file', hidden = true })) do
+    table.insert(files, f.name)
   end
 
   if #files == 0 then

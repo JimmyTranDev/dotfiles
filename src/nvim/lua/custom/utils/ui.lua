@@ -193,4 +193,44 @@ function M.show_panel(opts)
   return win
 end
 
+--- Wrap an `on_confirm(item)` callback as a Snacks `confirm` that closes first.
+---@param on_confirm fun(item: table|nil)
+---@return fun(picker: table, item: table|nil)
+local function close_then(on_confirm)
+  return function(picker, item)
+    picker:close()
+    on_confirm(item)
+  end
+end
+
+--- Open a Snacks list picker with standard guards: notify-and-return when Snacks
+--- is unavailable or `items` is empty, and a close-then-act `confirm` wrapper.
+--- Extra Snacks picker options (e.g. `actions`, `win`, `layout`) are deep-merged
+--- through `opts.extra`, so specialised pickers keep their custom keys.
+---@param opts { title: string, items: table[], format: fun(item: table): table, on_confirm?: fun(item: table|nil), preview?: string|boolean, empty_msg?: string, unavailable_msg?: string, extra?: table }
+---@return table|nil picker
+function M.pick(opts)
+  if not opts.items or #opts.items == 0 then
+    vim.notify(opts.empty_msg or 'No items to pick from', vim.log.levels.INFO)
+    return
+  end
+
+  local ok, snacks = pcall(require, 'snacks')
+  if not ok then
+    vim.notify(opts.unavailable_msg or 'Snacks picker not available', vim.log.levels.WARN)
+    return
+  end
+
+  local config = {
+    title = opts.title,
+    items = opts.items,
+    format = opts.format,
+  }
+  if opts.preview ~= nil then config.preview = opts.preview end
+  if opts.on_confirm then config.confirm = close_then(opts.on_confirm) end
+  if opts.extra then config = vim.tbl_deep_extend('force', config, opts.extra) end
+
+  return snacks.picker(config)
+end
+
 return M

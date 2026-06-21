@@ -1,20 +1,15 @@
 local ui_utils = require('custom.utils.ui')
 local async = require('custom.utils.async')
+local files = require('custom.utils.files')
 
 local M = {}
 
 local function get_org_dirs()
   local programming_dir = vim.fn.expand('~/Programming')
   local dirs = {}
-  local handle = vim.uv.fs_scandir(programming_dir)
-  if not handle then return dirs end
-
-  while true do
-    local name, type = vim.uv.fs_scandir_next(handle)
-    if not name then break end
-    if type == 'directory' then table.insert(dirs, name) end
+  for _, entry in ipairs(files.scan(programming_dir, { type = 'directory', hidden = true })) do
+    dirs[#dirs + 1] = entry.name
   end
-
   table.sort(dirs)
   return dirs
 end
@@ -22,15 +17,9 @@ end
 local function get_repo_dirs(org)
   local org_path = vim.fn.expand('~/Programming') .. '/' .. org
   local dirs = {}
-  local handle = vim.uv.fs_scandir(org_path)
-  if not handle then return dirs end
-
-  while true do
-    local name, type = vim.uv.fs_scandir_next(handle)
-    if not name then break end
-    if type == 'directory' then table.insert(dirs, name) end
+  for _, entry in ipairs(files.scan(org_path, { type = 'directory', hidden = true })) do
+    dirs[#dirs + 1] = entry.name
   end
-
   table.sort(dirs)
   return dirs
 end
