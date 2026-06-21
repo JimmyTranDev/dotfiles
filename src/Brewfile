@@ -1,11 +1,6 @@
-# Taps
-tap "FelixKratz/formulae"
-tap "koekeishiya/formulae"
-tap "atlassian/homebrew-acli"
-
 # General
 brew "FelixKratz/formulae/borders"
-brew "acli"
+brew "atlassian/acli/acli"
 brew "b2-tools"
 brew "bitwarden-cli"
 brew "curl"
@@ -25,6 +20,7 @@ brew "pnpm"
 brew "pre-commit"
 brew "starship"
 brew "supabase"
+brew "tursodatabase/tap/turso"
 brew "vercel-cli"
 brew "wget"
 brew "yarn"
