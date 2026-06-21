@@ -9,7 +9,9 @@ Whenever you need a decision, preference, or clarification from the user, ask
 with the `question` tool and always offer **3 concrete proposals**:
 
 - List exactly 3 proposed solutions per question.
-- Put the strongest option **first** and append "(Recommended)" to its label.
+- Put the **best** option first — the one that yields the highest-quality
+  outcome, even if it takes more time or effort — and append "(Recommended)" to
+  its label. Never recommend an option just because it is faster or easier.
 - Keep `custom` enabled (the default) so the tool's auto-added "Type your own
   answer" appears last — that is the user's self-input escape hatch for when
   none of the 3 proposals fit.
