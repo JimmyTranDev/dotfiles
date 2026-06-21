@@ -77,6 +77,7 @@ Map every request to the appropriate skill before acting.
 | New session setup, rules files, context configuration | `context-engineering` |
 | Read live output of CLIs running in nvim toggleterm terminals | `nvim-toggleterm-read` |
 | Browse/pull an Android emulator app's private data folder (/data/data) | `android-app-data` |
+| Manage Turso (libSQL) cloud databases, branches, tokens, or local dev server via the `turso` CLI | `turso-database-management` |
 | Which skill applies? (meta) | `using-agent-skills` |
 
 ## Execution Model

@@ -33,6 +33,7 @@ Task arrives
     ├── Something broke? ──────────────→ debugging-and-error-recovery
     ├── Read a CLI running in nvim toggleterm? → nvim-toggleterm-read
     ├── Inspect an Android emulator app's data folder? → android-app-data
+    ├── Manage Turso (libSQL) databases via turso CLI? → turso-database-management
     ├── Reviewing code? ───────────────→ code-review-and-quality
     │   ├── Too complex? ─────────────→ code-simplification
     │   ├── Security concerns? ───────→ security-and-hardening
@@ -181,6 +182,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Build | context-engineering | Right context at the right time |
 | Build | frontend-ui-engineering | Production-quality UI with accessibility |
 | Build | api-and-interface-design | Stable interfaces with clear contracts |
+| Build | turso-database-management | Manage Turso (libSQL) cloud databases, branches, tokens, and a local dev server via the turso CLI |
 | Verify | test-driven-development | Failing test first, then make it pass |
 | Verify | testability-and-coverage | Make existing code testable via seams, then close branch-coverage gaps |
 | Verify | browser-testing-with-devtools | Chrome DevTools MCP for runtime verification |
