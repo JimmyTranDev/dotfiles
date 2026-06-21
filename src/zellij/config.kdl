@@ -130,6 +130,9 @@ keybinds clear-defaults=true {
         bind "Alt ." { GoToNextTab; }
         bind "Alt i" { MoveTab "Left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
         bind "Alt o" { MoveTab "Right"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
+        // Move the focused pane out to the adjacent left/right tab. Reindex in case the source tab is left empty and closes.
+        bind "Alt [" { BreakPaneLeft; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
+        bind "Alt ]" { BreakPaneRight; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
         // Alt a: fzf-pick a single project once, then open a new tab as a 2x2 grid of 4 panes all running opencode in that one project. Requires $ZELLIJ.
         bind "Alt a" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_select_opencode.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         // Alt g: open a new tab with a 4x2 grid (4 columns x 2 rows = 8 plain shell panes) via layout, then reindex tabs. Requires $ZELLIJ.

@@ -5,7 +5,7 @@ return {
     'neovim/nvim-lspconfig',
     'mason-org/mason.nvim',
   },
-  lazy = false,
+  event = { 'BufReadPre', 'BufNewFile' },
   config = function()
     require('mason').setup()
 

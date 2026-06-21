@@ -1,6 +1,7 @@
 return {
   'OXY2DEV/markview.nvim',
-  lazy = false,
+  ft = { 'markdown', 'md' },
+  cmd = 'Markview',
   dependencies = {
     'saghen/blink.cmp',
   },

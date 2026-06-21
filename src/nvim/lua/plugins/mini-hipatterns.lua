@@ -188,7 +188,7 @@ local css_colors = {
 return {
   'nvim-mini/mini.hipatterns',
   version = '*',
-  lazy = false,
+  event = { 'BufReadPre', 'BufNewFile' },
   config = function()
     local hipatterns = require('mini.hipatterns')
 

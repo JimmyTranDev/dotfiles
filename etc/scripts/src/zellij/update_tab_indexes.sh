@@ -10,7 +10,7 @@ log() {
 
 # Re-exec the reindex as a daemon detached into its own session, then return at
 # once. This script is launched synchronously inside a *floating* zellij Run
-# pane bound to a tab op (tab-mode n/x and Alt n/Alt q/Alt i/Alt o/Alt y); until
+# pane bound to a tab op (tab-mode n/x and Alt n/Alt q/Alt i/Alt o/Alt y/Alt [/Alt ]); until
 # it exits, that pane sits on screen as an empty terminal. zellij also SIGKILLs
 # the pane's whole process group the instant the pane closes, so a plain
 # background job (nohup &) gets killed mid-reindex — only a process in its own
