@@ -1,9 +1,9 @@
 return {
-  'williamboman/mason-lspconfig.nvim',
+  'mason-org/mason-lspconfig.nvim',
   dependencies = {
     'saghen/blink.cmp',
     'neovim/nvim-lspconfig',
-    'williamboman/mason.nvim',
+    'mason-org/mason.nvim',
   },
   lazy = false,
   config = function()

@@ -1,0 +1,5 @@
+# Included via includeIf "gitdir:~/Programming/" in ~/.gitconfig.
+# Points the excludes file at the work variant (base + personal OpenCode config)
+# for every repo under ~/Programming, including worktree dirs.
+[core]
+	excludesFile = ~/Programming/JimmyTranDev/dotfiles/src/.gitignore_work

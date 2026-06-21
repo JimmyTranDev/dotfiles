@@ -186,7 +186,7 @@ local css_colors = {
 }
 
 return {
-  'echasnovski/mini.hipatterns',
+  'nvim-mini/mini.hipatterns',
   version = '*',
   lazy = false,
   config = function()

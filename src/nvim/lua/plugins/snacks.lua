@@ -1,223 +1,5 @@
 local file_actions = require('custom.actions.files')
 
-local function get_package_json_packages()
-  local package_json_path = vim.fn.getcwd() .. '/package.json'
-  local file = io.open(package_json_path, 'r')
-  if not file then return nil end
-
-  local content = file:read('*a')
-  file:close()
-
-  local ok, data = pcall(vim.fn.json_decode, content)
-  if not ok or not data then return nil end
-
-  local packages = {}
-  local function add_packages(deps, dep_type)
-    if deps then
-      for name, version in pairs(deps) do
-        table.insert(packages, {
-          name = name,
-          version = version,
-          type = dep_type,
-          text = name .. ' @ ' .. version .. ' (' .. dep_type .. ')',
-        })
-      end
-    end
-  end
-
-  add_packages(data.dependencies, 'dependencies')
-  add_packages(data.devDependencies, 'devDependencies')
-  add_packages(data.peerDependencies, 'peerDependencies')
-  add_packages(data.optionalDependencies, 'optionalDependencies')
-
-  table.sort(packages, function(a, b) return a.name < b.name end)
-  return packages
-end
-
-local DEP_TYPE_HL = {
-  dependencies = 'DiagnosticOk',
-  devDependencies = 'DiagnosticInfo',
-  peerDependencies = 'DiagnosticWarn',
-  optionalDependencies = 'DiagnosticHint',
-}
-
-local function format_package_item(item)
-  local type_hl = DEP_TYPE_HL[item.type] or 'Normal'
-  return {
-    { item.name, type_hl },
-    { ' @ ', 'Comment' },
-    { item.version, 'String' },
-    { ' (' .. item.type .. ')', 'Comment' },
-  }
-end
-
-local function show_package_json_picker()
-  local packages = get_package_json_packages()
-  if not packages then
-    vim.notify('No package.json found in current directory', vim.log.levels.WARN)
-    return
-  end
-
-  if #packages == 0 then
-    vim.notify('No packages found in package.json', vim.log.levels.INFO)
-    return
-  end
-
-  Snacks.picker({
-    title = 'Package.json Packages',
-    items = packages,
-    preview = function(ctx)
-      local pkg_path = vim.fn.getcwd() .. '/package.json'
-      local pkg_lines = vim.fn.readfile(pkg_path)
-      vim.api.nvim_buf_set_lines(ctx.buf, 0, -1, false, pkg_lines)
-      vim.bo[ctx.buf].filetype = 'json'
-      for i, line in ipairs(pkg_lines) do
-        if line:find('"' .. ctx.item.name .. '"') then
-          vim.api.nvim_win_set_cursor(ctx.win, { i, 0 })
-          break
-        end
-      end
-    end,
-    format = function(item) return format_package_item(item) end,
-    confirm = function(picker, item)
-      picker:close()
-      local actions = {
-        { name = 'Update to latest', value = 'update' },
-        { name = 'Delete package', value = 'delete' },
-        { name = 'Open on npm', value = 'npm' },
-        { name = 'Cancel', value = 'cancel' },
-      }
-
-      vim.ui.select(actions, {
-        prompt = 'Action for ' .. item.name .. ':',
-        format_item = function(a) return a.name end,
-      }, function(action)
-        if not action or action.value == 'cancel' then return end
-
-        if action.value == 'update' then
-          local cmd = 'npm install ' .. item.name .. '@latest'
-          if item.type == 'devDependencies' then cmd = cmd .. ' --save-dev' end
-          vim.notify('Running: ' .. cmd, vim.log.levels.INFO)
-          vim.fn.jobstart(cmd, {
-            on_exit = function(_, code)
-              if code == 0 then
-                vim.notify('Updated ' .. item.name .. ' to latest', vim.log.levels.INFO)
-              else
-                vim.notify('Failed to update ' .. item.name, vim.log.levels.ERROR)
-              end
-            end,
-          })
-        elseif action.value == 'delete' then
-          local cmd = 'npm uninstall ' .. item.name
-          vim.notify('Running: ' .. cmd, vim.log.levels.INFO)
-          vim.fn.jobstart(cmd, {
-            on_exit = function(_, code)
-              if code == 0 then
-                vim.notify('Removed ' .. item.name, vim.log.levels.INFO)
-              else
-                vim.notify('Failed to remove ' .. item.name, vim.log.levels.ERROR)
-              end
-            end,
-          })
-        elseif action.value == 'npm' then
-          vim.fn.system('open https://www.npmjs.com/package/' .. item.name)
-        end
-      end)
-    end,
-  })
-end
-
-
-
-local function show_workspace_symbols_with_cache()
-  local cache = require('custom.utils.workspace_symbol_cache')
-  local cached = cache.get(300)
-  if cached then
-    return Snacks.picker({
-      title = 'LSP Workspace Symbols (Cached)',
-      items = cached,
-      preview = 'file',
-      format = function(item)
-        local kind = item.kind or ''
-        local name = item.name or ''
-        local file = item.file or ''
-        return {
-          { kind .. ' ', 'Type' },
-          { name .. ' ', 'Normal' },
-          { vim.fn.fnamemodify(file, ':~:.'), 'Comment' },
-        }
-      end,
-      confirm = function(picker, item)
-        picker:close()
-        if item.file and item.pos then
-          vim.cmd('edit ' .. vim.fn.fnameescape(item.file))
-          pcall(vim.api.nvim_win_set_cursor, 0, { item.pos[1], item.pos[2] })
-        end
-      end,
-    })
-  end
-
-  local buf = vim.api.nvim_get_current_buf()
-  local clients = vim.lsp.get_clients({ bufnr = buf, method = 'workspace/symbol' })
-  if #clients == 0 then
-    Snacks.picker.lsp_workspace_symbols()
-    return
-  end
-
-  local all_items = {}
-  local pending = #clients
-
-  for _, client in ipairs(clients) do
-    client:request('workspace/symbol', { query = '' }, function(err, result)
-      if not err and result then
-        local lsp_mod = require('snacks.picker.source.lsp')
-        local items = lsp_mod.results_to_items(client, result, { text_with_file = true })
-        for _, item in ipairs(items) do
-          table.insert(all_items, {
-            text = item.text,
-            file = item.file,
-            pos = item.pos,
-            kind = item.kind,
-            name = item.name,
-          })
-        end
-      end
-
-      pending = pending - 1
-      if pending == 0 then
-        vim.schedule(function()
-          if #all_items > 0 then
-            cache.set(all_items)
-          end
-          Snacks.picker({
-            title = 'LSP Workspace Symbols',
-            items = all_items,
-            preview = 'file',
-            format = function(item)
-              local kind = item.kind or ''
-              local name = item.name or ''
-              local file = item.file or ''
-              return {
-                { kind .. ' ', 'Type' },
-                { name .. ' ', 'Normal' },
-                { vim.fn.fnamemodify(file, ':~:.'), 'Comment' },
-              }
-            end,
-            confirm = function(picker, item)
-              picker:close()
-              if item.file and item.pos then
-                vim.cmd('edit ' .. vim.fn.fnameescape(item.file))
-                pcall(vim.api.nvim_win_set_cursor, 0, { item.pos[1], item.pos[2] })
-              end
-            end,
-          })
-        end)
-      end
-    end, buf)
-  end
-end
-
-
 return {
   'folke/snacks.nvim',
   lazy = true,
@@ -373,13 +155,13 @@ return {
       mode = { 'n', 'v' },
     },
     {
-      '<leader>fs',
+      '<leader>fls',
       function() Snacks.picker.lsp_symbols() end,
       desc = '󰘧 LSP Symbols',
     },
     {
-      '<leader>fS',
-      show_workspace_symbols_with_cache,
+      '<leader>flS',
+      require('custom.actions.workspace_symbols').show_workspace_symbols_with_cache,
       desc = '󰘧 LSP Workspace Symbols (Cached)',
     },
     {
@@ -390,7 +172,7 @@ return {
     },
 
     {
-      '<leader>ff',
+      '<leader>fff',
       function()
         Snacks.picker.smart({
           hidden = true,
@@ -401,38 +183,38 @@ return {
       desc = '󰈙 Smart Find Files',
     },
     {
-      '<leader>fg',
+      '<leader>fsg',
       function() Snacks.picker.grep({ hidden = true }) end,
       desc = '󰊄 Grep',
     },
     {
-      '<leader>fr',
+      '<leader>fvr',
       function() Snacks.picker.resume() end,
       desc = '󰻂 Resume',
     },
     {
-      '<leader>fu',
+      '<leader>fvu',
       function() Snacks.picker.undo() end,
       desc = '󰕘 Undo History',
     },
     {
-      '<leader>fe',
+      '<leader>fle',
       function() Snacks.picker.diagnostics() end,
       desc = '󰒡 Diagnostics',
     },
     {
-      '<leader>fw',
+      '<leader>fsw',
       function() Snacks.picker.grep_word() end,
       desc = '󰬴 Visual selection or word',
       mode = { 'n', 'x' },
     },
     {
-      '<leader>fT',
+      '<leader>fsT',
       require('custom.actions.text_search').search_user_text,
       desc = '󰗊 Search User-Facing Text',
     },
     {
-      '<leader>fn',
+      '<leader>fvn',
       function()
         Snacks.picker.notifications({
           preview = false,
@@ -448,7 +230,7 @@ return {
       desc = '󰓕 Notification History',
     },
     {
-      '<leader>fN',
+      '<leader>ffN',
       function()
         Snacks.picker.files({
           dirs = { vim.fn.expand('~/Programming/JimmyTranDev/notes') },
@@ -458,19 +240,17 @@ return {
       desc = '󰎞 Find Notes Files',
     },
     {
-      '<leader>fc',
+      '<leader>fvc',
       function() Snacks.picker.commands() end,
       desc = '󰘳 Commands',
     },
     {
-      '<leader>fp',
+      '<leader>ffp',
       function()
         local cwd = vim.fn.getcwd()
         local dirs = {}
         for _, dir in ipairs({ 'plans', 'updates' }) do
-          if vim.fn.isdirectory(cwd .. '/' .. dir) == 1 then
-            table.insert(dirs, dir)
-          end
+          if vim.fn.isdirectory(cwd .. '/' .. dir) == 1 then table.insert(dirs, dir) end
         end
         if #dirs == 0 then
           vim.notify('No plans/ or updates/ directory in ' .. cwd, vim.log.levels.WARN)
@@ -481,44 +261,42 @@ return {
       desc = '󰈙 Find Plan & Update Files',
     },
     {
-      '<leader>fjt',
+      '<leader>fgt',
       function() Snacks.picker.git_files() end,
       desc = '󰊢 Find Git Files',
     },
     {
-      '<leader>fjb',
+      '<leader>fgb',
       function() Snacks.picker.git_branches() end,
       desc = '󰘬 Git Branches',
     },
     {
-      '<leader>fjl',
+      '<leader>fgl',
       function() Snacks.picker.git_log() end,
       desc = '󰜎 Git Log',
     },
     {
-      '<leader>fjL',
+      '<leader>fgL',
       function() Snacks.picker.git_log_line() end,
       desc = '󰜎 Git Log Line',
     },
     {
-      '<leader>fjd',
+      '<leader>fgd',
       function() Snacks.picker.git_status() end,
       desc = '󰊢 Git Status',
     },
     {
-      '<leader>fjS',
+      '<leader>fgS',
       function() Snacks.picker.git_stash() end,
       desc = '󰛆 Git Stash',
     },
     {
-      '<leader>fd',
-      function()
-        Snacks.picker.git_status()
-      end,
+      '<leader>fgu',
+      function() Snacks.picker.git_status() end,
       desc = '󰶟 Git Status (uncommitted changes)',
     },
     {
-      '<leader>fjH',
+      '<leader>fgH',
       function()
         local ok, gs = pcall(require, 'gitsigns')
         if not ok then
@@ -565,7 +343,7 @@ return {
       desc = '󰶟 Find Hunks (Buffer)',
     },
     {
-      '<leader>fjD',
+      '<leader>fgD',
       function()
         local ref = vim.fn.system('git rev-parse --verify origin/HEAD 2>/dev/null'):gsub('%s+', '')
         if vim.v.shell_error ~= 0 or ref == '' then
@@ -581,54 +359,54 @@ return {
       desc = '󰶟 Git Diff vs Origin',
     },
     {
-      '<leader>fjf',
+      '<leader>fgf',
       function() Snacks.picker.git_log_file() end,
       desc = '󰜎 Git Log File',
     },
     {
-      '<leader>fjc',
+      '<leader>fgc',
       function() Snacks.picker.grep({ search = '<<<<<<<' }) end,
       desc = '󰘬 Find Git Conflicts',
     },
     {
-      '<leader>f/',
+      '<leader>fs/',
       function() Snacks.picker.search_history() end,
       desc = '󰋚 Search History',
     },
     {
-      '<leader>fC',
+      '<leader>fvC',
       function() Snacks.picker.command_history() end,
       desc = '󰘳 Command History',
     },
     {
-      '<leader>fi',
+      '<leader>fvi',
       function() Snacks.picker.icons() end,
       desc = '󰛓 Icons',
     },
     {
-      '<leader>fk',
+      '<leader>fvk',
       function() Snacks.picker.keymaps() end,
       desc = '󰌑 Keymaps',
     },
     {
-      '<leader>fP',
-      show_package_json_picker,
+      '<leader>fvP',
+      require('custom.actions.packages').show_package_json_picker,
       desc = '󰎡 Package.json Packages',
     },
     {
       mode = 'n',
-      '<leader>fm',
+      '<leader>fsm',
       file_actions.grep_markdown_headings,
       desc = '󰪶 Find Markdown Headings',
       silent = true,
     },
     {
-      '<leader>ft',
+      '<leader>fst',
       require('custom.actions.language').fms_key_lookup,
       desc = '󰗊 FMS Text Lookup',
     },
     {
-      '<leader>fo',
+      '<leader>ffo',
       function()
         local git_root = vim.fn.systemlist('git rev-parse --show-toplevel')[1]
         if vim.v.shell_error ~= 0 or not git_root or git_root == '' then

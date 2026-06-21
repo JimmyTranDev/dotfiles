@@ -67,7 +67,10 @@ local function setup_performance()
   vim.o.updatetime = 250
   vim.o.timeoutlen = 300
   vim.o.redrawtime = 1500
-  vim.o.lazyredraw = true
+  -- 'lazyredraw' is documented as temporary-only ("may occasionally cause
+  -- display errors") and interferes with async terminal output, which can
+  -- flush half-typed <leader> sequences while a CLI streams in a toggleterm.
+  -- See :help 'lazyredraw' (options.txt). Left at its default (off).
   vim.o.history = 1000
   vim.o.maxmempattern = 20000
 

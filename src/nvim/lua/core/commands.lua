@@ -206,28 +206,39 @@ local function setup_auto_refresh()
 end
 
 local function setup_toggleterm_whichkey_fix()
-  vim.api.nvim_create_autocmd('TermClose', {
+  -- Snappy default; widened window while a terminal CLI is producing output.
+  local BASE_TIMEOUTLEN = 300
+  local TERMINAL_TIMEOUTLEN = 1000
+
+  -- True while any terminal buffer still has a live job. Heavy CLI output
+  -- keeps the main loop busy, so the gap before the next key is registered can
+  -- exceed 'timeoutlen' and a half-typed <leader> sequence resolves alone.
+  local function has_live_terminal()
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == 'terminal' then
+        local chan = vim.b[buf].terminal_job_id
+        if chan and vim.fn.jobwait({ chan }, 0)[1] == -1 then return true end
+      end
+    end
+    return false
+  end
+
+  local function apply_timeout()
+    vim.o.timeout = true
+    vim.o.timeoutlen = has_live_terminal() and TERMINAL_TIMEOUTLEN or BASE_TIMEOUTLEN
+  end
+
+  vim.api.nvim_create_autocmd({ 'TermOpen', 'TermClose' }, {
     group = augroup('toggleterm_whichkey'),
-    callback = function()
-      vim.schedule(function()
-        pcall(require, 'which-key')
-        vim.o.timeout = true
-        vim.o.timeoutlen = 300
-      end)
-    end,
-    desc = '󰅗 Re-enable which-key timeout after terminal closes',
+    callback = function() vim.schedule(apply_timeout) end,
+    desc = '󰅗 Widen leader-timeout while a terminal CLI runs',
   })
 
   vim.api.nvim_create_autocmd('ModeChanged', {
     group = augroup('toggleterm_whichkey_mode'),
     pattern = 't:n',
-    callback = function()
-      vim.schedule(function()
-        vim.o.timeout = true
-        vim.o.timeoutlen = 300
-      end)
-    end,
-    desc = '󰗖 Restore which-key timeout when leaving terminal mode',
+    callback = function() vim.schedule(apply_timeout) end,
+    desc = '󰗖 Re-evaluate leader-timeout when leaving terminal mode',
   })
 end
 

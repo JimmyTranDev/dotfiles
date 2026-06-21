@@ -3,7 +3,7 @@ return {
   keys = {
     {
       mode = 'n',
-      '<leader>fx',
+      '<leader>flx',
       function()
         for _, client in ipairs(vim.lsp.get_clients()) do
           require('workspace-diagnostics').populate_workspace_diagnostics(client, 0)

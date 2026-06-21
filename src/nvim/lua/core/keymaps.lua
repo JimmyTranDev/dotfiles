@@ -86,9 +86,9 @@ maps('n', {
   { '<leader>;w', editor_actions.toggle_wrap, '󰌪 Toggle text wrap' },
   { '<leader>;R', ':e!<CR>', '󰔁 Reload file from disk' },
   { '<leader>j', ':e!<CR>', '󰔁 Refresh current file' },
-  { '<leader>fR', editor_actions.switch_repo_by_zellij_tab, '󰖲 Switch repo + rename Zellij tab' },
-  { '<leader>fa', file_actions.grep_current_file_dir, '󰊄 Grep in current file dir' },
-  { '<leader>fW', project_actions.switch_project, '󰉋 Switch project' },
+  { '<leader>ffR', editor_actions.switch_repo_by_zellij_tab, '󰖲 Switch repo + rename Zellij tab' },
+  { '<leader>fsa', file_actions.grep_current_file_dir, '󰊄 Grep in current file dir' },
+  { '<leader>ffW', project_actions.switch_project, '󰉋 Switch project' },
 })
 
 map('x', '<leader>;T', [["zy:%s/\V<C-r>=escape(@z, '/')<CR>//gc<left><left><left>]], { desc = '󰕈 Visual search replace' })
@@ -155,9 +155,10 @@ maps('n', {
   { '<leader>ce', errors_actions.copy_diagnostic_under_cursor, '󰆓 Diagnostic' },
 })
 
--- Git sub-group (<leader>cs)
+-- Git sub-group (<leader>cs/cd)
 maps('n', {
   { '<leader>cs', git_actions.stash_pull_rebase, '󰓦 Stash + pull --rebase + pop' },
+  { '<leader>cd', git_actions.copy_diff_link, '󰆓 Diff link (branch vs base)' },
 })
 
 -- Visual mode copy

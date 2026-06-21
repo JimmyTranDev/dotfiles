@@ -12,7 +12,6 @@ local function get_catppuccin_colors()
       green = '#a6e3a1',
       peach = '#fab387',
       sapphire = '#74c7ec',
-      mauve = '#cba6f7',
       red = '#f38ba8',
       yellow = '#f9e2af',
       sky = '#89dceb',
@@ -141,7 +140,7 @@ local function build_config()
 
   left_bubble(function() return { fg = colors.sapphire, gui = 'bold' } end, '', { get_directory_name })
 
-  left_bubble(function() return { fg = colors.mauve, gui = 'bold' } end, '', { get_git_branch })
+  left_bubble(function() return { fg = colors.teal, gui = 'bold' } end, '', { get_git_branch })
 
   table.insert(config.sections.lualine_c, {
     'diff',

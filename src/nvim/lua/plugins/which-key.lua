@@ -20,11 +20,11 @@ return {
       else
         colors = {}
       end
-      if not colors.mauve then
-        colors = { mauve = '#cba6f7', blue = '#89b4fa', yellow = '#f9e2af', sapphire = '#74c7ec', base = '#1e1e2e', surface2 = '#585b70' }
+      if not colors.teal then
+        colors = { teal = '#94e2d5', blue = '#89b4fa', yellow = '#f9e2af', sapphire = '#74c7ec', base = '#1e1e2e', surface2 = '#585b70' }
       end
       local highlights = {
-        WhichKey = { fg = colors.mauve },
+        WhichKey = { fg = colors.teal },
         WhichKeyGroup = { fg = colors.blue },
         WhichKeyDesc = { fg = colors.yellow },
         WhichKeySeperator = { fg = colors.sapphire },
@@ -67,10 +67,11 @@ return {
       { '<leader>v', '󰌵 Actions' },
       { '<leader><leader>l', '󰞷 LeetCode' },
       { '<leader>f', '󰭎 Find' },
-      { '<leader>fc', '󰘖 Commands' },
-      { '<leader>fg', '󰊢 Git Files' },
-
-      { '<leader>fj', '󰊢 Git' },
+      { '<leader>ff', '󰈔 Files' },
+      { '<leader>fs', '󰊄 Search' },
+      { '<leader>fg', '󰊢 Git' },
+      { '<leader>fl', '󰒡 LSP & Diagnostics' },
+      { '<leader>fv', '󰒓 Editor' },
 
       { '<leader>g', '󰊢 Git' },
       { '<leader>gb', '󰘬 Branch' },

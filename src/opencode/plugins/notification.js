@@ -18,7 +18,7 @@ export const Notification = async ({ $, client }) => {
       const session = result?.data || result
       if (session?.title) {
         sessionTitle = session.title
-      } else if (session?.id) {
+      } else if (session?.id && !sessionTitle) {
         sessionTitle = session.id.slice(0, 8)
       }
     } catch {}
@@ -132,8 +132,11 @@ export const Notification = async ({ $, client }) => {
   return {
     event: async ({ event }) => {
       if (event.type === "session.created" || event.type === "session.updated") {
-        const title = event?.properties?.title || ""
-        const id = event?.properties?.id || event?.properties?.sessionId || ""
+        // The Session object is nested under `properties.info`; fall back to a
+        // flat shape defensively in case the event schema changes.
+        const info = event?.properties?.info || event?.properties || {}
+        const title = info?.title || ""
+        const id = info?.id || ""
         if (title) {
           sessionTitle = title
         } else if (id && !sessionTitle) {
@@ -157,6 +160,9 @@ export const Notification = async ({ $, client }) => {
         }
       } else if (event.type === "session.idle") {
         needsAttention = true
+        // opencode generates the session title after the first message, so
+        // fetch the freshest title before building the notification body.
+        await updateSessionTitle(event?.properties?.sessionID)
         await playSound(idleSound)
         const body = buildNotificationBody("idle")
         taskStartTime = null
@@ -164,6 +170,7 @@ export const Notification = async ({ $, client }) => {
         await sendNotification("Task completed", body)
       } else if (event.type === "session.error") {
         needsAttention = true
+        await updateSessionTitle(event?.properties?.sessionID)
         lastErrorDetail = event?.properties?.error?.message || event?.properties?.error || event?.properties?.message || ""
         await playSound(errorSound)
         const body = buildNotificationBody("error")

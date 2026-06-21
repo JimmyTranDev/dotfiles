@@ -1,0 +1,22 @@
+# Work / non-JimmyTranDev global excludes file.
+#
+# Wired via includeIf "gitdir:~/Programming/" in ~/.gitconfig so every repo
+# under ~/Programming (other orgs + worktree dirs) uses this file. Repos under
+# ~/Programming/JimmyTranDev revert to src/.gitignore_global via a later
+# includeIf. core.excludesFile REPLACES (does not stack), so the base patterns
+# below are mirrored from src/.gitignore_global -- keep the two in sync.
+
+# --- base (mirror of src/.gitignore_global) ---
+copilot-instructions.md
+.project
+.classpath
+.settings/
+.factorypath
+*.launch
+application-local.yml
+updates/*.md
+
+# --- personal OpenCode config (work / worktree repos only) ---
+/.opencode/
+/opencode.json
+/opencode.jsonc

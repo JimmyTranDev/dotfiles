@@ -39,7 +39,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
 fi
 
 export FZF_DEFAULT_OPTS="\
-  --color=bg:#1e1e2e,fg:#cdd6f4,hl:#f38ba8 --color=fg+:#cdd6f4,bg+:#313244,hl+:#f38ba8 --color=info:#89b4fa,prompt:#fab387,spinner:#f9e2af --color=header:#cba6f7,marker:#89dceb --color=border:#6c7086 \
+  --color=bg:#1e1e2e,fg:#cdd6f4,hl:#f38ba8 --color=fg+:#cdd6f4,bg+:#313244,hl+:#f38ba8 --color=info:#89b4fa,prompt:#fab387,spinner:#f9e2af --color=header:#94e2d5,marker:#89dceb --color=border:#6c7086 \
 "
 
 export PATH="$HOMEBREW_PREFIX/opt/postgresql@15/bin:$PATH"
@@ -115,6 +115,7 @@ alias ji="$DOTFILES_DIR/etc/scripts/src/sdk_install.sh"
 alias knip='pnpm dlx knip'
 alias knipw='pnpm dlx knip --watch'
 alias loc='git ls-files | rg -v "(^|/)(assets|data)/" | xargs wc -l'
+alias locp='git ls-files --cached --others --exclude-standard -z | xargs -0 wc -l | tail -1'
 alias csv='git ls-files "*/core/*.csv" 2>/dev/null | fzf --preview "head -20 {}" | xargs -r vd --csv-delimiter "|"'
 alias google-chrome='"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
 
@@ -144,12 +145,16 @@ source "$DOTFILES_DIR/etc/scripts/utils/utility.sh"
 source "$DOTFILES_DIR/etc/scripts/src/zshrc/opencode.sh"
 source "$DOTFILES_DIR/etc/scripts/src/zshrc/worktree_helpers.sh"
 source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_project.sh"
+source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_project_opencode.sh"
+source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_project_nvim.sh"
 source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_worktree.sh"
 source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_projects_multi.sh"
 source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_worktrees_multi.sh"
 source "$DOTFILES_DIR/etc/scripts/src/zshrc/zellij.sh"
 
 bindkey '^f' select_project
+bindkey '^o' select_project_opencode_widget
+bindkey '^n' select_project_nvim_widget
 bindkey '^g' select_worktree
 bindkey '^[f' select_projects_multi
 bindkey '^[g' select_worktrees_multi

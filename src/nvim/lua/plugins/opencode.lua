@@ -9,7 +9,7 @@ local snacks_terminal_opts = {
 }
 
 return {
-  'NickvanDyke/opencode.nvim',
+  'nickjvandyke/opencode.nvim',
   version = '*',
   dependencies = {
     { 'folke/snacks.nvim', opts = { input = {}, picker = {}, terminal = {} } },

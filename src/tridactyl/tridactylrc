@@ -2,3 +2,8 @@
 
 " Blacklisted sites (tridactyl ignores all keypresses)
 blacklistadd todoist.com
+blacklistadd figma.com
+
+" Tab navigation
+bind K tabprev
+bind J tabnext

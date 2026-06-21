@@ -7,7 +7,7 @@ cwd = { fg = "#94e2d5" }
 
 # Find
 find_keyword  = { fg = "#f9e2af", bold = true, italic = true, underline = true }
-find_position = { fg = "#f5c2e7", bg = "reset", bold = true, italic = true }
+find_position = { fg = "#94e2d5", bg = "reset", bold = true, italic = true }
 
 # Marker
 marker_copied   = { fg = "#a6e3a1", bg = "#a6e3a1" }
@@ -76,7 +76,7 @@ progress_error  = { fg = "#f9e2af", bg = "#f38ba8" }
 
 [pick]
 border   = { fg = "#89b4fa" }
-active   = { fg = "#f5c2e7", bold = true }
+active   = { fg = "#94e2d5", bold = true }
 inactive = {}
 
 # : }}}
@@ -106,7 +106,7 @@ border = { fg = "#89b4fa" }
 [tasks]
 border  = { fg = "#89b4fa" }
 title   = {}
-hovered = { fg = "#f5c2e7", bold = true }
+hovered = { fg = "#94e2d5", bold = true }
 
 # : }}}
 
@@ -117,7 +117,7 @@ hovered = { fg = "#f5c2e7", bold = true }
 mask            = { bg = "#313244" }
 cand            = { fg = "#94e2d5" }
 rest            = { fg = "#9399b2" }
-desc            = { fg = "#f5c2e7" }
+desc            = { fg = "#94e2d5" }
 separator       = "  "
 separator_style = { fg = "#585b70" }
 
@@ -128,7 +128,7 @@ separator_style = { fg = "#585b70" }
 
 [help]
 on      = { fg = "#94e2d5" }
-run     = { fg = "#f5c2e7" }
+run     = { fg = "#94e2d5" }
 hovered = { reversed = true, bold = true }
 footer  = { fg = "#313244", bg = "#cdd6f4" }
 
@@ -141,7 +141,7 @@ footer  = { fg = "#313244", bg = "#cdd6f4" }
 border   = { fg = "#89b4fa" }
 title    = { fg = "#89b4fa" }
 tbl_col  = { fg = "#94e2d5" }
-tbl_cell = { fg = "#f5c2e7", bg = "#45475a" }
+tbl_cell = { fg = "#94e2d5", bg = "#45475a" }
 
 # : }}}
 
@@ -166,7 +166,7 @@ rules = [
 	# Media
 	{ mime = "{audio,video}/*", fg = "#f9e2af" },
 	# Archive
-	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = "#f5c2e7" },
+	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = "#94e2d5" },
 	# Document
 	{ mime = "application/{pdf,doc,rtf}", fg = "#a6e3a1" },
 	# Virtual file system
@@ -181,7 +181,7 @@ rules = [
 [icon]
 
 dirs = [
-	{ name = ".config", text = "", fg = "#f5c2e7" },
+	{ name = ".config", text = "", fg = "#94e2d5" },
 	{ name = ".git", text = "", fg = "#94e2d5" },
 	{ name = ".github", text = "", fg = "#89b4fa" },
 	{ name = ".npm", text = "", fg = "#89b4fa" },

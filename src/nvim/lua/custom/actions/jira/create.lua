@@ -1,8 +1,12 @@
 local input_utils = require('custom.utils.input')
-local git_utils = require('custom.utils.git')
 local link_utils = require('custom.utils.links')
 local file_utils = require('custom.utils.files')
 local ui_utils = require('custom.utils.ui')
+local util = require('custom.actions.jira.util')
+
+local CONFIG = util.CONFIG
+local get_current_user_email = util.get_current_user_email
+local parse_csv_line = util.parse_csv_line
 
 local M = {}
 
@@ -17,17 +21,6 @@ local function get_jira_epics()
   if not epics_str or epics_str == '' then return {} end
   return vim.split(epics_str, '%s+', { trimempty = true })
 end
-
-local CONFIG = {
-  CACHE_DIR = vim.fn.stdpath('data'),
-  DEFAULT_PROJECT = 'BW',
-  LIMIT = 50,
-  AUTO_TRANSITION = true,
-  TRANSITION_STATUSES = { 'In Progress Concept', 'Done Concept', 'Prioritised Issues Development' },
-  -- Sentinel marking where the "Done Concept only" path stops within TRANSITION_STATUSES.
-  -- Must exist in the chain above; the slice fails closed if it does not.
-  DONE_CONCEPT_STATUS = 'Done Concept',
-}
 
 local ISSUE_TYPES = {
   { name = 'Task', value = 'Task' },
@@ -68,34 +61,6 @@ local function load_parents_cache()
     end
   end
   return nil
-end
-
-local function get_current_user_email()
-  local email = os.getenv('ORG_EMAIL')
-  return email and email:match('^%s*(.-)%s*$')
-end
-
-local function parse_csv_line(line)
-  local fields = {}
-  local field = ''
-  local in_quotes = false
-  local i = 1
-
-  while i <= #line do
-    local char = line:sub(i, i)
-    if char == '"' then
-      in_quotes = not in_quotes
-    elseif char == ',' and not in_quotes then
-      table.insert(fields, field:match('^%s*(.-)%s*$'))
-      field = ''
-    else
-      field = field .. char
-    end
-    i = i + 1
-  end
-
-  table.insert(fields, field:match('^%s*(.-)%s*$'))
-  return fields
 end
 
 local function create_parent_entry(key, summary, status)
@@ -370,10 +335,7 @@ local function create_jira_task_workflow(summary, description, fallback_project,
                       -- through to the full chain and over-transition past Done Concept — abort instead.
                       if not found then
                         vim.notify(
-                          string.format(
-                            "Transition status '%s' not in chain; skipping auto-transition",
-                            CONFIG.DONE_CONCEPT_STATUS
-                          ),
+                          string.format("Transition status '%s' not in chain; skipping auto-transition", CONFIG.DONE_CONCEPT_STATUS),
                           vim.log.levels.WARN
                         )
                         subset = {}
@@ -422,9 +384,10 @@ local function create_task_handler(should_open_link)
   return function(fallback_project)
     return function()
       get_user_input('Enter task summary: ', function(summary)
-        vim.ui.input({ prompt = 'Enter description (optional): ' }, function(description)
-          create_jira_task_workflow(summary, description, fallback_project or CONFIG.DEFAULT_PROJECT, should_open_link)
-        end)
+        vim.ui.input(
+          { prompt = 'Enter description (optional): ' },
+          function(description) create_jira_task_workflow(summary, description, fallback_project or CONFIG.DEFAULT_PROJECT, should_open_link) end
+        )
       end)
     end
   end
@@ -436,253 +399,6 @@ M.create_jira_task_with_link = create_task_handler(true)
 M.refresh_jira_cache = function()
   os.remove(cache_files.parents)
   vim.notify('Jira parent cache refreshed. Next task creation will fetch fresh data.', vim.log.levels.INFO)
-end
-
-M.generate_done_md = function()
-  local assignee_email = get_current_user_email()
-  if not assignee_email then
-    vim.notify('ORG_EMAIL environment variable not set', vim.log.levels.ERROR)
-    return
-  end
-
-  local escaped_email = assignee_email:gsub('@', '\\u0040')
-  local jql_query = string.format("assignee was '%s' AND updated >= -7d ORDER BY updated DESC", escaped_email)
-
-  local cmd = string.format('acli jira workitem search --jql "%s" --fields \'key,summary,status\' --limit 100 --csv', jql_query)
-
-  vim.notify('Fetching completed tasks...', vim.log.levels.INFO)
-
-  vim.system(
-    { 'sh', '-c', cmd },
-    { text = true },
-    vim.schedule_wrap(function(result)
-      if result.code ~= 0 then
-        local error_msg = result.stderr ~= '' and result.stderr or result.stdout
-        vim.notify('Failed to fetch tasks: ' .. error_msg, vim.log.levels.ERROR)
-        return
-      end
-
-      local lines = vim.split(result.stdout, '\n', { trimempty = true })
-      if #lines <= 1 then
-        vim.notify('No completed tasks found', vim.log.levels.WARN)
-        return
-      end
-
-      local md_lines = { '# Done Tasks', '', '| Ticket | Summary | Status |', '|--------|---------|--------|' }
-
-      for i = 2, #lines do
-        local fields = parse_csv_line(lines[i])
-        if #fields >= 3 then
-          local key = fields[1]
-          local status = fields[2]
-          local summary = fields[3]:gsub('|', '\\|')
-          local jira_link = link_utils.get_jira_link_with_ticket(key)
-          local ticket_link = jira_link and string.format('[%s](%s)', key, jira_link) or key
-          table.insert(md_lines, string.format('| %s | %s | %s |', ticket_link, summary, status))
-        end
-      end
-
-      local root_dir = vim.fn.getcwd()
-      local done_file = root_dir .. '/DONE.md'
-
-      if file_utils.write_lines(done_file, md_lines) then
-        vim.notify(string.format('Generated %s with %d tasks', done_file, #lines - 1), vim.log.levels.INFO)
-      else
-        vim.notify('Failed to write DONE.md', vim.log.levels.ERROR)
-      end
-    end)
-  )
-end
-
-local function browse_tasks(opts)
-  local assignee_email = get_current_user_email()
-  if not assignee_email then
-    vim.notify('ORG_EMAIL environment variable not set', vim.log.levels.ERROR)
-    return
-  end
-
-  local escaped_email = assignee_email:gsub('@', '\\u0040')
-  local jql_query = string.format(opts.jql, escaped_email)
-
-  local cmd = string.format('acli jira workitem search --jql "%s" --fields "key,summary,status" --limit %d --csv', jql_query, CONFIG.LIMIT)
-
-  vim.notify(opts.fetching_msg, vim.log.levels.INFO)
-
-  vim.system(
-    { 'sh', '-c', cmd },
-    { text = true },
-    vim.schedule_wrap(function(result)
-      if result.code ~= 0 then
-        local error_msg = result.stderr ~= '' and result.stderr or result.stdout
-        vim.notify('Failed to fetch tasks: ' .. error_msg, vim.log.levels.ERROR)
-        return
-      end
-
-      local lines = vim.split(result.stdout, '\n', { trimempty = true })
-      if #lines <= 1 then
-        vim.notify(opts.empty_msg, vim.log.levels.WARN)
-        return
-      end
-
-      local items = {}
-      for i = 2, #lines do
-        local fields = parse_csv_line(lines[i])
-        if #fields >= 3 then
-          local key = fields[1]
-          local status = fields[2]
-          local summary = fields[3]
-          table.insert(items, {
-            text = string.format('%s  %s  [%s]', key, summary, status),
-            key = key,
-            summary = summary,
-            status = status,
-          })
-        end
-      end
-
-      if #items == 0 then
-        vim.notify(opts.empty_msg, vim.log.levels.WARN)
-        return
-      end
-
-      Snacks.picker({
-        title = opts.title,
-        items = items,
-        format = function(item)
-          return {
-            { item.key .. '  ', 'DiagnosticInfo' },
-            { item.summary .. '  ', 'Normal' },
-            { '[' .. item.status .. ']', 'Comment' },
-          }
-        end,
-        confirm = function(picker, item)
-          picker:close()
-          local jira_link = link_utils.get_jira_link_with_ticket(item.key)
-          if jira_link then
-            vim.system({ 'open', jira_link })
-          else
-            vim.notify('Could not build Jira link for ' .. item.key, vim.log.levels.ERROR)
-          end
-        end,
-      })
-    end)
-  )
-end
-
-M.browse_my_tasks = function()
-  browse_tasks({
-    jql = "assignee = '%s' AND status not in (Done, Closed, Resolved) ORDER BY updated DESC",
-    fetching_msg = 'Fetching your Jira tasks...',
-    empty_msg = 'No tasks found',
-    title = 'My Jira Tasks',
-  })
-end
-
-M.browse_recently_updated_tasks = function()
-  browse_tasks({
-    jql = "assignee = '%s' AND updated >= -7d ORDER BY updated DESC",
-    fetching_msg = 'Fetching recently updated Jira tasks...',
-    empty_msg = 'No recently updated tasks found',
-    title = 'Recently Updated Jira Tasks',
-  })
-end
-
-M.copy_ticket_with_title = function()
-  local branch_name = git_utils.get_current_branch()
-  if not branch_name or branch_name == '' then
-    vim.notify('Not in a git repository or no branch found', vim.log.levels.WARN)
-    return
-  end
-
-  local jira_ticket = git_utils.extract_jira_ticket(branch_name)
-  if not jira_ticket or jira_ticket == '' then
-    vim.notify('No JIRA ticket found in branch name: ' .. branch_name, vim.log.levels.WARN)
-    return
-  end
-
-  local jira_link = link_utils.get_jira_link_with_ticket(jira_ticket)
-
-  local cmd = string.format('acli jira workitem view --key "%s" --fields "summary" --csv', jira_ticket)
-  vim.system(
-    { 'sh', '-c', cmd },
-    { text = true },
-    vim.schedule_wrap(function(result)
-      local title = ''
-      if result.code == 0 then
-        local lines = vim.split(result.stdout, '\n', { trimempty = true })
-        if #lines >= 2 then
-          local fields = parse_csv_line(lines[2])
-          if #fields >= 1 then title = fields[1] end
-        end
-      end
-
-      if title == '' then
-        local title_part = branch_name:match(jira_ticket:gsub('%-', '%%-') .. '[_%-](.+)') or ''
-        title = title_part:gsub('[_%-]', ' ')
-      end
-
-      local ticket_with_title = jira_link
-        and string.format('%s - %s', jira_link, title)
-        or string.format('%s - %s', jira_ticket, title)
-
-      vim.fn.setreg('+', ticket_with_title)
-      vim.notify('Copied: ' .. ticket_with_title, vim.log.levels.INFO)
-    end)
-  )
-end
-
-M.copy_testable_message = function()
-  local branch_name = git_utils.get_current_branch()
-  if not branch_name or branch_name == '' then
-    vim.notify('Not in a git repository or no branch found', vim.log.levels.WARN)
-    return
-  end
-
-  local jira_ticket = git_utils.extract_jira_ticket(branch_name)
-  if not jira_ticket or jira_ticket == '' then
-    vim.notify('No JIRA ticket found in branch name: ' .. branch_name, vim.log.levels.WARN)
-    return
-  end
-
-  local title_part = branch_name:match(jira_ticket:gsub('%-', '%%-') .. '[_%-](.+)') or ''
-  local title = title_part:gsub('[_%-]', ' ')
-
-  local jira_link = link_utils.get_jira_link_with_ticket(jira_ticket)
-  local url = jira_link or jira_ticket
-  local message = string.format('This Jira is now testable:\n%s - %s :hourglass:', url, title)
-
-  vim.fn.setreg('+', message)
-  vim.notify('Copied testable message', vim.log.levels.INFO)
-end
-
-function M.add_comment_from_branch()
-  local branch = git_utils.get_current_branch()
-  local ticket = git_utils.extract_jira_ticket(branch)
-
-  if ticket == '' then
-    vim.notify('No Jira ticket found in branch: ' .. branch, vim.log.levels.ERROR)
-    return
-  end
-
-  vim.ui.input({
-    prompt = 'Comment for ' .. ticket .. ': ',
-  }, function(body)
-    if not body or body == '' then return end
-
-    vim.notify('Adding comment to ' .. ticket .. '...', vim.log.levels.INFO)
-
-    vim.system(
-      { 'acli', 'jira', 'workitem', 'comment', 'create', '--key', ticket, '--body', body },
-      { text = true },
-      vim.schedule_wrap(function(result)
-        if result.code == 0 then
-          vim.notify('Comment added to ' .. ticket, vim.log.levels.INFO)
-        else
-          vim.notify('Failed to add comment: ' .. (result.stderr or result.stdout), vim.log.levels.ERROR)
-        end
-      end)
-    )
-  end)
 end
 
 return M

@@ -111,6 +111,7 @@ upload_secrets() {
 		--exclude='.sync_tmp' \
 		--exclude='.sync_backup' \
 		--exclude='.m2' \
+		--exclude='ssh/agent' \
 		.
 	if [[ -f "$SECRETS_DIR/.m2/settings.xml" ]]; then
 		local uncompressed="$temp_dir/secrets.tar"

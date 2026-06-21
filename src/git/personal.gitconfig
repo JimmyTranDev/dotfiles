@@ -1,0 +1,6 @@
+# Included via includeIf "gitdir:~/Programming/JimmyTranDev/" in ~/.gitconfig,
+# AFTER the work include so it wins for personal repos. Reverts the excludes
+# file back to the base so OpenCode config (.opencode/, opencode.json, ...)
+# stays committable in dotfiles and other JimmyTranDev repos.
+[core]
+	excludesFile = ~/Programming/JimmyTranDev/dotfiles/src/.gitignore_global

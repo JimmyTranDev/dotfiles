@@ -2,7 +2,7 @@ return {
   'saghen/blink.cmp',
   event = { 'InsertEnter', 'CmdlineEnter' },
   dependencies = {
-    'echasnovski/mini.nvim',
+    'nvim-mini/mini.nvim',
   },
   version = '*',
   opts = {

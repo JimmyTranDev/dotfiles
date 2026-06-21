@@ -4,7 +4,7 @@ return {
   'tpope/vim-fugitive',
   event = 'VeryLazy',
   dependencies = {
-    'akinsho/nvim-toggleterm.lua',
+    'akinsho/toggleterm.nvim',
   },
   keys = {
     { mode = 'n', '<Leader>ghc', git_actions.create_pr_from_branch, desc = '󰊤 Create PR from branch', silent = true },

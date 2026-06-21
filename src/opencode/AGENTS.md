@@ -3,6 +3,23 @@
 Global rules for OpenCode in this workspace. Loaded as a system instruction via
 `opencode.jsonc` (`instructions: ["AGENTS.md"]`).
 
+## Asking Questions
+
+Whenever you need a decision, preference, or clarification from the user, ask
+with the `question` tool and always offer **3 concrete proposals**:
+
+- List exactly 3 proposed solutions per question.
+- Put the strongest option **first** and append "(Recommended)" to its label.
+- Keep `custom` enabled (the default) so the tool's auto-added "Type your own
+  answer" appears last — that is the user's self-input escape hatch for when
+  none of the 3 proposals fit.
+- Do NOT add your own "Other" / catch-all option; the custom self-input covers
+  it.
+- Give each proposal a short, distinct `description` that explains its trade-off.
+
+Prefer the `question` tool over free-form questions in prose whenever the choice
+has discrete options.
+
 ## Skill-Driven Execution Model
 
 OpenCode runs a **skill-driven execution model** powered by the built-in `skill`
@@ -30,9 +47,11 @@ Map every request to the appropriate skill before acting.
 | IDEATE | Vague idea, "refine this idea", "stress-test my plan" | `idea-refine` |
 | DEFINE | New feature/project, unclear requirements, no spec exists | `spec-driven-development` |
 | PLAN | Break a spec into ordered, estimable tasks | `planning-and-task-breakdown` |
+| BUILD | Small, low-risk, well-understood change ("just"/"quick"/"simple"/typo/config tweak) | `fast-implementation` |
 | BUILD | Multi-file change, large or risky implementation | `incremental-implementation` |
 | BUILD | Any logic, bug fix, or behavior change | `test-driven-development` |
 | BUILD | Framework/library correctness, avoid outdated patterns | `source-driven-development` |
+| VERIFY | Existing code is hard to test or under-covered; "add tests", "make testable", "full coverage" | `testability-and-coverage` |
 | VERIFY | Tests fail, build breaks, unexpected error/behavior | `debugging-and-error-recovery` |
 | VERIFY | High-stakes/irreversible decision needs adversarial review | `doubt-driven-development` |
 | REVIEW | Before merging any change | `code-review-and-quality` |
@@ -50,6 +69,7 @@ Map every request to the appropriate skill before acting.
 | Untrusted input, auth, sessions, data storage, integrations | `security-and-hardening` |
 | Logging, metrics, tracing, alerting | `observability-and-instrumentation` |
 | Build/deploy pipelines, quality gates in CI | `ci-cd-and-automation` |
+| npm audit + bump deps to latest minor (no majors), re-audit, verify | `npm-audit-and-bump-minor` |
 | Commit already-staged changes with a conventional message | `commit` |
 | Commits, branching, conflicts, parallel work | `git-workflow-and-versioning` |
 | Removing/sunsetting systems, migrating implementations | `deprecation-and-migration` |

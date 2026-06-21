@@ -3,7 +3,7 @@ local pnpm_actions = require('custom.actions.pnpm')
 local toggle_term_actions = require('custom.actions.toggleterm')
 
 return {
-  'akinsho/nvim-toggleterm.lua',
+  'akinsho/toggleterm.nvim',
   keys = {
 
     { mode = 'n', '<leader>tf', toggle_term_actions.open_terminal_picker, desc = '󰆍 Terminal Picker', silent = true },
