@@ -8,10 +8,10 @@ shift + alt - k : yabai -m window --swap north
 shift + alt - h : yabai -m window --swap west
 shift + alt - l : yabai -m window --swap east
 
-ctrl + alt - j : yabai -m window --warp south
-ctrl + alt - k : yabai -m window --warp north
-ctrl + alt - h : yabai -m window --warp west
-ctrl + alt - l : yabai -m window --warp east
+# ctrl + alt - j : yabai -m window --warp south
+# ctrl + alt - k : yabai -m window --warp north
+# ctrl + alt - h : yabai -m window --warp west
+# ctrl + alt - l : yabai -m window --warp east
 
 shift + alt - 1 : yabai -m window --space 1
 shift + alt - 2 : yabai -m window --space 2
@@ -21,8 +21,8 @@ shift + alt - 5 : yabai -m window --space 5
 shift + alt - 6 : yabai -m window --space 6
 shift + alt - 7 : yabai -m window --space 7
 
-shift + alt - p : yabai -m window --space prev
-shift + alt - n : yabai -m window --space next
+# shift + alt - p : yabai -m window --space prev
+# shift + alt - n : yabai -m window --space next
 
 shift + alt - f : yabai -m space --rotate 270
 
@@ -32,6 +32,6 @@ shift + alt - m : yabai -m window --toggle zoom-fullscreen
 
 shift + alt - e : yabai -m space --balance
 
-shift + alt - q : yabai -m window --close
+# shift + alt - q : yabai -m window --close
 
 shift + alt - s : pmset sleepnow
