@@ -1,4 +1,5 @@
 local ui_utils = require('custom.utils.ui')
+local async = require('custom.utils.async')
 
 local M = {}
 
@@ -54,59 +55,47 @@ local function link_package()
       prompt = 'Select repository to link:',
     }, function(selected_repo)
       local target_path = vim.fn.expand('~/Programming') .. '/' .. selected_org .. '/' .. selected_repo
-      local cmd = 'pnpm link ' .. vim.fn.shellescape(target_path)
-      vim.notify('Running: ' .. cmd, vim.log.levels.INFO)
-      vim.fn.jobstart(cmd, {
-        cwd = vim.fn.getcwd(),
-        on_exit = function(_, code)
-          vim.schedule(function()
-            if code == 0 then
-              vim.notify('Linked ' .. selected_org .. '/' .. selected_repo, vim.log.levels.INFO)
-            else
-              vim.notify('Failed to link ' .. selected_org .. '/' .. selected_repo, vim.log.levels.ERROR)
-            end
-          end)
-        end,
-      })
+      vim.notify('Running: pnpm link ' .. target_path, vim.log.levels.INFO)
+      async.run_cmd({ 'pnpm', 'link', target_path }, function(res)
+        if res.code == 0 then
+          vim.notify('Linked ' .. selected_org .. '/' .. selected_repo, vim.log.levels.INFO)
+        else
+          vim.notify('Failed to link ' .. selected_org .. '/' .. selected_repo, vim.log.levels.ERROR)
+        end
+      end, { cwd = vim.fn.getcwd() })
     end)
   end)
 end
 
 local function get_linked_packages(callback)
-  vim.fn.jobstart({ 'pnpm', 'ls', '--json', '--depth', '0' }, {
-    cwd = vim.fn.getcwd(),
-    stdout_buffered = true,
-    on_stdout = function(_, data)
-      vim.schedule(function()
-        local output = table.concat(data, '')
-        if output == '' then
-          callback({})
-          return
-        end
+  async.run_cmd({ 'pnpm', 'ls', '--json', '--depth', '0' }, function(res)
+    local output = res.stdout or ''
+    if output == '' then
+      callback({})
+      return
+    end
 
-        local ok, parsed = pcall(vim.fn.json_decode, output)
-        if not ok or not parsed then
-          callback({})
-          return
-        end
+    local ok, parsed = pcall(vim.json.decode, output)
+    if not ok or not parsed then
+      callback({})
+      return
+    end
 
-        local entries = type(parsed) == 'table' and parsed[1] or parsed
-        local deps = entries and entries.dependencies or {}
-        local dev_deps = entries and entries.devDependencies or {}
+    local entries = type(parsed) == 'table' and parsed[1] or parsed
+    local deps = entries and entries.dependencies or {}
+    local dev_deps = entries and entries.devDependencies or {}
 
-        local linked = {}
-        for name, info in pairs(deps) do
-          if info.link then table.insert(linked, { name = name, path = info.path or info.version }) end
-        end
-        for name, info in pairs(dev_deps) do
-          if info.link then table.insert(linked, { name = name, path = info.path or info.version }) end
-        end
+    local linked = {}
+    for name, info in pairs(deps) do
+      if info.link then table.insert(linked, { name = name, path = info.path or info.version }) end
+    end
+    for name, info in pairs(dev_deps) do
+      if info.link then table.insert(linked, { name = name, path = info.path or info.version }) end
+    end
 
-        table.sort(linked, function(a, b) return a.name < b.name end)
-        callback(linked)
-      end)
-    end,
-  })
+    table.sort(linked, function(a, b) return a.name < b.name end)
+    callback(linked)
+  end, { cwd = vim.fn.getcwd() })
 end
 
 local function unlink_package()
@@ -128,20 +117,14 @@ local function unlink_package()
       prompt = 'Select package to unlink:',
       format_item = function(item) return item.name end,
     }, function(selected)
-      local cmd = 'pnpm unlink ' .. vim.fn.shellescape(selected.pkg_name)
-      vim.notify('Running: ' .. cmd, vim.log.levels.INFO)
-      vim.fn.jobstart(cmd, {
-        cwd = vim.fn.getcwd(),
-        on_exit = function(_, code)
-          vim.schedule(function()
-            if code == 0 then
-              vim.notify('Unlinked ' .. selected.pkg_name, vim.log.levels.INFO)
-            else
-              vim.notify('Failed to unlink ' .. selected.pkg_name, vim.log.levels.ERROR)
-            end
-          end)
-        end,
-      })
+      vim.notify('Running: pnpm unlink ' .. selected.pkg_name, vim.log.levels.INFO)
+      async.run_cmd({ 'pnpm', 'unlink', selected.pkg_name }, function(res)
+        if res.code == 0 then
+          vim.notify('Unlinked ' .. selected.pkg_name, vim.log.levels.INFO)
+        else
+          vim.notify('Failed to unlink ' .. selected.pkg_name, vim.log.levels.ERROR)
+        end
+      end, { cwd = vim.fn.getcwd() })
     end)
   end)
 end

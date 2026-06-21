@@ -433,7 +433,7 @@ function M.run_knip_fix_current_folder()
   local dir = vim.fn.fnamemodify(vim.fn.expand('%:p'), ':h:.')
   if dir == '' then dir = '.' end
   ui_utils.show_success('Knip fix for: ' .. dir)
-  vim.fn.jobstart(pm .. ' dlx knip --fix', { on_exit = function() vim.notify('Knip fix completed for ' .. dir, vim.log.levels.INFO) end })
+  async_utils.run_cmd({ pm, 'dlx', 'knip', '--fix' }, function() vim.notify('Knip fix completed for ' .. dir, vim.log.levels.INFO) end)
 end
 
 function M.fix_and_organize_typescript_imports()

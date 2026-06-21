@@ -1,4 +1,5 @@
 local file_utils = require('custom.utils.files')
+local async = require('custom.utils.async')
 
 local M = {}
 
@@ -157,9 +158,7 @@ local function copy_markdown_block(start_line, end_line, label)
   -- allows variable-length fences).
   local max_run = 0
   for run in content:gmatch('`+') do
-    if #run > max_run then
-      max_run = #run
-    end
+    if #run > max_run then max_run = #run end
   end
   local fence = string.rep('`', math.max(3, max_run + 1))
   local block = string.format('%s%s\n%s\n%s', fence, vim.bo.filetype, content, fence)
@@ -167,9 +166,7 @@ local function copy_markdown_block(start_line, end_line, label)
   vim.notify('Copied ' .. label .. ' as markdown code block', vim.log.levels.INFO)
 end
 
-function M.copy_as_markdown_code_block()
-  copy_markdown_block(1, vim.fn.line('$'), 'buffer')
-end
+function M.copy_as_markdown_code_block() copy_markdown_block(1, vim.fn.line('$'), 'buffer') end
 
 function M.copy_as_markdown_code_block_range()
   local start_line = vim.fn.line('v')
@@ -201,9 +198,7 @@ function M.copy_frontend_project_paths()
     if type == 'directory' then
       local pkg_path = base_dir .. '/' .. name .. '/package.json'
       local pkg_stat = vim.uv.fs_stat(pkg_path)
-      if pkg_stat then
-        table.insert(paths, base_dir .. '/' .. name)
-      end
+      if pkg_stat then table.insert(paths, base_dir .. '/' .. name) end
     end
   end
 
@@ -236,18 +231,14 @@ function M.convert_md_to_pdf()
 
   vim.notify('Converting to PDF...', vim.log.levels.INFO)
 
-  vim.system(
-    cmd,
-    { text = true },
-    vim.schedule_wrap(function(result)
-      if result.code == 0 then
-        vim.notify('PDF saved: ' .. pdf_path, vim.log.levels.INFO)
-      else
-        local err = result.stderr ~= '' and result.stderr or result.stdout
-        vim.notify('PDF conversion failed: ' .. err, vim.log.levels.ERROR)
-      end
-    end)
-  )
+  async.run_cmd(cmd, function(result)
+    if result.code == 0 then
+      vim.notify('PDF saved: ' .. pdf_path, vim.log.levels.INFO)
+    else
+      local err = result.stderr ~= '' and result.stderr or result.stdout
+      vim.notify('PDF conversion failed: ' .. err, vim.log.levels.ERROR)
+    end
+  end)
 end
 
 function M.grep_current_file_dir()
@@ -259,9 +250,7 @@ function M.grep_current_file_dir()
   Snacks.picker.grep({ cwd = dir, hidden = true, ignored = true })
 end
 
-function M.find_plan_files()
-  Snacks.picker.files({ cwd = vim.fn.getcwd() .. '/plans' })
-end
+function M.find_plan_files() Snacks.picker.files({ cwd = vim.fn.getcwd() .. '/plans' }) end
 
 function M.clear_plan_files()
   local plans_dir = vim.fn.getcwd() .. '/plans'
@@ -281,9 +270,7 @@ function M.clear_plan_files()
   while true do
     local name, type = vim.uv.fs_scandir_next(handle)
     if not name then break end
-    if type == 'file' then
-      table.insert(files, name)
-    end
+    if type == 'file' then table.insert(files, name) end
   end
 
   if #files == 0 then

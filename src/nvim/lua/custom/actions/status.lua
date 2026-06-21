@@ -1,25 +1,16 @@
+local async = require('custom.utils.async')
+
 local M = {}
 
----@param cmd string[]
----@param callback fun(result: table)
-local function run_gh(cmd, callback)
-  vim.system(cmd, { text = true }, vim.schedule_wrap(function(result)
-    if result.code ~= 0 then
-      local err = (result.stderr or ''):gsub('%s+$', '')
-      if err:find('no pull requests found') or err:find('Could not resolve') then
-        vim.notify('No PR found for current branch', vim.log.levels.WARN)
-      else
-        vim.notify('gh error: ' .. err, vim.log.levels.ERROR)
-      end
-      return
-    end
-    local ok, data = pcall(vim.fn.json_decode, result.stdout)
-    if not ok or not data then
-      vim.notify('Failed to parse gh output', vim.log.levels.ERROR)
-      return
-    end
-    callback(data)
-  end))
+--- Friendly error handler for `gh` JSON commands: a missing PR is a soft warning,
+--- anything else is a hard error.
+---@param err string
+local function gh_err(err)
+  if err:find('no pull requests found') or err:find('Could not resolve') then
+    vim.notify('No PR found for current branch', vim.log.levels.WARN)
+  else
+    vim.notify('gh error: ' .. err, vim.log.levels.ERROR)
+  end
 end
 
 ---@param conclusion string|nil
@@ -44,7 +35,7 @@ end
 
 --- Show CI check results for current branch's PR in a Snacks picker
 function M.show_ci_checks()
-  run_gh({ 'gh', 'pr', 'checks', '--json', 'name,state,conclusion,detailsUrl' }, function(checks)
+  async.json({ 'gh', 'pr', 'checks', '--json', 'name,state,conclusion,detailsUrl' }, function(checks)
     if #checks == 0 then
       vim.notify('No CI checks found', vim.log.levels.INFO)
       return
@@ -66,23 +57,22 @@ function M.show_ci_checks()
     snacks.picker({
       title = 'CI Checks',
       items = items,
-      format = function(item)
-        return { { item.text, item.icon_hl } }
-      end,
+      format = function(item) return { { item.text, item.icon_hl } } end,
       confirm = function(picker, item)
         picker:close()
-        if item and item.url then
-          vim.ui.open(item.url)
-        end
+        if item and item.url then vim.ui.open(item.url) end
       end,
     })
-  end)
+  end, gh_err)
 end
 
 --- Show PR review and merge status in a Snacks picker
 function M.show_pr_status()
-  run_gh({
-    'gh', 'pr', 'view', '--json',
+  async.json({
+    'gh',
+    'pr',
+    'view',
+    '--json',
     'state,reviewDecision,mergeable,statusCheckRollup,reviews,number,title,url',
   }, function(pr)
     local items = {}
@@ -158,17 +148,13 @@ function M.show_pr_status()
     snacks.picker({
       title = 'PR Status',
       items = items,
-      format = function(item)
-        return { { item.text, item.hl or 'Normal' } }
-      end,
+      format = function(item) return { { item.text, item.hl or 'Normal' } } end,
       confirm = function(picker, item)
         picker:close()
-        if item and item.url then
-          vim.ui.open(item.url)
-        end
+        if item and item.url then vim.ui.open(item.url) end
       end,
     })
-  end)
+  end, gh_err)
 end
 
 --- Show combined CI + PR status overview
@@ -218,45 +204,29 @@ function M.show_pipeline_overview()
     snacks.picker({
       title = 'Pipeline Overview',
       items = items,
-      format = function(item)
-        return { { item.text, item.hl or 'Normal' } }
-      end,
+      format = function(item) return { { item.text, item.hl or 'Normal' } } end,
       confirm = function(picker, item)
         picker:close()
-        if item and item.url then
-          vim.ui.open(item.url)
-        end
+        if item and item.url then vim.ui.open(item.url) end
       end,
     })
   end
 
-  vim.system(
-    { 'gh', 'pr', 'view', '--json', 'state,reviewDecision,mergeable,number,title,url' },
-    { text = true },
-    vim.schedule_wrap(function(result)
-      if result.code == 0 then
-        local ok, data = pcall(vim.fn.json_decode, result.stdout)
-        if ok and data then
-          results.pr = data
-        end
-      end
-      try_finish()
-    end)
-  )
+  async.run_cmd({ 'gh', 'pr', 'view', '--json', 'state,reviewDecision,mergeable,number,title,url' }, function(result)
+    if result.code == 0 then
+      local ok, data = pcall(vim.json.decode, result.stdout)
+      if ok and data then results.pr = data end
+    end
+    try_finish()
+  end)
 
-  vim.system(
-    { 'gh', 'pr', 'checks', '--json', 'name,state,conclusion,detailsUrl' },
-    { text = true },
-    vim.schedule_wrap(function(result)
-      if result.code == 0 then
-        local ok, data = pcall(vim.fn.json_decode, result.stdout)
-        if ok and data then
-          results.checks = data
-        end
-      end
-      try_finish()
-    end)
-  )
+  async.run_cmd({ 'gh', 'pr', 'checks', '--json', 'name,state,conclusion,detailsUrl' }, function(result)
+    if result.code == 0 then
+      local ok, data = pcall(vim.json.decode, result.stdout)
+      if ok and data then results.checks = data end
+    end
+    try_finish()
+  end)
 end
 
 return M

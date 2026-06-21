@@ -1,3 +1,5 @@
+local async = require('custom.utils.async')
+
 local M = {}
 
 local health_win = nil
@@ -54,22 +56,18 @@ local function get_knip_status(callback)
     return
   end
 
-  vim.system(
-    { 'npx', 'knip', '--no-progress', '--reporter', 'summary' },
-    { text = true, timeout = 15000 },
-    vim.schedule_wrap(function(result)
-      if result.code == 0 or result.code == 1 then
-        local issues = (result.stdout or ''):match('(%d+) issue')
-        if issues and tonumber(issues) > 0 then
-          callback({ '  Knip: ' .. issues .. ' unused code issues', 'DiagnosticWarn' })
-        else
-          callback({ '  Knip: Clean (no unused code)', 'DiagnosticOk' })
-        end
+  async.run_cmd({ 'npx', 'knip', '--no-progress', '--reporter', 'summary' }, function(result)
+    if result.code == 0 or result.code == 1 then
+      local issues = (result.stdout or ''):match('(%d+) issue')
+      if issues and tonumber(issues) > 0 then
+        callback({ '  Knip: ' .. issues .. ' unused code issues', 'DiagnosticWarn' })
       else
-        callback({ '  Knip: Not available or failed', 'DiagnosticHint' })
+        callback({ '  Knip: Clean (no unused code)', 'DiagnosticOk' })
       end
-    end)
-  )
+    else
+      callback({ '  Knip: Not available or failed', 'DiagnosticHint' })
+    end
+  end, { timeout = 15000 })
 end
 
 local function get_diagnostic_summary()
@@ -93,38 +91,30 @@ local function get_diagnostic_summary()
 end
 
 local function get_git_status(callback)
-  vim.system(
-    { 'git', 'rev-parse', '--is-inside-work-tree' },
-    { text = true },
-    vim.schedule_wrap(function(result)
-      if result.code ~= 0 then
-        callback({ '  Git: Not a git repository', 'DiagnosticHint' })
+  async.run_cmd({ 'git', 'rev-parse', '--is-inside-work-tree' }, function(result)
+    if result.code ~= 0 then
+      callback({ '  Git: Not a git repository', 'DiagnosticHint' })
+      return
+    end
+
+    async.run_cmd({ 'git', 'status', '--porcelain' }, function(status_result)
+      if status_result.code ~= 0 then
+        callback({ '  Git: Error getting status', 'DiagnosticWarn' })
         return
       end
 
-      vim.system(
-        { 'git', 'status', '--porcelain' },
-        { text = true },
-        vim.schedule_wrap(function(status_result)
-          if status_result.code ~= 0 then
-            callback({ '  Git: Error getting status', 'DiagnosticWarn' })
-            return
-          end
+      local count = 0
+      for _ in (status_result.stdout or ''):gmatch('[^\n]+') do
+        count = count + 1
+      end
 
-          local count = 0
-          for _ in (status_result.stdout or ''):gmatch('[^\n]+') do
-            count = count + 1
-          end
-
-          if count == 0 then
-            callback({ '  Git: Working tree clean', 'DiagnosticOk' })
-          else
-            callback({ '  Git: ' .. count .. ' changed files', 'DiagnosticWarn' })
-          end
-        end)
-      )
+      if count == 0 then
+        callback({ '  Git: Working tree clean', 'DiagnosticOk' })
+      else
+        callback({ '  Git: ' .. count .. ' changed files', 'DiagnosticWarn' })
+      end
     end)
-  )
+  end)
 end
 
 function M.workspace_health()
@@ -153,57 +143,7 @@ function M.workspace_health()
       if r then table.insert(lines, r) end
     end
 
-    local buf = vim.api.nvim_create_buf(false, true)
-    local content = {}
-    local highlights = {}
-
-    for i, line in ipairs(lines) do
-      table.insert(content, line[1])
-      if line[2] then table.insert(highlights, { i - 1, line[2] }) end
-    end
-
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, content)
-    vim.bo[buf].modifiable = false
-    vim.bo[buf].bufhidden = 'wipe'
-    vim.bo[buf].buftype = 'nofile'
-
-    local width = 60
-    for _, line in ipairs(content) do
-      width = math.max(width, #line + 4)
-    end
-    width = math.min(width, math.floor(vim.o.columns * 0.8))
-
-    local height = #content
-    local max_height = math.floor(vim.o.lines * 0.6)
-    height = math.min(height, max_height)
-
-    local win = vim.api.nvim_open_win(buf, true, {
-      relative = 'editor',
-      width = width,
-      height = height,
-      col = math.floor((vim.o.columns - width) / 2),
-      row = math.floor((vim.o.lines - height) / 2),
-      style = 'minimal',
-      border = 'rounded',
-      title = ' Health Check ',
-      title_pos = 'center',
-    })
-
-    health_win = win
-
-    for _, hl in ipairs(highlights) do
-      vim.api.nvim_buf_add_highlight(buf, -1, hl[2], hl[1], 0, -1)
-    end
-
-    local function close_win()
-      if vim.api.nvim_win_is_valid(win) then
-        vim.api.nvim_win_close(win, true)
-        health_win = nil
-      end
-    end
-
-    vim.keymap.set('n', 'q', close_win, { buffer = buf, nowait = true })
-    vim.keymap.set('n', '<Esc>', close_win, { buffer = buf, nowait = true })
+    health_win = require('custom.utils.ui').show_panel({ title = 'Health Check', lines = lines })
   end
 
   get_git_status(function(r)

@@ -1,3 +1,5 @@
+local async = require('custom.utils.async')
+
 local M = {}
 
 local PROGRAMMING_DIR = vim.fn.expand('$HOME/Programming')
@@ -16,9 +18,7 @@ local function rename_zellij_tab(name)
       if line:match('focus=true') then break end
     end
   end
-  if tab_index > 0 then
-    tab_name = tab_index .. '.' .. tab_name
-  end
+  if tab_index > 0 then tab_name = tab_index .. '.' .. tab_name end
   vim.fn.system('zellij action rename-tab "' .. tab_name .. '"')
 end
 
@@ -140,19 +140,15 @@ function M.pull_and_copy_project_path()
       end
 
       vim.notify('Pulling ' .. item.text .. '...', vim.log.levels.INFO)
-      vim.system(
-        { 'git', '-C', item.path, 'pull', '--ff-only' },
-        { text = true },
-        vim.schedule_wrap(function(result)
-          vim.fn.setreg('+', item.path)
-          if result.code == 0 then
-            vim.notify('Pulled & copied: ' .. item.path, vim.log.levels.INFO)
-          else
-            local err = result.stderr ~= '' and result.stderr or result.stdout
-            vim.notify('Pull failed (path copied): ' .. err, vim.log.levels.WARN)
-          end
-        end)
-      )
+      async.run_cmd({ 'git', '-C', item.path, 'pull', '--ff-only' }, function(result)
+        vim.fn.setreg('+', item.path)
+        if result.code == 0 then
+          vim.notify('Pulled & copied: ' .. item.path, vim.log.levels.INFO)
+        else
+          local err = result.stderr ~= '' and result.stderr or result.stdout
+          vim.notify('Pull failed (path copied): ' .. err, vim.log.levels.WARN)
+        end
+      end)
     end,
   })
 end

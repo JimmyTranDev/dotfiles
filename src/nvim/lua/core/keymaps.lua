@@ -223,6 +223,7 @@ maps('n', {
   { '<Leader>ugh', github_actions.open_current_repo_in_browser, '󰖟 Repo homepage' },
   { '<Leader>ugo', github_actions.list_org_repos_and_open, '󰊤 Org repos' },
   { '<Leader>ugC', github_actions.select_owner_repo_and_clone, '󰊢 Clone repo' },
+  { '<Leader>ugi', github_actions.create_owner_repo_and_clone, '󰐕 Create + clone repo' },
   { '<Leader>ugn', github_actions.show_notifications_by_default_team, '󰂚 Team comment/mention notifications' },
   -- { '<Leader>ugN', github_actions.show_notifications, 'Comment/mention notifications' },
   { '<Leader>ugN', github_actions.show_notifications_by_team, '󰂚 Team notifications (select)' },

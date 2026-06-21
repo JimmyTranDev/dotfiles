@@ -1,3 +1,5 @@
+local async = require('custom.utils.async')
+
 local M = {}
 
 function M.toggle_spellcheck() vim.cmd('set spell!') end
@@ -14,9 +16,7 @@ local function scan_dirs(dir)
   while true do
     local name, entry_type = vim.uv.fs_scandir_next(handle)
     if not name then break end
-    if entry_type == 'directory' and not name:match('^%.') then
-      table.insert(names, name)
-    end
+    if entry_type == 'directory' and not name:match('^%.') then table.insert(names, name) end
   end
 
   return names
@@ -68,17 +68,13 @@ function M.switch_repo_by_zellij_tab()
 
     open_project_readme(target_dir)
 
-    vim.system(
-      { 'zellij', 'action', 'rename-tab', selected.name },
-      { text = true },
-      vim.schedule_wrap(function(result)
-        if result.code ~= 0 then
-          vim.notify('Switched to ' .. selected.name .. ' but failed to rename tab', vim.log.levels.WARN)
-        else
-          vim.notify('Switched to: ' .. selected.name, vim.log.levels.INFO)
-        end
-      end)
-    )
+    async.run_cmd({ 'zellij', 'action', 'rename-tab', selected.name }, function(result)
+      if result.code ~= 0 then
+        vim.notify('Switched to ' .. selected.name .. ' but failed to rename tab', vim.log.levels.WARN)
+      else
+        vim.notify('Switched to: ' .. selected.name, vim.log.levels.INFO)
+      end
+    end)
   end)
 end
 

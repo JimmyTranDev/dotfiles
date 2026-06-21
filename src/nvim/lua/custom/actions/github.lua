@@ -1576,4 +1576,66 @@ function M.select_owner_repo_and_clone()
   end)
 end
 
+-- ===========================================================================
+-- Create a new private repo under a GitHub owner, then clone it locally.
+-- Flow: pick owner -> name the repo -> gh repo create -> pick folder -> clone.
+-- ===========================================================================
+
+--- Create `owner/name` as a private repo (with a README) then clone it into
+--- ~/Programming/<folder>/<repo> by reusing the destination picker.
+---@param owner string GitHub owner/org login
+---@param name string bare repo name to create
+local function create_repo_and_clone(owner, name)
+  local name_with_owner = owner .. '/' .. name
+
+  vim.notify('Creating ' .. name_with_owner .. '...', vim.log.levels.INFO)
+  vim.system(
+    { 'gh', 'repo', 'create', name_with_owner, '--private', '--add-readme' },
+    { text = true },
+    vim.schedule_wrap(function(result)
+      if result.code ~= 0 then
+        local err = (result.stderr and result.stderr ~= '' and result.stderr) or result.stdout or 'unknown error'
+        vim.notify('Repo creation failed: ' .. err, vim.log.levels.ERROR)
+        return
+      end
+
+      vim.notify('Created ' .. name_with_owner, vim.log.levels.INFO)
+      select_destination_and_clone(name_with_owner, name, owner)
+    end)
+  )
+end
+
+--- Prompt for a repo name under `owner`, then create and clone it.
+---@param owner string GitHub owner/org login
+local function prompt_name_and_create(owner)
+  vim.ui.input({ prompt = string.format('New repo name (%s/): ', owner) }, function(name)
+    if not name then return end
+    name = vim.trim(name)
+    if name == '' then return end
+    create_repo_and_clone(owner, name)
+  end)
+end
+
+--- Entry point: pick a GitHub owner (auto-skipped when only one), name a new
+--- private repo, create it on GitHub, then clone it under ~/Programming.
+function M.create_owner_repo_and_clone()
+  local owners = github_utils.get_github_owners()
+  if #owners == 0 then
+    vim.notify('No GitHub owners configured (set ORG_GITHUB_NAME or PRI_GITHUB_USERNAME)', vim.log.levels.ERROR)
+    return
+  end
+
+  if #owners == 1 then
+    prompt_name_and_create(owners[1])
+    return
+  end
+
+  vim.ui.select(owners, {
+    prompt = 'Select owner:',
+  }, function(owner)
+    if not owner then return end
+    prompt_name_and_create(owner)
+  end)
+end
+
 return M

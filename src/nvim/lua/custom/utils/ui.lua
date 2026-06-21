@@ -1,5 +1,7 @@
 local M = {}
 
+local panel_ns = vim.api.nvim_create_namespace('custom_panel')
+
 function M.safe_select(items, opts, callback)
   if not items or #items == 0 then
     vim.notify('No items available for selection', vim.log.levels.WARN)
@@ -142,5 +144,53 @@ function M.multiline_input(opts, callback)
 end
 
 function M.add_back_option(options, text, value) table.insert(options, { name = '← ' .. text, is_back = true, value = value or '__back__' }) end
+
+--- Show read-only lines in a centered floating panel.
+--- Each entry in `lines` is { text } or { text, highlight_group }.
+---@param opts { title: string, lines: ({ [1]: string, [2]?: string })[] }
+---@return integer win
+function M.show_panel(opts)
+  local content, highlights = {}, {}
+  for i, line in ipairs(opts.lines) do
+    content[i] = line[1] or ''
+    if line[2] then highlights[#highlights + 1] = { i - 1, line[2] } end
+  end
+
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, content)
+  vim.bo[buf].modifiable = false
+  vim.bo[buf].bufhidden = 'wipe'
+  vim.bo[buf].buftype = 'nofile'
+
+  local width = 60
+  for _, l in ipairs(content) do
+    width = math.max(width, vim.fn.strdisplaywidth(l) + 4)
+  end
+  width = math.min(width, math.floor(vim.o.columns * 0.8))
+  local height = math.min(#content, math.floor(vim.o.lines * 0.6))
+
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = math.floor((vim.o.columns - width) / 2),
+    row = math.floor((vim.o.lines - height) / 2),
+    style = 'minimal',
+    border = 'rounded',
+    title = ' ' .. opts.title .. ' ',
+    title_pos = 'center',
+  })
+
+  for _, hl in ipairs(highlights) do
+    vim.api.nvim_buf_set_extmark(buf, panel_ns, hl[1], 0, { end_col = #content[hl[1] + 1], hl_group = hl[2] })
+  end
+
+  local function close()
+    if vim.api.nvim_win_is_valid(win) then vim.api.nvim_win_close(win, true) end
+  end
+  vim.keymap.set('n', 'q', close, { buffer = buf, nowait = true })
+  vim.keymap.set('n', '<Esc>', close, { buffer = buf, nowait = true })
+  return win
+end
 
 return M

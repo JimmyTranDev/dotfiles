@@ -1,20 +1,20 @@
+local async = require('custom.utils.async')
+
 local M = {}
 
 local dashboard_win = nil
 
-local function run_git(args, callback)
-  vim.system(args, { text = true }, vim.schedule_wrap(function(result) callback(result.code == 0 and result.stdout or nil) end))
-end
-
 local function get_branch_info(callback)
-  run_git({ 'git', 'branch', '--show-current' }, function(stdout)
+  async.run_cmd({ 'git', 'branch', '--show-current' }, function(result)
+    local stdout = result.code == 0 and result.stdout or nil
     if not stdout then
       callback({ '  Branch: Not a git repo', 'DiagnosticError' })
       return
     end
 
     local branch = vim.trim(stdout)
-    run_git({ 'git', 'rev-list', '--count', '--left-right', '@{upstream}...HEAD' }, function(upstream_stdout)
+    async.run_cmd({ 'git', 'rev-list', '--count', '--left-right', '@{upstream}...HEAD' }, function(upstream_result)
+      local upstream_stdout = upstream_result.code == 0 and upstream_result.stdout or nil
       if not upstream_stdout then
         callback({ '  Branch: ' .. branch .. ' (no upstream)', 'DiagnosticWarn' })
         return
@@ -37,7 +37,8 @@ local function get_branch_info(callback)
 end
 
 local function get_dirty_files(callback)
-  run_git({ 'git', 'status', '--porcelain' }, function(stdout)
+  async.run_cmd({ 'git', 'status', '--porcelain' }, function(result)
+    local stdout = result.code == 0 and result.stdout or nil
     if not stdout then
       callback({ '  Files: Error', 'DiagnosticError' })
       return
@@ -69,7 +70,8 @@ local function get_dirty_files(callback)
 end
 
 local function get_stash_count(callback)
-  run_git({ 'git', 'stash', 'list' }, function(stdout)
+  async.run_cmd({ 'git', 'stash', 'list' }, function(result)
+    local stdout = result.code == 0 and result.stdout or nil
     if not stdout then
       callback({ '  Stash: Error', 'DiagnosticError' })
       return
@@ -89,7 +91,8 @@ local function get_stash_count(callback)
 end
 
 local function get_unpushed_commits(callback)
-  run_git({ 'git', 'log', '--oneline', '@{upstream}..HEAD' }, function(stdout)
+  async.run_cmd({ 'git', 'log', '--oneline', '@{upstream}..HEAD' }, function(result)
+    local stdout = result.code == 0 and result.stdout or nil
     if not stdout then
       callback({ '  Unpushed: N/A (no upstream)', 'DiagnosticHint' })
       return
@@ -113,49 +116,45 @@ local function get_unpushed_commits(callback)
 end
 
 local function get_pr_status(callback)
-  vim.system(
-    { 'gh', 'pr', 'view', '--json', 'number,title,state,reviewDecision,mergeable' },
-    { text = true },
-    vim.schedule_wrap(function(result)
-      if result.code ~= 0 then
-        callback({ '  PR: No open PR for this branch', 'DiagnosticHint' })
-        return
-      end
+  async.run_cmd({ 'gh', 'pr', 'view', '--json', 'number,title,state,reviewDecision,mergeable' }, function(result)
+    if result.code ~= 0 then
+      callback({ '  PR: No open PR for this branch', 'DiagnosticHint' })
+      return
+    end
 
-      local ok, data = pcall(vim.json.decode, result.stdout or '')
-      if not ok or not data or not data.number then
-        callback({ '  PR: No open PR for this branch', 'DiagnosticHint' })
-        return
-      end
+    local ok, data = pcall(vim.json.decode, result.stdout or '')
+    if not ok or not data or not data.number then
+      callback({ '  PR: No open PR for this branch', 'DiagnosticHint' })
+      return
+    end
 
-      local status_parts = { '#' .. data.number .. ' ' .. (data.title or '') }
-      local hl = 'DiagnosticOk'
+    local status_parts = { '#' .. data.number .. ' ' .. (data.title or '') }
+    local hl = 'DiagnosticOk'
 
-      if data.state == 'MERGED' then
-        table.insert(status_parts, '[merged]')
-      elseif data.state == 'CLOSED' then
-        table.insert(status_parts, '[closed]')
+    if data.state == 'MERGED' then
+      table.insert(status_parts, '[merged]')
+    elseif data.state == 'CLOSED' then
+      table.insert(status_parts, '[closed]')
+      hl = 'DiagnosticError'
+    else
+      if data.reviewDecision == 'APPROVED' then
+        table.insert(status_parts, '[approved]')
+      elseif data.reviewDecision == 'CHANGES_REQUESTED' then
+        table.insert(status_parts, '[changes requested]')
         hl = 'DiagnosticError'
-      else
-        if data.reviewDecision == 'APPROVED' then
-          table.insert(status_parts, '[approved]')
-        elseif data.reviewDecision == 'CHANGES_REQUESTED' then
-          table.insert(status_parts, '[changes requested]')
-          hl = 'DiagnosticError'
-        elseif data.reviewDecision == 'REVIEW_REQUIRED' then
-          table.insert(status_parts, '[review needed]')
-          hl = 'DiagnosticWarn'
-        end
-
-        if data.mergeable == 'CONFLICTING' then
-          table.insert(status_parts, '[conflicts]')
-          hl = 'DiagnosticError'
-        end
+      elseif data.reviewDecision == 'REVIEW_REQUIRED' then
+        table.insert(status_parts, '[review needed]')
+        hl = 'DiagnosticWarn'
       end
 
-      callback({ '  PR: ' .. table.concat(status_parts, ' '), hl })
-    end)
-  )
+      if data.mergeable == 'CONFLICTING' then
+        table.insert(status_parts, '[conflicts]')
+        hl = 'DiagnosticError'
+      end
+    end
+
+    callback({ '  PR: ' .. table.concat(status_parts, ' '), hl })
+  end)
 end
 
 local function show_dashboard(results)
@@ -164,55 +163,7 @@ local function show_dashboard(results)
     if r then table.insert(lines, r) end
   end
 
-  local buf = vim.api.nvim_create_buf(false, true)
-  local content = {}
-  local highlights = {}
-
-  for i, line in ipairs(lines) do
-    table.insert(content, line[1])
-    if line[2] then table.insert(highlights, { i - 1, line[2] }) end
-  end
-
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, content)
-  vim.bo[buf].modifiable = false
-  vim.bo[buf].bufhidden = 'wipe'
-  vim.bo[buf].buftype = 'nofile'
-
-  local width = 60
-  for _, line in ipairs(content) do
-    width = math.max(width, vim.fn.strdisplaywidth(line) + 4)
-  end
-  width = math.min(width, math.floor(vim.o.columns * 0.8))
-
-  local height = math.min(#content, math.floor(vim.o.lines * 0.6))
-
-  local win = vim.api.nvim_open_win(buf, true, {
-    relative = 'editor',
-    width = width,
-    height = height,
-    col = math.floor((vim.o.columns - width) / 2),
-    row = math.floor((vim.o.lines - height) / 2),
-    style = 'minimal',
-    border = 'rounded',
-    title = ' Git Dashboard ',
-    title_pos = 'center',
-  })
-
-  dashboard_win = win
-
-  for _, hl in ipairs(highlights) do
-    vim.api.nvim_buf_add_highlight(buf, -1, hl[2], hl[1], 0, -1)
-  end
-
-  local function close_win()
-    if vim.api.nvim_win_is_valid(win) then
-      vim.api.nvim_win_close(win, true)
-      dashboard_win = nil
-    end
-  end
-
-  vim.keymap.set('n', 'q', close_win, { buffer = buf, nowait = true })
-  vim.keymap.set('n', '<Esc>', close_win, { buffer = buf, nowait = true })
+  dashboard_win = require('custom.utils.ui').show_panel({ title = 'Git Dashboard', lines = lines })
 end
 
 function M.git_dashboard()
