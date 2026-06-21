@@ -41,6 +41,7 @@ Task arrives
     │   └── Performance concerns? ────→ performance-optimization
     ├── Commit already-staged changes? ─→ commit
     ├── Committing/branching? ─────────→ git-workflow-and-versioning
+    ├── Worktrees in wcreated/wcheckout? → worktree-management
     ├── CI/CD pipeline work? ──────────→ ci-cd-and-automation
     ├── npm audit + bump deps to minor? → npm-audit-and-bump-minor
     ├── Deprecating/migrating? ────────→ deprecation-and-migration
@@ -197,6 +198,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Review | performance-optimization | Measure first, optimize only what matters |
 | Ship | commit | Conventional commit for already-staged changes |
 | Ship | git-workflow-and-versioning | Atomic commits, clean history |
+| Ship | worktree-management | Create/checkout/delete/update/clean git worktrees in ~/Programming/wcreated & wcheckout |
 | Ship | ci-cd-and-automation | Automated quality gates on every change |
 | Ship | npm-audit-and-bump-minor | Audit npm deps, bump to latest minor (no majors), re-audit, verify |
 | Ship | deprecation-and-migration | Remove old systems and migrate users safely |

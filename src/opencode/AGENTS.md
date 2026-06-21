@@ -75,6 +75,7 @@ Map every request to the appropriate skill before acting.
 | npm audit + bump deps to latest minor (no majors), re-audit, verify | `npm-audit-and-bump-minor` |
 | Commit already-staged changes with a conventional message | `commit` |
 | Commits, branching, conflicts, parallel work | `git-workflow-and-versioning` |
+| Git worktrees in ~/Programming/wcreated & wcheckout (create/checkout/delete/update/clean) | `worktree-management` |
 | Removing/sunsetting systems, migrating implementations | `deprecation-and-migration` |
 | ADRs, decision records, API/feature documentation | `documentation-and-adrs` |
 | New session setup, rules files, context configuration | `context-engineering` |
