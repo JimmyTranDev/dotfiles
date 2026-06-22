@@ -1,0 +1,10 @@
+{
+  "addy-agent-skills": {
+    "source": {
+      "source": "github",
+      "repo": "addyosmani/agent-skills"
+    },
+    "installLocation": "/Users/jimmy/.claude/plugins/marketplaces/addy-agent-skills",
+    "lastUpdated": "2026-06-22T07:04:35.779Z"
+  }
+}

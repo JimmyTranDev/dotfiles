@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "plugins": {
+    "agent-skills@addy-agent-skills": [
+      {
+        "scope": "user",
+        "installPath": "/Users/jimmy/.claude/plugins/cache/addy-agent-skills/agent-skills/17214a29c429",
+        "version": "17214a29c429",
+        "installedAt": "2026-06-22T07:04:45.978Z",
+        "lastUpdated": "2026-06-22T07:04:45.978Z",
+        "gitCommitSha": "17214a29c429a19f7a9607f2c06f9d650ea87eb0"
+      }
+    ]
+  }
+}

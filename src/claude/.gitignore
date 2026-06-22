@@ -1,0 +1,31 @@
+# Dynamic runtime state for ~/.claude (symlinked here).
+# Tracked: settings.json, CLAUDE.md, .mcp.json, hooks/, agents/, commands/,
+# skills/, and plugin manifests. Everything below is machine-local/regenerated.
+
+# --- Sessions & history ---
+sessions/
+session-env/
+projects/
+file-history/
+shell-snapshots/
+ide/
+backups/
+statsig/
+todos/
+history.jsonl
+# Generated marker/state files (.last-cleanup, .last_inuse_sweep, .last_session_id, ...)
+.last-*
+.last_*
+*.swp
+
+# --- Plugin caches (keep installed_plugins.json + known_marketplaces.json) ---
+plugins/cache/
+plugins/marketplaces/
+plugins/plugin-catalog-cache.json
+
+# --- Local secrets / machine-specific state ---
+claude.json
+.credentials.json
+*.local.json
+settings.local.json
+settings.json
