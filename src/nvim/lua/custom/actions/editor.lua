@@ -9,6 +9,28 @@ function M.toggle_wrap() vim.opt.wrap = not vim.opt.wrap:get() end
 
 function M.toggle_markview() vim.cmd('Markview Toggle') end
 
+-- Maximize the current window by opening its buffer in a dedicated full-size
+-- tab (`:tab split`); toggling again closes that tab, restoring the original
+-- split layout exactly. The cursor position from the maximized view is synced
+-- back to the source window on restore.
+function M.toggle_maximize()
+  local ok, zoomed = pcall(vim.api.nvim_tabpage_get_var, 0, 'zoom_maximized')
+  if ok and zoomed then
+    local cursor = vim.api.nvim_win_get_cursor(0)
+    vim.cmd('tabclose')
+    pcall(vim.api.nvim_win_set_cursor, 0, cursor)
+    return
+  end
+
+  if #vim.api.nvim_tabpage_list_wins(0) < 2 then
+    vim.notify('Only one window — already maximized', vim.log.levels.INFO)
+    return
+  end
+
+  vim.cmd('tab split')
+  vim.api.nvim_tabpage_set_var(0, 'zoom_maximized', true)
+end
+
 local function scan_dirs(dir)
   local names = {}
   for _, entry in ipairs(files.scan(dir, { type = 'directory' })) do

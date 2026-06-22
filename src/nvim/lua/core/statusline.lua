@@ -15,7 +15,7 @@ local function get_catppuccin_colors()
       red = '#f38ba8',
       yellow = '#f9e2af',
       sky = '#89dceb',
-      teal = '#94e2d5',
+      lavender = '#b4befe',
     }
   end
 
@@ -140,7 +140,7 @@ local function build_config()
 
   left_bubble(function() return { fg = colors.sapphire, gui = 'bold' } end, '', { get_directory_name })
 
-  left_bubble(function() return { fg = colors.teal, gui = 'bold' } end, '', { get_git_branch })
+  left_bubble(function() return { fg = colors.lavender, gui = 'bold' } end, '', { get_git_branch })
 
   table.insert(config.sections.lualine_c, {
     'diff',
@@ -187,7 +187,7 @@ local function build_config()
     { function() return (vim.bo.fileencoding ~= '' and vim.bo.fileencoding or vim.o.encoding):upper() end, cond = conditions.hide_in_width }
   )
 
-  right_bubble(function() return { fg = colors.teal, gui = 'bold' } end, '', {
+  right_bubble(function() return { fg = colors.lavender, gui = 'bold' } end, '', {
     function()
       local line = vim.fn.line('.')
       local col = vim.fn.virtcol('.')

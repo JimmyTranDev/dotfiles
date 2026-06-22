@@ -8,9 +8,10 @@ SCRIPTS_DIR="$SCRIPT_DIR/../.."
 source "$SCRIPTS_DIR/utils/logging.sh"
 source "$SCRIPTS_DIR/utils/utility.sh"
 
-# fzf-pick a single project under ~/Programming and print its absolute path on
-# stdout. Mirrors the ^o / ^f shell pickers: shares ~/.last_project so the most
-# recent selection floats to the top. Returns non-zero if nothing is chosen.
+# fzf-pick a single project or worktree under ~/Programming and print its
+# absolute path on stdout. Mirrors the ^o / ^f shell pickers: shares
+# ~/.last_project so the most recent selection floats to the top. Worktrees in
+# the wcreated/wcheckout containers are included. Non-zero if nothing is chosen.
 select_project_dir() {
 	local programming_dir="$HOME/Programming"
 	local last_file="$HOME/.last_project"
@@ -31,8 +32,21 @@ select_project_dir() {
 		done
 	done < <(get_org_dirs "$programming_dir")
 
+	# Also include git worktrees from the wcreated/wcheckout containers so a
+	# worktree can be opened directly. Labels mirror the "[org] project" format,
+	# tagged by container, so they reconstruct to $HOME/Programming/<container>/<name>.
+	local wt_dir wt_label wt_name
+	for wt_dir in "${WCREATED_DIR:-$programming_dir/wcreated}" "${WCHECKOUT_DIR:-$programming_dir/wcheckout}"; do
+		[[ -d "$wt_dir" ]] || continue
+		wt_label="${wt_dir%/}"
+		wt_label="${wt_label##*/}"
+		while IFS= read -r wt_name; do
+			[[ -n "$wt_name" ]] && items+=("[$wt_label] $wt_name")
+		done < <(find_git_repos_and_worktrees "$wt_dir")
+	done
+
 	if [[ ${#items[@]} -eq 0 ]]; then
-		log_error "No projects found in $programming_dir"
+		log_error "No projects or worktrees found in $programming_dir"
 		return 1
 	fi
 

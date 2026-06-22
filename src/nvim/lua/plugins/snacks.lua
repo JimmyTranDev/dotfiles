@@ -172,7 +172,7 @@ return {
     },
 
     {
-      '<leader>fff',
+      '<leader>ff',
       function()
         Snacks.picker.smart({
           hidden = true,
@@ -183,22 +183,22 @@ return {
       desc = '󰈙 Smart Find Files',
     },
     {
-      '<leader>fsg',
+      '<leader>fg',
       function() Snacks.picker.grep({ hidden = true }) end,
       desc = '󰊄 Grep',
     },
     {
-      '<leader>fvr',
+      '<leader>fr',
       function() Snacks.picker.resume() end,
       desc = '󰻂 Resume',
     },
     {
-      '<leader>fvu',
+      '<leader>fh',
       function() Snacks.picker.undo() end,
       desc = '󰕘 Undo History',
     },
     {
-      '<leader>fle',
+      '<leader>fe',
       function() Snacks.picker.diagnostics() end,
       desc = '󰒡 Diagnostics',
     },
@@ -230,7 +230,7 @@ return {
       desc = '󰓕 Notification History',
     },
     {
-      '<leader>ffN',
+      '<leader>fn',
       function()
         Snacks.picker.files({
           dirs = { vim.fn.expand('~/Programming/JimmyTranDev/notes') },
@@ -245,7 +245,7 @@ return {
       desc = '󰘳 Commands',
     },
     {
-      '<leader>ffp',
+      '<leader>fp',
       function()
         local cwd = vim.fn.getcwd()
         local dirs = {}
@@ -261,42 +261,42 @@ return {
       desc = '󰈙 Find Plan & Update Files',
     },
     {
-      '<leader>fgt',
+      '<leader>fjt',
       function() Snacks.picker.git_files() end,
       desc = '󰊢 Find Git Files',
     },
     {
-      '<leader>fgb',
+      '<leader>fjb',
       function() Snacks.picker.git_branches() end,
       desc = '󰘬 Git Branches',
     },
     {
-      '<leader>fgl',
+      '<leader>fjl',
       function() Snacks.picker.git_log() end,
       desc = '󰜎 Git Log',
     },
     {
-      '<leader>fgL',
+      '<leader>fjL',
       function() Snacks.picker.git_log_line() end,
       desc = '󰜎 Git Log Line',
     },
     {
-      '<leader>fgd',
+      '<leader>fjd',
       function() Snacks.picker.git_status() end,
       desc = '󰊢 Git Status',
     },
     {
-      '<leader>fgS',
+      '<leader>fjS',
       function() Snacks.picker.git_stash() end,
       desc = '󰛆 Git Stash',
     },
     {
-      '<leader>fgu',
+      '<leader>fju',
       function() Snacks.picker.git_status() end,
       desc = '󰶟 Git Status (uncommitted changes)',
     },
     {
-      '<leader>fgH',
+      '<leader>fjH',
       function()
         local ok, gs = pcall(require, 'gitsigns')
         if not ok then
@@ -343,7 +343,7 @@ return {
       desc = '󰶟 Find Hunks (Buffer)',
     },
     {
-      '<leader>fgD',
+      '<leader>fjD',
       function()
         local ref = vim.fn.system('git rev-parse --verify origin/HEAD 2>/dev/null'):gsub('%s+', '')
         if vim.v.shell_error ~= 0 or ref == '' then
@@ -359,12 +359,12 @@ return {
       desc = '󰶟 Git Diff vs Origin',
     },
     {
-      '<leader>fgf',
+      '<leader>fjf',
       function() Snacks.picker.git_log_file() end,
       desc = '󰜎 Git Log File',
     },
     {
-      '<leader>fgc',
+      '<leader>fjc',
       function() Snacks.picker.grep({ search = '<<<<<<<' }) end,
       desc = '󰘬 Find Git Conflicts',
     },
@@ -406,7 +406,7 @@ return {
       desc = '󰗊 FMS Text Lookup',
     },
     {
-      '<leader>ffo',
+      '<leader>fr',
       function()
         local git_root = vim.fn.systemlist('git rev-parse --show-toplevel')[1]
         if vim.v.shell_error ~= 0 or not git_root or git_root == '' then

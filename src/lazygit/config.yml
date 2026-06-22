@@ -9,7 +9,7 @@ os:
   editAtLine: 'nvim --server "$NVIM" --remote-tab +{{line}} {{filename}}'
 theme:
   activeBorderColor:
-    - '#94e2d5'
+    - '#b4befe'
     - bold
   inactiveBorderColor:
     - '#a6adc8'

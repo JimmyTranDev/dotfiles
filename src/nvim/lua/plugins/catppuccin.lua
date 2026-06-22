@@ -40,13 +40,13 @@ return {
       custom_highlights = function(colors)
         return {
           -- Picker
-          SnacksPickerTitle = { fg = colors.teal, style = { 'bold' } },
+          SnacksPickerTitle = { fg = colors.lavender, style = { 'bold' } },
           SnacksPickerBorder = { fg = colors.surface1, bg = colors.mantle },
           SnacksPickerInputBorder = { fg = colors.surface1, bg = colors.mantle },
           SnacksPickerPreviewTitle = { fg = colors.blue, style = { 'bold' } },
           SnacksPickerMatch = { fg = colors.peach, style = { 'bold' } },
           -- Dashboard
-          SnacksDashboardHeader = { fg = colors.teal },
+          SnacksDashboardHeader = { fg = colors.lavender },
           SnacksDashboardTitle = { fg = colors.blue, style = { 'bold' } },
           SnacksDashboardIcon = { fg = colors.peach },
           SnacksDashboardKey = { fg = colors.yellow },
@@ -60,7 +60,7 @@ return {
           SnacksNotifierTitleWarn = { fg = colors.yellow, style = { 'bold' } },
           SnacksNotifierTitleError = { fg = colors.red, style = { 'bold' } },
           -- Input
-          SnacksInputTitle = { fg = colors.teal, style = { 'bold' } },
+          SnacksInputTitle = { fg = colors.lavender, style = { 'bold' } },
           SnacksInputBorder = { fg = colors.surface1, bg = colors.mantle },
         }
       end,

@@ -3,16 +3,16 @@
 # : Manager {{{
 
 [mgr]
-cwd = { fg = "#94e2d5" }
+cwd = { fg = "#b4befe" }
 
 # Find
 find_keyword  = { fg = "#f9e2af", bold = true, italic = true, underline = true }
-find_position = { fg = "#94e2d5", bg = "reset", bold = true, italic = true }
+find_position = { fg = "#b4befe", bg = "reset", bold = true, italic = true }
 
 # Marker
 marker_copied   = { fg = "#a6e3a1", bg = "#a6e3a1" }
 marker_cut      = { fg = "#f38ba8", bg = "#f38ba8" }
-marker_marked   = { fg = "#94e2d5", bg = "#94e2d5" }
+marker_marked   = { fg = "#b4befe", bg = "#b4befe" }
 marker_selected = { fg = "#f9e2af", bg = "#f9e2af" }
 
 # Count
@@ -44,8 +44,8 @@ normal_main = { fg = "#1e1e2e", bg = "#89b4fa", bold = true }
 normal_alt  = { fg = "#89b4fa", bg = "#313244" }
 
 # Select mode
-select_main = { fg = "#1e1e2e", bg = "#94e2d5", bold = true }
-select_alt  = { fg = "#94e2d5", bg = "#313244" }
+select_main = { fg = "#1e1e2e", bg = "#b4befe", bold = true }
+select_alt  = { fg = "#b4befe", bg = "#313244" }
 
 # Unset mode
 unset_main = { fg = "#1e1e2e", bg = "#f2cdcd", bold = true }
@@ -76,7 +76,7 @@ progress_error  = { fg = "#f9e2af", bg = "#f38ba8" }
 
 [pick]
 border   = { fg = "#89b4fa" }
-active   = { fg = "#94e2d5", bold = true }
+active   = { fg = "#b4befe", bold = true }
 inactive = {}
 
 # : }}}
@@ -106,7 +106,7 @@ border = { fg = "#89b4fa" }
 [tasks]
 border  = { fg = "#89b4fa" }
 title   = {}
-hovered = { fg = "#94e2d5", bold = true }
+hovered = { fg = "#b4befe", bold = true }
 
 # : }}}
 
@@ -115,9 +115,9 @@ hovered = { fg = "#94e2d5", bold = true }
 
 [which]
 mask            = { bg = "#313244" }
-cand            = { fg = "#94e2d5" }
+cand            = { fg = "#b4befe" }
 rest            = { fg = "#9399b2" }
-desc            = { fg = "#94e2d5" }
+desc            = { fg = "#b4befe" }
 separator       = "  "
 separator_style = { fg = "#585b70" }
 
@@ -127,8 +127,8 @@ separator_style = { fg = "#585b70" }
 # : Help {{{
 
 [help]
-on      = { fg = "#94e2d5" }
-run     = { fg = "#94e2d5" }
+on      = { fg = "#b4befe" }
+run     = { fg = "#b4befe" }
 hovered = { reversed = true, bold = true }
 footer  = { fg = "#313244", bg = "#cdd6f4" }
 
@@ -140,8 +140,8 @@ footer  = { fg = "#313244", bg = "#cdd6f4" }
 [spot]
 border   = { fg = "#89b4fa" }
 title    = { fg = "#89b4fa" }
-tbl_col  = { fg = "#94e2d5" }
-tbl_cell = { fg = "#94e2d5", bg = "#45475a" }
+tbl_col  = { fg = "#b4befe" }
+tbl_cell = { fg = "#b4befe", bg = "#45475a" }
 
 # : }}}
 
@@ -162,11 +162,11 @@ title_error = { fg = "#f38ba8" }
 
 rules = [
 	# Image
-	{ mime = "image/*", fg = "#94e2d5" },
+	{ mime = "image/*", fg = "#b4befe" },
 	# Media
 	{ mime = "{audio,video}/*", fg = "#f9e2af" },
 	# Archive
-	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = "#94e2d5" },
+	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = "#b4befe" },
 	# Document
 	{ mime = "application/{pdf,doc,rtf}", fg = "#a6e3a1" },
 	# Virtual file system
@@ -181,20 +181,20 @@ rules = [
 [icon]
 
 dirs = [
-	{ name = ".config", text = "", fg = "#94e2d5" },
-	{ name = ".git", text = "", fg = "#94e2d5" },
+	{ name = ".config", text = "", fg = "#b4befe" },
+	{ name = ".git", text = "", fg = "#b4befe" },
 	{ name = ".github", text = "", fg = "#89b4fa" },
 	{ name = ".npm", text = "", fg = "#89b4fa" },
-	{ name = "Desktop", text = "", fg = "#94e2d5" },
-	{ name = "Development", text = "", fg = "#94e2d5" },
-	{ name = "Documents", text = "", fg = "#94e2d5" },
-	{ name = "Downloads", text = "", fg = "#94e2d5" },
-	{ name = "Library", text = "", fg = "#94e2d5" },
-	{ name = "Movies", text = "", fg = "#94e2d5" },
-	{ name = "Music", text = "", fg = "#94e2d5" },
-	{ name = "Pictures", text = "", fg = "#94e2d5" },
-	{ name = "Public", text = "", fg = "#94e2d5" },
-	{ name = "Videos", text = "", fg = "#94e2d5" },
+	{ name = "Desktop", text = "", fg = "#b4befe" },
+	{ name = "Development", text = "", fg = "#b4befe" },
+	{ name = "Documents", text = "", fg = "#b4befe" },
+	{ name = "Downloads", text = "", fg = "#b4befe" },
+	{ name = "Library", text = "", fg = "#b4befe" },
+	{ name = "Movies", text = "", fg = "#b4befe" },
+	{ name = "Music", text = "", fg = "#b4befe" },
+	{ name = "Pictures", text = "", fg = "#b4befe" },
+	{ name = "Public", text = "", fg = "#b4befe" },
+	{ name = "Videos", text = "", fg = "#b4befe" },
 ]
 conds = [
 	# Special files

@@ -84,11 +84,12 @@ maps('n', {
   { '<leader>;S', editor_actions.toggle_spellcheck, '󰓆 Toggle spellcheck' },
   { '<leader>;v', editor_actions.toggle_markview, '󰙈 Toggle Markview' },
   { '<leader>;w', editor_actions.toggle_wrap, '󰌪 Toggle text wrap' },
+  { '<leader>;z', editor_actions.toggle_maximize, '󰊓 Toggle maximize window' },
   { '<leader>;R', ':e!<CR>', '󰔁 Reload file from disk' },
   { '<leader>j', ':e!<CR>', '󰔁 Refresh current file' },
-  { '<leader>ffR', editor_actions.switch_repo_by_zellij_tab, '󰖲 Switch repo + rename Zellij tab' },
   { '<leader>fsa', file_actions.grep_current_file_dir, '󰊄 Grep in current file dir' },
-  { '<leader>ffW', project_actions.switch_project, '󰉋 Switch project' },
+  { '<leader>fR', editor_actions.switch_repo_by_zellij_tab, '󰖲 Switch repo + rename Zellij tab' },
+  { '<leader>fW', project_actions.switch_project, '󰉋 Switch project' },
 })
 
 map('x', '<leader>;T', [["zy:%s/\V<C-r>=escape(@z, '/')<CR>//gc<left><left><left>]], { desc = '󰕈 Visual search replace' })

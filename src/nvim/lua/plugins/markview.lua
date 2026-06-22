@@ -8,12 +8,12 @@ return {
   config = function()
     local set_hl = vim.api.nvim_set_hl
 
-    set_hl(0, 'MarkviewHeading1', { fg = '#94e2d5', bold = true })
-    set_hl(0, 'MarkviewHeading1Sign', { fg = '#94e2d5' })
+    set_hl(0, 'MarkviewHeading1', { fg = '#b4befe', bold = true })
+    set_hl(0, 'MarkviewHeading1Sign', { fg = '#b4befe' })
     set_hl(0, 'MarkviewHeading2', { fg = '#89b4fa', bold = true })
     set_hl(0, 'MarkviewHeading2Sign', { fg = '#89b4fa' })
-    set_hl(0, 'MarkviewHeading3', { fg = '#94e2d5' })
-    set_hl(0, 'MarkviewHeading3Sign', { fg = '#94e2d5' })
+    set_hl(0, 'MarkviewHeading3', { fg = '#b4befe' })
+    set_hl(0, 'MarkviewHeading3Sign', { fg = '#b4befe' })
     set_hl(0, 'MarkviewHeading4', { fg = '#a6e3a1' })
     set_hl(0, 'MarkviewHeading4Sign', { fg = '#a6e3a1' })
     set_hl(0, 'MarkviewHeading5', { fg = '#f9e2af' })

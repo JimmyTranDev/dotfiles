@@ -20,11 +20,11 @@ return {
       else
         colors = {}
       end
-      if not colors.teal then
-        colors = { teal = '#94e2d5', blue = '#89b4fa', yellow = '#f9e2af', sapphire = '#74c7ec', base = '#1e1e2e', surface2 = '#585b70' }
+      if not colors.lavender then
+        colors = { lavender = '#b4befe', blue = '#89b4fa', yellow = '#f9e2af', sapphire = '#74c7ec', base = '#1e1e2e', surface2 = '#585b70' }
       end
       local highlights = {
-        WhichKey = { fg = colors.teal },
+        WhichKey = { fg = colors.lavender },
         WhichKeyGroup = { fg = colors.blue },
         WhichKeyDesc = { fg = colors.yellow },
         WhichKeySeperator = { fg = colors.sapphire },
