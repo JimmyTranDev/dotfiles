@@ -93,6 +93,8 @@ update auth.ts
 - `docs` — Documentation only
 - `chore` — Tooling, dependencies, config
 
+These are the common types. The `commit` skill holds the full Conventional Commits set (`perf`, `style`, `build`, `ci`, `revert`, …) and the exact staged-diff commit routine.
+
 ### 4. Keep Concerns Separate
 
 Don't combine formatting changes with behavior changes. Don't combine refactors with features. Each type of change should be a separate commit — and ideally a separate PR:
@@ -144,31 +146,9 @@ chore/<short-description>     → chore/update-deps
 refactor/<short-description>  → refactor/auth-module
 ```
 
-## Working with Worktrees
+### Set the upstream when branching off a remote branch
 
-For parallel AI agent work, use git worktrees to run multiple branches simultaneously:
-
-```bash
-# Check out an EXISTING branch into its own directory
-git worktree add ../project-feature-a feature/task-creation
-
-# Create a NEW branch in a worktree, based off an up-to-date remote base
-git fetch origin
-git worktree add -b BW-1234-new-feature ../project-feature-b origin/develop
-
-# Each worktree is a separate directory with its own branch
-ls ../
-  project/              ← main branch
-  project-feature-a/    ← task-creation branch
-  project-feature-b/    ← BW-1234-new-feature branch
-
-# When done, merge and clean up
-git worktree remove ../project-feature-a
-```
-
-### Set the upstream when branching off another branch
-
-A branch created off `origin/develop` (or any remote-tracking branch) **inherits that branch's upstream**. Its tracking ref points at `origin/develop`, not its own remote branch — so `git status` reports `...origin/develop [ahead N]` and a bare `git push`/`git pull` targets the wrong branch.
+A branch created off `origin/develop` (or any remote-tracking branch) **inherits that branch's upstream**. Its tracking ref points at `origin/develop`, not its own remote branch — so `git status` reports `...origin/develop [ahead N]` and a bare `git push`/`git pull` targets the wrong branch. This applies to any branch cut from a remote ref, with or without worktrees.
 
 ```bash
 # Symptom: the upstream does not match the branch name
@@ -183,13 +163,26 @@ git status -sb
 ## BW-1234-new-feature...origin/BW-1234-new-feature
 ```
 
-This is non-destructive — it creates a new remote branch and never touches `develop`. Do it right after creating the worktree, before you push or pull. To re-point an already-published branch instead, use `git branch --set-upstream-to=origin/BW-1234-new-feature`.
+This is non-destructive — it creates a new remote branch and never touches `develop`. To re-point an already-published branch instead, use `git branch --set-upstream-to=origin/BW-1234-new-feature`.
 
-Benefits:
-- Multiple agents can work on different features simultaneously
-- No branch switching needed (each directory has its own branch)
-- If one experiment fails, delete the worktree — nothing is lost
-- Changes are isolated until explicitly merged
+## Working with Worktrees
+
+Git worktrees check out multiple branches at once, each in its own directory — ideal for parallel AI-agent work:
+
+- Multiple agents work different features simultaneously, isolated until merged.
+- No branch switching — each directory holds its own branch.
+- A failed experiment is discarded by deleting its worktree; nothing else is lost.
+
+```bash
+git worktree add ../project-feature-a feature/task-creation          # existing branch
+git fetch origin
+git worktree add -b BW-1234-new-feature ../feature-b origin/develop  # new branch off an up-to-date base
+git worktree remove ../project-feature-a                             # clean up after merge
+```
+
+After cutting a branch from a remote base, set its upstream as described under **Set the upstream when branching off a remote branch** above.
+
+For the managed `~/Programming/wcreated` and `~/Programming/wcheckout` worktrees — Jira-named branches, base-branch detection (`develop`→`main`→`master`), dependency install, and ownership-aware deletion — use the `worktree-management` skill.
 
 ## The Save Point Pattern
 

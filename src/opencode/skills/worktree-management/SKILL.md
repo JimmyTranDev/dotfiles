@@ -44,7 +44,7 @@ Honor any overriding `WCREATED_DIR` / `WCHECKOUT_DIR` / `PROGRAMMING_DIR` env va
 - **Branch slug** — lowercase; every non-`[a-z0-9]` run → `-`; trim leading/trailing `-`.
 - **Folder from branch** — strip the leading `segment/` (e.g. `feature/login` → `login`).
 - **Unique dir** — if the target dir exists, append `-1`, `-2`, … until free.
-- **Commit types** — `feat fix docs style refactor test chore revert build ci perf`.
+- **Commit types** — any Conventional Commit type (see `git-workflow-and-versioning`).
 - Resolve a worktree's main repo robustly with: `repo=$(dirname "$(git -C <worktree> rev-parse --path-format=absolute --git-common-dir)")` (underlying mechanism: the worktree's `.git` file holds `gitdir: <repo>/.git/worktrees/<name>`).
 
 ## Workflow
@@ -59,7 +59,7 @@ Honor any overriding `WCREATED_DIR` / `WCHECKOUT_DIR` / `PROGRAMMING_DIR` env va
      `acli jira workitem view <TICKET> --json --fields summary | jq -r '.fields.summary'` —
      then `branch=<TICKET>-<slug(summary)>` (fall back to `<TICKET>` if `acli`/`jq` absent or empty).
    - Otherwise use the input directly. Sanitize to `[A-Za-z0-9._-]`.
-5. **Choose a commit type** from the list above.
+5. **Choose a commit type** (any Conventional Commit type — see Conventions above).
 6. **Compute the path:** `dir=<WCREATED_DIR>/<branch>` (unique-suffixed); `mkdir -p <WCREATED_DIR>`.
 7. **Create worktree + new branch off base:**
    `git -C <repo> worktree add -b <branch> <dir> <base>`
