@@ -149,20 +149,41 @@ refactor/<short-description>  → refactor/auth-module
 For parallel AI agent work, use git worktrees to run multiple branches simultaneously:
 
 ```bash
-# Create a worktree for a feature branch
+# Check out an EXISTING branch into its own directory
 git worktree add ../project-feature-a feature/task-creation
-git worktree add ../project-feature-b feature/user-settings
+
+# Create a NEW branch in a worktree, based off an up-to-date remote base
+git fetch origin
+git worktree add -b BW-1234-new-feature ../project-feature-b origin/develop
 
 # Each worktree is a separate directory with its own branch
-# Agents can work in parallel without interfering
 ls ../
   project/              ← main branch
   project-feature-a/    ← task-creation branch
-  project-feature-b/    ← user-settings branch
+  project-feature-b/    ← BW-1234-new-feature branch
 
 # When done, merge and clean up
 git worktree remove ../project-feature-a
 ```
+
+### Set the upstream when branching off another branch
+
+A branch created off `origin/develop` (or any remote-tracking branch) **inherits that branch's upstream**. Its tracking ref points at `origin/develop`, not its own remote branch — so `git status` reports `...origin/develop [ahead N]` and a bare `git push`/`git pull` targets the wrong branch.
+
+```bash
+# Symptom: the upstream does not match the branch name
+git status -sb
+## BW-1234-new-feature...origin/develop [ahead 1]   ← wrong upstream
+
+# Fix: publish the branch to its OWN remote and re-point the upstream in one step
+git push -u origin BW-1234-new-feature
+
+# Verify it now matches
+git status -sb
+## BW-1234-new-feature...origin/BW-1234-new-feature
+```
+
+This is non-destructive — it creates a new remote branch and never touches `develop`. Do it right after creating the worktree, before you push or pull. To re-point an already-published branch instead, use `git branch --set-upstream-to=origin/BW-1234-new-feature`.
 
 Benefits:
 - Multiple agents can work on different features simultaneously

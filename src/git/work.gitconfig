@@ -3,3 +3,10 @@
 # for every repo under ~/Programming, including worktree dirs.
 [core]
 	excludesFile = ~/Programming/JimmyTranDev/dotfiles/src/.gitignore_work
+
+# Never inherit a base branch's upstream. A branch created off origin/develop
+# (e.g. in a new worktree) would otherwise track origin/develop; "simple" only
+# sets up tracking when the new branch name matches the remote branch name, so
+# feature branches get no upstream until you `git push -u`.
+[branch]
+	autoSetupMerge = simple
