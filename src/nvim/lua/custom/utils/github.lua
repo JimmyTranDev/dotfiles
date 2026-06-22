@@ -106,7 +106,7 @@ function M.fetch_my_prs_across_owners(owners, opts, callback)
       '--author',
       '@me',
       '--json',
-      'number,title,repository,url,isDraft',
+      'number,title,repository,url,isDraft,createdAt',
       '--limit',
       '100',
     })
@@ -127,6 +127,7 @@ function M.fetch_my_prs_across_owners(owners, opts, callback)
                 url = pr.url,
                 repo = repo_name,
                 draft = pr.isDraft,
+                created_at = pr.createdAt,
               })
             end
           end

@@ -57,6 +57,9 @@ local function fetch_and_show_prs(org_name, usernames)
     end
 
     table.sort(all_prs, function(a, b)
+      local a_created = a.created_at or ''
+      local b_created = b.created_at or ''
+      if a_created ~= b_created then return a_created > b_created end
       if a.author ~= b.author then return a.author < b.author end
       return a.repo < b.repo
     end)
@@ -93,6 +96,7 @@ local function fetch_and_show_prs(org_name, usernames)
             repo = pr.repo,
             author = author,
             draft = pr.draft,
+            created_at = pr.created_at,
           })
         end
         show_picker()
@@ -113,7 +117,7 @@ local function fetch_and_show_prs(org_name, usernames)
         '--author',
         username,
         '--json',
-        'number,title,repository,url,isDraft',
+        'number,title,repository,url,isDraft,createdAt',
         '--limit',
         '100',
       },
@@ -132,6 +136,7 @@ local function fetch_and_show_prs(org_name, usernames)
                 repo = repo_name,
                 author = username,
                 draft = pr.isDraft,
+                created_at = pr.createdAt,
               })
             end
           end
