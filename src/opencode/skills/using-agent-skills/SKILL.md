@@ -27,6 +27,7 @@ Task arrives
     │   ├── Need better context? ─────→ context-engineering
     │   ├── Need doc-verified code? ───→ source-driven-development
     │   └── Stakes high / unfamiliar code? ──→ doubt-driven-development
+    ├── Explicit "yolo" / "full send" / "I'll test later"? → yolo
     ├── Writing/running tests? ────────→ test-driven-development
     │   ├── Existing code hard to test / low coverage? → testability-and-coverage
     │   └── Browser-based? ───────────→ browser-testing-with-devtools
@@ -176,6 +177,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Define | spec-driven-development | Requirements and acceptance criteria before code |
 | Plan | planning-and-task-breakdown | Decompose into small, verifiable tasks |
 | Build | fast-implementation | Express lane for small, low-risk, obvious changes with a minimal safety net |
+| Build | yolo | Opt-in no-gate pass: clarifies the target, then full-sends everything and hands back a test plan |
 | Build | incremental-implementation | Thin vertical slices, test each before expanding |
 | Build | source-driven-development | Verify against official docs before implementing |
 | Build | doubt-driven-development | Adversarial fresh-context review of every non-trivial decision |
