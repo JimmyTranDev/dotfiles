@@ -1,7 +1,6 @@
 # Pick a project with fzf (last selection first), cd into it, then open Neovim.
-# Sibling of select_project (^f) and select_project_opencode (^o): bound to ^n
-# (see the widget below) but launches `nvim` instead of opencode. Shares
-# ~/.last_project with ^f/^o.
+# Bound to ^n (see the widget below); launches `nvim` instead of opencode.
+# Shares ~/.last_project with select_project_opencode (^o).
 select_project_nvim() {
 	local programming_dir="$HOME/Programming"
 	local last_file="$HOME/.last_project"

@@ -202,10 +202,8 @@
 
 | Key | Action |
 |-----|--------|
-| `^f` | select_project |
-| `^g` | select_worktree |
-| `^[f` | select_projects_multi |
-| `^[g` | select_worktrees_multi |
+| `^f` | select_project_worktree |
+| `^[f` | select_projects_worktrees_multi |
 | `^u` | zellij_update_tab_indexes |
 
 ## Ghostty Keybindings

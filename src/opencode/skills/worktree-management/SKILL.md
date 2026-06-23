@@ -1,6 +1,6 @@
 ---
 name: worktree-management
-description: Manages git worktrees across the ~/Programming/wcreated and ~/Programming/wcheckout directories using raw git commands. Use when creating a new branch worktree (wcreated), checking out an existing remote branch as a worktree (wcheckout), or deleting, updating, or cleaning these worktrees. Triggers on "create a worktree", "wcreated", "wcheckout", "checkout a branch as a worktree", "new worktree for ticket", "delete/prune worktrees", or any path under ~/Programming/wcreated or ~/Programming/wcheckout. Encodes the Jira branch naming, base-branch detection, and the wcreated-deletes-remote vs wcheckout-preserves-remote rules. Do NOT use for general commit/branch history work (use git-workflow-and-versioning) or for invoking the repo's worktree shell scripts.
+description: Manages git worktrees across the ~/Programming/wcreated and ~/Programming/wcheckout directories using raw git commands. Use when creating a new branch worktree (wcreated), checking out an existing remote branch as a worktree (wcheckout), or deleting, updating, or cleaning these worktrees. Triggers on "create a worktree", "wcreated", "wcheckout", "checkout a branch as a worktree", "new worktree for ticket", "delete/prune worktrees", or any path under ~/Programming/wcreated or ~/Programming/wcheckout. Encodes the create-time Jira-ticket prompt (input or skip), the Jira branch naming, base-branch detection, and the wcreated-deletes-remote vs wcheckout-preserves-remote rules. Do NOT use for general commit/branch history work (use git-workflow-and-versioning) or for invoking the repo's worktree shell scripts.
 ---
 
 # Worktree Management
@@ -16,7 +16,7 @@ This skill performs every operation with **raw `git` commands**. Never shell out
 
 ## When to Use
 
-- Creating a new branch as a worktree (`wcreated`), optionally named from a Jira ticket.
+- Creating a new branch as a worktree (`wcreated`); always prompts for a Jira ticket (input or skip) to name the branch.
 - Checking out an existing remote branch as a worktree (`wcheckout`).
 - Deleting, updating (pull), or cleaning (prune merged) worktrees under either directory.
 - Any task referencing a path under `~/Programming/wcreated` or `~/Programming/wcheckout`.
@@ -54,11 +54,11 @@ Honor any overriding `WCREATED_DIR` / `WCHECKOUT_DIR` / `PROGRAMMING_DIR` env va
 1. **Pick the source repo** at `~/Programming/<org>/<repo>` and confirm it: `git -C <repo> rev-parse --is-inside-work-tree`.
 2. **Find the base branch** (`develop`→`main`→`master`).
 3. **Refresh base:** `git -C <repo> fetch origin`. If HEAD is on base with a clean tree, `git -C <repo> pull --rebase origin <base>` (stash → pull → `stash pop` if dirty). Otherwise fast-forward the ref only: `git -C <repo> fetch origin <base>:<base>`.
-4. **Decide the branch name:**
-   - Input matches `^[A-Z]+-[0-9]+$`: optionally fetch the summary —
+4. **Prompt for the Jira ticket, then decide the branch name.** Always ask first via the `question` tool — even if a ticket or name was already supplied — offering a **Skip (no ticket)** option and letting the user type a ticket key (or branch name) into the answer field. From the reply:
+   - **A ticket key** (matches `^[A-Z]+-[0-9]+$`): optionally fetch the summary —
      `acli jira workitem view <TICKET> --json --fields summary | jq -r '.fields.summary'` —
      then `branch=<TICKET>-<slug(summary)>` (fall back to `<TICKET>` if `acli`/`jq` absent or empty).
-   - Otherwise use the input directly. Sanitize to `[A-Za-z0-9._-]`.
+   - **Skip, or a non-ticket name:** use that name (or the original input) directly. Sanitize to `[A-Za-z0-9._-]`.
 5. **Choose a commit type** (any Conventional Commit type — see Conventions above).
 6. **Compute the path:** `dir=<WCREATED_DIR>/<branch>` (unique-suffixed); `mkdir -p <WCREATED_DIR>`.
 7. **Create worktree + new branch off base:**
@@ -117,6 +117,7 @@ For each worktree, fetch its repo, then test whether its branch is merged into t
 | "Deleting a checkout worktree should also delete the remote." | No. `wcheckout` branches are owned elsewhere — only `wcreated` deletions push `--delete`. Location decides. |
 | "I'll just call the `worktree` script, it already does this." | The user asked for raw git, not the script. Use the commands here. |
 | "Skip the empty seed commit." | The empty commit makes a `wcreated` branch immediately pushable/PR-able; it is part of the flow. |
+| "A ticket or name was already given, so I can skip the prompt." | `wcreated` **always** prompts for the Jira ticket first (input or skip) — the prompt is a required step, not an optional nicety. |
 | "Put the new branch in wcheckout / the checkout in wcreated." | The directory encodes ownership and deletion behavior. Created → `wcreated`; existing remote → `wcheckout`. |
 | "Branch the worktree off the current HEAD." | `wcreated` branches off the freshly-updated base (`develop`/`main`/`master`), not whatever is checked out. |
 | "Force-remove the dir with `rm -rf` first." | Use `git worktree remove` so git's metadata stays consistent; only `rm` leftovers afterward. |
@@ -127,6 +128,7 @@ For each worktree, fetch its repo, then test whether its branch is merged into t
 - Invoking `etc/scripts/.../worktree` or sourcing its command modules instead of running git.
 - Creating a `wcreated` branch off the current HEAD instead of the updated base branch.
 - `rm -rf`-ing a worktree without `git worktree remove` / `git worktree prune`.
+- Creating a `wcreated` worktree without first prompting for the Jira ticket (input or skip).
 - Naming a Jira branch without checking the `^[A-Z]+-[0-9]+$` pattern.
 - Resolving the main repo by hand-parsing `.git` when `git rev-parse --git-common-dir` is available.
 

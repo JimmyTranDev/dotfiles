@@ -149,20 +149,17 @@ alias C='find "$DOTFILES_DIR/etc/scripts" -type f -name "*.sh" -exec chmod +x {}
 source "$DOTFILES_DIR/etc/scripts/utils/utility.sh"
 source "$DOTFILES_DIR/etc/scripts/src/zshrc/opencode.sh"
 source "$DOTFILES_DIR/etc/scripts/src/zshrc/worktree_helpers.sh"
-source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_project.sh"
+source "$DOTFILES_DIR/etc/scripts/src/zshrc/project_worktree_common.sh"
+source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_project_worktree.sh"
 source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_project_opencode.sh"
 source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_project_nvim.sh"
-source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_worktree.sh"
-source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_projects_multi.sh"
-source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_worktrees_multi.sh"
+source "$DOTFILES_DIR/etc/scripts/src/zshrc/select_projects_worktrees_multi.sh"
 source "$DOTFILES_DIR/etc/scripts/src/zshrc/zellij.sh"
 
-bindkey '^f' select_project
+bindkey '^f' select_project_worktree
 bindkey '^o' select_project_opencode_widget
 bindkey '^n' select_project_nvim_widget
-bindkey '^g' select_worktree
-bindkey '^[f' select_projects_multi
-bindkey '^[g' select_worktrees_multi
+bindkey '^[f' select_projects_worktrees_multi
 bindkey '^u' zellij_update_tab_indexes
 
 
