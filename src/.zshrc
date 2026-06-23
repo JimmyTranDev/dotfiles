@@ -94,7 +94,18 @@ fi
 alias c='clear'
 alias g='rg'
 alias n='nvim'
-alias y='yazi'
+y() {
+  # Open yazi. Press `o` inside to cd here and launch Neovim; `q` quits normally.
+  local open_file dir
+  open_file="$(mktemp -t yazi-open.XXXXXX)" || return
+  YAZI_OPEN_FILE="$open_file" yazi "$@"
+  dir="$(command cat -- "$open_file" 2>/dev/null)"
+  command rm -f -- "$open_file"
+  if [ -n "$dir" ] && [ -d "$dir" ]; then
+    builtin cd -- "$dir" || return
+    nvim
+  fi
+}
 alias z='zellij'
 alias a='eval "$(poetry env activate)"'
 alias d="$DOTFILES_DIR/etc/scripts/utils/git_diff_commits.sh"

@@ -79,6 +79,11 @@ run  = ["plugin smart-enter", "plugin skip-single"]
 desc = "Enter the child directory (skip single), or open the file"
 
 [[mgr.prepend_keymap]]
+on   = "o"
+run  = '''shell -- [ -n "$YAZI_OPEN_FILE" ] && pwd > "$YAZI_OPEN_FILE"; ya emit quit'''
+desc = "cd here & open Neovim (quit yazi)"
+
+[[mgr.prepend_keymap]]
 on = [ "g", "h" ]
 run = "cd ~"
 desc = "Go to home directory"

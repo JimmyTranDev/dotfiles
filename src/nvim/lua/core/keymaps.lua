@@ -11,6 +11,7 @@ local project_actions = require('custom.actions.project')
 local journal_actions = require('custom.actions.journal')
 local notes_actions = require('custom.actions.notes')
 local status_actions = require('custom.actions.status')
+local worktree_actions = require('custom.actions.worktree')
 local session = require('custom.utils.session')
 local env_check = require('custom.utils.env_check')
 local stock_prompt = require('custom.utils.stock_prompt')
@@ -233,6 +234,11 @@ maps('n', {
   { '<Leader>ugT', github_actions.select_open_prs_by_people, '󰓢 Team + my PRs (select)' },
   -- { '<Leader>ugo', github_actions.open_file_from_clipboard_url, 'Open file from clipboard URL' },
   -- { '<Leader>ugd', github_actions.show_current_branch_pr_diff, 'PR diff (current branch)' },
+})
+
+-- Worktree sub-group (<leader>uw)
+maps('n', {
+  { '<Leader>uwr', worktree_actions.rename_current_worktree, '󰑕 Rename worktree (folder+branch+remote)' },
 })
 
 -- Jira sub-group (<leader>uj)
