@@ -53,6 +53,8 @@ return {
     -- { mode = 'n', '<Leader>grR', git_actions.reset_to_reflog, desc = '󰑓 Reset to reflog', silent = true },
     -- { mode = 'n', '<Leader>grX', ':Git clean -fd<CR>', desc = '󰑓 Remove all unstaged files', silent = true },
 
+    { mode = 'n', '<Leader>gbd', git_actions.clear_develop_branch, desc = '󰘬 Clear develop (stash + pull)', silent = true },
+
     -- { mode = 'n', '<Leader>gbP', ':Git pull --rebase<CR>', desc = '󰏫 Branch pull rebase', silent = true },
     -- { mode = 'n', '<Leader>gbM', ':Git pull --no-rebase<CR>', desc = '󰏫 Branch pull merge', silent = true },
     -- { mode = 'n', '<Leader>gbp', ':Git pull<CR>', desc = '󰏫 Branch pull', silent = true },

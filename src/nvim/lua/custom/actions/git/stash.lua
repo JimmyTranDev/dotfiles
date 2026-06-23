@@ -93,6 +93,18 @@ function M.stash_pull_rebase()
   registry.get_or_create('stash-pull', { cmd = cmd })
 end
 
+-- Clear (refresh) the local develop branch from origin without leaving the
+-- branch you are currently on. Stashes local changes first when the tree is
+-- dirty, then fast-forwards the local develop ref to origin/develop via a
+-- refspec fetch (the canonical way to update a branch you don't have checked
+-- out). The stash is left in place -- those changes belong to the current
+-- branch, not develop, so restore them with `git stash pop` when ready.
+function M.clear_develop_branch()
+  local cmd =
+    [==[if [ -n "$(git status --porcelain)" ]; then git stash push -m "nvim clear-develop"; fi && git fetch origin develop:develop]==]
+  registry.get_or_create('clear-develop', { cmd = cmd })
+end
+
 function M.stash_all_changes() stash_with_flags('', 'Changes stashed successfully') end
 
 function M.stash_keep_changes() stash_with_flags(' --keep-index', 'Changes stashed (keeping staged changes)') end
