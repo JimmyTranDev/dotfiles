@@ -22,8 +22,8 @@ keybinds clear-defaults=true {
         bind "Alt u" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/select_session.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         bind "Alt y" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
 
-        bind "Alt d" { NewPane "down"; SwitchToMode "locked"; }
-        bind "Alt e" { NewPane "right"; SwitchToMode "locked"; }
+        bind "Alt y" { NewPane "down"; SwitchToMode "locked"; }
+        bind "Alt h" { NewPane "right"; SwitchToMode "locked"; }
         bind "Alt f" { ToggleFocusFullscreen; SwitchToMode "locked"; }
         bind "Alt x" { CloseFocus; SwitchToMode "locked"; }
 
