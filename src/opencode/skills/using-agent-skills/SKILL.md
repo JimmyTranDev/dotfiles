@@ -34,7 +34,8 @@ Task arrives
     ├── Something broke? ──────────────→ debugging-and-error-recovery
     ├── Read a CLI running in nvim toggleterm? → nvim-toggleterm-read
     ├── Inspect an Android emulator app's data folder? → android-app-data
-    ├── Manage Turso (libSQL) databases via turso CLI? → turso-database-management
+    ├── Embedded Turso Database engine (tursodb / @tursodatabase)? → turso-database
+    ├── Manage Turso Cloud platform via turso CLI? → turso-cloud
     ├── Reviewing code? ───────────────→ code-review-and-quality
     │   ├── Too complex? ─────────────→ code-simplification
     │   ├── Security concerns? ───────→ security-and-hardening
@@ -44,6 +45,7 @@ Task arrives
     ├── Worktrees in wcreated/wcheckout? → worktree-management
     ├── CI/CD pipeline work? ──────────→ ci-cd-and-automation
     ├── npm audit + bump deps to minor? → npm-audit-and-bump-minor
+    ├── Find/remove unused files, deps, exports (dead code)? → knip
     ├── Deprecating/migrating? ────────→ deprecation-and-migration
     ├── Writing docs/ADRs? ───────────→ documentation-and-adrs
     ├── Adding logs/metrics/alerts? ───→ observability-and-instrumentation
@@ -185,7 +187,8 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Build | context-engineering | Right context at the right time |
 | Build | frontend-ui-engineering | Production-quality UI with accessibility |
 | Build | api-and-interface-design | Stable interfaces with clear contracts |
-| Build | turso-database-management | Manage Turso (libSQL) cloud databases, branches, tokens, and a local dev server via the turso CLI |
+| Build | turso-database | Embedded Turso Database engine — tursodb shell, @tursodatabase SDKs, MVCC, encryption, local-first sync |
+| Build | turso-cloud | Manage the Turso Cloud platform (libSQL) — databases, groups, branches, tokens, dev server via the turso CLI |
 | Verify | test-driven-development | Failing test first, then make it pass |
 | Verify | testability-and-coverage | Make existing code testable via seams, then close branch-coverage gaps |
 | Verify | browser-testing-with-devtools | Chrome DevTools MCP for runtime verification |
@@ -194,6 +197,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Verify | android-app-data | Browse/pull a local Android emulator app's private data folder over adb |
 | Review | code-review-and-quality | Five-axis review with quality gates |
 | Review | code-simplification | Preserve behavior while reducing unnecessary complexity |
+| Review | knip | Find and safely remove unused files, dependencies, and exports in JS/TS with Knip |
 | Review | security-and-hardening | OWASP prevention, input validation, least privilege |
 | Review | performance-optimization | Measure first, optimize only what matters |
 | Ship | commit | Conventional commit for already-staged changes |

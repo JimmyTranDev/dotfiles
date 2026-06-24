@@ -73,6 +73,7 @@ Map every request to the appropriate skill before acting.
 | Logging, metrics, tracing, alerting | `observability-and-instrumentation` |
 | Build/deploy pipelines, quality gates in CI | `ci-cd-and-automation` |
 | npm audit + bump deps to latest minor (no majors), re-audit, verify | `npm-audit-and-bump-minor` |
+| Find/remove unused files, dependencies, exports & dead code in JS/TS via Knip | `knip` |
 | Commit already-staged changes with a conventional message | `commit` |
 | Commits, branching, conflicts, parallel work | `git-workflow-and-versioning` |
 | Git worktrees in ~/Programming/wcreated & wcheckout (create/checkout/delete/update/clean) | `worktree-management` |
@@ -81,7 +82,8 @@ Map every request to the appropriate skill before acting.
 | New session setup, rules files, context configuration | `context-engineering` |
 | Read live output of CLIs running in nvim toggleterm terminals | `nvim-toggleterm-read` |
 | Browse/pull an Android emulator app's private data folder (/data/data) | `android-app-data` |
-| Manage Turso (libSQL) cloud databases, branches, tokens, or local dev server via the `turso` CLI | `turso-database-management` |
+| Embedded Turso Database engine — `tursodb` shell, `@tursodatabase/*` SDKs, MVCC/concurrent writes, encryption, local-first sync | `turso-database` |
+| Manage the Turso Cloud platform (libSQL) — databases, groups, branches, tokens, local dev server via the `turso` CLI | `turso-cloud` |
 | Which skill applies? (meta) | `using-agent-skills` |
 
 ## Execution Model
