@@ -36,6 +36,7 @@ Task arrives
     ├── Inspect an Android emulator app's data folder? → android-app-data
     ├── Embedded Turso Database engine (tursodb / @tursodatabase)? → turso-database
     ├── Manage Turso Cloud platform via turso CLI? → turso-cloud
+    ├── Manage a Bitwarden vault via the bw CLI? → bitwarden-cli
     ├── Reviewing code? ───────────────→ code-review-and-quality
     │   ├── Too complex? ─────────────→ code-simplification
     │   ├── Security concerns? ───────→ security-and-hardening
@@ -189,6 +190,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Build | api-and-interface-design | Stable interfaces with clear contracts |
 | Build | turso-database | Embedded Turso Database engine — tursodb shell, @tursodatabase SDKs, MVCC, encryption, local-first sync |
 | Build | turso-cloud | Manage the Turso Cloud platform (libSQL) — databases, groups, branches, tokens, dev server via the turso CLI |
+| Build | bitwarden-cli | Manage a Bitwarden password vault via the bw CLI — login/unlock, get/generate secrets, items, Send, export/import, serve |
 | Verify | test-driven-development | Failing test first, then make it pass |
 | Verify | testability-and-coverage | Make existing code testable via seams, then close branch-coverage gaps |
 | Verify | browser-testing-with-devtools | Chrome DevTools MCP for runtime verification |

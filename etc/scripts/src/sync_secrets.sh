@@ -8,31 +8,23 @@ source "$SCRIPT_DIR/../utils/logging.sh"
 SECRETS_DIR="${SECRETS_DIR:-$HOME/Programming/JimmyTranDev/secrets}"
 BW_ITEM_NAME="dotfiles-secrets"
 TARBALL_NAME="secrets.tar.gz"
-# Input source for interactive master-password prompts (login/unlock).
-# Defaults to the controlling terminal; overridable so tests can inject input.
-BW_INPUT_TTY="${BW_INPUT_TTY:-/dev/tty}"
 
 # Cleanup state consumed by the single EXIT/INT/TERM trap below. Functions
 # register the scratch dirs they create here instead of installing their own
 # traps, so a failure anywhere still removes plaintext on the way out.
 _CLEANUP_TMP_DIR=""
 _CLEANUP_BACKUP_DIR=""
-# Set to 1 only when THIS run unlocked the vault itself; an inherited
-# BW_SESSION is left untouched so we never lock a session we did not open.
-_BW_LOCK_ON_EXIT=0
 
-# Single exit handler: remove any plaintext scratch dirs and, if we opened the
-# vault ourselves, lock it again. Runs on normal exit, error exit (set -e), and
-# interrupt. Guards keep each step independent and never abort the handler.
+# Single exit handler: remove any plaintext scratch dirs. Runs on normal exit,
+# error exit (set -e), and interrupt. Guards keep each step independent and
+# never abort the handler. This script never unlocks the vault itself, so it
+# never locks one either — an inherited BW_SESSION is the caller's to manage.
 cleanup() {
 	if [[ -n "$_CLEANUP_TMP_DIR" ]]; then
 		rm -rf "$_CLEANUP_TMP_DIR"
 	fi
 	if [[ -n "$_CLEANUP_BACKUP_DIR" ]]; then
 		rm -rf "$_CLEANUP_BACKUP_DIR"
-	fi
-	if [[ "$_BW_LOCK_ON_EXIT" -eq 1 ]]; then
-		bw lock --nointeraction >/dev/null 2>&1 || true
 	fi
 }
 trap cleanup EXIT INT TERM
@@ -52,35 +44,24 @@ ensure_dependencies() {
 	fi
 }
 
+# Require a vault that is already unlocked via an inherited BW_SESSION. This
+# script deliberately never logs in or prompts for the master password — the
+# caller owns the vault's lifecycle. If the vault is not unlocked we fail fast,
+# before any plaintext is written to disk, with instructions to unlock and
+# export a session.
 ensure_bw_unlocked() {
 	local status
 	status=$(bw status --nointeraction 2>/dev/null | jq -r '.status // empty' 2>/dev/null || true)
 
-	if [[ "$status" == "unauthenticated" ]]; then
-		log_info "Logging into Bitwarden..."
-		bw login <"$BW_INPUT_TTY"
-		status=$(bw status --nointeraction 2>/dev/null | jq -r '.status // empty' 2>/dev/null || true)
-	fi
-
 	if [[ "$status" != "unlocked" ]]; then
-		if [[ -n "${BW_SESSION:-}" ]]; then
-			bw sync --nointeraction >/dev/null 2>&1
-			log_success "Bitwarden synced (using existing BW_SESSION)"
-			return
-		fi
-		log_info "Unlocking Bitwarden vault..."
-		if ! BW_SESSION=$(bw unlock --raw <"$BW_INPUT_TTY"); then
-			log_error "Failed to unlock Bitwarden vault."
-			log_error "Check your master password. If it was recently changed or the local vault is stale, run 'bw sync' or re-login ('bw logout && bw login'), then retry."
-			exit 1
-		fi
-		export BW_SESSION
-		# We opened this session, so we own locking it back up on exit.
-		_BW_LOCK_ON_EXIT=1
+		log_error "Bitwarden vault is not unlocked (status: ${status:-unknown})."
+		log_error "Unlock it yourself and export the session, then retry, e.g.:"
+		log_error "  export BW_SESSION=\"\$(bw unlock --raw)\""
+		exit 1
 	fi
 
 	bw sync --nointeraction >/dev/null 2>&1
-	log_success "Bitwarden vault synced"
+	log_success "Bitwarden vault synced (using existing BW_SESSION)"
 }
 
 get_cached_item() {
