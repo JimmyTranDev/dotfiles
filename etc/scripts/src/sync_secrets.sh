@@ -1,41 +1,85 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../utils/logging.sh"
 
-SECRETS_DIR="$HOME/Programming/JimmyTranDev/secrets"
+SECRETS_DIR="${SECRETS_DIR:-$HOME/Programming/JimmyTranDev/secrets}"
 BW_ITEM_NAME="dotfiles-secrets"
 TARBALL_NAME="secrets.tar.gz"
+# Input source for interactive master-password prompts (login/unlock).
+# Defaults to the controlling terminal; overridable so tests can inject input.
+BW_INPUT_TTY="${BW_INPUT_TTY:-/dev/tty}"
 
-ensure_bw_unlocked() {
-	if ! command -v bw &>/dev/null; then
-		log_error "Bitwarden CLI (bw) not found. Install it first."
+# Cleanup state consumed by the single EXIT/INT/TERM trap below. Functions
+# register the scratch dirs they create here instead of installing their own
+# traps, so a failure anywhere still removes plaintext on the way out.
+_CLEANUP_TMP_DIR=""
+_CLEANUP_BACKUP_DIR=""
+# Set to 1 only when THIS run unlocked the vault itself; an inherited
+# BW_SESSION is left untouched so we never lock a session we did not open.
+_BW_LOCK_ON_EXIT=0
+
+# Single exit handler: remove any plaintext scratch dirs and, if we opened the
+# vault ourselves, lock it again. Runs on normal exit, error exit (set -e), and
+# interrupt. Guards keep each step independent and never abort the handler.
+cleanup() {
+	if [[ -n "$_CLEANUP_TMP_DIR" ]]; then
+		rm -rf "$_CLEANUP_TMP_DIR"
+	fi
+	if [[ -n "$_CLEANUP_BACKUP_DIR" ]]; then
+		rm -rf "$_CLEANUP_BACKUP_DIR"
+	fi
+	if [[ "$_BW_LOCK_ON_EXIT" -eq 1 ]]; then
+		bw lock --nointeraction >/dev/null 2>&1 || true
+	fi
+}
+trap cleanup EXIT INT TERM
+
+ensure_dependencies() {
+	local missing=""
+	if ! command -v bw >/dev/null 2>&1; then
+		missing+="  - bw (install: brew install bitwarden-cli)\n"
+	fi
+	if ! command -v jq >/dev/null 2>&1; then
+		missing+="  - jq (install: brew install jq)\n"
+	fi
+	if [[ -n "$missing" ]]; then
+		log_error "Missing required dependencies:"
+		printf "%b" "$missing" >&2
 		exit 1
 	fi
+}
 
+ensure_bw_unlocked() {
 	local status
-	status=$(bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+	status=$(bw status --nointeraction 2>/dev/null | jq -r '.status // empty' 2>/dev/null || true)
 
 	if [[ "$status" == "unauthenticated" ]]; then
 		log_info "Logging into Bitwarden..."
-		bw login </dev/tty
-		status=$(bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+		bw login <"$BW_INPUT_TTY"
+		status=$(bw status --nointeraction 2>/dev/null | jq -r '.status // empty' 2>/dev/null || true)
 	fi
 
 	if [[ "$status" != "unlocked" ]]; then
 		if [[ -n "${BW_SESSION:-}" ]]; then
-			bw sync >/dev/null 2>&1
+			bw sync --nointeraction >/dev/null 2>&1
 			log_success "Bitwarden synced (using existing BW_SESSION)"
 			return
 		fi
 		log_info "Unlocking Bitwarden vault..."
-		BW_SESSION=$(bw unlock --raw </dev/tty)
+		if ! BW_SESSION=$(bw unlock --raw <"$BW_INPUT_TTY"); then
+			log_error "Failed to unlock Bitwarden vault."
+			log_error "Check your master password. If it was recently changed or the local vault is stale, run 'bw sync' or re-login ('bw logout && bw login'), then retry."
+			exit 1
+		fi
 		export BW_SESSION
+		# We opened this session, so we own locking it back up on exit.
+		_BW_LOCK_ON_EXIT=1
 	fi
 
-	bw sync >/dev/null 2>&1
+	bw sync --nointeraction >/dev/null 2>&1
 	log_success "Bitwarden vault synced"
 }
 
@@ -43,7 +87,7 @@ get_cached_item() {
 	if [[ -z "${_BW_ITEM_CACHE:-}" ]]; then
 		local bw_err
 		bw_err=$(mktemp)
-		_BW_ITEM_CACHE=$(bw get item "$BW_ITEM_NAME" 2>"$bw_err") || true
+		_BW_ITEM_CACHE=$(bw get item "$BW_ITEM_NAME" --nointeraction 2>"$bw_err") || true
 		if [[ -s "$bw_err" ]]; then
 			log_warning "bw get item stderr: $(cat "$bw_err")"
 		fi
@@ -77,13 +121,13 @@ create_item_if_missing() {
 
 	log_info "Creating Bitwarden Secure Note '$BW_ITEM_NAME'..."
 	local template
-	template=$(bw get template item)
+	template=$(bw get template item --nointeraction)
 	local encoded
 	encoded=$(echo "$template" | jq \
 		--arg name "$BW_ITEM_NAME" \
 		'.name = $name | .type = 2 | .secureNote = {"type": 0} | .notes = ""' | bw encode)
-	bw create item "$encoded" >/dev/null
-	bw sync >/dev/null 2>&1
+	bw create item "$encoded" --nointeraction >/dev/null
+	bw sync --nointeraction >/dev/null 2>&1
 	invalidate_item_cache
 	log_success "Created Secure Note '$BW_ITEM_NAME'"
 }
@@ -102,9 +146,17 @@ upload_secrets() {
 		exit 0
 	fi
 
+	# Authenticate BEFORE writing any plaintext secrets to disk. If unlock
+	# fails, no unencrypted tarball is ever created.
+	ensure_bw_unlocked
+	create_item_if_missing
+
 	local temp_dir="$SECRETS_DIR/.sync_tmp"
 	rm -rf "$temp_dir"
 	mkdir -p "$temp_dir"
+	# Hand the plaintext temp dir to the cleanup trap so it is removed no
+	# matter how we leave this function.
+	_CLEANUP_TMP_DIR="$temp_dir"
 
 	log_info "Creating tarball of $file_count files..."
 	tar czf "$temp_dir/$TARBALL_NAME" -C "$SECRETS_DIR" \
@@ -121,9 +173,6 @@ upload_secrets() {
 		mv "$uncompressed.gz" "$temp_dir/$TARBALL_NAME"
 	fi
 
-	ensure_bw_unlocked
-	create_item_if_missing
-
 	local item_json
 	item_json=$(get_cached_item)
 	local item_id
@@ -133,9 +182,8 @@ upload_secrets() {
 	old_attachment_ids=$(echo "$item_json" | jq -r '.attachments[]?.id // empty' 2>/dev/null)
 
 	log_info "Uploading tarball..."
-	if ! bw create attachment --file "$temp_dir/$TARBALL_NAME" --itemid "$item_id" >/dev/null 2>&1; then
+	if ! bw create attachment --file "$temp_dir/$TARBALL_NAME" --itemid "$item_id" --nointeraction >/dev/null 2>&1; then
 		log_error "Failed to upload tarball"
-		rm -rf "$temp_dir"
 		exit 1
 	fi
 
@@ -143,11 +191,12 @@ upload_secrets() {
 		log_info "Removing old attachments..."
 		while IFS= read -r att_id; do
 			[[ -z "$att_id" ]] && continue
-			bw delete attachment "$att_id" --itemid "$item_id" >/dev/null 2>&1 || true
+			bw delete attachment "$att_id" --itemid "$item_id" --nointeraction >/dev/null 2>&1 || true
 		done <<<"$old_attachment_ids"
 	fi
 
 	rm -rf "$temp_dir"
+	_CLEANUP_TMP_DIR=""
 	log_success "Uploaded $file_count files as tarball to '$BW_ITEM_NAME'"
 }
 
@@ -185,10 +234,12 @@ download_secrets() {
 	rm -rf "$temp_dir" "$backup_dir"
 	mkdir -p "$temp_dir"
 
-	trap 'rm -rf "$temp_dir" "$backup_dir"' EXIT INT TERM
+	# Register both scratch dirs with the cleanup trap.
+	_CLEANUP_TMP_DIR="$temp_dir"
+	_CLEANUP_BACKUP_DIR="$backup_dir"
 
 	log_info "Downloading tarball..."
-	if ! bw get attachment "$tarball_att_id" --itemid "$item_id" --output "$temp_dir/$TARBALL_NAME" >/dev/null; then
+	if ! bw get attachment "$tarball_att_id" --itemid "$item_id" --output "$temp_dir/$TARBALL_NAME" --nointeraction >/dev/null; then
 		log_error "Failed to download tarball"
 		exit 1
 	fi
@@ -206,7 +257,8 @@ download_secrets() {
 	file_count=$(find "$SECRETS_DIR" -type f -not -path '*/.sync_tmp/*' -not -path '*/.sync_backup/*' \( -not -path '*/.m2/*' -o -path '*/.m2/settings.xml' \) | wc -l | tr -d ' ')
 
 	rm -rf "$temp_dir" "$backup_dir"
-	trap - EXIT INT TERM
+	_CLEANUP_TMP_DIR=""
+	_CLEANUP_BACKUP_DIR=""
 
 	log_success "Downloaded $file_count files to $SECRETS_DIR"
 }
@@ -222,8 +274,14 @@ usage() {
 main() {
 	local command="${1:-}"
 	case "$command" in
-	upload) upload_secrets ;;
-	download) download_secrets ;;
+	upload)
+		ensure_dependencies
+		upload_secrets
+		;;
+	download)
+		ensure_dependencies
+		download_secrets
+		;;
 	-h | --help | help) usage ;;
 	"")
 		log_error "No command provided"
