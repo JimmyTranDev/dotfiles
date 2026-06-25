@@ -66,6 +66,7 @@ brew "stylua"
 # Casks
 cask "android-studio"
 cask "claude-code"
+cask "cursor"
 cask "drawpen"
 cask "espanso"
 cask "firefox"

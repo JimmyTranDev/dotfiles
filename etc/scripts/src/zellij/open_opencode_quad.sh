@@ -23,11 +23,19 @@ main() {
 		exit 1
 	fi
 
-	# Open a plain new tab rooted at the target dir, then build the 2x2 opencode
-	# grid by splitting panes inside it. Every pane gets an explicit --cwd so it
-	# launches opencode in the chosen project regardless of layout inheritance.
-	zellij action new-tab --cwd "$target_dir"
+	# Open a plain new tab rooted at the target dir, named after the project
+	# folder (new-tab prints the created tab's id on stdout), then build the 2x2
+	# opencode grid by splitting panes inside it. Every pane gets an explicit
+	# --cwd so it launches opencode in the chosen project regardless of layout
+	# inheritance.
+	local tab_id
+	tab_id="$(zellij action new-tab --cwd "$target_dir")"
 	sleep 0.2
+	if [[ "$tab_id" =~ ^[0-9]+$ ]]; then
+		zellij action rename-tab --tab-id "$tab_id" "$(basename "$target_dir")"
+	else
+		zellij action rename-tab "$(basename "$target_dir")"
+	fi
 
 	# Top-left: run opencode in the new tab's initial shell pane.
 	zellij action write-chars "opencode"

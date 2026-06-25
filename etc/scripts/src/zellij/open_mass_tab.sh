@@ -21,9 +21,17 @@ main() {
 	[[ -z "$target_dir" ]] && exit 0
 
 	# Open the mass-tab layout (left column of 4 opencode panes + one big focused
-	# nvim pane) rooted in the chosen project, then reindex tabs.
-	zellij action new-tab --cwd "$target_dir" --layout "$LAYOUT"
+	# nvim pane) rooted in the chosen project. Name the new tab after the project
+	# folder (new-tab prints the created tab's id on stdout); reindexing below
+	# then prepends the position number, e.g. "7.my-project".
+	local tab_id
+	tab_id="$(zellij action new-tab --cwd "$target_dir" --layout "$LAYOUT")"
 	sleep 0.2
+	if [[ "$tab_id" =~ ^[0-9]+$ ]]; then
+		zellij action rename-tab --tab-id "$tab_id" "$(basename "$target_dir")"
+	else
+		zellij action rename-tab "$(basename "$target_dir")"
+	fi
 
 	"$SCRIPT_DIR/update_tab_indexes.sh"
 }
