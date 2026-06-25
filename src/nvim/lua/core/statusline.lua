@@ -16,6 +16,7 @@ local function get_catppuccin_colors()
       yellow = '#f9e2af',
       sky = '#89dceb',
       lavender = '#b4befe',
+      mauve = '#cba6f7',
     }
   end
 
@@ -164,6 +165,16 @@ local function build_config()
     }
   )
 
+  local gh_pr_reviews = require('custom.utils.gh_pr_reviews')
+  right_bubble(
+    function() return { fg = colors.mauve or colors.lavender, gui = 'bold' } end,
+    '󰊤',
+    {
+      gh_pr_reviews.get_count,
+      cond = function() return gh_pr_reviews.get_count() ~= '' end,
+    }
+  )
+
   table.insert(config.sections.lualine_x, {
     'diagnostics',
     sources = { 'nvim_diagnostic', 'nvim_lsp', 'nvim_workspace_diagnostic' },
@@ -224,6 +235,8 @@ function M.setup()
   lualine.setup(config)
 
   require('custom.utils.gh_notifications').setup()
+
+  require('custom.utils.gh_pr_reviews').setup()
 
   vim.api.nvim_create_autocmd('ColorScheme', {
     pattern = 'catppuccin*',
