@@ -24,6 +24,7 @@ source "$SCRIPT_DIR/commands/checkout.sh"
 source "$SCRIPT_DIR/commands/delete.sh"
 source "$SCRIPT_DIR/commands/update.sh"
 source "$SCRIPT_DIR/commands/clean.sh"
+source "$SCRIPT_DIR/commands/merge.sh"
 source "$SCRIPT_DIR/commands/rename.sh"
 source "$SCRIPT_DIR/commands/move.sh"
 source "$SCRIPT_DIR/commands/list.sh"
@@ -80,6 +81,9 @@ COMMANDS:
 
   clean                    Delete worktrees and branches that have been merged into main/develop
 
+  merge                    Merge each worktree's branch into its local base branch (no push),
+                           then delete it; already-merged worktrees are deleted too
+
   rename                   Rename current branch (with JIRA integration)
 
   move [source] [dest]     Move worktree to new location
@@ -99,6 +103,7 @@ EXAMPLES:
   worktree create
   worktree checkout feature/new-login
   worktree clean
+  worktree merge
   worktree rename
 
 WORKFLOW:
@@ -152,6 +157,10 @@ main() {
     clean)
       shift
       cmd_clean_worktrees "$@"
+      ;;
+    merge)
+      shift
+      cmd_merge_worktrees "$@"
       ;;
     rename)
       shift

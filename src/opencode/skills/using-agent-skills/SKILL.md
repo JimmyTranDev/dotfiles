@@ -45,6 +45,7 @@ Task arrives
     ├── Commit already-staged changes? ─→ commit
     ├── Committing/branching? ─────────→ git-workflow-and-versioning
     ├── Worktrees in wcreated/wcheckout? → worktree-management
+    ├── Resolve git merge/rebase/cherry-pick conflicts? → merge-conflict-resolution
     ├── CI/CD pipeline work? ──────────→ ci-cd-and-automation
     ├── npm audit + bump deps to minor? → npm-audit-and-bump-minor
     ├── Find/remove unused files, deps, exports (dead code)? → knip
@@ -207,6 +208,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Ship | commit | Conventional commit for already-staged changes |
 | Ship | git-workflow-and-versioning | Atomic commits, clean history |
 | Ship | worktree-management | Create/checkout/delete/update/clean git worktrees in ~/Programming/wcreated & wcheckout |
+| Ship | merge-conflict-resolution | Resolve in-progress git merge/rebase/cherry-pick conflicts, preserving both sides, then verify |
 | Ship | ci-cd-and-automation | Automated quality gates on every change |
 | Ship | npm-audit-and-bump-minor | Audit npm deps, bump to latest minor (no majors), re-audit, verify |
 | Ship | deprecation-and-migration | Remove old systems and migrate users safely |
