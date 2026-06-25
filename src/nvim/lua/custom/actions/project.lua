@@ -1,11 +1,19 @@
 local async = require('custom.utils.async')
 local files = require('custom.utils.files')
 local ui = require('custom.utils.ui')
+local usage_cache = require('custom.utils.usage_cache')
 
 local M = {}
 
 local PROGRAMMING_DIR = vim.fn.expand('$HOME/Programming')
 local MAX_TAB_NAME_LENGTH = 20
+-- Recency store namespace for the project switcher (most-recently-used order).
+local PROJECT_USAGE_NS = 'projects'
+
+--- Stable usage_cache key for a project/worktree entry (its absolute path).
+---@param item { path: string }
+---@return string
+local function project_key(item) return item.path end
 
 local function rename_zellij_tab(name)
   if not vim.env.ZELLIJ then return end
@@ -24,8 +32,12 @@ local function rename_zellij_tab(name)
 end
 
 function M.switch_project()
-  local projects = files.scan_programming()
+  -- Include wcreated/wcheckout worktrees (the legacy Worktrees dir stays excluded).
+  local projects = files.scan_programming({ Worktrees = true })
   if #projects == 0 then return vim.notify('No projects found in ' .. PROGRAMMING_DIR, vim.log.levels.WARN) end
+
+  -- Most-recently-used first; never-opened entries fall back to alphabetical.
+  usage_cache.sort_by_recency(PROJECT_USAGE_NS, projects, project_key)
 
   local current_cwd = vim.fn.getcwd()
 
@@ -46,6 +58,7 @@ function M.switch_project()
         vim.notify('Already in ' .. item.text, vim.log.levels.INFO)
         return
       end
+      usage_cache.record(PROJECT_USAGE_NS, project_key(item))
       vim.cmd('cd ' .. vim.fn.fnameescape(item.path))
       rename_zellij_tab(item.name)
       vim.notify('Switched to ' .. item.text, vim.log.levels.INFO)
