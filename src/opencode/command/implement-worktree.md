@@ -1,10 +1,11 @@
 ---
-description: Implement a feature or Jira ticket end-to-end inside a dedicated wcreated git worktree — spec, plan, build, verify, review — then stop at a committed, pushed branch (no PR); pass a `yolo` keyword to run autonomously with no gates
+description: Implement a feature or Jira ticket end-to-end inside a dedicated wcreated git worktree — spec, plan, build, verify, review — then commit and push the branch (no PR) and optionally merge it into the base branch and clean up the worktree; pass a `yolo` keyword to run autonomously with no gates
 ---
 
-Implement **$ARGUMENTS** inside a dedicated `wcreated` git worktree, then stop at
-a committed, pushed branch — **no pull request** (use `/implement-pr` to open
-one). This is the `/implement` flow run inside a fresh worktree.
+Implement **$ARGUMENTS** inside a dedicated `wcreated` git worktree, commit and
+push the branch — **no pull request** (use `/implement-pr` to open one) — then
+**optionally merge it into the base branch and clean up the worktree**. This is
+the `/implement` flow run inside a fresh worktree.
 
 ## Modifiers — parse `$ARGUMENTS` first
 
@@ -68,11 +69,54 @@ Once the change is built, verified, and reviewed:
 If a Jira key was passed, run **`/implement`'s Phase 6 — report back to Jira**
 (comment the summary + pushed branch; propose the next transition).
 
+## Phase 7 — Merge & clean up (optional)
+
+With the branch committed and pushed, offer to **merge it into its base** (the
+`develop`/`main`/`master` it was cut from) and **clean up the worktree** — no PR
+needed.
+
+- **Gated (default)** — use the `question` tool with exactly these three
+  options:
+  - **Merge into `<base>` & clean up (Recommended)** — the change is already
+    verified and reviewed, so integrate it directly and tidy up.
+  - **Keep the pushed branch (no merge)** — leave the branch and worktree as-is
+    and decide later; the `gh pr create` command from Phase 6 is already printed.
+  - **Open a PR now instead** — go through review rather than a direct merge by
+    running the `gh pr create` command from Phase 6 (the branch is already
+    pushed).
+- **`yolo`** — **never auto-merge.** Pushing a shared base branch and deleting
+  branches are external side effects, so skip the question, leave the pushed
+  branch, and report that merge + cleanup is available.
+
+When **merge & clean up** is chosen, do it in this order — merge first, because
+cleanup deletes the branch:
+
+1. **Merge into the base.** Run from the **main repo**, not the feature
+   worktree — resolve it with
+   `repo=$(dirname "$(git -C <worktree> rev-parse --path-format=absolute --git-common-dir)")`,
+   then update the base and merge the branch in:
+   ```bash
+   git -C "$repo" switch <base>
+   git -C "$repo" pull --ff-only origin <base>
+   git -C "$repo" merge --no-ff <branch>
+   git -C "$repo" push origin <base>
+   ```
+   On a conflict, load the `merge-conflict-resolution` skill and resolve it
+   (preserving both sides) before pushing.
+2. **Clean up the worktree.** Load the `worktree-management` skill and run its
+   **Workflow C (delete a worktree)** — this is a `wcreated` worktree, so it
+   removes the worktree and deletes the branch **locally and on the remote**.
+
+If a Jira key was passed and the branch was merged, propose the workflow's
+**done/closed** transition (e.g. `"Done"`) instead of `"In Review"`.
+
 ## Done
 
 Report: the worktree path + branch + base branch, the spec summary, any
 clarifications/confirms and how they were resolved, the task list with each
 task's status, the verify results (tests / build / lint / coverage), the review
 findings and how they were resolved, anything noted-but-not-touched, the
-`gh pr create` command to open a PR later, and — for a Jira ticket — the comment
+**merge & cleanup decision and its outcome** (merged into `<base>` and the
+worktree removed, or the branch + worktree kept), the `gh pr create` command to
+open a PR later (when the branch was kept), and — for a Jira ticket — the comment
 posted and the ticket's resulting status.
