@@ -12,6 +12,8 @@ import {
   findTab,
   isTabActive,
   prunePids,
+  parseStateEntries,
+  desiredName,
 } from "./zellij-tab-status.mjs"
 
 test("STATUS maps the three tab states to their badge (idle is empty)", () => {
@@ -158,4 +160,63 @@ test("prunePids keeps only entries whose pid is alive", () => {
 test("prunePids handles empty and non-array input", () => {
   assert.deepEqual(prunePids([], () => true), [])
   assert.deepEqual(prunePids(undefined, () => true), [])
+})
+
+test("parseStateEntries maps <pid>-named files to typed entries", () => {
+  assert.deepEqual(
+    parseStateEntries([
+      { name: "123", content: "processing" },
+      { name: "456", content: "done\n" },
+    ]),
+    [
+      { pid: 123, status: "processing" },
+      { pid: 456, status: "done" },
+    ],
+  )
+})
+
+test("parseStateEntries drops invalid pids and unknown statuses", () => {
+  assert.deepEqual(
+    parseStateEntries([
+      { name: "abc", content: "processing" },
+      { name: "0", content: "done" },
+      { name: "-5", content: "idle" },
+      { name: "789", content: "garbage" },
+      { name: "12", content: "idle" },
+    ]),
+    [{ pid: 12, status: "idle" }],
+  )
+})
+
+test("parseStateEntries handles empty / non-array input", () => {
+  assert.deepEqual(parseStateEntries([]), [])
+  assert.deepEqual(parseStateEntries(undefined), [])
+})
+
+test("desiredName badges the current name from live pane statuses", () => {
+  assert.equal(desiredName("3.dotf", [{ pid: 1, status: "processing" }], () => true), "3.dotf🤖")
+  assert.equal(
+    desiredName("3.dotf", [{ pid: 1, status: "done" }, { pid: 2, status: "idle" }], () => true),
+    "3.dotf✅",
+  )
+})
+
+test("desiredName clears the badge when every live pane is idle", () => {
+  assert.equal(desiredName("3.dotf🤖", [{ pid: 1, status: "idle" }], () => true), "3.dotf")
+})
+
+test("desiredName prunes dead panes before aggregating", () => {
+  // The only entry is a dead 'done' pane -> pruned -> idle -> no badge.
+  assert.equal(desiredName("3.dotf✅", [{ pid: 1, status: "done" }], () => false), "3.dotf")
+})
+
+test("desiredName replaces an existing badge with the live aggregate", () => {
+  assert.equal(
+    desiredName(
+      "3.dotf✅",
+      [{ pid: 1, status: "processing" }, { pid: 2, status: "done" }],
+      () => true,
+    ),
+    "3.dotf🤖",
+  )
 })

@@ -13,8 +13,17 @@ zellij_tab_name_update() {
       local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
       tab_name="${current_dir:0:$max_length}"
     fi
-    local tab_index=$(zellij action dump-layout 2>/dev/null | awk '/^[[:space:]]*tab[[:space:]].*name=/ {count++; if (/focus=true/) {print count; exit}}')
+    local layout
+    layout=$(zellij action dump-layout 2>/dev/null)
+    local tab_index
+    tab_index=$(awk '/^[[:space:]]*tab[[:space:]].*name=/ {count++; if (/focus=true/) {print count; exit}}' <<<"$layout")
     [[ -n $tab_index ]] && tab_name="${tab_index}.${tab_name}"
+    # Preserve any opencode status badge (🤖/✅) the zellij-tab-status plugin
+    # appended as a suffix, so a cd or tab action does not wipe it.
+    local current_name badge
+    current_name=$(awk '/^[[:space:]]*tab[[:space:]].*name=/ && /focus=true/ {if (match($0, /name="[^"]*"/)) {print substr($0, RSTART+6, RLENGTH-7); exit}}' <<<"$layout")
+    badge="${current_name##*[!🤖✅]}"
+    tab_name="${tab_name}${badge}"
     zellij action rename-tab "$tab_name" 2>/dev/null
   fi
 }
@@ -41,4 +50,3 @@ zellij() {
   fi
   return $ret
 }
-

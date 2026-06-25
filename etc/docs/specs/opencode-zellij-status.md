@@ -1,6 +1,9 @@
 # Spec: OpenCode Processing Status in Zellij Tab Names
 
-Status: **DRAFT — awaiting review** (Phase 1: Specify)
+Status: **Implemented** — Phases 1–5 complete. Pure helpers + DI orchestration
+core are unit-tested (57 `node --test` cases green across `src/opencode/lib/`);
+the thin real-I/O plugin adapter is validated end-to-end against a faithful
+`$`/filesystem fake.
 
 ## Objective
 
@@ -35,15 +38,19 @@ grids). Needs an at-a-glance signal of which background session needs attention.
 - **OpenCode plugin** — JavaScript, auto-loaded from
   `~/.config/opencode/plugins/*.js` (symlinked from `src/opencode/plugins/`).
   SDK `@opencode-ai/plugin@1.14.40`, `@opencode-ai/sdk@1.14.40`. Plugin runtime
-  is Bun (provides `$` shell + `client` SDK).
+  is Bun (provides the `$` shell — `BunShell` with `.nothrow()`/`.quiet()`/
+  `.json()` — and the `client` SDK).
 - **Zellij** — tab renaming via `zellij action rename-tab-by-id <id> <name>`
-  (renames a background tab) and tab/focus introspection via
-  `zellij action list-tabs --json` / `zellij action dump-layout`.
+  (renames a background tab without stealing focus) and tab/focus introspection
+  via `zellij action list-tabs --json` (a single pretty-printed JSON array; each
+  tab object carries both `tab_id` and an `active` boolean) and
+  `zellij action dump-layout`.
 - **zsh** — existing `zellij_tab_name_update` (chpwd hook) builds base tab names.
-- **State store** — plain files under `/tmp/opencode-zellij/` for grid
-  aggregation (no daemon, no DB).
-- **Tests** — Node's built-in `node --test` runner (no new dependencies) for the
-  pure helper functions.
+- **State store** — plain files under `/tmp/opencode-zellij/<tab_id>/<pid>` for
+  grid aggregation (no daemon, no DB).
+- **Tests** — Node's built-in `node --test` runner (no new dependencies). All
+  logic lives in `src/opencode/lib/` so it is testable without booting OpenCode
+  or a live Zellij; `plugins/` is auto-loaded by OpenCode and so holds no tests.
 
 ### Authoritative status signal (verified against installed SDK)
 
@@ -55,43 +62,68 @@ type EventSessionIdle   = { type: "session.idle";   properties: { sessionID: str
 ```
 
 - `session.status` with `status.type === "busy"` ⇒ **processing**
-- `session.idle` ⇒ **turn finished** ⇒ resolve to `done` or `idle` per the reset rule
+- The `chat.message` hook also marks **processing** the instant a prompt is
+  submitted (before the first token), which is when the tab is guaranteed focused.
+- `session.idle` ⇒ **turn finished** ⇒ resolve to `done` or `idle` per the reset rule.
+- `session.error` / `session.cancelled` also fold into **turn finished**, so a
+  crashed or cancelled turn never leaves a stuck `🤖`.
 - These events fire regardless of how OpenCode was launched (`o`, bare
   `opencode`, or the grid layouts), so a plugin covers every launch path.
 
-## Proposed Architecture
+## Architecture (as built)
 
-A **single OpenCode plugin** (`src/opencode/plugins/zellij-status.js`) owns the
-feature. No background daemon (chosen for seamless install + zero idle cost).
+The feature is the **tab-level companion** to the existing
+`src/opencode/plugins/zellij-pane-status.js` (which renames the *pane*). It is
+split for testability into three files — two pure/DI modules in `lib/` and one
+thin real-I/O adapter in `plugins/`. No background daemon (chosen for seamless
+install + zero idle cost).
+
+- `src/opencode/lib/zellij-tab-status.mjs` — **pure, side-effect-free helpers**:
+  `STATUS`, `STATE_DIR`, `aggregate`, `stripBadge`, `applyBadge`,
+  `resolveTurnEnd`, `eventToTransition`, `findTab`, `activeTab`, `isTabActive`,
+  `prunePids`, `parseStateEntries`, `desiredName`.
+- `src/opencode/lib/zellij-tab-status-core.mjs` — **dependency-injected
+  orchestration core** `createTabStatus(io)`. All side effects are injected via
+  `io`, so the full transition state machine runs in memory under `node --test`.
+- `src/opencode/plugins/zellij-tab-status.js` — **thin adapter** that supplies a
+  real `io` (fs state files, mkdir render lock, `zellij action` calls via `$`,
+  a `setInterval` focus poll, exit cleanup) and exports `ZellijTabStatus`. No-op
+  when `process.env.ZELLIJ` is unset.
 
 ```
-session.status busy ──▶ set my status = processing ──▶ render tab
-session.idle ──┬─ my tab focused now?  yes ─▶ status = idle  ─▶ render tab
-               └─ no ─▶ status = done ─▶ render tab ─▶ arm focus-watch poll
+chat.message / session.status busy ─▶ status = processing ─▶ render tab
+session.idle / error / cancelled ──┬─ my tab focused now?  yes ─▶ status = idle ─▶ render tab
+                                   └─ no ─▶ status = done ─▶ render tab ─▶ arm focus-watch poll
 focus-watch poll (≈250ms, only while a `done` badge is pending):
    my tab became focused? ─▶ status = idle ─▶ render tab ─▶ stop poll
 ```
 
+`render` runs under the per-tab lock: list tabs, find our tab, compute
+`desiredName(currentName, liveEntries, isAlive)`, and rename **only when the
+badge actually changed** (so a tab held `🤖` by a sibling pane is never
+needlessly renamed).
+
 ### Tab identity
 
-- On the **first** `session.status` `busy` event (which always happens while the
-  tab is focused, because the user just submitted a prompt there), resolve the
-  focused tab's `tab_id` from `zellij action list-tabs --json` and **cache it for
-  the session's lifetime**. `tab_id` is stable across tab moves/reindexing
-  (the reindexer already renames by id), so the cache stays valid even if the
-  user reorders tabs.
+- On the **first** processing transition (`chat.message` or the first
+  `session.status` `busy`, which always happens while the tab is focused because
+  the user just submitted a prompt there), resolve the focused tab's `tab_id`
+  from `zellij action list-tabs --json` (the tab whose `active` is `true`) and
+  **cache it for the session's lifetime**. `tab_id` is stable across tab
+  moves/reindexing (the reindexer renames by id), so the cache stays valid even
+  if the user reorders tabs.
 
 ### Grid aggregation (multiple OpenCode in one tab — `Alt a` / `Alt g`)
 
 - Each pane writes its own status to `/tmp/opencode-zellij/<tab_id>/<pid>`
-  containing `processing` | `done` | `idle`.
+  containing `processing` | `done` | `idle` (atomic temp-write + rename).
 - The renderer computes the tab's aggregate before renaming:
   - any pane `processing` ⇒ tab shows `🤖`
   - else any pane `done` ⇒ tab shows `✅`
   - else ⇒ no emoji
 - **Self-healing:** files are named by PID; during aggregation, entries whose PID
-  is no longer alive (`kill -0`) are pruned, so a crashed/closed pane never
-  leaves a stuck badge.
+  is no longer alive (`process.kill(pid, 0)`) are pruned, so a crashed/closed
+  pane never leaves a stuck badge.
 - Single-pane tabs are the degenerate case (one file).
 
 ### Name merge (survive reindex, avoid clobber)
@@ -104,14 +136,18 @@ focus-watch poll (≈250ms, only while a `done` badge is pending):
   trailing `🤖`/`✅`, then appends the new emoji (or nothing). Renames via
   `rename-tab-by-id` (works on background tabs; never steals focus).
 - `zellij_tab_name_update` (zsh `chpwd`) rebuilds names from scratch and would
-  drop the emoji on `cd`. Mitigation: teach `zellij_tab_name_update` to preserve
-  a trailing status emoji. (Small, optional-but-recommended zsh change for
-  seamlessness; during processing the plugin also re-applies on every event.)
+  drop the emoji on `cd`. **Done:** `zellij_tab_name_update` now reads the
+  focused tab's current name from `dump-layout` and re-appends any trailing
+  `🤖`/`✅` badge after rebuilding `<index>.<base>`.
 
 ### Concurrency
 
-- A per-tab lock (`flock` on `/tmp/opencode-zellij/<tab_id>.lock`) serializes
-  rename operations so grid panes don't flicker by racing each other.
+- A per-tab **mkdir lock** (`/tmp/opencode-zellij/<tab_id>/.lock`) serializes
+  rename operations so grid panes don't flicker by racing each other. `mkdir`
+  is atomic and portable; `flock(1)` is **not** available on macOS, so it was
+  deliberately not used. A lock older than ~2s is treated as orphaned by a
+  crashed renderer and stolen; after ~1s of contention the renderer proceeds
+  unlocked rather than deadlock.
 
 ## Commands
 
@@ -121,8 +157,13 @@ This repo has no build system. Relevant commands:
 # Symlinks are already in place (src/opencode -> ~/.config/opencode). After
 # editing the plugin, restart the OpenCode session to reload it.
 
-# Run the pure-helper unit tests (no deps, Node built-in runner):
-node --test src/opencode/plugins/
+# Run the automated unit tests (no deps, Node built-in runner). Use the glob —
+# the bare directory form `node --test src/opencode/lib/` is broken on the
+# installed Node v24.3.0 (spurious MODULE_NOT_FOUND):
+node --test src/opencode/lib/*.test.mjs
+
+# Syntax-check the zsh edits:
+zsh -n etc/scripts/src/zshrc/zellij.sh etc/scripts/src/zshrc/opencode.sh
 
 # Manual end-to-end verification (must be inside a Zellij session):
 #   1. `o` (or bare `opencode`) in a tab, send a prompt  -> tab shows 🤖
@@ -131,66 +172,78 @@ node --test src/opencode/plugins/
 #   4. `Alt a` grid, prompt one pane, switch away/back    -> aggregate 🤖/✅
 
 # Re-sync symlinks if needed:
-bash etc/scripts/src/install/sync_links.sh   # (confirm exact path during PLAN)
+bash etc/scripts/sync_links.sh
 ```
 
 ## Project Structure
 
 ```
-src/opencode/plugins/zellij-status.js     # NEW — the feature (status -> tab emoji)
-src/opencode/plugins/zellij-status.test.js# NEW — node --test unit tests (pure helpers)
-etc/scripts/src/zshrc/zellij.sh           # EDIT — preserve trailing emoji in chpwd rename
-etc/scripts/src/zshrc/opencode.sh         # EDIT — remove dead /tmp/opencode-status-$$ writer
-/tmp/opencode-zellij/<tab_id>/<pid>       # RUNTIME — per-pane status files
+src/opencode/lib/zellij-tab-status.mjs           # pure helpers (aggregate/badge/desiredName/…)
+src/opencode/lib/zellij-tab-status.test.mjs      # node --test: 30 helper cases
+src/opencode/lib/zellij-tab-status-core.mjs      # DI orchestration core: createTabStatus(io)
+src/opencode/lib/zellij-tab-status-core.test.mjs # node --test: 13 core cases (in-memory io fake)
+src/opencode/plugins/zellij-tab-status.js        # thin real-I/O adapter; exports ZellijTabStatus
+etc/scripts/src/zshrc/zellij.sh                  # EDIT — chpwd rename now preserves trailing emoji
+etc/scripts/src/zshrc/opencode.sh                # EDIT — removed dead /tmp/opencode-status-$$ writer
+/tmp/opencode-zellij/<tab_id>/<pid>              # RUNTIME — per-pane status files
+/tmp/opencode-zellij/<tab_id>/.lock              # RUNTIME — per-tab render mkdir lock
 ```
 
-`src/opencode/plugins/notification.js` is left as-is (separate concern: sounds +
-desktop notifications). The new plugin is independent.
+`src/opencode/plugins/notification.js` (sounds + desktop notifications) and
+`src/opencode/plugins/zellij-pane-status.js` (pane names) are left as-is; the new
+plugin is independent and targets the **tab** name.
 
 ## Code Style
 
-Match the existing plugin: ES modules, named export factory, `async` event
-handler, defensive `try/catch`, no external deps. Pure logic extracted into
-testable, side-effect-free helpers.
+Matches the existing plugins: ES modules, named-export factory, `async` event
+handler, defensive `try/catch`, no external deps, double quotes, no semicolons.
+Pure logic is extracted into testable, side-effect-free helpers; orchestration is
+dependency-injected so it can be exercised without Zellij.
 
 ```js
 // Pure, unit-testable core — no Zellij, no I/O.
 export const STATUS = { idle: "", processing: "🤖", done: "✅" }
 
-/** Aggregate many panes' statuses into one tab badge. */
+// Aggregate many panes' statuses into one tab badge.
 export const aggregate = (statuses) => {
-  if (statuses.includes("processing")) return "processing"
-  if (statuses.includes("done")) return "done"
+  const list = Array.isArray(statuses) ? statuses : []
+  if (list.includes("processing")) return "processing"
+  if (list.includes("done")) return "done"
   return "idle"
 }
 
-/** Replace any trailing status emoji on a tab name with the new one. */
-export const applyEmoji = (name, status) => {
-  const base = name.replace(/[🤖✅]+$/u, "")
-  return base + STATUS[status]
-}
+// Replace any trailing status emoji on a tab name with the badge for `status`.
+export const applyBadge = (name, status) => stripBadge(name) + (STATUS[status] ?? "")
 ```
 
-Shell edits follow repo conventions: `set -e`, source `common/logging.sh`, use
-`log_info`/`log_error`, function-based structure.
+The zsh edits are `.zshrc` fragments (sourced into the interactive shell), not
+standalone scripts, so they follow that style (no `set -e`, no `logging.sh`)
+rather than the `etc/scripts/install` script conventions.
 
 ## Testing Strategy
 
-- **Unit (automated):** `node --test` on the pure helpers — `aggregate()`,
-  `applyEmoji()`, the status state machine (busy→processing,
-  idle+focused→idle, idle+unfocused→done, focus→idle), and PID-pruning logic
-  (with `kill -0` stubbed). No Zellij required. This is the TDD surface.
+- **Unit (automated, 57 cases):** `node --test src/opencode/lib/*.test.mjs`.
+  - 30 helper cases: `aggregate`, `stripBadge`/`applyBadge`, `resolveTurnEnd`,
+    `eventToTransition` (incl. error/cancelled folding), `findTab`/`activeTab`/
+    `isTabActive`, `prunePids`, `parseStateEntries`, `desiredName`.
+  - 13 core cases: the full state machine over an in-memory `io` fake —
+    busy→processing, idle+focused→idle, idle+unfocused→done, focus→idle, new
+    turn after done, grid aggregation, PID self-heal, exit cleanup, no-ops.
+  - 14 pre-existing `zellij-pane-status` helper cases stay green (no regression).
+- **Adapter (manual smoke):** the real `io` was exercised end-to-end against a
+  faithful `$`/filesystem fake (state-file write, mkdir lock, `list-tabs` via
+  `.json()`, emoji `rename-tab-by-id`) producing the `🤖`→`✅`→`🤖` sequence.
 - **Integration (manual checklist):** the 4 numbered scenarios under Commands,
   plus grid (`Alt a`/`Alt g`) aggregation and a reindex (`Alt i`/`Alt o`)
   preserving the emoji. Documented as a checklist in the PR.
-- **Regression:** confirm OpenCode launched **outside** Zellij produces no errors
-  and no `zellij` calls.
+- **Regression:** OpenCode launched **outside** Zellij returns empty hooks (no
+  `zellij` calls) — covered by the adapter guard test.
 
 ## Boundaries
 
 - **Always:**
-  - Use `rename-tab-by-id` (never `rename-tab`) so background tabs are renamed
-    without stealing focus.
+  - Use `rename-tab-by-id` (never `rename-tab`) in the plugin so background tabs
+    are renamed without stealing focus.
   - Place the emoji as a suffix so the reindexer preserves it.
   - No-op cleanly when `process.env.ZELLIJ` is unset.
   - Run the unit tests before committing; verify the manual checklist in a real
@@ -219,29 +272,32 @@ Shell edits follow repo conventions: `set -e`, source `common/logging.sh`, use
    processing, `✅` when **all** are done (until viewed), nothing when all idle.
 8. OpenCode run **outside** Zellij behaves exactly as before (no errors, no
    `zellij` invocations).
-9. No persistent background process; ~0 CPU when nothing is processing (polling
-   runs only while a `done` badge is pending).
-10. A crashed/closed OpenCode pane self-heals (no stuck badge) via PID pruning.
+9. No persistent background process; ~0 CPU when nothing is processing (the poll
+   is `unref`'d and runs only while a `done` badge is pending).
+10. A crashed/closed OpenCode pane self-heals (no stuck badge) via PID pruning
+    plus an on-exit `finalize` that removes the pane's file and re-renders.
 
-## Open Questions (resolve before/at PLAN)
+## Resolved Questions
 
-1. **Focus detection field:** does `zellij action list-tabs --json` expose an
-   `active`/`is_focused` flag? If yes, one call gives both `tab_id` and focus.
-   If not, correlate the focused position from `dump-layout` to `tab_id` from
-   `list-tabs` (the approach `zellij_tab_name_update` already uses). → First PLAN
-   task: capture real `list-tabs --json` + `dump-layout` output to confirm.
-2. **Poll interval:** default `250ms` while a `done` badge is pending — acceptable?
-   Make it tunable via `OPENCODE_ZELLIJ_POLL_MS`.
-3. **Big-grid poll cost:** with an 8-pane grid all `done` and unfocused, 8 plugins
-   each poll until you switch. Acceptable for v1? Optional optimization: a single
-   per-tab poller via lock. (If undesirable, the alternative is one lightweight
-   per-Zellij-session daemon — explicitly *not* chosen here to keep install
-   trivial and idle cost zero.)
-4. **chpwd preservation:** confirm we may edit `zellij_tab_name_update` to keep a
-   trailing emoji (recommended for seamlessness).
-5. **Spec location:** keep specs at `etc/docs/specs/`? (New convention.)
+1. **Focus detection field:** `zellij action list-tabs --json` exposes both
+   `tab_id` and an `active` boolean per tab, so one call yields tab id *and*
+   focus. (`dump-layout` correlation is unnecessary for the plugin; the zsh
+   `chpwd` path still uses `dump-layout` because that is where it already is.)
+2. **Poll interval:** `250ms` default while a `done` badge is pending, tunable
+   via `OPENCODE_ZELLIJ_POLL_MS`.
+3. **Big-grid poll cost:** accepted for v1 — each pane runs its own `unref`'d
+   poll only while it personally has a pending `done`. A single per-tab poller is
+   a possible future optimization; explicitly **not** a daemon.
+4. **chpwd preservation:** yes — `zellij_tab_name_update` now preserves a trailing
+   `🤖`/`✅` badge (verified the focused-tab name round-trips through
+   `dump-layout`, and that the awk anchor selects the focused *tab*, not a
+   focused *pane*).
+5. **Spec location:** keep specs at `etc/docs/specs/`.
 
 ## Decisions (locked)
 
 - Scope: **all** launch paths, including `Alt a` / `Alt g` grids (aggregated).
 - Emoji: idle = *(none)*, processing = `🤖`, done = `✅`.
+- File naming: `zellij-tab-status` (the pane-level sibling already owns
+  `zellij-status`/`zellij-pane-status`).
+- Lock: portable `mkdir` (macOS has no `flock(1)`).

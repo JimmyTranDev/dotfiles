@@ -74,3 +74,16 @@ export const isTabActive = (tabs, tabId) => Boolean(findTab(tabs, tabId)?.active
 // real `process.kill(pid, 0)` probe can be stubbed in tests.
 export const prunePids = (entries, isAlive) =>
   (Array.isArray(entries) ? entries : []).filter((entry) => isAlive(entry.pid))
+
+// Parse raw <pid>-named status files into typed entries, dropping anything that
+// isn't a positive integer pid with a known status. `files` is a list of
+// { name, content }. Used by the plugin to read a tab's state directory.
+export const parseStateEntries = (files) =>
+  (Array.isArray(files) ? files : [])
+    .map((file) => ({ pid: Number(file?.name), status: String(file?.content ?? "").trim() }))
+    .filter((entry) => Number.isInteger(entry.pid) && entry.pid > 0 && entry.status in STATUS)
+
+// The tab name a render should produce: prune dead panes, aggregate the rest,
+// and apply the resulting badge to the current name. Pure given `isAlive`.
+export const desiredName = (currentName, entries, isAlive) =>
+  applyBadge(currentName, aggregate(prunePids(entries, isAlive).map((entry) => entry.status)))
