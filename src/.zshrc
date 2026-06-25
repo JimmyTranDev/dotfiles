@@ -124,6 +124,7 @@ alias locp='git ls-files --cached --others --exclude-standard -z | xargs -0 wc -
 alias csv='git ls-files "*/core/*.csv" 2>/dev/null | fzf --preview "head -20 {}" | xargs -r vd --csv-delimiter "|"'
 alias google-chrome='"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
 
+alias wl='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree list'
 alias wD='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree delete'
 alias wC='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree clean'
 alias wr='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree rename'

@@ -26,6 +26,7 @@ source "$SCRIPT_DIR/commands/update.sh"
 source "$SCRIPT_DIR/commands/clean.sh"
 source "$SCRIPT_DIR/commands/rename.sh"
 source "$SCRIPT_DIR/commands/move.sh"
+source "$SCRIPT_DIR/commands/list.sh"
 
 # Display help information
 show_help() {
@@ -60,6 +61,12 @@ COMMANDS:
                           Examples:
                             worktree checkout feature/new-feature
                             worktree checkout (interactive)
+
+  list                    List all worktrees grouped by created/checkout
+                          Shows repo, branch, and working-tree status (dirty / ahead / behind)
+                          Read-only: never fetches or modifies git state
+                          Examples:
+                            worktree list
 
   delete [pattern]         Delete worktree(s)
                           If no pattern provided, shows fzf selector
@@ -129,6 +136,10 @@ main() {
     checkout)
       shift
       cmd_checkout "$@"
+      ;;
+    list)
+      shift
+      cmd_list "$@"
       ;;
     delete)
       shift
