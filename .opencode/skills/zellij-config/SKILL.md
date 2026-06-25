@@ -15,15 +15,14 @@ src/zellij/
 ├── config.kdl          # keybinds (locked default mode), plugins, ui, options
 ├── catppuccin.kdl      # `themes { ... }` block, imported by config.kdl
 └── layouts/            # one KDL pane layout per file
-    ├── opencode-side.kdl   # Alt p — 30% opencode sidebar + zsh main pane
+    ├── opencode-sidebar.kdl # Alt p — 30% stacked opencode sidebar + nvim main pane
     ├── side.kdl            # Alt ] — grid of opencode panes
     ├── mass-tab.kdl        # Alt [ — opencode column + nvim main pane
-    ├── opencode-quad.kdl   # 2x2 opencode panes
     ├── opencode-4x2.kdl    # 4x2 grid
     └── select-quad.kdl     # empty 2x2 grid
 
 etc/scripts/src/zellij/   # launcher scripts the binds Run (see dotfiles-shell-scripts)
-├── open_opencode_side.sh # Alt p — grow/create the opencode sidebar
+├── open_opencode_sidebar.sh # Alt p — fzf project picker → opencode sidebar + nvim
 ├── open_side.sh          # Alt ]
 ├── open_mass_tab.sh      # Alt [
 ├── select_session.sh     # Alt u — fzf session switcher
@@ -54,7 +53,7 @@ Two bind flavours:
 
 ## Add / rebind a keybind
 
-1. Pick a free `Alt <key>`. Taken: `; w r n q i o p [ ] u y d e Enter x`,
+1. Pick a free `Alt <key>`. Taken: `; w r n q i o p [ ] u y d e s Enter x`,
    arrows, and `1`-`9`. There is no collision guard — check `config.kdl` first.
 2. Add it inside `shared_among "normal" "locked"`:
    ```kdl
@@ -82,10 +81,6 @@ Layouts are KDL under a root `layout` node. Building blocks:
   ```kdl
   pane size=1 borderless=true { plugin location="zellij:compact-bar" }
   ```
-- A layout wired to a smart launcher (e.g. `opencode-side.kdl`) may run an
-  explicit `command="zsh"` main pane so the launcher can detect the layout via
-  `zellij action dump-layout` (it greps for both `command="opencode"` and
-  `command="zsh"`). Preserve such markers when editing.
 
 Launchers open a layout with
 `zellij action new-tab --cwd "$dir" --layout ~/.config/zellij/layouts/<name>.kdl`.
