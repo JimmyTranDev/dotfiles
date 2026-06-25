@@ -85,5 +85,5 @@ default_shell "zsh"
 // Single-line compact status bar instead of the default two-line tab-bar + status-bar
 default_layout "compact"
 
-// Drop the 1-cell border around every pane to reclaim screen space (toggle back with "z")
-pane_frames false
+// Show the 1-cell pane frame so each pane title is visible — the zellij-pane-status plugin writes the opencode status into that title
+pane_frames true
