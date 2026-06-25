@@ -108,6 +108,33 @@ resolve_unique_dir() {
 	echo "${base_dir}-${suffix}"
 }
 
+# Decide a worktree branch name from a single raw input, honoring a JIRA key
+# when one is supplied. Pure and deterministic: the caller fetches the JIRA
+# summary (via acli) and passes it in, so this function does no I/O itself.
+#   - input matches JIRA_PATTERN + non-empty summary -> "<KEY>-<slug(summary)>"
+#   - input matches JIRA_PATTERN, empty/blank summary -> "<KEY>"
+#   - anything else                                   -> sanitized branch name
+# Echoes an empty string when the input sanitizes to nothing (caller aborts).
+compute_branch_name() {
+	local input="$1" summary="${2:-}"
+	local clean_summary
+
+	if [[ "$input" =~ $JIRA_PATTERN ]]; then
+		if [[ -n "$summary" ]]; then
+			clean_summary=$(slugify "$(echo "$summary" | head -1 | sed 's/\x1b\[[0-9;]*m//g')")
+			if [[ -n "$clean_summary" ]]; then
+				echo "${input}-${clean_summary}"
+			else
+				echo "$input"
+			fi
+		else
+			echo "$input"
+		fi
+	else
+		echo "$input" | head -1 | sed 's/\x1b\[[0-9;]*m//g' | tr -d '\n\r' | sed 's/[^a-zA-Z0-9._-]/-/g; s/--*/-/g; s/^-//; s/-$//'
+	fi
+}
+
 get_folder_name_from_branch() {
 	local branch_name="$1"
 

@@ -149,50 +149,38 @@ cmd_create() {
 			print_color red "Error: --branch is required with --no-prompt"
 			return 1
 		fi
-		print_color cyan "Enter JIRA ticket (e.g., ABC-123) or leave empty to skip JIRA integration:"
+		print_color cyan "Enter branch name (or JIRA ticket like ABC-123):"
 		read -r jira_ticket
 	fi
 
-	local branch_name=""
 	local summary=""
 
-	if [[ -n "$jira_ticket" && "$jira_ticket" =~ $JIRA_PATTERN ]]; then
-		if ! check_tool acli; then
-			print_color yellow "acli not available. Proceeding without JIRA integration."
-			branch_name="$jira_ticket"
-		else
-			print_color yellow "Fetching JIRA ticket details..."
-
-			summary=$(get_jira_summary "$jira_ticket" 2>/dev/null)
-			if [[ $? -eq 0 && -n "$summary" ]]; then
-				print_color green "✅ JIRA ticket found: $summary"
-				local clean_summary
-				clean_summary=$(slugify "$(echo "$summary" | head -1 | sed 's/\x1b\[[0-9;]*m//g')")
-				branch_name="${jira_ticket}-${clean_summary}"
-			else
-				print_color yellow "Could not fetch JIRA summary. Using ticket number as branch name."
-				branch_name="$jira_ticket"
-			fi
-		fi
-	elif [[ -n "$jira_ticket" ]]; then
-		branch_name="$jira_ticket"
-		print_color yellow "Input doesn't match JIRA pattern. Using as branch name directly."
-	else
-		if [[ "$no_prompt" == true ]]; then
-			print_color red "Error: --branch is required with --no-prompt"
-			return 1
-		fi
-		print_color cyan "Enter branch name:"
-		read -r branch_name
-
-		if [[ -z "$branch_name" ]]; then
-			print_color red "No branch name provided. Aborting."
-			return 1
-		fi
+	if [[ -z "$jira_ticket" ]]; then
+		print_color red "No branch name provided. Aborting."
+		return 1
 	fi
 
-	local original_input="$branch_name"
-	branch_name=$(echo "$branch_name" | head -1 | sed 's/\x1b\[[0-9;]*m//g' | tr -d '\n\r' | sed 's/[^a-zA-Z0-9._-]/-/g; s/--*/-/g; s/^-//; s/-$//')
+	local original_input="$jira_ticket"
+
+	# Honor a JIRA key when one was given; otherwise treat the input as a name.
+	if [[ "$jira_ticket" =~ $JIRA_PATTERN ]]; then
+		if ! check_tool acli; then
+			print_color yellow "acli not available. Proceeding without JIRA integration."
+		else
+			print_color yellow "Fetching JIRA ticket details..."
+			summary=$(get_jira_summary "$jira_ticket" 2>/dev/null)
+			if [[ -n "$summary" ]]; then
+				print_color green "✅ JIRA ticket found: $summary"
+			else
+				print_color yellow "Could not fetch JIRA summary. Using ticket number as branch name."
+			fi
+		fi
+	else
+		print_color yellow "Using input as the branch name."
+	fi
+
+	local branch_name
+	branch_name=$(compute_branch_name "$jira_ticket" "$summary")
 
 	if [[ -z "$branch_name" ]]; then
 		print_color red "Invalid branch name. Aborting."
