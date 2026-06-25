@@ -15,18 +15,14 @@ src/zellij/
 ├── config.kdl          # keybinds (locked default mode), plugins, ui, options
 ├── catppuccin.kdl      # `themes { ... }` block, imported by config.kdl
 └── layouts/            # one KDL pane layout per file
-    ├── opencode-sidebar.kdl # Alt p — 30% stacked opencode sidebar + nvim main pane
-    ├── side.kdl            # Alt ] — grid of opencode panes
-    ├── mass-tab.kdl        # Alt [ — opencode column + nvim main pane
-    ├── opencode-4x2.kdl    # 4x2 grid
-    └── select-quad.kdl     # empty 2x2 grid
+    └── opencode-sidebar.kdl # Alt p — 30% stacked opencode sidebar + nvim main pane
 
 etc/scripts/src/zellij/   # launcher scripts the binds Run (see dotfiles-shell-scripts)
 ├── open_opencode_sidebar.sh # Alt p — fzf project picker → opencode sidebar + nvim
-├── open_side.sh          # Alt ]
-├── open_mass_tab.sh      # Alt [
-├── select_session.sh     # Alt u — fzf session switcher
-└── update_tab_indexes.sh # re-prefixes tab names with position (1.foo, 2.bar)
+├── open_opencode_project.sh # Alt ] — fzf project picker → opencode stacked pane
+├── open_nvim_project.sh     # Alt \ — fzf project picker → nvim stacked pane
+├── select_session.sh        # Alt u — fzf session switcher
+└── update_tab_indexes.sh    # re-prefixes tab names with position (1.foo, 2.bar)
 ```
 
 The `zellij` link is a *common* link (`src/zellij` → `~/.config/zellij`),
@@ -53,7 +49,7 @@ Two bind flavours:
 
 ## Add / rebind a keybind
 
-1. Pick a free `Alt <key>`. Taken: `; w r n q i o p [ ] u y d e s Enter x`,
+1. Pick a free `Alt <key>`. Taken: `; w r n q i o p ] \ u y d e Enter x`,
    arrows, and `1`-`9`. There is no collision guard — check `config.kdl` first.
 2. Add it inside `shared_among "normal" "locked"`:
    ```kdl

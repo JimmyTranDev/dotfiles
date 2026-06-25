@@ -19,10 +19,8 @@ main() {
 	target_dir="$(select_project_dir)" || exit 0
 	[[ -z "$target_dir" ]] && exit 0
 
-	# Open nvim in a new stacked pane rooted in the chosen project — the
-	# project-picking counterpart to the "Alt '" stacked nvim pane. The pane
-	# closes itself when nvim exits (--close-on-exit), mirroring the
-	# `close_on_exit true` on the Alt ' bind.
+	# Open nvim in a new stacked pane rooted in the chosen project. The pane
+	# closes itself when nvim exits (--close-on-exit).
 	zellij action new-pane --cwd "$target_dir" --stacked --close-on-exit -- nvim
 }
 
