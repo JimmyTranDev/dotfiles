@@ -1,0 +1,21 @@
+layout {
+    pane size="25%" split_direction="vertical" {
+        pane command="opencode" focus=true size="50%"
+        pane command="opencode" size="50%"
+    }
+    pane size="25%" split_direction="vertical" {
+        pane command="opencode" size="50%"
+        pane command="opencode" size="50%"
+    }
+    pane size="25%" split_direction="vertical" {
+        pane command="opencode" size="50%"
+        pane command="opencode" size="50%"
+    }
+    pane size="25%" split_direction="vertical" {
+        pane command="opencode" size="50%"
+        pane command="opencode" size="50%"
+    }
+    pane size=1 borderless=true {
+        plugin location="zellij:compact-bar"
+    }
+}

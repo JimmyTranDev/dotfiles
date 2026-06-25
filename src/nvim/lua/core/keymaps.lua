@@ -10,6 +10,7 @@ local editor_actions = require('custom.actions.editor')
 local project_actions = require('custom.actions.project')
 local journal_actions = require('custom.actions.journal')
 local notes_actions = require('custom.actions.notes')
+local process_actions = require('custom.actions.process')
 local status_actions = require('custom.actions.status')
 local worktree_actions = require('custom.actions.worktree')
 local session = require('custom.utils.session')
@@ -73,6 +74,7 @@ maps('n', {
 -- ============================================================================
 maps('n', {
   { '<leader>;i', language_actions.fix_and_organize_typescript_imports, '󰉼 Fix and organize imports (TS)' },
+  { '<leader>;k', process_actions.kill_port, '󰓛 Kill process on port' },
   { '<leader>;m', language_actions.serve_markdown_folder, '󰌠 Markserve' },
   { '<leader>;s', ':4TermExec cmd="live-server --port=9090"<CR>', '󰌐 Live Server' },
   { '<leader>;M', language_actions.compile_mjml_file, '󰈮 Compile Mjml Html' },
