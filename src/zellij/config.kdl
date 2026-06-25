@@ -26,7 +26,7 @@ keybinds clear-defaults=true {
 
         bind "Alt d" { NewPane "down"; SwitchToMode "locked"; }
         bind "Alt e" { NewPane "right"; SwitchToMode "locked"; }
-        bind "Alt s" { Run "opencode" { stacked true; close_on_exit true; }; SwitchToMode "locked"; }
+        bind "Alt s" { MoveFocus "left"; Run "opencode" { stacked true; close_on_exit true; }; SwitchToMode "locked"; }
         bind "Alt Enter" { ToggleFocusFullscreen; SwitchToMode "locked"; }
         bind "Alt x" { CloseFocus; SwitchToMode "locked"; }
 
