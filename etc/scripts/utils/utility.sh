@@ -173,56 +173,101 @@ find_git_repos_and_worktrees() {
 	} | sort -u
 }
 
-# fzf-pick a single project or worktree under ~/Programming and print its
-# absolute path on stdout. Mirrors the ^o / ^f shell pickers: shares
-# ~/.last_project so the most recent selection floats to the top. Worktrees in
-# the wcreated/wcheckout containers are included. Non-zero if nothing is chosen.
-# Requires fzf and (via log_error) logging.sh to be sourced by the caller.
-select_project_dir() {
-	local programming_dir="$HOME/Programming"
-	local last_file="$HOME/.last_project"
-	local last_sel=""
-	[[ -f "$last_file" ]] && last_sel=$(<"$last_file")
+# Print the mtime (epoch seconds) of a path on stdout, portably across BSD
+# stat (macOS) and GNU coreutils (Linux). Empty output and non-zero on a
+# missing path; never fatal.
+_stat_mtime() {
+	command stat -c %Y "$1" 2>/dev/null || command stat -f %m "$1" 2>/dev/null
+}
 
-	local items=()
-	local org_dir org_name dir dirname
+# Recency timestamp for a project/worktree dir: prefer its .git (which git
+# touches on use), fall back to the directory mtime, and report 0 when nothing
+# exists so callers can still sort it last.
+_recency_mtime() {
+	local dir="${1%/}"
+	if [[ -e "$dir/.git" ]]; then
+		_stat_mtime "$dir/.git"
+	elif [[ -e "$dir" ]]; then
+		_stat_mtime "$dir"
+	else
+		printf '%s\n' 0
+	fi
+}
+
+# Mark a project/worktree as most-recently-used by touching its .git (or the
+# directory itself when there is none) so it floats to the top next time.
+bump_project_recency() {
+	local dir="${1%/}"
+	if [[ -e "$dir/.git" ]]; then
+		touch "$dir/.git" 2>/dev/null
+	elif [[ -e "$dir" ]]; then
+		touch "$dir" 2>/dev/null
+	fi
+}
+
+# Collect every project (immediate child of each org dir under <programming>)
+# and every git worktree in the <created>/<checkout> containers, one per line
+# as: <mtime>\t<label>\t<absolute-path>. Labels mirror the picker UI
+# ("[org] project", "[wcreated] name"). Missing container dirs are skipped
+# silently. Output is unordered; callers sort by the leading mtime field.
+_collect_project_dir_entries() {
+	local programming_dir="${1:-$HOME/Programming}"
+	local created_dir="${2:-$programming_dir/wcreated}"
+	local checkout_dir="${3:-$programming_dir/wcheckout}"
+	local org_dir org_name proj proj_name mtime
+	local container label wt_name wt_path
+
 	while IFS= read -r org_dir; do
 		[[ -d "$org_dir" ]] || continue
 		org_name="${org_dir%/}"
 		org_name="${org_name##*/}"
-		for dir in "$org_dir"*/; do
-			[[ -d "$dir" ]] || continue
-			dirname="${dir%/}"
-			dirname="${dirname##*/}"
-			items+=("[$org_name] $dirname")
-		done
+		while IFS= read -r proj; do
+			[[ -n "$proj" ]] || continue
+			proj_name="${proj##*/}"
+			mtime="$(_recency_mtime "$proj")"
+			printf '%s\t[%s] %s\t%s\n' "$mtime" "$org_name" "$proj_name" "$proj"
+		done < <(find -L "${org_dir%/}" -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null)
 	done < <(get_org_dirs "$programming_dir")
 
-	# Also include git worktrees from the wcreated/wcheckout containers so a
-	# worktree can be opened directly. Labels mirror the "[org] project" format,
-	# tagged by container, so they reconstruct to $HOME/Programming/<container>/<name>.
-	local wt_dir wt_label wt_name
-	for wt_dir in "${WCREATED_DIR:-$programming_dir/wcreated}" "${WCHECKOUT_DIR:-$programming_dir/wcheckout}"; do
-		[[ -d "$wt_dir" ]] || continue
-		wt_label="${wt_dir%/}"
-		wt_label="${wt_label##*/}"
+	for container in "$created_dir" "$checkout_dir"; do
+		[[ -d "$container" ]] || continue
+		label="${container%/}"
+		label="${label##*/}"
 		while IFS= read -r wt_name; do
-			[[ -n "$wt_name" ]] && items+=("[$wt_label] $wt_name")
-		done < <(find_git_repos_and_worktrees "$wt_dir")
+			[[ -n "$wt_name" ]] || continue
+			wt_path="${container%/}/$wt_name"
+			mtime="$(_recency_mtime "$wt_path")"
+			printf '%s\t[%s] %s\t%s\n' "$mtime" "$label" "$wt_name" "$wt_path"
+		done < <(find_git_repos_and_worktrees "$container")
 	done
+}
 
-	if [[ ${#items[@]} -eq 0 ]]; then
+# fzf-pick a single project or worktree under ~/Programming and print its
+# absolute path on stdout, listing the most-recently-used first (by .git/dir
+# mtime; see _recency_mtime). The chosen entry is bumped to the top for next
+# time and its "[org] project" label is mirrored into ~/.last_project so the
+# ^o / ^n / worktree pickers stay in sync. Non-zero if nothing is chosen.
+# Requires fzf and (via log_error) logging.sh to be sourced by the caller.
+select_project_dir() {
+	local programming_dir="$HOME/Programming"
+	local created_dir="${WCREATED_DIR:-$programming_dir/wcreated}"
+	local checkout_dir="${WCHECKOUT_DIR:-$programming_dir/wcheckout}"
+	local last_file="$HOME/.last_project"
+
+	local listing
+	listing="$(_collect_project_dir_entries "$programming_dir" "$created_dir" "$checkout_dir" | sort -t$'\t' -k1,1 -rn | cut -f2-)"
+	if [[ -z "$listing" ]]; then
 		log_error "No projects or worktrees found in $programming_dir"
 		return 1
 	fi
 
 	local selected
-	selected=$(reorder_last_first "$last_sel" "${items[@]}" | fzf --prompt="Select project: ") || return 1
+	selected=$(printf '%s\n' "$listing" | fzf --delimiter=$'\t' --with-nth=1 --prompt="Select project: ") || return 1
 	[[ -z "$selected" ]] && return 1
 
-	printf "%s" "$selected" >"$last_file"
-	local category="${selected%%]*}"
-	category="${category#\[}"
-	local project="${selected#*] }"
-	printf "%s" "$HOME/Programming/$category/$project"
+	local label="${selected%%$'\t'*}"
+	local project_path="${selected#*$'\t'}"
+	printf '%s' "$label" >"$last_file"
+	bump_project_recency "$project_path"
+	printf '%s' "$project_path"
 }
