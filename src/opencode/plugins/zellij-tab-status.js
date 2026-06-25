@@ -5,8 +5,8 @@ import { execFileSync } from "node:child_process"
 import { STATE_DIR, parseStateEntries, findTab, desiredName } from "../lib/zellij-tab-status.mjs"
 import { createTabStatus } from "../lib/zellij-tab-status-core.mjs"
 
-// Surface each opencode session's processing state as an emoji suffix on its
-// zellij TAB name (🤖 working, ✅ finished-while-you-were-away, none when idle) —
+// Surface each opencode session's processing state as a glyph suffix on its
+// zellij TAB name (⚙ working, ✓ finished-while-you-were-away, none when idle) —
 // the tab-level companion to zellij-pane-status.js. All transition logic lives
 // in the unit-tested core (lib/zellij-tab-status-core.mjs); this adapter only
 // supplies real I/O: per-pane state files at STATE_DIR/<tab_id>/<pid>, a
@@ -73,7 +73,7 @@ export const ZellijTabStatus = async ({ $ }) => {
 
   // Synchronous re-render for exit cleanup (a process 'exit' handler can't
   // await): drop our badge contribution at once so a closed solo pane leaves no
-  // stuck emoji. Bounded timeouts keep shutdown from hanging on a slow zellij.
+  // stuck glyph. Bounded timeouts keep shutdown from hanging on a slow zellij.
   const syncRender = (tabId) => {
     let tabs
     try {
@@ -165,7 +165,7 @@ export const ZellijTabStatus = async ({ $ }) => {
     }
   }
 
-  // setInterval-based focus poll, unref'd so a pending ✅ never keeps opencode
+  // setInterval-based focus poll, unref'd so a pending ✓ never keeps opencode
   // alive on its own.
   const startPoll = (fn, ms) => {
     const handle = setInterval(() => {
