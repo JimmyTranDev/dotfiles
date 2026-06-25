@@ -37,6 +37,7 @@ Task arrives
     ├── Embedded Turso Database engine (tursodb / @tursodatabase)? → turso-database
     ├── Manage Turso Cloud platform via turso CLI? → turso-cloud
     ├── Manage a Bitwarden vault via the bw CLI? → bitwarden-cli
+    ├── Operate the opencode CLI binary (run/serve/attach/auth/mcp)? → opencode-cli
     ├── Reviewing code? ───────────────→ code-review-and-quality
     │   ├── Too complex? ─────────────→ code-simplification
     │   ├── Security concerns? ───────→ security-and-hardening
@@ -191,6 +192,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Build | turso-database | Embedded Turso Database engine — tursodb shell, @tursodatabase SDKs, MVCC, encryption, local-first sync |
 | Build | turso-cloud | Manage the Turso Cloud platform (libSQL) — databases, groups, branches, tokens, dev server via the turso CLI |
 | Build | bitwarden-cli | Manage a Bitwarden password vault via the bw CLI — login/unlock, get/generate secrets, items, Send, export/import, serve |
+| Build | opencode-cli | Operate the opencode CLI binary — run, serve/web/attach, auth, agents, MCP, models, sessions, stats, plugins, upgrade |
 | Verify | test-driven-development | Failing test first, then make it pass |
 | Verify | testability-and-coverage | Make existing code testable via seams, then close branch-coverage gaps |
 | Verify | browser-testing-with-devtools | Chrome DevTools MCP for runtime verification |

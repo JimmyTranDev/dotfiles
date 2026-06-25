@@ -84,6 +84,7 @@ Map every request to the appropriate skill before acting.
 | Browse/pull an Android emulator app's private data folder (/data/data) | `android-app-data` |
 | Embedded Turso Database engine — `tursodb` shell, `@tursodatabase/*` SDKs, MVCC/concurrent writes, encryption, local-first sync | `turso-database` |
 | Manage the Turso Cloud platform (libSQL) — databases, groups, branches, tokens, local dev server via the `turso` CLI | `turso-cloud` |
+| Operate the `opencode` CLI binary — `run`, `serve`/`web`/`attach`, auth, agents, MCP, models, sessions, stats, plugins, `upgrade`/`uninstall` | `opencode-cli` |
 | Which skill applies? (meta) | `using-agent-skills` |
 
 ## Execution Model

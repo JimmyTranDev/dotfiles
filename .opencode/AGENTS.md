@@ -17,6 +17,7 @@ Invoke the matching one with the `skill` tool before acting.
 | Write or edit a shell script under `etc/scripts/` | `dotfiles-shell-scripts` |
 | Run install / sync_links / doctor, or reason about the symlink model | `sync-and-doctor` |
 | Edit the Neovim config under `src/nvim` (keymaps, actions, plugins, lint) | `nvim-config` |
+| Edit the Zellij config under `src/zellij` (keybinds, KDL layouts, theme) | `zellij-config` |
 
 The global skill set (from `~/.config/opencode/skills`, e.g. `commit`,
 `git-workflow-and-versioning`, `code-review-and-quality`) still applies. When a
