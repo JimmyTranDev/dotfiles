@@ -19,7 +19,7 @@ keybinds clear-defaults=true {
         bind "Alt o" { MoveTab "Right"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
         bind "Alt p" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_opencode_sidebar.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         // bind "Alt g" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_opencode_4x2.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
-        bind "Alt [" { MoveFocus "left"; Run "opencode" { stacked true; close_on_exit true; }; SwitchToMode "locked"; }
+        bind "Alt [" { Run "opencode" { stacked true; close_on_exit true; }; SwitchToMode "locked"; }
         bind "Alt ]" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_opencode_project.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         bind "Alt u" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/select_session.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         bind "Alt y" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
