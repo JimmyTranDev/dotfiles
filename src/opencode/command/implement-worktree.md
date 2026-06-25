@@ -1,15 +1,25 @@
 ---
-description: Create a dedicated git worktree, implement the work end-to-end (spec → plan → build → verify → review with quick confirms after the spec and plan), then offer to open the result as a draft PR, a ready-for-review PR, or no PR
+description: Implement a feature or Jira ticket end-to-end inside a dedicated wcreated git worktree — spec, plan, build, verify, review — then stop at a committed, pushed branch (no PR); pass a `yolo` keyword to run autonomously with no gates
 ---
 
-Implement **$ARGUMENTS** inside a dedicated git worktree, then publish it as a
-pull request. This is the gated `/implement` flow (**spec → plan → build →
-verify → review**, auto-advancing with a quick confirm after the spec and after
-the plan) run inside a fresh `wcreated` worktree, finishing by asking how to
-open the PR.
+Implement **$ARGUMENTS** inside a dedicated `wcreated` git worktree, then stop at
+a committed, pushed branch — **no pull request** (use `/implement-pr` to open
+one). This is the `/implement` flow run inside a fresh worktree.
 
-`$ARGUMENTS` is either a Jira key (e.g. `ABC-123`) or a short feature
-description. If empty, ask what to implement before starting.
+## Modifiers — parse `$ARGUMENTS` first
+
+Read the same two optional modifiers as `/implement`, then treat the remainder
+as the task:
+
+- **`yolo` keyword** — a standalone, case-insensitive `yolo` token switches this
+  run to the **autonomous** flow (no go/no-go gates; pause only for a genuinely
+  blocking ambiguity). Strip it before reading the description. Absent →
+  **gated** (confirm gate after the spec and after the plan).
+- **Jira key / URL** — `^[A-Z]+-[0-9]+$` or `*.atlassian.net/browse/<KEY>` turns
+  on Jira intake + report-back and seeds the spec's success criteria from the
+  ticket's acceptance criteria.
+
+If nothing remains and no Jira key was given, ask what to implement first.
 
 ## Phase 0 — Worktree setup
 
@@ -18,52 +28,29 @@ description. If empty, ask what to implement before starting.
    shell script.
 2. Create a **new branch worktree** under `~/Programming/wcreated`, branched off
    the freshly-updated base branch (`develop` → `main` → `master`):
-   - **Jira key** (`^[A-Z]+-[0-9]+$`): name the branch `<KEY>-<slug(summary)>`,
-     pulling the summary via `acli` when available (fall back to `<KEY>`).
+   - **Jira key**: name the branch `<KEY>-<slug(summary)>`, pulling the summary
+     via `acli` when available (fall back to `<KEY>`).
    - **Otherwise**: derive the branch/slug from the description.
 3. Let the skill choose the commit type, seed the empty commit (so the branch is
-   pushable/PR-able immediately), install deps if a lockfile exists, and `cd`
-   into the new worktree.
+   pushable immediately), install deps if a lockfile exists, and `cd` into the
+   new worktree.
 4. Confirm you are inside the worktree (`git rev-parse --is-inside-work-tree`)
    and on the new branch (`git branch --show-current`) before writing any code.
    **Every** subsequent phase runs inside this worktree.
 
-Carry the branch name and the base branch it was cut from into the later phases —
-the PR head is this branch and the PR base is that base branch.
+If a Jira key was passed, now run **`/implement`'s Phase 0 — Jira intake** (read
+the ticket + self-assign + move to *In Progress* + pull any linked Figma) inside
+the worktree.
 
-## Phase 1 — Spec · Phase 2 — Plan · Phase 3 — Build · Phase 4 — Verify · Phase 5 — Review
+Carry the branch name and the base branch it was cut from into the later phases.
 
-Run the **identical** core flow from the `/implement` command, all inside the
-worktree:
+## Phases 1–5 — Spec · Plan · Build · Verify · Review
 
-1. **Spec** — load `spec-driven-development`; surface assumptions first, then
-   write a concise spec (objective, testable success criteria, scope
-   always/ask-first/never, open questions) proportional to the task. For a Jira
-   key, the **success criteria are the ticket's acceptance criteria**.
-   **Confirm gate** via the `question` tool: *Proceed to planning (Recommended)*
-   / *Revise the spec first* / *Stop here*. Do not plan until "Proceed".
-2. **Plan** — load `planning-and-task-breakdown`; ordered, dependency-aware S–M
-   tasks (≤ ~5 files each), every task with acceptance criteria + a verification
-   step; prefer vertical slices.
-   **Confirm gate** via the `question` tool: *Proceed to build (Recommended)* /
-   *Revise the plan first* / *Stop here*. Do not write code until "Proceed".
-3. **Build** — load `incremental-implementation` + `test-driven-development`
-   (and `source-driven-development` for framework specifics). Implement every
-   task to completion: test → smallest slice → run tests/build/lint → keep the
-   tree green. Track progress with a todo list; touch only what each task
-   requires. Only stop for a genuinely blocking ambiguity or an
-   irreversible/destructive action.
-4. **Verify** — run the **full** tests/build/lint/type-check and confirm every
-   spec success criterion is met. On failure load `debugging-and-error-recovery`
-   and fix the **root cause**; ensure new/changed logic is meaningfully covered
-   (load `testability-and-coverage` if thin); for high-stakes/irreversible logic
-   load `doubt-driven-development`. Don't proceed until the suite is green.
-5. **Review** — load `code-review-and-quality` and review the whole change
-   across every axis (correctness, design, tests, security, readability) as if
-   it were someone else's PR. Fix anything that wouldn't pass, then **re-verify**
-   (Phase 4).
+Run the **identical** core flow from `/implement` (Phases 1–5), honoring the
+`yolo` modifier (gated confirm gates vs. autonomous clarify-only) and any Jira
+acceptance criteria, all inside the worktree.
 
-## Phase 6 — Pull request
+## Phase 6 — Stop at a pushed branch (no PR)
 
 Once the change is built, verified, and reviewed:
 
@@ -71,30 +58,21 @@ Once the change is built, verified, and reviewed:
    conventional messages (include the Jira key when present). The tree must be
    clean — `git status` shows nothing to commit — before continuing.
 2. **Push the branch:** `git push -u origin <branch>`.
-3. **Ask how to publish.** Use the `question` tool with exactly these three
-   options:
-   - **Draft PR (Recommended)** — open a draft so CI runs and you can do a final
-     pass in the PR UI before pinging reviewers; mark ready in one click later.
-     `gh pr create --draft --base <base> --title "<title>" --body "<body>"`
-   - **Open PR (ready for review)** — the work is already verified and reviewed,
-     so request review immediately.
-     `gh pr create --base <base> --title "<title>" --body "<body>"`
-   - **No PR** — stop after pushing; report the branch and the exact
-     `gh pr create` command to open one later.
-4. **Create the PR** for the chosen option (skip for *No PR*). Set:
-   - `--base` to the worktree's base branch (the `develop`/`main`/`master` it was
-     cut from); head is the current branch.
-   - **Title** from the spec objective (or `<KEY> <summary>` for a Jira ticket).
-   - **Body** summarizing what changed and how it was verified (tests/build/lint),
-     plus the Jira link `https://storebrand.atlassian.net/browse/<KEY>` when a
-     ticket exists.
+3. **Report, don't publish.** Print the worktree path, branch, base branch, and
+   the exact command to open a PR later:
+   ```bash
+   gh pr create --base <base> --title "<title>" --body "<body>"
+   ```
+   To open the PR as part of the run instead, use `/implement-pr`.
 
-   Report the PR URL.
+If a Jira key was passed, run **`/implement`'s Phase 6 — report back to Jira**
+(comment the summary + pushed branch; propose the next transition).
 
 ## Done
 
-Report: the worktree path + branch + base branch, the spec summary, the task
-list with each task's status, the verify results (tests / build / lint /
-coverage), the review findings and how they were resolved, anything
-noted-but-not-touched, and the PR decision (draft / ready / none) with its URL —
-or, for *No PR*, the `gh pr create` command to open one later.
+Report: the worktree path + branch + base branch, the spec summary, any
+clarifications/confirms and how they were resolved, the task list with each
+task's status, the verify results (tests / build / lint / coverage), the review
+findings and how they were resolved, anything noted-but-not-touched, the
+`gh pr create` command to open a PR later, and — for a Jira ticket — the comment
+posted and the ticket's resulting status.

@@ -45,6 +45,6 @@ deliverable. Present:
 - any clarifications asked and how they were answered, plus key assumptions.
 
 Then hand off without touching code: to implement the plan, suggest running
-`/implement` (gated) or `/implement-auto` (autonomous) on the same feature, or
+`/implement` (gated) or `/implement yolo` (autonomous) on the same feature, or
 loading the `incremental-implementation` + `test-driven-development` skills
 directly.
