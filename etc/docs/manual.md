@@ -9,23 +9,30 @@
 | Prefix | Label |
 |--------|-------|
 | `<leader>;` | 󰌌 Secondary |
-| `<leader>;d` | 󰠷 Development |
-| `<leader>;f` | 󰉋 Files |
-| `<leader>;T` | 󰦅 Text |
-| `<leader>;c` | 󰑓 Cache |
+| `<leader>rc` | 󰑓 Cache |
 | `<leader>c` | 󰌷 Copy & Quick Access |
 | `<leader>a` | 󰚩 AI |
 | `<leader>v` | 󰌵 Actions |
 | `<leader><leader>l` | 󰞷 LeetCode |
 | `<leader>f` | 󰭎 Find |
-| `<leader>fc` | 󰘖 Commands |
-| `<leader>fg` | 󰊢 Git Files |
-| `<leader>fj` | 󰊢 Git |
+| `<leader>ff` | 󰈔 Files |
+| `<leader>fs` | 󰊄 Search |
+| `<leader>fg` | 󰊢 Git |
+| `<leader>fl` | 󰒡 LSP & Diagnostics |
+| `<leader>fv` | 󰒓 Editor |
 | `<leader>g` | 󰊢 Git |
 | `<leader>gb` | 󰘬 Branch |
 | `<leader>gc` | 󰜘 Commit |
 | `<leader>gC` | 󰜘 Commit & Push |
 | `<leader>gf` | 󰈞 Files |
+| `<leader>J` | 󰬷 Java |
+| `<leader>Jr` | 󰜎 Run |
+| `<leader>Jt` | 󰙨 Test |
+| `<leader>Jd` | 󰃤 Debug |
+| `<leader>Je` | 󰂽 Extract |
+| `<leader>Jg` | 󰖷 Generate |
+| `<leader>Jb` | 󰜫 Build |
+| `<leader>Js` | 󰒓 Settings |
 | `<leader>h` | 󰊤 GitHub |
 | `<leader>gl` | 󰋫 Log |
 | `<leader>gn` | 󰳴 Checkout |
@@ -50,6 +57,10 @@
 | `<leader><leader>n` | 󰖲 Window Splits |
 | `<leader><leader>p` | 󰏖 Packages |
 | `<leader>r` | 󰌱 Capture & Log |
+| `<leader>rt` | 󰌱 Todoist |
+| `<leader>rj` | 󰌧 Jira |
+| `<leader>rl` | 󰈙 Journal |
+| `<leader>rn` | 󰠮 Notes |
 | `<leader>s` | 󱖫 Status |
 | `<leader><leader>s` | 󰒺 Sort & Swap |
 | `<leader>u` | 󰦥 URL / Open |
@@ -67,86 +78,17 @@
 | `<S-K>` | all | 󰙳 Scroll up half page |
 | `gJ` | n | 󰗈 Join lines |
 | `gK` | n | 󰋼 Keyword lookup |
-| `<leader>;df` | n | 󰉼 Fix and organize imports (TS) |
-| `<leader>;dm` | n | 󰌠 Markserve |
-| `<leader>;ds` | n | 󰌐 Live Server |
-| `<leader>;dM` | n | 󰈮 Compile Mjml Html |
-| `<leader>;fs` | n | 󰓆 Toggle spellcheck |
-| `<leader>;fm` | n | 󰙈 Toggle Markview |
-| `<leader>;fw` | n | 󰌪 Toggle text wrap |
-| `<leader>;fr` | n | 󰔁 Reload file from disk |
-| `<leader>;r` | n | 󰖲 Switch repo + rename Zellij tab |
-| `<leader>fa` | n | 󰊄 Grep in current file dir |
-| `<leader>;Tr` | x | 󰕈 Visual search replace |
-| `<leader>vx` | n | 󰒡 Knip fix current folder |
-| `<leader>vX` | n | 󰒡 Knip fix & remove files (global) |
-| `<leader>ve` | n | 󰒡 ESLint analysis picker |
-| `<leader>vK` | n | 󰒡 Knip unused files |
-| `<leader>vk` | n | 󰒡 Knip unused code |
-| `<leader>vd` | n | 󰚴 Redeploy PR (#deploy + clean bot comments) |
-| `<leader>;ct` | n | 󰆘 Refresh Todoist cache |
-| `<leader>;cw` | n | 󰆘 Refresh Jira cache |
-| `<leader>cj` | n | 󰆓 Copy: Jira ticket + title |
-| `<leader>ct` | n | 󰆓 Copy: Jira testable message |
-| `<leader>;J` | n | 󰌧 Generate this week jira tasks |
-| `<leader>cp` | n | 󰆓 Copy: open PRs |
-| `<leader>cP` | n | 󰆓 Copy: select PR |
 | `<Leader>i` | n | 󰮯 Jump forward |
 | `<Leader>o` | n | 󰮲 Jump backward |
-| `<Leader>q` | n | 󰩈 Quit |
-| `<Leader>Q` | n | 󰩈 Force quit all |
-| `<Leader>w` | n | 󰆓 Write |
-| `<Leader>W` | n | 󰆓 Write all |
-| `<Leader>rt` | n | 󰌱 Log todoist task |
-| `<Leader>rT` | n | 󰌱 Edit recent Todoist task |
-| `<Leader>rD` | n | 󰌱 Delete recent Todoist task |
-| `<Leader>rw` | n | 󰌱 Create Jira task |
-| `<Leader>rW` | n | 󰌱 Create Jira task + open link |
-| `<Leader>rj` | n | 󰌱 Add journal entry |
-| `<Leader>rJ` | n | 󰌱 Open journal |
-| `<Leader>rr` | n |  Quick note |
-| `<Leader>rp` | n | 󰌱 Add notes entry |
-| `<Leader>rn` | n | 󰌱 Add sentence to notes |
-| `<Leader>rN` | n | 󰌱 Save task to notes |
-| `<Leader>rc` | n | 󰌱 Add Jira comment from branch |
-| `<leader>cl` | n | 󰆓 Copy: GitHub line URL |
-| `<leader>cl` | v | 󰆓 Copy: GitHub line URL |
-| `<leader>ca` | n | 󰆓 Copy: all files content |
-| `<leader>cf` | n | 󰆓 Copy: frontend project paths |
-| `<leader>cr` | n | 󰆓 Copy: repo path |
-| `<leader>cu` | n | 󰆓 Copy: current file URL |
-| `<leader>co` | n | 󰆓 Copy: OpenCode link |
-| `<leader>ce` | n | 󰆓 Copy: diagnostic |
+| `q` | n | 󰜺 Macro recording disabled |
+| `q` | x | 󰜺 Macro recording disabled |
+| `<leader>;T` | x | 󰕈 Visual search replace |
+| `<leader>cl` | v | 󰆓 GitHub line URL |
+| `<leader>cc` | x | 󰆓 AI file reference (range) |
+| `<leader>cm` | x | 󰆓 Markdown code block (selection) |
 | `<Leader>ud` | n | 󰦥 Open current directory |
-| `<Leader>ugc` | n | 󰦥 GitHub: current commit |
-| `<Leader>ugp` | n | 󰦥 GitHub: open/create PR |
-| `<Leader>ugP` | n | 󰦥 GitHub: copy PR link |
-| `<Leader>ugr` | n | 󰦥 GitHub: repo page |
-| `<Leader>uga` | n | 󰦥 GitHub: all PRs |
-| `<Leader>ugh` | n | 󰦥 GitHub: repo homepage |
-| `<Leader>ugm` | n | 󰦥 GitHub: my open PRs |
-| `<Leader>ugo` | n | 󰦥 GitHub: org repos |
-| `<Leader>ugN` | n | 󰦥 GitHub: all notifications |
-| `<Leader>ugn` | n | 󰦥 GitHub: team notifications |
-| `<Leader>ugb` | n | 󰦥 GitHub: team notifications (select) |
-| `<Leader>ugw` | n | 󰦥 GitHub: team PRs |
-| `<Leader>ugW` | n | 󰦥 GitHub: team PRs (select) |
-| `<Leader>ugf` | n | 󰦥 Open file from clipboard URL |
-| `<Leader>ugi` | n | 󰦥 GitHub: PR diff (current branch) |
-| `<Leader>ujt` | n | 󰦥 Jira: open ticket from branch |
-| `<Leader>ujb` | n | 󰦥 Jira: browse my tasks |
-| `<Leader>ujr` | n | 󰦥 Jira: recently updated tasks |
-| `<Leader>ull` | n | 󰦥 Links: useful links |
-| `<Leader>ulp` | n | 󰦥 Links: private links |
-| `<Leader>ult` | n | 󰦥 Links: technical (repo) |
-| `<Leader>ulT` | n | 󰦥 Links: technical (select) |
-| `<Leader>us` | n | 󰦥 Search: Google |
-| `<Leader>us` | v | 󰦥 Search: Google (selection) |
-| `<leader>sc` | n | 󱖫 CI Checks |
-| `<leader>sp` | n | 󱖫 PR Status |
-| `<leader>so` | n | 󱖫 Pipeline Overview |
-| `<leader>fW` | n | Switch project |
-| `<leader>;cp` | n | Clear plan files |
+| `<Leader>us` | n | 󰊭 Google |
+| `<Leader>us` | v | 󰊭 Google (selection) |
 
 ## Neovim Keymaps (plugins)
 
@@ -175,8 +117,10 @@
 | `knip` | `pnpm dlx knip` |
 | `knipw` | `pnpm dlx knip --watch` |
 | `loc` | `git ls-files \| rg -v "(^\|/)(assets\|data)/" \| xargs wc -l` |
+| `locp` | `git ls-files --cached --others --exclude-standard -z \| xargs -0 wc -l \| tail -1` |
 | `csv` | `git ls-files "*/core/*.csv" 2>/dev/null \| fzf --preview "head -20 {}" \| xargs -r vd --csv-delimiter "\|"` |
 | `google-chrome` | `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"` |
+| `wl` | `$DOTFILES_DIR/etc/scripts/src/worktrees/worktree list` |
 | `wD` | `$DOTFILES_DIR/etc/scripts/src/worktrees/worktree delete` |
 | `wC` | `$DOTFILES_DIR/etc/scripts/src/worktrees/worktree clean` |
 | `wr` | `$DOTFILES_DIR/etc/scripts/src/worktrees/worktree rename` |
@@ -203,6 +147,8 @@
 | Key | Action |
 |-----|--------|
 | `^f` | select_project_worktree |
+| `^o` | select_project_opencode_widget |
+| `^n` | select_project_nvim_widget |
 | `^[f` | select_projects_worktrees_multi |
 | `^u` | zellij_update_tab_indexes |
 
@@ -222,100 +168,19 @@
 | Key | Action |
 |-----|--------|
 | `Alt ;` | SwitchToMode "normal" |
-| `left` | MoveFocus "left" |
-| `down` | MoveFocus "down" |
-| `up` | MoveFocus "up" |
-| `right` | MoveFocus "right" |
-| `c` | SwitchToMode "renamepane"; PaneNameInput 0 |
-| `d` | NewPane "down"; SwitchToMode "locked" |
-| `e` | TogglePaneEmbedOrFloating; SwitchToMode "locked" |
-| `f` | ToggleFocusFullscreen; SwitchToMode "locked" |
-| `h` | MoveFocus "left" |
-| `j` | MoveFocus "down" |
-| `k` | MoveFocus "up" |
-| `l` | MoveFocus "right" |
-| `n` | NewPane; SwitchToMode "locked" |
-| `p` | SwitchToMode "normal" |
-| `r` | NewPane "right"; SwitchToMode "locked" |
-| `w` | ToggleFloatingPanes; SwitchToMode "locked" |
-| `x` | CloseFocus; SwitchToMode "locked" |
-| `z` | TogglePaneFrames; SwitchToMode "locked" |
-| `tab` | SwitchFocus |
-| `left` | GoToPreviousTab |
-| `down` | GoToNextTab |
-| `up` | GoToPreviousTab |
-| `right` | GoToNextTab |
-| `1` | GoToTab 1; SwitchToMode "locked" |
-| `2` | GoToTab 2; SwitchToMode "locked" |
-| `3` | GoToTab 3; SwitchToMode "locked" |
-| `4` | GoToTab 4; SwitchToMode "locked" |
-| `5` | GoToTab 5; SwitchToMode "locked" |
-| `6` | GoToTab 6; SwitchToMode "locked" |
-| `7` | GoToTab 7; SwitchToMode "locked" |
-| `8` | GoToTab 8; SwitchToMode "locked" |
-| `9` | GoToTab 9; SwitchToMode "locked" |
-| `[` | BreakPaneLeft; SwitchToMode "locked" |
-| `]` | BreakPaneRight; SwitchToMode "locked" |
-| `b` | BreakPane; SwitchToMode "locked" |
-| `h` | GoToPreviousTab |
-| `j` | GoToNextTab |
-| `k` | GoToPreviousTab |
-| `l` | GoToNextTab |
-| `n` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
-| `r` | SwitchToMode "renametab"; TabNameInput 0 |
-| `s` | ToggleActiveSyncTab; SwitchToMode "locked" |
-| `t` | SwitchToMode "normal" |
-| `x` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
-| `tab` | ToggleTab |
-| `left` | Resize "Increase left" |
-| `down` | Resize "Increase down" |
-| `up` | Resize "Increase up" |
-| `right` | Resize "Increase right" |
-| `+` | Resize "Increase" |
-| `-` | Resize "Decrease" |
-| `=` | Resize "Increase" |
-| `H` | Resize "Decrease left" |
-| `J` | Resize "Decrease down" |
-| `K` | Resize "Decrease up" |
-| `L` | Resize "Decrease right" |
-| `h` | Resize "Increase left" |
-| `j` | Resize "Increase down" |
-| `k` | Resize "Increase up" |
-| `l` | Resize "Increase right" |
-| `r` | SwitchToMode "normal" |
-| `left` | MovePane "left" |
-| `down` | MovePane "down" |
-| `up` | MovePane "up" |
-| `right` | MovePane "right" |
-| `h` | MovePane "left" |
-| `j` | MovePane "down" |
-| `k` | MovePane "up" |
-| `l` | MovePane "right" |
-| `m` | SwitchToMode "normal" |
-| `n` | MovePane |
-| `p` | MovePaneBackwards |
-| `tab` | MovePane |
-| `e` | EditScrollback; SwitchToMode "locked" |
-| `f` | SwitchToMode "entersearch"; SearchInput 0 |
-| `s` | SwitchToMode "normal" |
-| `c` | SearchToggleOption "CaseSensitivity" |
-| `n` | Search "down" |
-| `o` | SearchToggleOption "WholeWord" |
-| `p` | Search "up" |
-| `w` | SearchToggleOption "Wrap" |
-| `d` | Detach |
-| `o` | SwitchToMode "normal" |
 | `Alt r` | SwitchToMode "renametab"; TabNameInput 0 |
-| `Alt n` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
-| `Alt q` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
-| `Alt ,` | GoToPreviousTab |
-| `Alt .` | GoToNextTab |
-| `Alt i` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
-| `Alt o` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
-| `Alt a` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
-| `Alt y` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
+| `Alt n` | close_on_exit true; floating true; }; SwitchToMode "locked" |
+| `Alt q` | close_on_exit true; floating true; }; SwitchToMode "locked" |
+| `Alt i` | close_on_exit true; floating true; }; SwitchToMode "locked" |
+| `Alt o` | close_on_exit true; floating true; }; SwitchToMode "locked" |
+| `Alt p` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
+| `Alt [` | stacked true; close_on_exit true; }; SwitchToMode "locked" |
+| `Alt ]` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
+| `Alt u` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
+| `Alt y` | close_on_exit true; floating true; }; SwitchToMode "locked" |
 | `Alt d` | NewPane "down"; SwitchToMode "locked" |
 | `Alt e` | NewPane "right"; SwitchToMode "locked" |
+| `Alt Enter` | ToggleFocusFullscreen; SwitchToMode "locked" |
 | `Alt x` | CloseFocus; SwitchToMode "locked" |
 | `Alt left` | MoveFocus "left" |
 | `Alt down` | MoveFocus "down" |
@@ -330,34 +195,4 @@
 | `Alt 7` | GoToTab 7; SwitchToMode "locked" |
 | `Alt 8` | GoToTab 8; SwitchToMode "locked" |
 | `Alt 9` | GoToTab 9; SwitchToMode "locked" |
-| `Alt ;` | SwitchToMode "locked" |
-| `Ctrl q` | Quit |
-| `enter` | SwitchToMode "locked" |
-| `esc` | SwitchToMode "locked" |
-| `m` | SwitchToMode "move" |
-| `o` | SwitchToMode "session" |
-| `t` | SwitchToMode "tab" |
-| `s` | SwitchToMode "scroll" |
-| `p` | SwitchToMode "pane" |
-| `r` | SwitchToMode "resize" |
-| `PageDown` | PageScrollDown |
-| `PageUp` | PageScrollUp |
-| `left` | PageScrollUp |
-| `down` | ScrollDown |
-| `up` | ScrollUp |
-| `right` | PageScrollDown |
-| `Ctrl b` | PageScrollUp |
-| `Ctrl c` | ScrollToBottom; SwitchToMode "locked" |
-| `d` | HalfPageScrollDown |
-| `h` | PageScrollUp |
-| `j` | ScrollDown |
-| `k` | ScrollUp |
-| `l` | PageScrollDown |
-| `u` | HalfPageScrollUp |
-| `Ctrl c` | SwitchToMode "scroll" |
-| `esc` | SwitchToMode "scroll" |
-| `enter` | SwitchToMode "search" |
-| `esc` | UndoRenameTab; SwitchToMode "tab" |
-| `Ctrl c` | SwitchToMode "locked" |
-| `esc` | UndoRenamePane; SwitchToMode "pane" |
 
