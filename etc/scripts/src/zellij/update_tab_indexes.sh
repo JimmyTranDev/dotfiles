@@ -2,6 +2,11 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPTS_DIR="$SCRIPT_DIR/../.."
+
+source "$SCRIPTS_DIR/utils/zellij_tabs.sh"
+
 LOG_FILE="/tmp/zellij_reindex.log"
 
 log() {
@@ -75,11 +80,26 @@ main() {
 		exit 0
 	fi
 
+	# Map each tab (in position order) to its focused pane's folder name so a
+	# lone-nvim tab can borrow that folder instead of showing "nvim". dump-layout
+	# is the only source of pane cwds; list-tabs --json carries none. An empty or
+	# failed dump leaves folders empty, so resolve_tab_base_name stays a no-op and
+	# every tab keeps its existing base name.
+	local layout
+	layout=$(zellij action dump-layout 2>/dev/null || true)
+	local folders=()
+	while IFS= read -r folder_line; do
+		folders+=("$folder_line")
+	done < <(printf '%s\n' "$layout" | parse_focused_tab_folders)
+	log "Parsed ${#folders[@]} tab folder(s) from layout"
+
 	local needs_update=false
 	local idx=0
+	local pos=0
 
 	while IFS= read -r line; do
-		local tab_id name base_name
+		local tab_id name base_name folder
+		((pos++)) || true
 		tab_id=$(echo "$line" | cut -d'|' -f1)
 		name=$(echo "$line" | cut -d'|' -f2)
 
@@ -93,6 +113,9 @@ main() {
 			log "Skipping tab_id=$tab_id name='$name' (empty name)"
 			continue
 		fi
+
+		folder="${folders[pos-1]}"
+		base_name=$(resolve_tab_base_name "$base_name" "$folder")
 
 		((idx++)) || true
 		local expected_name="${idx}.${base_name}"
@@ -116,8 +139,10 @@ for t in tabs:
 	fi
 
 	idx=0
+	pos=0
 	while IFS= read -r line; do
-		local tab_id name base_name
+		local tab_id name base_name folder
+		((pos++)) || true
 		tab_id=$(echo "$line" | cut -d'|' -f1)
 		name=$(echo "$line" | cut -d'|' -f2)
 
@@ -130,6 +155,9 @@ for t in tabs:
 		if [[ -z "$base_name" ]]; then
 			continue
 		fi
+
+		folder="${folders[pos-1]}"
+		base_name=$(resolve_tab_base_name "$base_name" "$folder")
 
 		((idx++)) || true
 		local new_name="${idx}.${base_name}"
