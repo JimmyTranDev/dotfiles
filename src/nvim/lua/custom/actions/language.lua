@@ -151,6 +151,50 @@ function M.run_package_script()
   vim.notify('No package.json or Makefile found', vim.log.levels.WARN)
 end
 
+-- Build the snacks.picker opts for the multi-script runner. Kept pure (no
+-- snacks/require/UI side effects) so it can be unit-tested headlessly.
+--
+-- Snacks multi-select is the DEFAULT (Tab toggles items); the selected set is
+-- read in confirm via picker:selected. The `multi` opt is a *list of sources*
+-- to combine, NOT a boolean toggle — passing `multi = true` makes snacks call
+-- ipairs() on a boolean and crash. So we never set it.
+---@param scripts string[]
+---@param pm string
+---@param opts? { max_splits?: integer, run?: fun(name: string, spec: table), notify?: fun(msg: string, level: integer) }
+function M.build_multi_script_picker_opts(scripts, pm, opts)
+  opts = opts or {}
+  local max_splits = opts.max_splits or 6
+  local run = opts.run or function(name, spec) registry.get_or_create(name, spec) end
+  local notify = opts.notify or function(msg, level) vim.notify(msg, level) end
+
+  local items = {}
+  for _, script in ipairs(scripts) do
+    table.insert(items, { text = script, script = script })
+  end
+
+  return {
+    title = 'Select npm scripts (multi-select with Tab)',
+    items = items,
+    format = function(item) return { { item.text } } end,
+    confirm = function(picker)
+      picker:close()
+      local selected = picker:selected({ fallback = true })
+      if not selected or #selected == 0 then return end
+
+      if #selected > max_splits then notify('Capped to ' .. max_splits .. ' scripts (selected ' .. #selected .. ')', vim.log.levels.WARN) end
+
+      local count = math.min(#selected, max_splits)
+      for i = 1, count do
+        local script = selected[i].script
+        run('npm-run-' .. script, {
+          cmd = pm .. ' run ' .. script,
+          close_on_exit = false,
+        })
+      end
+    end,
+  }
+end
+
 function M.run_multiple_package_scripts()
   return function()
     local scripts = language_utils.list_package_json_commands()
@@ -162,39 +206,13 @@ function M.run_multiple_package_scripts()
     local pm = get_pm()
     if not pm then return end
 
-    local max_splits = 6
-    local items = {}
-    for _, script in ipairs(scripts) do
-      table.insert(items, { text = script, script = script })
-    end
-
     local ok, snacks = pcall(require, 'snacks')
     if not ok then
       vim.notify('Snacks not available', vim.log.levels.ERROR)
       return
     end
 
-    snacks.picker({
-      title = 'Select npm scripts (multi-select with Tab)',
-      items = items,
-      format = function(item) return { { item.text } } end,
-      multi = true,
-      confirm = function(picker, selected)
-        picker:close()
-        if not selected or #selected == 0 then return end
-
-        if #selected > max_splits then vim.notify('Capped to ' .. max_splits .. ' scripts (selected ' .. #selected .. ')', vim.log.levels.WARN) end
-
-        local count = math.min(#selected, max_splits)
-        for i = 1, count do
-          local script = selected[i].script
-          registry.get_or_create('npm-run-' .. script, {
-            cmd = pm .. ' run ' .. script,
-            close_on_exit = false,
-          })
-        end
-      end,
-    })
+    snacks.picker(M.build_multi_script_picker_opts(scripts, pm))
   end
 end
 
