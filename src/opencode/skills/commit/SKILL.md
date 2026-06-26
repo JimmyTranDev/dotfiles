@@ -31,11 +31,14 @@ Follow the [Conventional Commits 1.0.0 spec](https://www.conventionalcommits.org
 [optional footer(s)]
 ```
 
-With a Jira ticket (when the branch name contains one):
+With a Jira ticket (when the branch name contains one), place the key right
+after the colon — before the description, and after the optional scope:
 
 ```
-<type>(<scope>): TICKET-123 <description>
+<type>[(scope)]: <TICKET> <description>
 ```
+
+For example: `feat: BW-10497 create credit card success page`.
 
 Indicate a breaking change by appending `!` before the colon (`feat(api)!: ...`)
 and/or adding a `BREAKING CHANGE:` footer.
@@ -100,7 +103,7 @@ into separate commits when concerns are genuinely distinct.
 
 - [ ] `git diff --cached --name-only` was non-empty before committing.
 - [ ] No `git add` was run; only staged files were committed.
-- [ ] Message follows `<type>(<scope>): [TICKET ]<description>` with a valid type.
+- [ ] Message follows `<type>[(scope)]: [<TICKET> ]<description>` with a valid type.
 - [ ] Ticket included only if the branch name matched `[A-Z]+-[0-9]+`.
 - [ ] No emoji in the message.
 - [ ] Final message, hash, and committed files reported to the user.
