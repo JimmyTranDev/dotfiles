@@ -507,4 +507,207 @@ function M.delete_worktree()
   })
 end
 
+-- Conventional-commit types offered when seeding a new worktree (feat first =
+-- the default position), mirroring the worktree create script.
+local COMMIT_TYPES = { 'feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore', 'revert', 'build', 'ci', 'perf' }
+
+--- Node package-manager precedence (pnpm > yarn > bun > npm), mirroring the
+--- shell `_detect_node_lock`. Pure: `has` reports whether a lockfile exists, so
+--- the precedence can be tested without touching the filesystem.
+---@param has fun(filename: string): boolean
+---@return string|nil one of 'pnpm'|'yarn'|'bun'|'npm', or nil when none match
+function M.detect_package_manager(has)
+  if has('pnpm-lock.yaml') then return 'pnpm' end
+  if has('yarn.lock') then return 'yarn' end
+  if has('bun.lockb') or has('bun.lock') then return 'bun' end
+  if has('package-lock.json') then return 'npm' end
+  return nil
+end
+
+--- Detect the package manager for `dir` from its lockfiles (nil when none).
+---@param dir string
+---@return string|nil
+local function detect_pm(dir)
+  return M.detect_package_manager(function(f) return vim.uv.fs_stat(dir .. '/' .. f) ~= nil end)
+end
+
+--- Fetch a JIRA summary via `acli` (async), then call `cb(summary)`. Falls back
+--- to `cb(nil)` when acli is missing, errors, or returns no usable summary --
+--- the caller then uses the bare key as the branch name.
+---@param key string
+---@param cb fun(summary: string|nil)
+local function fetch_jira_summary(key, cb)
+  if vim.fn.executable('acli') == 0 then
+    vim.notify('acli not found; using ' .. key .. ' as the branch name', vim.log.levels.WARN)
+    return cb(nil)
+  end
+  vim.notify('Fetching JIRA summary for ' .. key .. '…', vim.log.levels.INFO)
+  async.json({ 'acli', 'jira', 'workitem', 'view', key, '--json', '--fields', 'summary' }, function(data)
+    local summary = type(data) == 'table' and type(data.fields) == 'table' and data.fields.summary or nil
+    if type(summary) ~= 'string' or summary == '' or summary == 'null' then
+      vim.notify('No JIRA summary found; using ' .. key, vim.log.levels.WARN)
+      return cb(nil)
+    end
+    cb(summary)
+  end, function(err)
+    vim.notify('acli failed (' .. (err ~= '' and err or 'error') .. '); using ' .. key, vim.log.levels.WARN)
+    cb(nil)
+  end)
+end
+
+--- Pick the base branch and a non-mutating start point for a new worktree.
+--- Tries develop -> main -> master, accepting either a local head or an
+--- origin/<branch> remote ref; prefers origin/<branch> as the start point so the
+--- new worktree is based on freshly fetched upstream without touching the user's
+--- checked-out main repo (no stash/pull/pop). Returns nil when none exist.
+---@param main_repo string
+---@return string|nil base, string|nil start_point
+local function resolve_base(main_repo)
+  for _, b in ipairs({ 'develop', 'main', 'master' }) do
+    local has_local = git_capture(main_repo, { 'show-ref', '--verify', '--quiet', 'refs/heads/' .. b }) ~= nil
+    local has_remote = git_capture(main_repo, { 'show-ref', '--verify', '--quiet', 'refs/remotes/origin/' .. b }) ~= nil
+    if has_local or has_remote then return b, (has_remote and ('origin/' .. b) or b) end
+  end
+  return nil, nil
+end
+
+--- Fetch origin, create the worktree on a fresh base, seed an empty commit, then
+--- switch the editor into it (Zellij tab synced) and install node deps if any.
+---@param ctx { main_repo: string, raw_input: string, summary: string|nil, branch_name: string, commit_type: string, target_dir: string }
+local function run_create(ctx)
+  local worktree_dir = unique_path(ctx.target_dir .. '/' .. ctx.branch_name)
+  -- resolve_unique_dir may have suffixed the path; the branch tracks the folder.
+  local branch = vim.fn.fnamemodify(worktree_dir, ':t')
+  local commit_message = M.build_commit_message(ctx.commit_type, ctx.raw_input, ctx.summary)
+
+  pcall(vim.fn.mkdir, ctx.target_dir, 'p')
+  vim.notify('Fetching origin…', vim.log.levels.INFO)
+
+  async.run_cmd({ 'git', '-C', ctx.main_repo, 'fetch', 'origin' }, function()
+    -- Fetch is best-effort: fall through to local refs when offline.
+    local base, start_point = resolve_base(ctx.main_repo)
+    if not base then
+      vim.notify('No base branch (develop/main/master) found in ' .. ctx.main_repo, vim.log.levels.ERROR)
+      return
+    end
+
+    vim.notify('Creating worktree on ' .. start_point .. '…', vim.log.levels.INFO)
+    -- --no-track keeps the feature branch upstream-less even when based on a
+    -- remote ref, so a later `git push -u` sets the correct upstream.
+    async.run_cmd({ 'git', '-C', ctx.main_repo, 'worktree', 'add', '--no-track', '-b', branch, worktree_dir, start_point }, function(res)
+      if res.code ~= 0 then
+        local err = (res.stderr ~= '' and res.stderr or res.stdout):gsub('%s+$', '')
+        vim.notify('Failed to create worktree: ' .. err, vim.log.levels.ERROR)
+        return
+      end
+
+      async.run_cmd({ 'git', '-C', worktree_dir, 'commit', '--allow-empty', '-m', commit_message }, function(cres)
+        if cres.code ~= 0 then vim.notify('Warning: could not create the initial commit', vim.log.levels.WARN) end
+
+        vim.cmd('cd ' .. vim.fn.fnameescape(worktree_dir))
+        rename_zellij_tab(branch)
+
+        if vim.uv.fs_stat(worktree_dir .. '/package.json') then
+          local pm = detect_pm(worktree_dir) or 'npm'
+          ui.exec_in_terminal(pm .. ' install', 'Installing dependencies (' .. pm .. ')…', { name = 'worktree-install' })
+        end
+
+        vim.notify(string.format('Created worktree "%s" from %s', branch, start_point), vim.log.levels.INFO)
+      end)
+    end)
+  end)
+end
+
+--- Step 4: choose the container (wcreated / wcheckout), then create.
+---@param ctx table
+local function choose_target(ctx)
+  ui.pick({
+    title = 'Create Worktree: target directory',
+    items = {
+      { text = 'wcreated', dir = WCREATED_DIR },
+      { text = 'wcheckout', dir = WCHECKOUT_DIR },
+    },
+    format = function(item)
+      return {
+        { item.text, 'Function' },
+        { '  ' .. item.dir, 'Comment' },
+      }
+    end,
+    on_confirm = function(choice)
+      ctx.target_dir = choice.dir
+      run_create(ctx)
+    end,
+    empty_msg = 'No target directory',
+  })
+end
+
+--- Step 3: choose the commit type for the seed commit (feat is the default).
+---@param ctx table
+local function choose_commit_type(ctx)
+  local items = {}
+  for _, t in ipairs(COMMIT_TYPES) do
+    items[#items + 1] = { text = t }
+  end
+  ui.pick({
+    title = 'Create Worktree: commit type (branch ' .. ctx.branch_name .. ')',
+    items = items,
+    format = function(item) return { { item.text, 'Function' } } end,
+    on_confirm = function(choice)
+      ctx.commit_type = choice.text
+      choose_target(ctx)
+    end,
+    empty_msg = 'No commit types',
+  })
+end
+
+--- Step 2: read a branch name or JIRA key; resolve a summary for JIRA keys.
+---@param main_repo string
+local function prompt_branch(main_repo)
+  input.get_input('Branch name or JIRA key (e.g. ABC-123): ', function(raw)
+    if not raw then
+      vim.notify('Create cancelled', vim.log.levels.INFO)
+      return
+    end
+
+    local function proceed(summary)
+      local branch_name = M.compute_branch_name(raw, summary)
+      if branch_name == '' then
+        vim.notify('Invalid branch name', vim.log.levels.ERROR)
+        return
+      end
+      choose_commit_type({ main_repo = main_repo, raw_input = raw, summary = summary, branch_name = branch_name })
+    end
+
+    if raw:match(JIRA_PATTERN) then
+      fetch_jira_summary(raw, proceed)
+    else
+      proceed(nil)
+    end
+  end)
+end
+
+--- Step 1: pick a repository under ~/Programming, then drive the create flow:
+--- repo -> branch/JIRA -> commit type -> container -> fetch + worktree add +
+--- seed commit -> cd in (Zellij tab synced) + optional dependency install.
+function M.create_worktree()
+  local repos = files.scan_programming()
+  if #repos == 0 then
+    vim.notify('No repositories found under ~/Programming', vim.log.levels.WARN)
+    return
+  end
+
+  ui.pick({
+    title = 'Create Worktree: repository (' .. #repos .. ')',
+    items = repos,
+    format = function(item)
+      return {
+        { item.org .. '/', 'Comment' },
+        { item.name, 'Function' },
+      }
+    end,
+    on_confirm = function(repo) prompt_branch(repo.path) end,
+    empty_msg = 'No repositories found',
+  })
+end
+
 return M

@@ -153,6 +153,27 @@ local corrupt = worktree.build_delete_steps({
 })
 check('no main repo: no git steps', #corrupt, 0)
 
+-- detect_package_manager: node lockfile precedence (pnpm > yarn > bun > npm).
+local function only(name)
+  return function(f) return f == name end
+end
+check('pm: pnpm-lock wins', worktree.detect_package_manager(only('pnpm-lock.yaml')), 'pnpm')
+check('pm: yarn.lock', worktree.detect_package_manager(only('yarn.lock')), 'yarn')
+check('pm: bun.lockb', worktree.detect_package_manager(only('bun.lockb')), 'bun')
+check('pm: bun.lock', worktree.detect_package_manager(only('bun.lock')), 'bun')
+check('pm: package-lock.json -> npm', worktree.detect_package_manager(only('package-lock.json')), 'npm')
+check('pm: none -> nil', worktree.detect_package_manager(function() return false end), nil)
+check(
+  'pm: pnpm beats yarn+npm',
+  worktree.detect_package_manager(function(f) return f == 'pnpm-lock.yaml' or f == 'yarn.lock' or f == 'package-lock.json' end),
+  'pnpm'
+)
+check(
+  'pm: yarn beats bun+npm',
+  worktree.detect_package_manager(function(f) return f == 'yarn.lock' or f == 'bun.lockb' or f == 'package-lock.json' end),
+  'yarn'
+)
+
 if failures > 0 then
   io.write(string.format('\n%d assertion(s) failed\n', failures))
   os.exit(1)
