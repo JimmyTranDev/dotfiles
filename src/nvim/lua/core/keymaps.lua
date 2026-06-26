@@ -234,6 +234,7 @@ maps('n', {
   { '<Leader>ugN', github_actions.show_notifications_by_team, '󰂚 Team notifications (select)' },
   { '<Leader>ugt', github_actions.select_open_prs_by_default_team, '󰓢 Team + my PRs' },
   { '<Leader>ugT', github_actions.select_open_prs_by_people, '󰓢 Team + my PRs (select)' },
+  { '<Leader>ugb', github_actions.open_team_pr_board, '󰓢 Team PR board' },
   -- { '<Leader>ugo', github_actions.open_file_from_clipboard_url, 'Open file from clipboard URL' },
   -- { '<Leader>ugd', github_actions.show_current_branch_pr_diff, 'PR diff (current branch)' },
 })
