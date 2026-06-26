@@ -188,7 +188,7 @@ return {
       desc = '󰊄 Grep',
     },
     {
-      '<leader>fr',
+      '<leader>ft',
       function() Snacks.picker.resume() end,
       desc = '󰻂 Resume',
     },
