@@ -28,6 +28,7 @@ source "$SCRIPT_DIR/commands/merge.sh"
 source "$SCRIPT_DIR/commands/rename.sh"
 source "$SCRIPT_DIR/commands/move.sh"
 source "$SCRIPT_DIR/commands/list.sh"
+source "$SCRIPT_DIR/commands/diff.sh"
 
 # Display help information
 show_help() {
@@ -68,6 +69,19 @@ COMMANDS:
                           Read-only: never fetches or modifies git state
                           Examples:
                             worktree list
+
+  diff [worktree ...]      Diff worktrees without cd-ing into them
+                          No args:     pick 1-2 worktrees via fzf
+                          1 worktree:  diff its branch against its base (<base>...HEAD)
+                          2 worktrees: diff their branches (<branchA>...<branchB>); same repo only
+                          A worktree is a name under wcreated/wcheckout, or a path
+                          Pass extra git diff flags after '--' (e.g. -- --stat)
+                          Read-only: never fetches or modifies git state
+                          Examples:
+                            worktree diff
+                            worktree diff my-feature
+                            worktree diff feat-a feat-b
+                            worktree diff my-feature -- --stat
 
   delete [pattern]         Delete worktree(s)
                           If no pattern provided, shows fzf selector
@@ -145,6 +159,10 @@ main() {
     list)
       shift
       cmd_list "$@"
+      ;;
+    diff)
+      shift
+      cmd_diff "$@"
       ;;
     delete)
       shift
