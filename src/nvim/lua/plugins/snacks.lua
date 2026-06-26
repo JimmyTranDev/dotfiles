@@ -188,6 +188,12 @@ return {
       desc = '󰊄 Grep',
     },
     {
+      '<leader>fg',
+      function() Snacks.picker.grep_word() end,
+      desc = '󰊄 Grep Selection',
+      mode = { 'x' },
+    },
+    {
       '<leader>ft',
       function() Snacks.picker.resume() end,
       desc = '󰻂 Resume',
@@ -203,10 +209,9 @@ return {
       desc = '󰒡 Diagnostics',
     },
     {
-      '<leader>fsw',
+      '<leader>fw',
       function() Snacks.picker.grep_word() end,
-      desc = '󰬴 Visual selection or word',
-      mode = { 'n', 'x' },
+      desc = '󰬴 Grep Word',
     },
     {
       '<leader>fsT',

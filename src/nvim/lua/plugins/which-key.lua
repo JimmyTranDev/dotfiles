@@ -69,7 +69,6 @@ return {
       { '<leader>f', '󰭎 Find' },
       { '<leader>ff', '󰈔 Files' },
       { '<leader>fs', '󰊄 Search' },
-      { '<leader>fg', '󰊢 Git' },
       { '<leader>fl', '󰒡 LSP & Diagnostics' },
       { '<leader>fv', '󰒓 Editor' },
 
