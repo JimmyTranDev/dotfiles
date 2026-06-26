@@ -19,6 +19,73 @@ end
 
 local function realpath(p) return vim.uv.fs_realpath(p) or p end
 
+local JIRA_PATTERN = '^%u+%-%d+$'
+
+--- Strip ANSI SGR escape sequences from a string.
+local function strip_ansi(s) return (s:gsub('\27%[[0-9;]*m', '')) end
+
+--- First line of a string (up to the first CR/LF), or '' when empty.
+local function first_line(s) return s:match('^[^\r\n]*') or '' end
+
+--- Lowercase slug: non-alphanumerics collapse to a single '-', ends trimmed.
+---@param text string
+---@return string
+function M.slugify(text)
+  local s = (text or ''):lower():gsub('[^a-z0-9]', '-')
+  s = s:gsub('%-+', '-'):gsub('^%-', ''):gsub('%-$', '')
+  return s
+end
+
+--- Decide a branch name from one raw input, honoring a JIRA key when given.
+--- Pure: the caller fetches the JIRA summary (via acli) and passes it in.
+---   - JIRA key + non-empty summary -> "<KEY>-<slug(summary)>"
+---   - JIRA key + blank summary      -> "<KEY>"
+---   - anything else                 -> sanitized name (case preserved)
+--- Returns '' when the input sanitizes to nothing (caller should abort).
+---@param input string
+---@param summary string|nil
+---@return string
+function M.compute_branch_name(input, summary)
+  input = input or ''
+  if input:match(JIRA_PATTERN) then
+    if summary and summary ~= '' then
+      local slug = M.slugify(strip_ansi(first_line(summary)))
+      return slug ~= '' and (input .. '-' .. slug) or input
+    end
+    return input
+  end
+  local s = strip_ansi(first_line(input)):gsub('[^%w._-]', '-')
+  s = s:gsub('%-+', '-'):gsub('^%-', ''):gsub('%-$', '')
+  return s
+end
+
+--- Build the seed commit message for a new worktree. JIRA keys get a body with
+--- a browse link; plain names get a bare "<type>: <input>" subject.
+---@param commit_type string
+---@param input string
+---@param summary string|nil
+---@param org_name string|nil defaults to $ORG_NAME or 'storebrand'
+---@return string
+function M.build_commit_message(commit_type, input, summary, org_name)
+  org_name = org_name or vim.env.ORG_NAME or 'storebrand'
+  if input:match(JIRA_PATTERN) then
+    local subject = (summary and summary ~= '') and (commit_type .. ': ' .. input .. ' ' .. summary) or (commit_type .. ': ' .. input)
+    return subject .. '\n\nJira: https://' .. org_name .. '.atlassian.net/browse/' .. input
+  end
+  return commit_type .. ': ' .. input
+end
+
+--- True when `path` is a direct descendant of `wcreated_dir` (the create-side
+--- container whose branches own their remote and may be deleted on cleanup).
+---@param path string
+---@param wcreated_dir string
+---@return boolean
+function M.is_wcreated_path(path, wcreated_dir)
+  if not path or not wcreated_dir then return false end
+  local prefix = (wcreated_dir:gsub('/+$', '')) .. '/'
+  return path:sub(1, #prefix) == prefix
+end
+
 --- Sanitize free text into a git-branch-safe name (preserves case for Jira keys).
 local function sanitize_branch(text)
   local s = text:gsub('%s+', '-')
@@ -30,10 +97,13 @@ local function sanitize_branch(text)
 end
 
 --- Derive the worktree folder name from a branch (strip a leading `segment/`).
-local function folder_from_branch(branch)
+---@param branch string
+---@return string
+function M.folder_from_branch(branch)
   local folder = branch:match('^[^/]+/(.+)$') or branch
   return (folder:gsub('/', '-'))
 end
+local folder_from_branch = M.folder_from_branch
 
 --- Return `path`, or `path-1`, `path-2`, ... if it already exists on disk.
 local function unique_path(path)
@@ -204,9 +274,7 @@ function M.rename_current_worktree()
         }
       end
 
-      run_sequence(steps, 1, function()
-        vim.notify(string.format('Worktree renamed to "%s" (branch "%s")', final_folder, new_branch), vim.log.levels.INFO)
-      end)
+      run_sequence(steps, 1, function() vim.notify(string.format('Worktree renamed to "%s" (branch "%s")', final_folder, new_branch), vim.log.levels.INFO) end)
     end)
   end, old_folder)
 end
