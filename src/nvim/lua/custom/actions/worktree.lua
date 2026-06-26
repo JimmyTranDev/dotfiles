@@ -1,5 +1,7 @@
 local async = require('custom.utils.async')
+local files = require('custom.utils.files')
 local input = require('custom.utils.input')
+local ui = require('custom.utils.ui')
 
 local M = {}
 
@@ -277,6 +279,90 @@ function M.rename_current_worktree()
       run_sequence(steps, 1, function() vim.notify(string.format('Worktree renamed to "%s" (branch "%s")', final_folder, new_branch), vim.log.levels.INFO) end)
     end)
   end, old_folder)
+end
+
+-- Containers that hold linked worktrees (override via env to relocate them).
+local WCREATED_DIR = vim.env.WCREATED_DIR or vim.fn.expand('$HOME/Programming/wcreated')
+local WCHECKOUT_DIR = vim.env.WCHECKOUT_DIR or vim.fn.expand('$HOME/Programming/wcheckout')
+local MAX_TAB_NAME_LENGTH = 20
+
+--- Rename the focused Zellij tab to `name` (no-op outside Zellij), mirroring the
+--- project switcher so switching a worktree keeps the tab label in sync.
+---@param name string
+local function rename_zellij_tab(name)
+  if not vim.env.ZELLIJ then return end
+
+  local tab_name = name:sub(1, MAX_TAB_NAME_LENGTH)
+  local layout = vim.fn.system('zellij action dump-layout 2>/dev/null')
+  local tab_index = 0
+  for line in layout:gmatch('[^\n]+') do
+    if line:match('^%s*tab%s.*name=') then
+      tab_index = tab_index + 1
+      if line:match('focus=true') then break end
+    end
+  end
+  if tab_index > 0 then tab_name = tab_index .. '.' .. tab_name end
+  vim.fn.system('zellij action rename-tab "' .. tab_name .. '"')
+end
+
+--- Collect linked worktrees from the wcreated/wcheckout containers, most recently
+--- modified first.
+---@return { name: string, path: string, origin: string, text: string, mtime: integer }[]
+local function collect_worktrees()
+  local sources = {
+    { dir = WCREATED_DIR, origin = 'wcreated' },
+    { dir = WCHECKOUT_DIR, origin = 'wcheckout' },
+  }
+  local items = {}
+  for _, src in ipairs(sources) do
+    for _, entry in ipairs(files.scan(src.dir, { type = 'directory' })) do
+      local stat = vim.uv.fs_stat(entry.path)
+      items[#items + 1] = {
+        name = entry.name,
+        path = entry.path,
+        origin = src.origin,
+        text = src.origin .. '/' .. entry.name,
+        mtime = stat and stat.mtime and stat.mtime.sec or 0,
+      }
+    end
+  end
+  table.sort(items, function(a, b) return a.mtime > b.mtime end)
+  return items
+end
+
+--- Pick a worktree (wcreated + wcheckout, most-recent first) and switch the editor
+--- cwd to it, keeping the Zellij tab label in sync.
+function M.switch_worktree()
+  local worktrees = collect_worktrees()
+  if #worktrees == 0 then
+    vim.notify('No worktrees found in ' .. WCREATED_DIR .. ' or ' .. WCHECKOUT_DIR, vim.log.levels.WARN)
+    return
+  end
+
+  local current = realpath(vim.fn.getcwd())
+
+  ui.pick({
+    title = 'Switch Worktree (' .. #worktrees .. ')',
+    items = worktrees,
+    format = function(item)
+      local is_current = realpath(item.path) == current
+      return {
+        { is_current and ' ' or '  ', is_current and 'DiagnosticOk' or 'Comment' },
+        { item.origin .. '/', 'Comment' },
+        { item.name, is_current and 'DiagnosticOk' or 'Function' },
+      }
+    end,
+    on_confirm = function(item)
+      if realpath(item.path) == current then
+        vim.notify('Already in ' .. item.text, vim.log.levels.INFO)
+        return
+      end
+      vim.cmd('cd ' .. vim.fn.fnameescape(item.path))
+      rename_zellij_tab(item.name)
+      vim.notify('Switched to ' .. item.text, vim.log.levels.INFO)
+    end,
+    empty_msg = 'No worktrees to switch to',
+  })
 end
 
 return M
