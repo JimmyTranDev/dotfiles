@@ -256,6 +256,7 @@ maps('n', {
   { '<Leader>ulL', link_actions.open_private_useful_link, '󰌾 Private links' },
   { '<Leader>ult', link_actions.open_technical_link_current_repo, '󰖟 Technical (repo)' },
   { '<Leader>ulT', link_actions.open_technical_link, '󰖟 Technical (select)' },
+  { '<Leader>ulf', link_actions.open_fms_link, '󰖟 FMS admin (project)' },
 })
 
 -- Search sub-group (<leader>us)
