@@ -50,25 +50,90 @@ test("truncateTitle honours a custom max length", () => {
   assert.equal(truncateTitle("abcdef", 4), "abc…")
 })
 
-test("eventToState maps terminal states", () => {
-  assert.equal(eventToState("permission.asked"), "needs-input")
-  assert.equal(eventToState("session.error"), "error")
+// --- eventToState: authoritative session-signal model --------------------
+// State is driven only by session lifecycle signals, never by streaming
+// activity events, so a finished pane can never be flipped back to working.
+
+test("eventToState marks a busy session.status as working", () => {
+  assert.equal(
+    eventToState({ type: "session.status", properties: { status: { type: "busy" } } }),
+    "working",
+  )
+})
+
+test("eventToState ignores idle/retry session.status (session.idle drives idle)", () => {
+  assert.equal(
+    eventToState({ type: "session.status", properties: { status: { type: "idle" } } }),
+    null,
+  )
+  assert.equal(
+    eventToState({ type: "session.status", properties: { status: { type: "retry" } } }),
+    null,
+  )
+  assert.equal(eventToState({ type: "session.status" }), null)
+})
+
+test("eventToState maps session.idle to idle (the finished/✓ state)", () => {
+  assert.equal(eventToState({ type: "session.idle" }), "idle")
+})
+
+test("eventToState maps session.error to error", () => {
+  assert.equal(eventToState({ type: "session.error" }), "error")
+})
+
+test("eventToState maps a permission request to needs-input (both event names)", () => {
+  // opencode's v2 bus (>= 1.15) emits permission.asked; the pinned v1 SDK emits permission.updated.
+  assert.equal(eventToState({ type: "permission.asked" }), "needs-input")
+  assert.equal(eventToState({ type: "permission.updated" }), "needs-input")
+})
+
+test("eventToState returns to working once a permission is replied", () => {
+  assert.equal(eventToState({ type: "permission.replied" }), "working")
+})
+
+// Regression for the reported bug: opencode streams trailing activity events
+// AFTER session.idle. These must NOT resurrect the working state.
+test("eventToState ignores trailing activity events that used to stick on working", () => {
+  assert.equal(eventToState({ type: "tool.execute.before" }), null)
+  assert.equal(eventToState({ type: "tool.execute.after" }), null)
+  assert.equal(eventToState({ type: "message.updated" }), null)
+  assert.equal(eventToState({ type: "message.part.updated" }), null)
+})
+
+test("eventToState returns null for unrelated events", () => {
+  assert.equal(eventToState({ type: "session.created" }), null)
+  assert.equal(eventToState({ type: "session.updated" }), null)
+  assert.equal(eventToState({ type: "file.edited" }), null)
+  assert.equal(eventToState({ type: "nonsense" }), null)
+})
+
+test("eventToState tolerates a bare event-type string and bad input", () => {
   assert.equal(eventToState("session.idle"), "idle")
-  assert.equal(eventToState("session.cancelled"), "idle")
+  assert.equal(eventToState("tool.execute.after"), null)
+  assert.equal(eventToState(undefined), null)
+  assert.equal(eventToState(null), null)
+  assert.equal(eventToState({}), null)
 })
 
-test("eventToState maps activity events to working", () => {
-  assert.equal(eventToState("tool.execute.before"), "working")
-  assert.equal(eventToState("tool.execute.after"), "working")
-  assert.equal(eventToState("message.updated"), "working")
-  assert.equal(eventToState("message.part.updated"), "working")
-  assert.equal(eventToState("permission.replied"), "working")
-})
-
-test("eventToState returns null for unmapped events", () => {
-  assert.equal(eventToState("session.created"), null)
-  assert.equal(eventToState("file.edited"), null)
-  assert.equal(eventToState("nonsense"), null)
+// Integration of the fix: replays a full turn the way the plugin reduces it
+// (apply() keeps the last NON-NULL state). A session.idle followed by a
+// trailing activity flush must settle on idle, not working.
+test("a turn that ends then flushes trailing activity settles on idle", () => {
+  const sequence = [
+    { type: "session.status", properties: { status: { type: "busy" } } },
+    { type: "tool.execute.before" },
+    { type: "message.part.updated" },
+    { type: "tool.execute.after" },
+    { type: "session.idle" },
+    { type: "message.part.updated" }, // trailing flush after idle (the bug)
+    { type: "tool.execute.after" },
+  ]
+  let state = null
+  for (const event of sequence) {
+    const next = eventToState(event)
+    if (next) state = next
+  }
+  assert.equal(state, "idle")
 })
 
 test("extractTitle reads the nested session info title", () => {

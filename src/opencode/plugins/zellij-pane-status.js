@@ -63,7 +63,7 @@ export const ZellijPaneStatus = async ({ $ }) => {
         }
         return
       }
-      await apply(eventToState(type))
+      await apply(eventToState(event))
     },
   }
 }
