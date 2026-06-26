@@ -5,7 +5,7 @@
 // plugins/zellij-tab-status.js supplies the real `io`.
 //
 // One opencode pane owns one createTabStatus. It caches a single tab id (the
-// tab focused when this pane first started working) and drives that tab's emoji
+// tab focused when this pane first started working) and drives that tab's glyph
 // badge through processing -> done/idle as turns start and end. A tab can be
 // shared by several panes, so the rendered badge is always the live aggregate
 // of every pane's status, never just this pane's.
@@ -59,7 +59,7 @@ export const createTabStatus = (io) => {
   }
 
   // Re-render our tab's name from the live aggregate of its panes, renaming
-  // only when the badge actually changes (so a tab kept 🤖 by a sibling pane is
+  // only when the badge actually changes (so a tab kept ⚙ by a sibling pane is
   // never needlessly renamed). Always runs under the tab's render lock.
   const render = async () => {
     await io.withLock(tabId, async () => {
@@ -70,7 +70,7 @@ export const createTabStatus = (io) => {
     })
   }
 
-  // A turn started: badge this tab 🤖 and cancel any pending done-poll.
+  // A turn started: badge this tab ⚙ and cancel any pending done-poll.
   const goProcessing = async () => {
     if (!(await ensureTabId())) return
     stopPoll()
@@ -79,7 +79,7 @@ export const createTabStatus = (io) => {
   }
 
   // A turn ended: if we were watching, it resolves straight to idle; otherwise
-  // it shows ✅ and we poll until the user looks at the tab.
+  // it shows ✓ and we poll until the user looks at the tab.
   const goTurnEnded = async () => {
     if (tabId == null) return
     const status = resolveTurnEnd(isTabActive(await io.listTabs(), tabId))
@@ -88,7 +88,7 @@ export const createTabStatus = (io) => {
     if (status === "done") armPoll()
   }
 
-  // While a ✅ is pending: once the user focuses the tab, clear it to idle and
+  // While a ✓ is pending: once the user focuses the tab, clear it to idle and
   // stop polling; otherwise keep waiting.
   const pollTick = async () => {
     if (tabId == null) return

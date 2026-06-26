@@ -2,19 +2,19 @@
 // Lives outside plugins/ (which opencode auto-loads) so it can be unit-tested
 // with `node --test` without booting opencode or a live zellij session.
 //
-// The plugin surfaces each opencode session's processing state as an emoji
+// The plugin surfaces each opencode session's processing state as a glyph
 // suffix on its zellij tab name. Several opencode panes can share one tab
 // (e.g. the Alt-a / Alt-g grids), so a tab's badge is the aggregate of every
 // live pane's status. Idle shows no badge so a quiet tab reads normally.
 
-export const STATUS = { idle: "", processing: "🤖", done: "✅" }
+export const STATUS = { idle: "", processing: "⚙", done: "✓" }
 
 // Base directory for per-pane status files: <STATE_DIR>/<tab_id>/<pid>.
 export const STATE_DIR = "/tmp/opencode-zellij"
 
-// Any trailing run of our status emoji, so a re-render replaces rather than
+// Any trailing run of our status glyph, so a re-render replaces rather than
 // stacks badges. Kept in sync with STATUS's non-empty values.
-const TRAILING_BADGE = /[🤖✅]+$/u
+const TRAILING_BADGE = /[⚙✓]+$/u
 
 // Collapse many panes' statuses into the single badge the tab should show.
 // Priority: any processing wins, else any done, else idle. Unknown values and

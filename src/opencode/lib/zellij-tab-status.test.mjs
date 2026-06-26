@@ -18,8 +18,8 @@ import {
 
 test("STATUS maps the three tab states to their badge (idle is empty)", () => {
   assert.equal(STATUS.idle, "")
-  assert.equal(STATUS.processing, "🤖")
-  assert.equal(STATUS.done, "✅")
+  assert.equal(STATUS.processing, "⚙")
+  assert.equal(STATUS.done, "✓")
 })
 
 test("STATE_DIR is the shared /tmp base directory", () => {
@@ -45,46 +45,46 @@ test("aggregate ignores unknown values but still finds real states", () => {
   assert.equal(aggregate(["bogus", "processing"]), "processing")
 })
 
-test("stripBadge removes a single trailing status emoji", () => {
-  assert.equal(stripBadge("3.dotf🤖"), "3.dotf")
-  assert.equal(stripBadge("3.dotf✅"), "3.dotf")
+test("stripBadge removes a single trailing status glyph", () => {
+  assert.equal(stripBadge("3.dotf⚙"), "3.dotf")
+  assert.equal(stripBadge("3.dotf✓"), "3.dotf")
 })
 
-test("stripBadge removes multiple/mixed trailing emoji", () => {
-  assert.equal(stripBadge("3.dotf🤖🤖"), "3.dotf")
-  assert.equal(stripBadge("3.dotf✅🤖"), "3.dotf")
+test("stripBadge removes multiple/mixed trailing glyphs", () => {
+  assert.equal(stripBadge("3.dotf⚙⚙"), "3.dotf")
+  assert.equal(stripBadge("3.dotf✓⚙"), "3.dotf")
 })
 
-test("stripBadge leaves a clean name and non-trailing emoji untouched", () => {
+test("stripBadge leaves a clean name and non-trailing glyph untouched", () => {
   assert.equal(stripBadge("3.dotf"), "3.dotf")
-  assert.equal(stripBadge("3.🤖dotf"), "3.🤖dotf")
+  assert.equal(stripBadge("3.⚙dotf"), "3.⚙dotf")
 })
 
 test("stripBadge coerces nullish input to an empty string", () => {
   assert.equal(stripBadge(""), "")
   assert.equal(stripBadge(null), "")
   assert.equal(stripBadge(undefined), "")
-  assert.equal(stripBadge("🤖"), "")
+  assert.equal(stripBadge("⚙"), "")
 })
 
 test("applyBadge appends the badge for a status", () => {
-  assert.equal(applyBadge("3.dotf", "processing"), "3.dotf🤖")
-  assert.equal(applyBadge("3.dotf", "done"), "3.dotf✅")
+  assert.equal(applyBadge("3.dotf", "processing"), "3.dotf⚙")
+  assert.equal(applyBadge("3.dotf", "done"), "3.dotf✓")
 })
 
 test("applyBadge for idle clears any existing badge", () => {
   assert.equal(applyBadge("3.dotf", "idle"), "3.dotf")
-  assert.equal(applyBadge("3.dotf✅", "idle"), "3.dotf")
-  assert.equal(applyBadge("3.dotf🤖", "idle"), "3.dotf")
+  assert.equal(applyBadge("3.dotf✓", "idle"), "3.dotf")
+  assert.equal(applyBadge("3.dotf⚙", "idle"), "3.dotf")
 })
 
 test("applyBadge replaces an existing badge rather than stacking", () => {
-  assert.equal(applyBadge("3.dotf🤖", "done"), "3.dotf✅")
-  assert.equal(applyBadge("3.dotf✅", "processing"), "3.dotf🤖")
+  assert.equal(applyBadge("3.dotf⚙", "done"), "3.dotf✓")
+  assert.equal(applyBadge("3.dotf✓", "processing"), "3.dotf⚙")
 })
 
 test("applyBadge treats an unknown status as no badge", () => {
-  assert.equal(applyBadge("3.dotf🤖", "bogus"), "3.dotf")
+  assert.equal(applyBadge("3.dotf⚙", "bogus"), "3.dotf")
 })
 
 test("resolveTurnEnd: focused -> idle, unfocused -> done", () => {
@@ -194,29 +194,29 @@ test("parseStateEntries handles empty / non-array input", () => {
 })
 
 test("desiredName badges the current name from live pane statuses", () => {
-  assert.equal(desiredName("3.dotf", [{ pid: 1, status: "processing" }], () => true), "3.dotf🤖")
+  assert.equal(desiredName("3.dotf", [{ pid: 1, status: "processing" }], () => true), "3.dotf⚙")
   assert.equal(
     desiredName("3.dotf", [{ pid: 1, status: "done" }, { pid: 2, status: "idle" }], () => true),
-    "3.dotf✅",
+    "3.dotf✓",
   )
 })
 
 test("desiredName clears the badge when every live pane is idle", () => {
-  assert.equal(desiredName("3.dotf🤖", [{ pid: 1, status: "idle" }], () => true), "3.dotf")
+  assert.equal(desiredName("3.dotf⚙", [{ pid: 1, status: "idle" }], () => true), "3.dotf")
 })
 
 test("desiredName prunes dead panes before aggregating", () => {
   // The only entry is a dead 'done' pane -> pruned -> idle -> no badge.
-  assert.equal(desiredName("3.dotf✅", [{ pid: 1, status: "done" }], () => false), "3.dotf")
+  assert.equal(desiredName("3.dotf✓", [{ pid: 1, status: "done" }], () => false), "3.dotf")
 })
 
 test("desiredName replaces an existing badge with the live aggregate", () => {
   assert.equal(
     desiredName(
-      "3.dotf✅",
+      "3.dotf✓",
       [{ pid: 1, status: "processing" }, { pid: 2, status: "done" }],
       () => true,
     ),
-    "3.dotf🤖",
+    "3.dotf⚙",
   )
 })

@@ -7,22 +7,22 @@ the thin real-I/O plugin adapter is validated end-to-end against a faithful
 
 ## Objective
 
-Surface each OpenCode session's processing state as an emoji in its Zellij tab
+Surface each OpenCode session's processing state as a glyph in its Zellij tab
 name, so you can glance at the tab bar and know whether OpenCode is working,
 finished, or quiet — without switching to the tab.
 
 Three states:
 
-| State        | Emoji      | Meaning                                                        |
+| State        | Glyph      | Meaning                                                        |
 |--------------|------------|----------------------------------------------------------------|
 | `idle`       | *(none)*   | OpenCode is not processing. Tab name unchanged.                |
-| `processing` | `🤖`       | OpenCode is actively working on a turn.                        |
-| `done`       | `✅`       | OpenCode finished a turn **while you were on another tab**.    |
+| `processing` | `⚙`       | OpenCode is actively working on a turn.                        |
+| `done`       | `✓`       | OpenCode finished a turn **while you were on another tab**.    |
 
-Reset rule: a `done` (`✅`) badge means "finished while you weren't looking." It
-clears back to `idle` (no emoji) the moment you switch to that tab. If OpenCode
+Reset rule: a `done` (`✓`) badge means "finished while you weren't looking." It
+clears back to `idle` (no glyph) the moment you switch to that tab. If OpenCode
 finishes while you are *already viewing* its tab, it goes straight to `idle` and
-never shows `✅`.
+never shows `✓`.
 
 Primary requirement from the user: **fast and seamless** — near-instant badge
 updates, no perceptible lag, no heavy background cost when nothing is running.
@@ -66,7 +66,7 @@ type EventSessionIdle   = { type: "session.idle";   properties: { sessionID: str
   submitted (before the first token), which is when the tab is guaranteed focused.
 - `session.idle` ⇒ **turn finished** ⇒ resolve to `done` or `idle` per the reset rule.
 - `session.error` / `session.cancelled` also fold into **turn finished**, so a
-  crashed or cancelled turn never leaves a stuck `🤖`.
+  crashed or cancelled turn never leaves a stuck `⚙`.
 - These events fire regardless of how OpenCode was launched (`o`, bare
   `opencode`, or the grid layouts), so a plugin covers every launch path.
 
@@ -100,7 +100,7 @@ focus-watch poll (≈250ms, only while a `done` badge is pending):
 
 `render` runs under the per-tab lock: list tabs, find our tab, compute
 `desiredName(currentName, liveEntries, isAlive)`, and rename **only when the
-badge actually changed** (so a tab held `🤖` by a sibling pane is never
+badge actually changed** (so a tab held `⚙` by a sibling pane is never
 needlessly renamed).
 
 ### Tab identity
@@ -118,9 +118,9 @@ needlessly renamed).
 - Each pane writes its own status to `/tmp/opencode-zellij/<tab_id>/<pid>`
   containing `processing` | `done` | `idle` (atomic temp-write + rename).
 - The renderer computes the tab's aggregate before renaming:
-  - any pane `processing` ⇒ tab shows `🤖`
-  - else any pane `done` ⇒ tab shows `✅`
-  - else ⇒ no emoji
+  - any pane `processing` ⇒ tab shows `⚙`
+  - else any pane `done` ⇒ tab shows `✓`
+  - else ⇒ no glyph
 - **Self-healing:** files are named by PID; during aggregation, entries whose PID
   is no longer alive (`process.kill(pid, 0)`) are pruned, so a crashed/closed
   pane never leaves a stuck badge.
@@ -128,17 +128,17 @@ needlessly renamed).
 
 ### Name merge (survive reindex, avoid clobber)
 
-- Emoji is a **suffix** on the existing `<index>.<base>` name, e.g.
-  `3.dotf` → `3.dotf🤖`.
+- Glyph is a **suffix** on the existing `<index>.<base>` name, e.g.
+  `3.dotf` → `3.dotf⚙`.
 - The reindexer (`update_tab_indexes.sh`) strips a leading `N.` then re-prefixes,
-  so a suffix emoji **survives reindexing** untouched.
+  so a suffix glyph **survives reindexing** untouched.
 - Before renaming, the renderer reads the tab's current name, strips any existing
-  trailing `🤖`/`✅`, then appends the new emoji (or nothing). Renames via
+  trailing `⚙`/`✓`, then appends the new glyph (or nothing). Renames via
   `rename-tab-by-id` (works on background tabs; never steals focus).
 - `zellij_tab_name_update` (zsh `chpwd`) rebuilds names from scratch and would
-  drop the emoji on `cd`. **Done:** `zellij_tab_name_update` now reads the
+  drop the glyph on `cd`. **Done:** `zellij_tab_name_update` now reads the
   focused tab's current name from `dump-layout` and re-appends any trailing
-  `🤖`/`✅` badge after rebuilding `<index>.<base>`.
+  `⚙`/`✓` badge after rebuilding `<index>.<base>`.
 
 ### Concurrency
 
@@ -166,10 +166,10 @@ node --test src/opencode/lib/*.test.mjs
 zsh -n etc/scripts/src/zshrc/zellij.sh etc/scripts/src/zshrc/opencode.sh
 
 # Manual end-to-end verification (must be inside a Zellij session):
-#   1. `o` (or bare `opencode`) in a tab, send a prompt  -> tab shows 🤖
-#   2. switch to another tab; let it finish              -> origin tab shows ✅
-#   3. switch back                                        -> ✅ clears
-#   4. `Alt a` grid, prompt one pane, switch away/back    -> aggregate 🤖/✅
+#   1. `o` (or bare `opencode`) in a tab, send a prompt  -> tab shows ⚙
+#   2. switch to another tab; let it finish              -> origin tab shows ✓
+#   3. switch back                                        -> ✓ clears
+#   4. `Alt a` grid, prompt one pane, switch away/back    -> aggregate ⚙/✓
 
 # Re-sync symlinks if needed:
 bash etc/scripts/sync_links.sh
@@ -183,7 +183,7 @@ src/opencode/lib/zellij-tab-status.test.mjs      # node --test: 30 helper cases
 src/opencode/lib/zellij-tab-status-core.mjs      # DI orchestration core: createTabStatus(io)
 src/opencode/lib/zellij-tab-status-core.test.mjs # node --test: 13 core cases (in-memory io fake)
 src/opencode/plugins/zellij-tab-status.js        # thin real-I/O adapter; exports ZellijTabStatus
-etc/scripts/src/zshrc/zellij.sh                  # EDIT — chpwd rename now preserves trailing emoji
+etc/scripts/src/zshrc/zellij.sh                  # EDIT — chpwd rename now preserves trailing glyph
 etc/scripts/src/zshrc/opencode.sh                # EDIT — removed dead /tmp/opencode-status-$$ writer
 /tmp/opencode-zellij/<tab_id>/<pid>              # RUNTIME — per-pane status files
 /tmp/opencode-zellij/<tab_id>/.lock              # RUNTIME — per-tab render mkdir lock
@@ -202,7 +202,7 @@ dependency-injected so it can be exercised without Zellij.
 
 ```js
 // Pure, unit-testable core — no Zellij, no I/O.
-export const STATUS = { idle: "", processing: "🤖", done: "✅" }
+export const STATUS = { idle: "", processing: "⚙", done: "✓" }
 
 // Aggregate many panes' statuses into one tab badge.
 export const aggregate = (statuses) => {
@@ -212,7 +212,7 @@ export const aggregate = (statuses) => {
   return "idle"
 }
 
-// Replace any trailing status emoji on a tab name with the badge for `status`.
+// Replace any trailing status glyph on a tab name with the badge for `status`.
 export const applyBadge = (name, status) => stripBadge(name) + (STATUS[status] ?? "")
 ```
 
@@ -232,10 +232,10 @@ rather than the `etc/scripts/install` script conventions.
   - 14 pre-existing `zellij-pane-status` helper cases stay green (no regression).
 - **Adapter (manual smoke):** the real `io` was exercised end-to-end against a
   faithful `$`/filesystem fake (state-file write, mkdir lock, `list-tabs` via
-  `.json()`, emoji `rename-tab-by-id`) producing the `🤖`→`✅`→`🤖` sequence.
+  `.json()`, glyph `rename-tab-by-id`) producing the `⚙`→`✓`→`⚙` sequence.
 - **Integration (manual checklist):** the 4 numbered scenarios under Commands,
   plus grid (`Alt a`/`Alt g`) aggregation and a reindex (`Alt i`/`Alt o`)
-  preserving the emoji. Documented as a checklist in the PR.
+  preserving the glyph. Documented as a checklist in the PR.
 - **Regression:** OpenCode launched **outside** Zellij returns empty hooks (no
   `zellij` calls) — covered by the adapter guard test.
 
@@ -244,7 +244,7 @@ rather than the `etc/scripts/install` script conventions.
 - **Always:**
   - Use `rename-tab-by-id` (never `rename-tab`) in the plugin so background tabs
     are renamed without stealing focus.
-  - Place the emoji as a suffix so the reindexer preserves it.
+  - Place the glyph as a suffix so the reindexer preserves it.
   - No-op cleanly when `process.env.ZELLIJ` is unset.
   - Run the unit tests before committing; verify the manual checklist in a real
     Zellij session.
@@ -260,16 +260,16 @@ rather than the `etc/scripts/install` script conventions.
 
 ## Success Criteria
 
-1. OpenCode processing in a Zellij tab shows `🤖` within ~500ms of starting.
-2. OpenCode finishing **while you're on a different tab** makes that tab show `✅`.
-3. Switching to a `✅` tab clears it to no-emoji within ~300ms (keyboard *and*
+1. OpenCode processing in a Zellij tab shows `⚙` within ~500ms of starting.
+2. OpenCode finishing **while you're on a different tab** makes that tab show `✓`.
+3. Switching to a `✓` tab clears it to no-glyph within ~300ms (keyboard *and*
    mouse tab-click).
-4. OpenCode finishing **while you're already on its tab** shows no `✅` (straight
+4. OpenCode finishing **while you're already on its tab** shows no `✓` (straight
    to `idle`).
-5. Tab reindex (`Alt n/q/i/o`, new/close/move) preserves the status emoji.
-6. `cd` inside the tab does not permanently lose the emoji during processing.
-7. Grid tabs (`Alt a` = 4 panes, `Alt g` = 8 panes) show `🤖` if **any** pane is
-   processing, `✅` when **all** are done (until viewed), nothing when all idle.
+5. Tab reindex (`Alt n/q/i/o`, new/close/move) preserves the status glyph.
+6. `cd` inside the tab does not permanently lose the glyph during processing.
+7. Grid tabs (`Alt a` = 4 panes, `Alt g` = 8 panes) show `⚙` if **any** pane is
+   processing, `✓` when **all** are done (until viewed), nothing when all idle.
 8. OpenCode run **outside** Zellij behaves exactly as before (no errors, no
    `zellij` invocations).
 9. No persistent background process; ~0 CPU when nothing is processing (the poll
@@ -289,7 +289,7 @@ rather than the `etc/scripts/install` script conventions.
    poll only while it personally has a pending `done`. A single per-tab poller is
    a possible future optimization; explicitly **not** a daemon.
 4. **chpwd preservation:** yes — `zellij_tab_name_update` now preserves a trailing
-   `🤖`/`✅` badge (verified the focused-tab name round-trips through
+   `⚙`/`✓` badge (verified the focused-tab name round-trips through
    `dump-layout`, and that the awk anchor selects the focused *tab*, not a
    focused *pane*).
 5. **Spec location:** keep specs at `etc/docs/specs/`.
@@ -297,7 +297,7 @@ rather than the `etc/scripts/install` script conventions.
 ## Decisions (locked)
 
 - Scope: **all** launch paths, including `Alt a` / `Alt g` grids (aggregated).
-- Emoji: idle = *(none)*, processing = `🤖`, done = `✅`.
+- Glyph: idle = *(none)*, processing = `⚙`, done = `✓`.
 - File naming: `zellij-tab-status` (the pane-level sibling already owns
   `zellij-status`/`zellij-pane-status`).
 - Lock: portable `mkdir` (macOS has no `flock(1)`).
