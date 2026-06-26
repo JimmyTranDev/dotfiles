@@ -349,3 +349,51 @@ last_project_dir() {
 	bump_project_recency "$found"
 	printf '%s' "$found"
 }
+
+# The set of programs the stacked-pane launcher can open. "empty" means a plain
+# shell pane with no command. Keep this list in sync with select_pane_tool's UI.
+PANE_TOOLS=(nvim opencode storecode empty)
+
+# fzf-pick which program to open in a new stacked pane — one of nvim, opencode,
+# storecode, or empty (a plain shell). The previously-chosen tool (mirrored into
+# ~/.last_pane_tool) floats to the top so repeat use is a single Enter. Prints
+# the choice on stdout; non-zero if cancelled. Requires fzf.
+select_pane_tool() {
+	local last_file="${1:-$HOME/.last_pane_tool}"
+	local last_sel=""
+	[[ -s "$last_file" ]] && last_sel="$(<"$last_file")"
+
+	local selected
+	selected="$(reorder_last_first "$last_sel" "${PANE_TOOLS[@]}" | fzf --prompt="Open: ")" || return 1
+	[[ -z "$selected" ]] && return 1
+	printf '%s' "$selected"
+}
+
+# Resolve the most-recently-chosen pane tool (mirrored into ~/.last_pane_tool by
+# select_pane_tool). Prints it on stdout; non-zero *silently* when none is
+# recorded so the caller can fall back to a default.
+last_pane_tool() {
+	local last_file="${1:-$HOME/.last_pane_tool}"
+	[[ -s "$last_file" ]] || return 1
+	local tool
+	tool="$(<"$last_file")"
+	[[ -n "$tool" ]] || return 1
+	printf '%s' "$tool"
+}
+
+# Open a new stacked zellij pane rooted at $1 running tool $2 (one of
+# PANE_TOOLS). "empty" opens a plain shell pane; every other tool runs in a pane
+# that closes itself on exit (--close-on-exit). The focused tab is renamed after
+# the project folder; callers should reindex tab names afterward.
+open_tool_pane() {
+	local target_dir="$1"
+	local tool="$2"
+
+	if [[ "$tool" == "empty" ]]; then
+		zellij action new-pane --cwd "$target_dir" --stacked
+	else
+		zellij action new-pane --cwd "$target_dir" --stacked --close-on-exit -- "$tool"
+	fi
+
+	zellij action rename-tab "$(basename "$target_dir")"
+}
