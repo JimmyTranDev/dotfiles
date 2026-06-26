@@ -1,5 +1,6 @@
 local async = require('custom.utils.async')
 local input = require('custom.utils.input')
+local ui = require('custom.utils.ui')
 
 local M = {}
 
@@ -209,6 +210,138 @@ function M.rename_current_worktree()
       end)
     end)
   end, old_folder)
+end
+
+--- First of develop/main/master that exists as a local branch in `repo`, else nil.
+local function detect_base(repo)
+  for _, b in ipairs({ 'develop', 'main', 'master' }) do
+    if git_capture(repo, { 'rev-parse', '--verify', '--quiet', 'refs/heads/' .. b }) then return b end
+  end
+  return nil
+end
+
+--- Linked worktrees of `main_repo` as { path, branch, text }, parsed from
+--- `git worktree list --porcelain`. The primary worktree and any detached-HEAD
+--- worktrees are excluded (only branches that can be merged + deleted remain).
+local function list_linked_worktrees(main_repo)
+  local out = git_capture(main_repo, { 'worktree', 'list', '--porcelain' })
+  if not out then return {} end
+
+  local entries, cur = {}, nil
+  for line in out:gmatch('[^\n]+') do
+    local path = line:match('^worktree (.+)$')
+    if path then
+      cur = { path = path }
+      entries[#entries + 1] = cur
+    elseif cur then
+      local branch = line:match('^branch refs/heads/(.+)$')
+      if branch then cur.branch = branch end
+      if line == 'detached' then cur.detached = true end
+    end
+  end
+
+  local linked = {}
+  for _, e in ipairs(entries) do
+    if e.branch and not e.detached and realpath(e.path) ~= realpath(main_repo) then
+      e.text = folder_from_branch(e.branch) .. ' ' .. e.branch
+      linked[#linked + 1] = e
+    end
+  end
+  return linked
+end
+
+--- True when `cwd` is the same path as, or nested inside, `dir`.
+local function is_inside(cwd, dir)
+  local a, b = realpath(cwd), realpath(dir)
+  return a == b or a:sub(1, #b + 1) == (b .. '/')
+end
+
+--- Select one of this project's linked worktrees, merge its branch into the base
+--- branch (develop -> main -> master), then remove the worktree and delete the
+--- branch locally and on the remote. The merge + cleanup run from the main
+--- repository, mirroring /implement-worktree's Phase 7 (merge first, since
+--- cleanup deletes the branch).
+function M.merge_and_cleanup_worktree()
+  local cwd = vim.fn.getcwd()
+
+  local common = git_capture(cwd, { 'rev-parse', '--path-format=absolute', '--git-common-dir' })
+  if not common then
+    vim.notify('Not inside a git repository', vim.log.levels.ERROR)
+    return
+  end
+  local main_repo = vim.fn.fnamemodify(common, ':h')
+
+  local base = detect_base(main_repo)
+  if not base then
+    vim.notify('No base branch (develop/main/master) found', vim.log.levels.ERROR)
+    return
+  end
+
+  local worktrees = list_linked_worktrees(main_repo)
+
+  ui.pick({
+    title = string.format('Merge & clean up worktree (base: %s)', base),
+    items = worktrees,
+    empty_msg = 'No linked worktrees to merge for this project',
+    format = function(item)
+      return {
+        { folder_from_branch(item.branch), 'Function' },
+        { '  ' .. item.branch, 'Comment' },
+      }
+    end,
+    on_confirm = function(item)
+      if item.branch == base then
+        vim.notify('Refusing: that worktree is on the base branch ' .. base, vim.log.levels.ERROR)
+        return
+      end
+
+      local folder = vim.fn.fnamemodify(item.path, ':t')
+      local summary = table.concat({
+        'Merge & clean up this worktree?',
+        string.format('Worktree:  %s', folder),
+        string.format('Branch:    %s', item.branch),
+        string.format('Base:      %s', base),
+        '',
+        string.format('- merge --no-ff %s into %s and push', item.branch, base),
+        '- remove the worktree (--force)',
+        string.format('- delete %s locally and on origin', item.branch),
+      }, '\n')
+
+      vim.ui.select({ 'Yes', 'No' }, { prompt = summary }, function(choice)
+        if choice ~= 'Yes' then
+          vim.notify('Merge & cleanup cancelled', vim.log.levels.INFO)
+          return
+        end
+
+        local inside = is_inside(cwd, item.path)
+        local steps = {
+          { label = 'Switch to ' .. base, cmd = { 'git', '-C', main_repo, 'switch', base } },
+          { label = 'Update ' .. base, cmd = { 'git', '-C', main_repo, 'pull', '--ff-only', 'origin', base } },
+          { label = string.format('Merge %s into %s', item.branch, base), cmd = { 'git', '-C', main_repo, 'merge', '--no-ff', item.branch } },
+          { label = 'Push ' .. base, cmd = { 'git', '-C', main_repo, 'push', 'origin', base } },
+          {
+            label = 'Remove worktree',
+            cmd = { 'git', '-C', main_repo, 'worktree', 'remove', '--force', item.path },
+            before = function()
+              if inside then pcall(vim.cmd, 'cd ' .. vim.fn.fnameescape(main_repo)) end
+            end,
+          },
+          { label = 'Delete local branch ' .. item.branch, cmd = { 'git', '-C', main_repo, 'branch', '-D', item.branch } },
+        }
+
+        run_sequence(steps, 1, function()
+          vim.notify('Deleting remote branch ' .. item.branch .. '...', vim.log.levels.INFO)
+          async.run_cmd({ 'git', '-C', main_repo, 'push', 'origin', '--delete', item.branch }, function(res)
+            if res.code == 0 then
+              vim.notify(string.format('Merged %s into %s and cleaned up the worktree', item.branch, base), vim.log.levels.INFO)
+            else
+              vim.notify(string.format('Merged & removed worktree; remote %s not deleted (already gone?)', item.branch), vim.log.levels.WARN)
+            end
+          end)
+        end)
+      end)
+    end,
+  })
 end
 
 return M
