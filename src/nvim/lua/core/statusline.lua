@@ -175,6 +175,16 @@ local function build_config()
     }
   )
 
+  local gh_team_prs = require('custom.utils.gh_team_prs')
+  right_bubble(
+    function() return { fg = colors.teal or colors.green, gui = 'bold' } end,
+    gh_team_prs.READY_ICON,
+    {
+      gh_team_prs.get_counts,
+      cond = function() return gh_team_prs.get_counts() ~= '' end,
+    }
+  )
+
   table.insert(config.sections.lualine_x, {
     'diagnostics',
     sources = { 'nvim_diagnostic', 'nvim_lsp', 'nvim_workspace_diagnostic' },
@@ -237,6 +247,8 @@ function M.setup()
   require('custom.utils.gh_notifications').setup()
 
   require('custom.utils.gh_pr_reviews').setup()
+
+  require('custom.utils.gh_team_prs').setup()
 
   vim.api.nvim_create_autocmd('ColorScheme', {
     pattern = 'catppuccin*',
