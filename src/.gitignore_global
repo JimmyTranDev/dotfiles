@@ -6,3 +6,4 @@ copilot-instructions.md
 *.launch
 application-local.yml
 updates/*.md
+.storecode
