@@ -175,7 +175,7 @@
 | `Alt o` | close_on_exit true; floating true; }; SwitchToMode "locked" |
 | `Alt p` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
 | `Alt ]` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
-| `Alt \\` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
+| `Alt [` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
 | `Alt u` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
 | `Alt y` | close_on_exit true; floating true; }; SwitchToMode "locked" |
 | `Alt d` | NewPane "down"; SwitchToMode "locked" |
