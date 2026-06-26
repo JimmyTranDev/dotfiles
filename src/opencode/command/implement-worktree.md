@@ -120,3 +120,19 @@ findings and how they were resolved, anything noted-but-not-touched, the
 worktree removed, or the branch + worktree kept), the `gh pr create` command to
 open a PR later (when the branch was kept), and — for a Jira ticket — the comment
 posted and the ticket's resulting status.
+
+## Auto-close this pane (final step)
+
+As the **very last action of this command** — after the Done report above,
+including the Phase 7 merge/cleanup decision and any Jira report-back — arm pane
+auto-close so this opencode pane closes itself the moment it next goes idle:
+
+```bash
+node "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/lib/implement-auto-close-arm.mjs"
+```
+
+It is best-effort and self-limiting: a no-op outside zellij and when
+`OPENCODE_IMPLEMENT_AUTOCLOSE=0`, and it never fails the run. **Never run it
+earlier** — the mid-run spec/plan confirm gates (and the Phase 7 question) also
+go idle, so arming before the run is truly finished would close the pane during
+a gate.
