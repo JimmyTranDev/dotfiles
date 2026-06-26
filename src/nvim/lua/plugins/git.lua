@@ -71,7 +71,6 @@ return {
     { mode = 'n', '<Leader>gcR', git_actions.create_commit('revert', ''), desc = '󰜘 Commit revert' },
     { mode = 'n', '<Leader>gcu', git_actions.create_commit('feat', '', false, true), desc = '󰜘 Commit update' },
     { mode = 'n', '<Leader>gcx', git_actions.create_commit_from_branch_name, desc = '󰜘 Commit from branch name', silent = true },
-    { mode = 'n', '<Leader>gco', function() vim.cmd("TermExec5 cmd='opencode /commit'") end, desc = '󰌪 OpenCode commit', silent = true },
 
     { mode = 'n', '<Leader>gbd', git_actions.clear_develop_branch, desc = '󰘬 Clear develop (stash + pull)', silent = true },
 

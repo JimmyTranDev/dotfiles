@@ -17,16 +17,8 @@ return {
       mode = 't',
       '<Esc>',
       function()
-        local bufname = vim.api.nvim_buf_get_name(0)
-        if bufname:find('opencode') then
-          local chan = vim.b.terminal_job_id
-          if chan then
-            vim.api.nvim_chan_send(chan, '\27')
-          end
-        else
-          local keys = vim.api.nvim_replace_termcodes([[<C-\><C-n>]], true, false, true)
-          vim.api.nvim_feedkeys(keys, 'n', false)
-        end
+        local keys = vim.api.nvim_replace_termcodes([[<C-\><C-n>]], true, false, true)
+        vim.api.nvim_feedkeys(keys, 'n', false)
       end,
       desc = '󰅁 Terminal escape to normal mode',
       silent = true,
