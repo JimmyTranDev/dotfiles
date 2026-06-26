@@ -77,6 +77,7 @@ Map every request to the appropriate skill before acting.
 | Find/remove unused files, dependencies, exports & dead code in JS/TS via Knip | `knip` |
 | Commit already-staged changes with a conventional message | `commit` |
 | Commits, branching, conflicts, parallel work | `git-workflow-and-versioning` |
+| Write a GitHub PR title + body (the `gh pr create` content) | `github-pr-description` |
 | Git worktrees in ~/Programming/wcreated & wcheckout (create/checkout/delete/update/clean) | `worktree-management` |
 | Resolve in-progress git merge/rebase/cherry-pick conflicts (unmerged paths, conflict markers) | `merge-conflict-resolution` |
 | Removing/sunsetting systems, migrating implementations | `deprecation-and-migration` |

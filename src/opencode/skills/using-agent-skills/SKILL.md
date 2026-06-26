@@ -45,6 +45,7 @@ Task arrives
     │   └── Performance concerns? ────→ performance-optimization
     ├── Commit already-staged changes? ─→ commit
     ├── Committing/branching? ─────────→ git-workflow-and-versioning
+    ├── Write a GitHub PR title/body? ──→ github-pr-description
     ├── Worktrees in wcreated/wcheckout? → worktree-management
     ├── Resolve git merge/rebase/cherry-pick conflicts? → merge-conflict-resolution
     ├── CI/CD pipeline work? ──────────→ ci-cd-and-automation
@@ -209,6 +210,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Review | performance-optimization | Measure first, optimize only what matters |
 | Ship | commit | Conventional commit for already-staged changes |
 | Ship | git-workflow-and-versioning | Atomic commits, clean history |
+| Ship | github-pr-description | Reviewer-focused GitHub PR title + body, grounded in the diff and verification |
 | Ship | worktree-management | Create/checkout/delete/update/clean git worktrees in ~/Programming/wcreated & wcheckout |
 | Ship | merge-conflict-resolution | Resolve in-progress git merge/rebase/cherry-pick conflicts, preserving both sides, then verify |
 | Ship | ci-cd-and-automation | Automated quality gates on every change |
