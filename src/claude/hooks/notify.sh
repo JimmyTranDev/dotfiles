@@ -5,10 +5,9 @@
 # Tracked directly at src/claude/hooks/notify.sh and reached via the
 # ~/.claude -> src/claude symlink. Edit this file directly.
 #
-# This is the Claude equivalent of the OpenCode notification plugin
-# (src/opencode/plugins/notification.js). Claude hooks are stateless shell
-# invocations, so the plugin's rich body (elapsed time, tool counts, changed
-# files) is reconstructed from a small per-session state file.
+# Claude hooks are stateless shell invocations, so a rich notification body
+# (elapsed time, tool counts, changed files) is reconstructed from a small
+# per-session state file.
 #
 # Wired from settings.json hooks:
 #   - PostToolUse -> accumulate tool count / last tool / changed files

@@ -128,7 +128,7 @@ development environment built on [OpenCode](https://opencode.ai):
 |----------|-------|--------------|
 | **Commands** | 9 | Orchestrated workflows — `/implement`, `/implement-pr`, `/implement-worktree`, `/review-pr`, `/spec-plan`, `/commit`, `/fix`, `/merge-worktrees`, `/audit-npm` |
 | **Skills** | 43 | On-demand expertise — test-driven development, security hardening, spec-driven development, debugging, code review, Figma-to-code, Turso, and more |
-| **Plugins** | 3 | Custom JS plugins — desktop notifications and live Zellij pane/tab status |
+| **Plugins** | 2 | Custom JS plugins — live Zellij pane/tab status |
 | **Scripts** | 35 | Reusable shell tools — stack detection, branch info, test runners, PR status, security scans, and more |
 
 There are no bespoke "agents" to babysit. Instead, a single `AGENTS.md` rule file
