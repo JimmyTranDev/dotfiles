@@ -38,7 +38,6 @@
   "substitute.nvim": { "branch": "main", "commit": "0d2077398552f069abccbd964a26dd7cd26882cd" },
   "toggleterm.nvim": { "branch": "main", "commit": "9a88eae817ef395952e08650b3283726786fb5fb" },
   "typescript-tools.nvim": { "branch": "master", "commit": "c2f5910074103705661e9651aa841e0d7eea9932" },
-  "vim-fugitive": { "branch": "master", "commit": "3b753cf8c6a4dcde6edee8827d464ba9b8c4a6f0" },
   "vim-repeat": { "branch": "master", "commit": "65846025c15494983dafe5e3b46c8f88ab2e9635" },
   "vim-suda": { "branch": "master", "commit": "c492741b4679b3cdd4d9e34138209784e061d916" },
   "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" },

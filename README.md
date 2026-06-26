@@ -53,7 +53,7 @@ coding workflows, and a terminal that looks as good as it works.
 </details>
 
 <details>
-<summary><strong>Git</strong> — Lazygit + Fugitive + AI commits</summary>
+<summary><strong>Git</strong> — Lazygit + AI commits</summary>
 
 <!-- TODO: Screenshot of Lazygit with staged changes, branch list visible. Save to .github/assets/lazygit.png -->
 
@@ -96,8 +96,8 @@ and custom Lua actions for git, Jira, Todoist, and more. Full config lives in
 
 ### 🌳 Git
 
-**Lazygit** for interactive staging and rebasing, with **Fugitive** and
-**Gitsigns** right inside Neovim. Custom OpenCode `/commit`, `/implement-pr`, and
+**Lazygit** for interactive staging and rebasing, with **Gitsigns**
+right inside Neovim. Custom OpenCode `/commit`, `/implement-pr`, and
 `/merge-worktrees` commands handle worktrees, conventional commits, and PR
 creation so you stay in flow.
 

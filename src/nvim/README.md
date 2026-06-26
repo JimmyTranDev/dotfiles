@@ -42,7 +42,7 @@ Snacks.picker for modern fuzzy finding. Yazi as a full terminal file manager. Ho
 
 ### Complete Git Workflow
 
-LazyGit for visual staging and commits. Fugitive for Git commands. GitSigns for inline blame and diff indicators. Custom branch creation with automatic Jira ticket linking.
+LazyGit for visual staging and commits. Toggleterm-backed keymaps for Git commands. GitSigns for inline blame and diff indicators. Custom branch creation with automatic Jira ticket linking.
 
 ### AI-Powered Development
 
@@ -63,7 +63,7 @@ Catppuccin color scheme. Custom bubble-style statusline. Contextual breadcrumbs 
 | Treesitter + textobjects | Advanced parsing and smart text objects |
 | Snacks.picker | Modern fuzzy finder |
 | Yazi | Terminal file manager |
-| LazyGit + Fugitive + GitSigns | Complete Git workflow |
+| LazyGit + GitSigns | Complete Git workflow |
 
 **AI and Productivity**
 | Plugin | Description |
@@ -192,7 +192,7 @@ nvim/
     │   ├── treesitter.lua      # Syntax highlighting
     │   ├── mason-lspconfig.lua # LSP management
     │   ├── lazygit.lua         # Git TUI
-    │   ├── fugitive.lua        # Git commands
+    │   ├── git.lua             # Git keymaps
     │   ├── yazi.lua            # File manager
     │   └── ...
     │
