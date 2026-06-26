@@ -88,6 +88,29 @@ assert_eq "_stat_mtime matches zstat for a .git file" \
 assert_eq "_stat_mtime on a missing path is empty/non-fatal" \
   "" "$(_stat_mtime "$PROG/does/not/exist" 2>/dev/null)"
 
+# --- _stat_mtime caches the detected stat flavor (one fork/call, not two) -----
+# On BSD/macOS the old "stat -c %Y || stat -f %m" form forked twice per call
+# (the GNU -c form always fails first there). The flavor is now probed once and
+# cached in _STAT_MTIME_FMT so every later call forks a single stat.
+known_flavor() { [[ "${_STAT_MTIME_FMT:-}" == gnu || "${_STAT_MTIME_FMT:-}" == bsd ]] && echo yes || echo no; }
+
+unset _STAT_MTIME_FMT
+_stat_mtime "$PROG/orgA/repo1/.git" >/dev/null
+assert_eq "_stat_mtime caches a known stat flavor (gnu/bsd) after first use" \
+  "yes" "$(known_flavor)"
+
+# Detection probes "/", so even a cold-cache call on a MISSING path resolves the
+# flavor and stays empty/non-fatal.
+unset _STAT_MTIME_FMT
+cold_miss="$(_stat_mtime "$PROG/does/not/exist" 2>/dev/null)"
+assert_eq "_stat_mtime cold-cache on a missing path still prints nothing" \
+  "" "$cold_miss"
+
+unset _STAT_MTIME_FMT
+_stat_mtime "$PROG/does/not/exist" >/dev/null 2>&1
+assert_eq "_stat_mtime caches the flavor even when the first path is missing" \
+  "yes" "$(known_flavor)"
+
 # --- _recency_mtime: .git mtime, else dir mtime, else 0 ----------------------
 assert_eq "_recency_mtime uses the .git mtime when present (repo)" \
   "$(zstat +mtime "$PROG/orgA/repo1/.git")" "$(_recency_mtime "$PROG/orgA/repo1")"
