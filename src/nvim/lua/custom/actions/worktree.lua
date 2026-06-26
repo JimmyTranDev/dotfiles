@@ -365,4 +365,146 @@ function M.switch_worktree()
   })
 end
 
+--- True when `path` resolves under either managed worktree container. Used to
+--- gate the recursive directory cleanup so it can never escape wcreated/wcheckout.
+---@param path string
+---@return boolean
+local function is_managed_path(path)
+  local rp = realpath(path)
+  return M.is_wcreated_path(rp, realpath(WCREATED_DIR)) or M.is_wcreated_path(rp, realpath(WCHECKOUT_DIR))
+end
+
+--- Run argv `steps` sequentially, best-effort: a non-zero exit is reported as a
+--- warning but does not abort the chain. Each step: { label, cmd }.
+local function run_best_effort(steps, idx, on_done)
+  idx = idx or 1
+  if idx > #steps then
+    if on_done then on_done() end
+    return
+  end
+  local step = steps[idx]
+  async.run_cmd(step.cmd, function(res)
+    if res.code ~= 0 then
+      local err = (res.stderr ~= '' and res.stderr or res.stdout):gsub('%s+$', '')
+      vim.notify(step.label .. ': ' .. (err ~= '' and err or 'failed'), vim.log.levels.WARN)
+    end
+    run_best_effort(steps, idx + 1, on_done)
+  end)
+end
+
+--- Build the best-effort deletion argv steps for a worktree. Pure: the caller
+--- resolves the facts (branch/remote existence, wcreated-ness) and passes them in.
+--- The remote branch is deleted only for wcreated worktrees (delete_remote), never
+--- for wcheckout -- the central safety rule mirrored from the worktree shell scripts.
+---@param o { main_repo: string|nil, worktree: string, branch: string|nil, delete_remote: boolean, local_exists: boolean, remote_exists: boolean, remote: string|nil }
+---@return { label: string, cmd: string[] }[]
+function M.build_delete_steps(o)
+  local steps = {}
+  if not o.main_repo then return steps end
+  steps[#steps + 1] = { label = 'Remove worktree', cmd = { 'git', '-C', o.main_repo, 'worktree', 'remove', '--force', o.worktree } }
+  if o.branch and o.local_exists then steps[#steps + 1] = { label = 'Delete local branch', cmd = { 'git', '-C', o.main_repo, 'branch', '-D', o.branch } } end
+  if o.branch and o.delete_remote and o.remote_exists then
+    steps[#steps + 1] = { label = 'Delete remote branch', cmd = { 'git', '-C', o.main_repo, 'push', o.remote or 'origin', '--delete', o.branch } }
+  end
+  return steps
+end
+
+--- Resolve facts, confirm, then delete a single worktree (folder + local branch,
+--- and the remote branch only for wcreated worktrees).
+---@param item { path: string, text: string }
+local function delete_worktree_entry(item)
+  local wt = item.path
+  local delete_remote = M.is_wcreated_path(realpath(wt), realpath(WCREATED_DIR))
+
+  local branch = git_capture(wt, { 'branch', '--show-current' })
+  if branch == '' then branch = nil end
+
+  local common = git_capture(wt, { 'rev-parse', '--path-format=absolute', '--git-common-dir' })
+  local main_repo = common and vim.fn.fnamemodify(common, ':h') or nil
+
+  local function ref_exists(prefix)
+    if not (main_repo and branch) then return false end
+    return git_capture(main_repo, { 'show-ref', '--verify', '--quiet', prefix .. branch }) ~= nil
+  end
+  local local_exists = ref_exists('refs/heads/')
+  local remote_exists = ref_exists('refs/remotes/origin/')
+
+  local remote_line
+  if not branch then
+    remote_line = 'Remote:  (no branch detected)'
+  elseif delete_remote and remote_exists then
+    remote_line = 'Remote:  origin/' .. branch .. '  (will be DELETED)'
+  elseif delete_remote then
+    remote_line = 'Remote:  origin/' .. branch .. '  (not found -- skipped)'
+  else
+    remote_line = 'Remote:  origin/' .. branch .. '  (preserved -- checkout worktree)'
+  end
+
+  local branch_label = 'Branch:  ' .. (branch or '(none)')
+  if branch then branch_label = branch_label .. (local_exists and '  (local: delete)' or '  (local: not found)') end
+
+  local summary = table.concat({
+    'Delete this worktree?',
+    'Folder:  ' .. item.text,
+    'Path:    ' .. wt,
+    branch_label,
+    remote_line,
+  }, '\n')
+
+  vim.ui.select({ 'Yes', 'No' }, { prompt = summary }, function(choice)
+    if choice ~= 'Yes' then
+      vim.notify('Deletion cancelled', vim.log.levels.INFO)
+      return
+    end
+
+    -- Never sit inside the directory we are about to delete.
+    if main_repo and realpath(wt) == realpath(vim.fn.getcwd()) then
+      vim.cmd('cd ' .. vim.fn.fnameescape(main_repo))
+      vim.notify('Moved to main repo: ' .. main_repo, vim.log.levels.INFO)
+    end
+
+    local steps = M.build_delete_steps({
+      main_repo = main_repo,
+      worktree = wt,
+      branch = branch,
+      delete_remote = delete_remote,
+      local_exists = local_exists,
+      remote_exists = remote_exists,
+      remote = 'origin',
+    })
+
+    run_best_effort(steps, 1, function()
+      if vim.uv.fs_stat(wt) and is_managed_path(wt) then vim.fn.delete(wt, 'rf') end
+      vim.notify('Deleted worktree "' .. item.text .. '"', vim.log.levels.INFO)
+    end)
+  end)
+end
+
+--- Pick a worktree (wcreated + wcheckout) and delete it after confirmation.
+function M.delete_worktree()
+  local worktrees = collect_worktrees()
+  if #worktrees == 0 then
+    vim.notify('No worktrees found in ' .. WCREATED_DIR .. ' or ' .. WCHECKOUT_DIR, vim.log.levels.WARN)
+    return
+  end
+
+  local current = realpath(vim.fn.getcwd())
+
+  ui.pick({
+    title = 'Delete Worktree (' .. #worktrees .. ')',
+    items = worktrees,
+    format = function(item)
+      local is_current = realpath(item.path) == current
+      local origin_hl = item.origin == 'wcreated' and 'DiagnosticWarn' or 'Comment'
+      return {
+        { is_current and ' ' or '  ', is_current and 'DiagnosticOk' or 'Comment' },
+        { item.origin .. '/', origin_hl },
+        { item.name, 'Function' },
+      }
+    end,
+    on_confirm = delete_worktree_entry,
+    empty_msg = 'No worktrees to delete',
+  })
+end
+
 return M

@@ -67,6 +67,92 @@ check('wcheckout path is not created', worktree.is_wcreated_path('/home/u/Progra
 check('the wcreated dir itself is not a worktree', worktree.is_wcreated_path('/home/u/Programming/wcreated', '/home/u/Programming/wcreated'), false)
 check('trailing slash on dir still matches child', worktree.is_wcreated_path('/x/wcreated/foo', '/x/wcreated/'), true)
 
+-- build_delete_steps: the central wcreated-only remote-deletion safety rule.
+local function contains(list, value)
+  for _, v in ipairs(list) do
+    if v == value then return true end
+  end
+  return false
+end
+
+local function has_remote_delete(steps)
+  for _, s in ipairs(steps) do
+    if contains(s.cmd, 'push') and contains(s.cmd, '--delete') then return true end
+  end
+  return false
+end
+
+local wcreated_full = worktree.build_delete_steps({
+  main_repo = '/repo',
+  worktree = '/wc/foo',
+  branch = 'feature/foo',
+  delete_remote = true,
+  local_exists = true,
+  remote_exists = true,
+  remote = 'origin',
+})
+check('wcreated full: 3 steps', #wcreated_full, 3)
+check('wcreated full: deletes remote', has_remote_delete(wcreated_full), true)
+check('wcreated full: first step removes worktree', table.concat(wcreated_full[1].cmd, ' '), 'git -C /repo worktree remove --force /wc/foo')
+
+local wcheckout_steps = worktree.build_delete_steps({
+  main_repo = '/repo',
+  worktree = '/wco/foo',
+  branch = 'feature/foo',
+  delete_remote = false,
+  local_exists = true,
+  remote_exists = true,
+  remote = 'origin',
+})
+check('wcheckout: 2 steps', #wcheckout_steps, 2)
+check('wcheckout: never deletes remote', has_remote_delete(wcheckout_steps), false)
+
+local no_remote_ref = worktree.build_delete_steps({
+  main_repo = '/repo',
+  worktree = '/wc/foo',
+  branch = 'foo',
+  delete_remote = true,
+  local_exists = true,
+  remote_exists = false,
+  remote = 'origin',
+})
+check('wcreated, missing remote ref: 2 steps', #no_remote_ref, 2)
+check('wcreated, missing remote ref: skips remote delete', has_remote_delete(no_remote_ref), false)
+
+local no_local = worktree.build_delete_steps({
+  main_repo = '/repo',
+  worktree = '/wc/foo',
+  branch = 'foo',
+  delete_remote = true,
+  local_exists = false,
+  remote_exists = true,
+  remote = 'origin',
+})
+check('missing local branch: 2 steps (no branch -D)', #no_local, 2)
+check('missing local branch: still deletes remote', has_remote_delete(no_local), true)
+
+local no_branch = worktree.build_delete_steps({
+  main_repo = '/repo',
+  worktree = '/wc/foo',
+  branch = nil,
+  delete_remote = true,
+  local_exists = false,
+  remote_exists = false,
+  remote = 'origin',
+})
+check('no branch: only worktree remove', #no_branch, 1)
+
+local corrupt = worktree.build_delete_steps({
+  main_repo = nil,
+  worktree = '/wc/foo',
+  branch = 'foo',
+  delete_remote = true,
+  local_exists = true,
+  remote_exists = true,
+  remote = 'origin',
+})
+check('no main repo: no git steps', #corrupt, 0)
+
 if failures > 0 then
   io.write(string.format('\n%d assertion(s) failed\n', failures))
   os.exit(1)
