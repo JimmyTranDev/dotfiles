@@ -125,6 +125,7 @@ alias csv='git ls-files "*/core/*.csv" 2>/dev/null | fzf --preview "head -20 {}"
 alias google-chrome='"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
 
 alias wl='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree list'
+alias wd='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree diff'
 alias wD='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree delete'
 alias wC='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree clean'
 alias wr='$DOTFILES_DIR/etc/scripts/src/worktrees/worktree rename'
