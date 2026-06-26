@@ -23,6 +23,13 @@ main() {
 	# Open opencode in a new stacked pane rooted in the chosen project. The pane
 	# closes itself when opencode exits (--close-on-exit).
 	zellij action new-pane --cwd "$target_dir" --stacked --close-on-exit -- opencode
+
+	# Name the focused tab after the project folder; the stacked pane above lands
+	# in the current (focused) tab. Reindex afterward so it shows "N.<folder>",
+	# matching the Alt p sidebar launcher. No tab id or sleep needed: rename-tab
+	# targets the focused tab, which already exists.
+	zellij action rename-tab "$(basename "$target_dir")"
+	"$SCRIPT_DIR/update_tab_indexes.sh"
 }
 
 main "$@"
