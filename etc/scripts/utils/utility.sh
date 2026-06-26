@@ -89,7 +89,8 @@ _emit_git_repo_paths() {
 	local max_depth="$2"
 	local base_dir_with_slash="$3"
 	find "$base_dir" -maxdepth "$max_depth" -name ".git" -type d 2>/dev/null | while IFS= read -r git_dir; do
-		repo_path=$(dirname "$git_dir")
+		# ${git_dir%/.git} strips the trailing "/.git" without forking dirname.
+		repo_path="${git_dir%/.git}"
 		echo "${repo_path#$base_dir_with_slash}"
 	done
 }
@@ -99,9 +100,13 @@ _emit_git_worktree_paths() {
 	local base_dir="$1"
 	local max_depth="$2"
 	local base_dir_with_slash="$3"
+	local gitdir_line
 	find "$base_dir" -maxdepth "$max_depth" -name ".git" -type f 2>/dev/null | while IFS= read -r git_file; do
-		if grep -q "^gitdir:" "$git_file" 2>/dev/null; then
-			worktree_path=$(dirname "$git_file")
+		# Read the first line in-shell instead of forking grep per worktree.
+		gitdir_line=""
+		IFS= read -r gitdir_line <"$git_file" 2>/dev/null
+		if [[ "$gitdir_line" == gitdir:* ]]; then
+			worktree_path="${git_file%/.git}"
 			echo "${worktree_path#$base_dir_with_slash}"
 		fi
 	done
@@ -161,23 +166,54 @@ get_worktree_project_name() {
 	echo "unknown"
 }
 
+# Emit both repo paths (.git dir) and worktree paths (.git file pointing to a
+# gitdir) relative to base_dir in a SINGLE find traversal — half the directory
+# walking of running the repo and worktree emitters back to back.
+_emit_git_repo_and_worktree_paths() {
+	local base_dir="$1"
+	local max_depth="$2"
+	local base_dir_with_slash="$3"
+	local gitdir_line entry_path
+	find "$base_dir" -maxdepth "$max_depth" -name ".git" 2>/dev/null | while IFS= read -r git_path; do
+		entry_path="${git_path%/.git}"
+		if [[ -d "$git_path" ]]; then
+			echo "${entry_path#$base_dir_with_slash}"
+		elif [[ -f "$git_path" ]]; then
+			gitdir_line=""
+			IFS= read -r gitdir_line <"$git_path" 2>/dev/null
+			[[ "$gitdir_line" == gitdir:* ]] && echo "${entry_path#$base_dir_with_slash}"
+		fi
+	done
+}
+
 find_git_repos_and_worktrees() {
 	local base_dir="$1"
 	local max_depth="${2:-2}"
 	base_dir="${base_dir%/}"
 	local base_dir_with_slash="${base_dir}/"
 
-	{
-		_emit_git_repo_paths "$base_dir" "$max_depth" "$base_dir_with_slash"
-		_emit_git_worktree_paths "$base_dir" "$max_depth" "$base_dir_with_slash"
-	} | sort -u
+	_emit_git_repo_and_worktree_paths "$base_dir" "$max_depth" "$base_dir_with_slash" | sort -u
 }
 
-# Print the mtime (epoch seconds) of a path on stdout, portably across BSD
-# stat (macOS) and GNU coreutils (Linux). Empty output and non-zero on a
-# missing path; never fatal.
+# Print the mtime (epoch seconds) of a path on stdout, portably across GNU
+# coreutils (stat -c %Y, Linux) and BSD stat (stat -f %m, macOS). The working
+# flavor is probed once against "/" and cached in _STAT_MTIME_FMT, so each
+# call forks a single stat instead of always trying the GNU form and falling
+# back on BSD every time. Empty output and non-zero on a missing path; never
+# fatal.
 _stat_mtime() {
-	command stat -c %Y "$1" 2>/dev/null || command stat -f %m "$1" 2>/dev/null
+	if [[ -z "${_STAT_MTIME_FMT:-}" ]]; then
+		if command stat -c %Y / >/dev/null 2>&1; then
+			_STAT_MTIME_FMT="gnu"
+		else
+			_STAT_MTIME_FMT="bsd"
+		fi
+	fi
+	if [[ "$_STAT_MTIME_FMT" == "gnu" ]]; then
+		command stat -c %Y "$1" 2>/dev/null
+	else
+		command stat -f %m "$1" 2>/dev/null
+	fi
 }
 
 # Recency timestamp for a project/worktree dir: prefer its .git (which git
@@ -216,6 +252,12 @@ _collect_project_dir_entries() {
 	local checkout_dir="${3:-$programming_dir/wcheckout}"
 	local org_dir org_name proj proj_name mtime
 	local container label wt_name wt_path
+
+	# Resolve the stat flavor once in THIS shell so the per-entry
+	# "$(_recency_mtime ...)" command-substitution subshells below inherit the
+	# cached _STAT_MTIME_FMT instead of re-detecting it (an extra stat fork) on
+	# every entry.
+	_stat_mtime / >/dev/null 2>&1
 
 	while IFS= read -r org_dir; do
 		[[ -d "$org_dir" ]] || continue
