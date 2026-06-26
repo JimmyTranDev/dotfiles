@@ -55,3 +55,18 @@ task's status, the verify results (tests / build / lint / coverage), the review
 findings and how they were resolved, anything noted-but-not-touched, the PR
 decision (draft / ready) with its URL, and — for a Jira ticket — the comment
 posted and the ticket's resulting status.
+
+## Auto-close this pane (final step)
+
+As the **very last action of this command** — after the Done report above, the
+PR has been opened, and any Jira report-back — arm pane auto-close so this
+opencode pane closes itself the moment it next goes idle:
+
+```bash
+node "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/lib/implement-auto-close-arm.mjs"
+```
+
+It is best-effort and self-limiting: a no-op outside zellij and when
+`OPENCODE_IMPLEMENT_AUTOCLOSE=0`, and it never fails the run. **Never run it
+earlier** — the mid-run spec/plan confirm gates also go idle, so arming before
+the run is truly finished would close the pane during a gate.
