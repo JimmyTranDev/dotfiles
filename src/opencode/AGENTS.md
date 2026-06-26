@@ -68,6 +68,7 @@ Map every request to the appropriate skill before acting.
 | User-facing UI, components, layouts, client state | `frontend-ui-engineering` |
 | Browser DOM/console/network/perf debugging (needs chrome-devtools MCP) | `browser-testing-with-devtools` |
 | Refactor for clarity without changing behavior | `code-simplification` |
+| Write/review good code comments (why-not-what); TODO:/FIX:/HACK:/NOTE: markers | `good-code-comments` |
 | Performance regressions, Core Web Vitals, load times | `performance-optimization` |
 | Untrusted input, auth, sessions, data storage, integrations | `security-and-hardening` |
 | Logging, metrics, tracing, alerting | `observability-and-instrumentation` |

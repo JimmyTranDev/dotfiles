@@ -40,6 +40,7 @@ Task arrives
     ├── Operate the opencode CLI binary (run/serve/attach/auth/mcp)? → opencode-cli
     ├── Reviewing code? ───────────────→ code-review-and-quality
     │   ├── Too complex? ─────────────→ code-simplification
+    │   ├── Comments: why-not-what, TODO:/FIX:/HACK:/NOTE:? → good-code-comments
     │   ├── Security concerns? ───────→ security-and-hardening
     │   └── Performance concerns? ────→ performance-optimization
     ├── Commit already-staged changes? ─→ commit
@@ -202,6 +203,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Verify | android-app-data | Browse/pull a local Android emulator app's private data folder over adb |
 | Review | code-review-and-quality | Five-axis review with quality gates |
 | Review | code-simplification | Preserve behavior while reducing unnecessary complexity |
+| Review | good-code-comments | Write high-signal comments (why-not-what) and standardize TODO:/FIX:/HACK:/NOTE: markers |
 | Review | knip | Find and safely remove unused files, dependencies, and exports in JS/TS with Knip |
 | Review | security-and-hardening | OWASP prevention, input validation, least privilege |
 | Review | performance-optimization | Measure first, optimize only what matters |
