@@ -118,7 +118,7 @@ end
 function M.create_branch(prefix)
   return function()
     build_branch_name(prefix, function(branch_name)
-      vim.cmd(string.format('Git checkout -b %s', branch_name))
+      vim.cmd(string.format("TermExec5 open=0 cmd='git checkout -b %s'", branch_name))
       vim.cmd("TermExec5 open=0 cmd='git add .'")
       vim.cmd(string.format('TermExec5 open=0 cmd=\'git commit --no-verify -m "%s"\'', util.shell_escape_message(branch_name)))
     end)
@@ -129,7 +129,7 @@ function M.create_worktree(prefix)
   return function()
     build_branch_name(prefix, function(branch_name, description)
       local worktree_name = string.format('~/Programming/Worktrees/%s_%s', prefix, description)
-      vim.cmd(string.format('Git worktree add -b %s %s', branch_name, worktree_name))
+      vim.cmd(string.format("TermExec5 open=0 cmd='git worktree add -b %s %s'", branch_name, worktree_name))
     end)
   end
 end
@@ -166,7 +166,9 @@ function M.create_commit(prefix, emoji, should_push, should_generic)
   end
 end
 
-function M.quick_commit_update() vim.cmd(string.format('Git commit --no-verify -m "%s"', QUICK_UPDATE_MESSAGE)) end
+function M.quick_commit_update()
+  vim.cmd(string.format('TermExec5 open=0 cmd=\'git commit --no-verify -m "%s"\'', util.shell_escape_message(QUICK_UPDATE_MESSAGE)))
+end
 
 function M.create_commit_from_branch_name()
   local branch_name = git_utils.get_current_branch()
@@ -191,7 +193,7 @@ function M.create_commit_from_branch_name()
 
   local commit_message = prefix .. ': ' .. jira_ticket_part .. description
 
-  vim.cmd(string.format('Git commit --no-verify -m "%s"', util.shell_escape_message(commit_message)))
+  vim.cmd(string.format('TermExec5 open=0 cmd=\'git commit --no-verify -m "%s"\'', util.shell_escape_message(commit_message)))
 
   vim.notify('Committed: ' .. commit_message)
 end

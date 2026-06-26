@@ -1,26 +1,32 @@
 local git_actions = require('custom.actions.git')
 
+-- Git keymaps live on the toggleterm spec so that :TermExec (which toggleterm
+-- only defines once it has loaded) is guaranteed to exist whenever a git mapping
+-- fires. lazy.nvim merges this fragment with the main toggleterm spec in
+-- toggleterm.lua, and the keys below lazy-load toggleterm on first use.
 return {
-  'tpope/vim-fugitive',
-  event = 'VeryLazy',
-  dependencies = {
-    'akinsho/toggleterm.nvim',
-  },
+  'akinsho/toggleterm.nvim',
   keys = {
     { mode = 'n', '<Leader>ghc', git_actions.create_pr_from_branch, desc = '󰊤 Create PR from branch', silent = true },
 
-    { mode = 'n', '<Leader>gf', ':Git fetch --prune --all<CR>', desc = '󰏫 Fetch prune', silent = true },
+    { mode = 'n', '<Leader>gf', function() vim.cmd("TermExec5 open=0 cmd='git fetch --prune --all'") end, desc = '󰏫 Fetch prune', silent = true },
     { mode = 'n', '<Leader>gl', ':split <Bar> :terminal git --no-pager log<CR>', desc = '󰋫 Log All', silent = true },
-    { mode = 'n', '<Leader>gs', ':Git status<CR>', desc = '󰘻 Status', silent = true },
-    { mode = 'n', '<Leader>gF', ':Git push --force-with-lease<CR>', desc = '󰏫 Push force', silent = true },
-    { mode = 'n', '<Leader>gH', ':Git branch -D holding <Bar> Git branch holding<CR>', desc = '󰘬 Recreate holding branch', silent = true },
-    { mode = 'n', '<Leader>gM', ':Git commit --amend --no-verify --no-edit<CR>', desc = '󰜘 Amend', silent = true },
-    { mode = 'n', '<Leader>gP', ':Git push<CR>', desc = '󰏫 Push', silent = true },
+    { mode = 'n', '<Leader>gs', function() Snacks.lazygit() end, desc = '󰘻 Status', silent = true },
+    { mode = 'n', '<Leader>gF', function() vim.cmd("TermExec3 open=0 cmd='git push --force-with-lease'") end, desc = '󰏫 Push force', silent = true },
+    {
+      mode = 'n',
+      '<Leader>gH',
+      function() vim.cmd("TermExec5 open=0 cmd='git branch -D holding; git branch holding'") end,
+      desc = '󰘬 Recreate holding branch',
+      silent = true,
+    },
+    { mode = 'n', '<Leader>gM', function() vim.cmd("TermExec5 open=0 cmd='git commit --amend --no-verify --no-edit'") end, desc = '󰜘 Amend', silent = true },
+    { mode = 'n', '<Leader>gP', function() vim.cmd("TermExec3 open=0 cmd='git push'") end, desc = '󰏫 Push', silent = true },
 
     {
       mode = 'n',
       '<Leader>gym',
-      ':Git commit --amend --no-verify --no-edit <Bar> :Git push --force-with-lease<CR>',
+      function() vim.cmd("TermExec5 open=0 cmd='git commit --amend --no-verify --no-edit && git push --force-with-lease'") end,
       desc = '󰜘 Amend and push',
       silent = true,
     },
@@ -28,9 +34,9 @@ return {
       mode = 'n',
       '<Leader>gyy',
       function()
-        vim.cmd('Git add .')
+        vim.cmd("TermExec5 open=0 cmd='git add .'")
         git_actions.quick_commit_update()
-        vim.cmd('Git push')
+        vim.cmd("TermExec3 open=0 cmd='git push'")
       end,
       desc = '󰜘 Commit and push',
       silent = true,
