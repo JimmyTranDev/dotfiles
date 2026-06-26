@@ -6,6 +6,9 @@ local expand = vim.fn.expand
 
 local links = json_utils.parse_json_from_file(expand('$HOME/Programming/JimmyTranDev/secrets/links.json'))
 
+-- Base URL for the Storebrand FMS admin tool; a project slug is appended per repo.
+M.fms_admin_base = links.fms_admin_base or ''
+
 M.project_name_to_route_object = links.work_technical or {}
 M.project_names = {}
 for project_name, _ in pairs(M.project_name_to_route_object) do

@@ -197,6 +197,34 @@ function M.open_technical_link_current_repo()
   select_route(repo_name, routes)
 end
 
+function M.open_fms_link()
+  local base = link_constants.fms_admin_base
+  if not base or base == '' then
+    vim.notify('FMS admin base URL not set. Add "fms_admin_base" to secrets/links.json (run: storage-init).', vim.log.levels.WARN)
+    return
+  end
+
+  local repo_name = github_utils.get_repo_name()
+  if not repo_name or repo_name == '' then repo_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':t') end
+
+  local default_slug = link_utils.to_fms_slug(repo_name)
+
+  vim.ui.input({ prompt = 'FMS project: ', default = default_slug }, function(input)
+    if not input then return end
+    input = vim.trim(input)
+    if input == '' then return end
+
+    local url = link_utils.get_fms_admin_url(base, input)
+    if not url then
+      vim.notify('Could not build FMS URL for: ' .. input, vim.log.levels.ERROR)
+      return
+    end
+
+    record_link_usage('fms:' .. input)
+    open_url(url, 'FMS admin: ' .. input)
+  end)
+end
+
 function M.open_firefox_container()
   vim.ui.input({ prompt = 'Container name: ' }, function(container)
     if not container or container == '' then return end
