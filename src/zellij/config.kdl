@@ -14,7 +14,7 @@ keybinds clear-defaults=true {
         }
         bind "Alt r" { SwitchToMode "renametab"; TabNameInput 0; }
         bind "Alt n" { NewTab; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
-        bind "Alt q" { CloseTab; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
+        bind "Alt x" { CloseTab; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
         bind "Alt i" { MoveTab "Left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
         bind "Alt o" { MoveTab "Right"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
         bind "Alt p" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_opencode_sidebar.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
@@ -28,7 +28,7 @@ keybinds clear-defaults=true {
         bind "Alt d" { NewPane "down"; SwitchToMode "locked"; }
         bind "Alt e" { NewPane "right"; SwitchToMode "locked"; }
         bind "Alt Enter" { ToggleFocusFullscreen; SwitchToMode "locked"; }
-        bind "Alt x" { CloseFocus; SwitchToMode "locked"; }
+        bind "Alt q" { CloseFocus; SwitchToMode "locked"; }
 
         bind "Alt left" { MoveFocus "left"; }
         bind "Alt down" { MoveFocus "down"; }
