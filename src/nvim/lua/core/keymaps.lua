@@ -224,7 +224,7 @@ maps('n', {
   { '<Leader>ugp', git_actions.open_or_create_pull_request, '󰓢 Open/create PR' },
   { '<Leader>ugP', git_actions.copy_pr_link, '󰆏 Copy PR link' },
   -- { '<Leader>ugr', link_actions.open_current_github_repo, 'Repo page' },
-  -- { '<Leader>uga', link_actions.open_current_github_prs, 'All PRs' },
+  { '<Leader>uga', github_actions.open_my_authored_prs, '󰓢 PRs authored by me' },
   { '<Leader>ugh', github_actions.open_current_repo_in_browser, '󰖟 Repo homepage' },
   { '<Leader>ugo', github_actions.list_org_repos_and_open, '󰊤 Org repos' },
   { '<Leader>ugC', github_actions.select_owner_repo_and_clone, '󰊢 Clone repo' },

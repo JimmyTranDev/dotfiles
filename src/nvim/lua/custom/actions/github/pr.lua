@@ -54,6 +54,14 @@ function M.open_current_repo_prs()
   select_and_open_pr_from_list(pulls, repo_full)
 end
 
+--- Open GitHub's global Pull Requests dashboard filtered to PRs authored by me.
+--- `https://github.com/pulls` is GitHub's default "Created" view, which lists the
+--- signed-in user's own PRs across every repository.
+function M.open_my_authored_prs()
+  file_utils.open('https://github.com/pulls')
+  vim.notify('Opened GitHub PRs authored by me', vim.log.levels.INFO)
+end
+
 function M.select_and_open_pr()
   local valid_orgs = github_utils.get_github_owners()
 
