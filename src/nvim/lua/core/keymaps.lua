@@ -242,6 +242,7 @@ maps('n', {
 maps('n', {
   { '<Leader>uwr', worktree_actions.rename_current_worktree, '󰑕 Rename worktree (folder+branch+remote)' },
   { '<Leader>uwc', worktree_actions.clear_project_worktrees, '󰃢 Clear worktrees (current project)' },
+  { '<Leader>uwm', worktree_actions.merge_and_cleanup_worktree, '󰆴 Merge & clean up project worktree' },
 })
 
 -- Jira sub-group (<leader>uj)
