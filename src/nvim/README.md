@@ -30,7 +30,7 @@ But speed is just the baseline. What makes this config different is what it conn
 
 ### Intelligent Code Completion
 
-Rust-powered completion engine (Blink.cmp) paired with GitHub Copilot for instant, context-aware suggestions. AI chat through CopilotChat and OpenCode for code review, debugging, and refactoring — all inline.
+Rust-powered completion engine (Blink.cmp) paired with GitHub Copilot for instant, context-aware suggestions. AI chat through CopilotChat for code review, debugging, and refactoring — all inline.
 
 ### Full Language Server Protocol
 
@@ -46,7 +46,7 @@ LazyGit for visual staging and commits. Toggleterm-backed keymaps for Git comman
 
 ### AI-Powered Development
 
-OpenCode.nvim with operator-based context selection. CopilotChat for explain, review, fix, and optimize workflows. WTF.nvim for AI-driven diagnostic debugging.
+CopilotChat for explain, review, fix, and optimize workflows. WTF.nvim for AI-driven diagnostic debugging.
 
 ### Polished UI
 
@@ -68,7 +68,6 @@ Catppuccin color scheme. Custom bubble-style statusline. Contextual breadcrumbs 
 **AI and Productivity**
 | Plugin | Description |
 |--------|-------------|
-| OpenCode.nvim | AI assistant with operator-based context |
 | GitHub Copilot | Inline AI code completion |
 | CopilotChat.nvim | AI chat with review, explain, fix, optimize |
 | WTF.nvim | AI-powered diagnostic debugging |
@@ -185,7 +184,6 @@ nvim/
     ├── plugins/                # 45+ plugin configurations
     │   ├── blink.lua           # Completion engine
     │   ├── snacks.lua          # Modern utility suite
-    │   ├── opencode.lua        # AI assistant
     │   ├── copilot.lua         # GitHub Copilot
     │   ├── copilot-chat.lua    # Copilot Chat
     │   ├── leetcode.lua        # LeetCode integration
