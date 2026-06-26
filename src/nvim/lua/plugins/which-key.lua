@@ -123,6 +123,7 @@ return {
       { '<leader>ug', '󰊤 GitHub' },
       { '<leader>uj', '󰌧 Jira' },
       { '<leader>ul', '󰌷 Links' },
+      { '<leader>uw', '󰘴 Worktree' },
       { '<leader>z', '󰒲 Lazy' },
       { 'g', '󰬴 Goto' },
       { ']', '󰮯 Next' },

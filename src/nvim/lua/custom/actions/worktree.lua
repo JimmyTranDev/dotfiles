@@ -88,6 +88,94 @@ local function run_sequence(steps, idx, on_done)
   end)
 end
 
+local WCREATED_DIR = realpath(vim.fn.expand(vim.env.WCREATED_DIR or '$HOME/Programming/wcreated'))
+
+--- True when an (already realpath'd) worktree path lives under the wcreated dir,
+--- i.e. a branch we own whose remote branch should also be deleted on cleanup.
+local function is_wcreated(path_real)
+  local prefix = WCREATED_DIR .. '/'
+  return path_real:sub(1, #prefix) == prefix
+end
+
+--- Parse `git worktree list --porcelain` output into worktree records.
+---@param out string
+---@return { path: string, branch: string|nil, bare: boolean, detached: boolean }[]
+local function parse_worktrees(out)
+  local list = {}
+  local cur
+  for line in (out .. '\n'):gmatch('(.-)\n') do
+    local path = line:match('^worktree (.+)$')
+    if path then
+      cur = { path = path, bare = false, detached = false }
+      list[#list + 1] = cur
+    elseif cur then
+      if line == 'bare' then
+        cur.bare = true
+      elseif line == 'detached' then
+        cur.detached = true
+      else
+        local branch = line:match('^branch refs/heads/(.+)$')
+        if branch then cur.branch = branch end
+      end
+    end
+  end
+  return list
+end
+
+--- Remove each target worktree, then its local branch, then -- for wcreated
+--- worktrees -- its remote branch. Sequential and best-effort: a failed step
+--- warns and processing continues with the next worktree.
+---@param main_repo string
+---@param targets { path: string, branch: string|nil, delete_remote: boolean }[]
+local function clear_targets(main_repo, targets)
+  local cleared, failed = 0, 0
+
+  local function finish()
+    local msg = string.format('Cleared %d worktree(s)', cleared)
+    if failed > 0 then msg = msg .. string.format(', %d failed', failed) end
+    vim.notify(msg, failed > 0 and vim.log.levels.WARN or vim.log.levels.INFO)
+  end
+
+  local function process(i)
+    if i > #targets then return finish() end
+
+    local wt = targets[i]
+    local folder = vim.fn.fnamemodify(wt.path, ':t')
+
+    async.run_cmd({ 'git', '-C', main_repo, 'worktree', 'remove', wt.path, '--force' }, function(rm)
+      if rm.code ~= 0 then
+        local err = (rm.stderr ~= '' and rm.stderr or rm.stdout):gsub('%s+$', '')
+        vim.notify(string.format('Failed to remove %s: %s', folder, err), vim.log.levels.ERROR)
+        failed = failed + 1
+        return process(i + 1)
+      end
+
+      local function done_one()
+        cleared = cleared + 1
+        process(i + 1)
+      end
+
+      if not wt.branch then return done_one() end
+
+      async.run_cmd({ 'git', '-C', main_repo, 'branch', '-D', wt.branch }, function(br)
+        if br.code ~= 0 then
+          local err = (br.stderr ~= '' and br.stderr or br.stdout):gsub('%s+$', '')
+          vim.notify(string.format('%s: local branch delete failed: %s', folder, err), vim.log.levels.WARN)
+        end
+
+        if not wt.delete_remote then return done_one() end
+
+        async.run_cmd({ 'git', '-C', main_repo, 'push', 'origin', '--delete', wt.branch }, function(push)
+          if push.code ~= 0 then vim.notify(string.format('%s: remote branch delete failed (kept)', wt.branch), vim.log.levels.WARN) end
+          done_one()
+        end)
+      end)
+    end)
+  end
+
+  process(1)
+end
+
 --- Rename the current linked worktree: its folder, local branch, and remote branch.
 --- Only operates on a linked worktree (not the primary checkout) with a branch
 --- checked out. The remote branch is renamed (push new + delete old) only when an
@@ -209,6 +297,64 @@ function M.rename_current_worktree()
       end)
     end)
   end, old_folder)
+end
+
+--- Clear (remove) every linked worktree of the current project: each worktree
+--- and its local branch, plus the remote branch for wcreated worktrees. The
+--- primary checkout and the worktree you are currently inside are never touched.
+function M.clear_project_worktrees()
+  local cwd = vim.fn.getcwd()
+
+  local common = git_capture(cwd, { 'rev-parse', '--path-format=absolute', '--git-common-dir' })
+  if not common then
+    vim.notify('Not inside a git repository', vim.log.levels.ERROR)
+    return
+  end
+  local main_repo = vim.fn.fnamemodify(common, ':h')
+
+  local out = git_capture(main_repo, { 'worktree', 'list', '--porcelain' })
+  if not out then
+    vim.notify('Could not list worktrees', vim.log.levels.ERROR)
+    return
+  end
+
+  local current_top = git_capture(cwd, { 'rev-parse', '--show-toplevel' })
+  local main_real = realpath(main_repo)
+  local current_real = current_top and realpath(current_top) or nil
+
+  local targets, skipped_current = {}, false
+  for _, wt in ipairs(parse_worktrees(out)) do
+    local wt_real = realpath(wt.path)
+    if not (wt.bare or wt_real == main_real) then
+      if current_real and wt_real == current_real then
+        skipped_current = true
+      else
+        wt.delete_remote = is_wcreated(wt_real)
+        targets[#targets + 1] = wt
+      end
+    end
+  end
+
+  if #targets == 0 then
+    local msg = skipped_current and 'Only the current worktree is linked; nothing else to clear' or 'No linked worktrees to clear'
+    vim.notify(msg, vim.log.levels.INFO)
+    return
+  end
+
+  local lines = { string.format('Clear %d worktree(s) of this project?', #targets) }
+  for _, wt in ipairs(targets) do
+    local remote = wt.delete_remote and '  + delete remote' or '  (local only)'
+    lines[#lines + 1] = string.format('- %s  [%s]%s', vim.fn.fnamemodify(wt.path, ':t'), wt.branch or '(detached)', remote)
+  end
+  if skipped_current then lines[#lines + 1] = '(current worktree skipped)' end
+
+  vim.ui.select({ 'Yes', 'No' }, { prompt = table.concat(lines, '\n') }, function(choice)
+    if choice ~= 'Yes' then
+      vim.notify('Clear cancelled', vim.log.levels.INFO)
+      return
+    end
+    clear_targets(main_repo, targets)
+  end)
 end
 
 return M
