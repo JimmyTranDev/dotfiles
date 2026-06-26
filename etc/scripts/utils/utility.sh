@@ -271,3 +271,39 @@ select_project_dir() {
 	bump_project_recency "$project_path"
 	printf '%s' "$project_path"
 }
+
+# Resolve the most-recently-selected project — the "[label]" that
+# select_project_dir mirrors into ~/.last_project — back to an absolute path,
+# with no fzf prompt. Reuses _collect_project_dir_entries so the stored label
+# always matches, then bumps the resolved project's recency for picker parity.
+# Prints the absolute path on stdout. Returns non-zero *silently* (no last
+# project recorded, a blank label, or a label that no longer resolves to an
+# existing directory) so the caller can fall back to the fzf picker. The four
+# args default to the production paths and are overridable for tests.
+last_project_dir() {
+	local programming_dir="${1:-$HOME/Programming}"
+	local created_dir="${2:-${WCREATED_DIR:-$programming_dir/wcreated}}"
+	local checkout_dir="${3:-${WCHECKOUT_DIR:-$programming_dir/wcheckout}}"
+	local last_file="${4:-$HOME/.last_project}"
+
+	[[ -s "$last_file" ]] || return 1
+	local last_label
+	last_label="$(<"$last_file")"
+	[[ -n "$last_label" ]] || return 1
+
+	# Find the entry whose label (2nd tab field) matches the stored label and
+	# capture its absolute path (3rd field). `entry_path` is named to avoid
+	# zsh's special `path` array (tied to $PATH); `_` discards the mtime field.
+	local entry_label entry_path found=""
+	while IFS=$'\t' read -r _ entry_label entry_path; do
+		if [[ "$entry_label" == "$last_label" ]]; then
+			found="$entry_path"
+			break
+		fi
+	done < <(_collect_project_dir_entries "$programming_dir" "$created_dir" "$checkout_dir")
+
+	[[ -n "$found" && -d "$found" ]] || return 1
+
+	bump_project_recency "$found"
+	printf '%s' "$found"
+}
