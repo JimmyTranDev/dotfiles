@@ -2,7 +2,7 @@
 # Tests for the recency-sorted project picker core in utils/utility.sh:
 #   _stat_mtime, _recency_mtime, bump_project_recency, _collect_project_dir_entries
 #
-# These back the shared select_project_dir() picker (Alt ] opencode, Alt \ nvim,
+# These back the shared select_project_dir() picker (Alt ] opencode, Alt [ nvim,
 # Alt p sidebar, mass_tab, side), which now lists projects/worktrees
 # most-recently-used first (by .git/dir mtime). The fzf/cd glue inside
 # select_project_dir itself is interactive and is not unit-tested here; this
