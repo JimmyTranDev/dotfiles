@@ -3,6 +3,7 @@ local ui_utils = require('custom.utils.ui')
 local async_utils = require('custom.utils.async')
 local validation = require('custom.utils.validation')
 local registry = require('custom.utils.terminal_registry')
+local usage_cache = require('custom.utils.usage_cache')
 
 local M = {}
 
@@ -158,19 +159,27 @@ end
 -- read in confirm via picker:selected. The `multi` opt is a *list of sources*
 -- to combine, NOT a boolean toggle — passing `multi = true` makes snacks call
 -- ipairs() on a boolean and crash. So we never set it.
+--
+-- `sort_items` reorders the built items (default: package.json order) so the
+-- caller can float recently-run scripts to the top, and `record` is invoked per
+-- launched script so usage can be persisted. Both are injected to keep this
+-- builder pure (no usage-cache/UI side effects) and unit-testable headlessly.
 ---@param scripts string[]
 ---@param pm string
----@param opts? { max_splits?: integer, run?: fun(name: string, spec: table), notify?: fun(msg: string, level: integer) }
+---@param opts? { max_splits?: integer, run?: fun(name: string, spec: table), notify?: fun(msg: string, level: integer), sort_items?: fun(items: table[]): table[], record?: fun(script: string) }
 function M.build_multi_script_picker_opts(scripts, pm, opts)
   opts = opts or {}
   local max_splits = opts.max_splits or 6
   local run = opts.run or function(name, spec) registry.get_or_create(name, spec) end
   local notify = opts.notify or function(msg, level) vim.notify(msg, level) end
+  local record = opts.record or function(_) end
+  local sort_items = opts.sort_items or function(items) return items end
 
   local items = {}
   for _, script in ipairs(scripts) do
     table.insert(items, { text = script, script = script })
   end
+  items = sort_items(items)
 
   return {
     title = 'Select npm scripts (multi-select with Tab)',
@@ -186,6 +195,7 @@ function M.build_multi_script_picker_opts(scripts, pm, opts)
       local count = math.min(#selected, max_splits)
       for i = 1, count do
         local script = selected[i].script
+        record(script)
         run('npm-run-' .. script, {
           cmd = pm .. ' run ' .. script,
           close_on_exit = false,
@@ -212,7 +222,12 @@ function M.run_multiple_package_scripts()
       return
     end
 
-    snacks.picker(M.build_multi_script_picker_opts(scripts, pm))
+    -- Scope recency per project so each repo keeps its own most-recent order.
+    local ns = 'npm_scripts:' .. vim.fn.getcwd()
+    snacks.picker(M.build_multi_script_picker_opts(scripts, pm, {
+      sort_items = function(items) return usage_cache.sort_by_recency(ns, items, function(item) return item.script end) end,
+      record = function(script) usage_cache.record(ns, script) end,
+    }))
   end
 end
 

@@ -81,6 +81,29 @@ local opts3 = language.build_multi_script_picker_opts(scripts, 'pnpm', {
 opts3.confirm(empty_picker)
 check('confirm starts nothing on empty selection', #started_empty, 0)
 
+-- sort_items reorders the built items (used to float recently-run scripts up).
+local opts4 = language.build_multi_script_picker_opts(scripts, 'pnpm', {
+  sort_items = function(items)
+    table.sort(items, function(a, b) return a.script > b.script end)
+    return items
+  end,
+})
+check('sort_items controls item order', opts4.items[1].script, 'test')
+check('sort_items keeps every item', #opts4.items, #scripts)
+
+-- record() fires once per launched script (capped to max_splits), so usage can
+-- be persisted for recency sorting.
+local recorded = {}
+local opts5 = language.build_multi_script_picker_opts(scripts, 'pnpm', {
+  max_splits = 2,
+  run = function() end,
+  notify = function() end,
+  record = function(script) table.insert(recorded, script) end,
+})
+opts5.confirm(fake_picker)
+check('record fires per launched script', #recorded, 2)
+check('record receives the script name', recorded[1], 'dev')
+
 if failures > 0 then
   io.write(string.format('\n%d assertion(s) failed\n', failures))
   os.exit(1)
