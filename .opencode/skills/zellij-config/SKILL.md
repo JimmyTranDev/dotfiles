@@ -20,7 +20,7 @@ src/zellij/
 etc/scripts/src/zellij/   # launcher scripts the binds Run (see dotfiles-shell-scripts)
 ├── open_opencode_sidebar.sh # Alt p — pick tool → project → tool sidebar + nvim layout
 ├── open_project.sh          # Alt [ — pick tool (nvim/opencode/storecode/empty) → project → stacked pane
-├── open_project_last.sh     # Alt ] — reopen last tool + last project in a new stacked pane (no prompt)
+├── open_project_last.sh     # Alt ] — open last tool in the current pane's dir as a new stacked pane (no prompt)
 ├── select_session.sh        # Alt u — fzf session switcher
 └── update_tab_indexes.sh    # re-prefixes tab names with position (1.foo, 2.bar)
 ```

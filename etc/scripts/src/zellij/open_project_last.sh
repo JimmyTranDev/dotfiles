@@ -13,15 +13,20 @@ main() {
 
 	require_tool fzf || exit 1
 
-	# Reuse the last "Alt [" settings with no prompt: the last tool choice
-	# (~/.last_pane_tool) and the last project (~/.last_project). Fall back to an
-	# empty shell / the fzf picker when nothing is recorded yet.
+	# Reuse the last "Alt [" tool choice (~/.last_pane_tool) with no prompt,
+	# falling back to an empty shell when nothing is recorded yet.
 	local tool
 	tool="$(last_pane_tool)" || tool="empty"
 	[[ "$tool" != "empty" ]] && { require_tool "$tool" || exit 1; }
 
+	# Open in the directory of the currently-focused pane (no prompt). Fall back
+	# to the last project, then the fzf picker, when the pane cwd can't be
+	# resolved (e.g. outside a tracked dir).
 	local target_dir
-	target_dir="$(last_project_dir)" || target_dir="$(select_project_dir)" || exit 0
+	target_dir="$(current_pane_dir)" \
+		|| target_dir="$(last_project_dir)" \
+		|| target_dir="$(select_project_dir)" \
+		|| exit 0
 	[[ -z "$target_dir" ]] && exit 0
 
 	open_tool_pane "$target_dir" "$tool"

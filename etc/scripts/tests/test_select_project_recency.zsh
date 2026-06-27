@@ -2,8 +2,8 @@
 # Tests for the recency-sorted project picker core in utils/utility.sh:
 #   _stat_mtime, _recency_mtime, bump_project_recency, _collect_project_dir_entries
 #
-# These back the shared select_project_dir() picker (Alt ] opencode, Alt [ nvim,
-# Alt p sidebar, mass_tab, side), which now lists projects/worktrees
+# These back the shared select_project_dir() picker (Alt [ nvim, Alt p sidebar,
+# mass_tab, side), which now lists projects/worktrees
 # most-recently-used first (by .git/dir mtime). The fzf/cd glue inside
 # select_project_dir itself is interactive and is not unit-tested here; this
 # pins the pure, deterministic core: mtime reading, the .git->dir fallback,
@@ -174,6 +174,77 @@ assert_gt "bump_project_recency touches the directory when no .git" "$dir_after"
 res_count="$(_collect_project_dir_entries "$PROG" "$CREATED" "$PROG/nope" 2>/dev/null | grep -c .)"
 assert_eq "missing container dir is skipped without error (wt-beta drops, 6 remain)" \
   "6" "$res_count"
+
+# --- _focused_pane_dir_from_layout: resolve the focused pane's cwd -----------
+# Backs current_pane_dir() (Alt ]), which now opens a new pane in the directory
+# of the currently-focused pane. Parses `zellij action dump-layout` KDL: a
+# layout-level `cwd "<abs>"` base plus per-pane `cwd="<rel-or-abs>"`, with the
+# single focused leaf carrying focus=true.
+read -r -d '' LAYOUT_RELATIVE <<'EOF'
+layout {
+    cwd "/Users/jimmy/Programming/JimmyTranDev"
+    tab name="1.dotf" focus=true {
+        pane split_direction="vertical" {
+            pane command="nvim" cwd="massvocabulary" focus=true size="70%" {
+                start_suspended true
+            }
+        }
+    }
+}
+EOF
+assert_eq "focused pane cwd resolves relative to the layout base cwd" \
+  "/Users/jimmy/Programming/JimmyTranDev/massvocabulary" \
+  "$(print -r -- "$LAYOUT_RELATIVE" | _focused_pane_dir_from_layout)"
+
+read -r -d '' LAYOUT_ABSOLUTE <<'EOF'
+layout {
+    cwd "/Users/jimmy/Programming/JimmyTranDev"
+    tab name="1.dotf" focus=true {
+        pane command="nvim" cwd="/tmp/elsewhere/proj" focus=true {
+            start_suspended true
+        }
+    }
+}
+EOF
+assert_eq "an absolute focused pane cwd is used as-is" \
+  "/tmp/elsewhere/proj" \
+  "$(print -r -- "$LAYOUT_ABSOLUTE" | _focused_pane_dir_from_layout)"
+
+# The focused tab line also carries focus=true; only the pane line has a cwd.
+read -r -d '' LAYOUT_MULTI_TAB <<'EOF'
+layout {
+    cwd "/base"
+    tab name="other" {
+        pane command="nvim" cwd="not-focused" {
+            start_suspended true
+        }
+    }
+    tab name="focused" focus=true {
+        pane command="nvim" cwd="the-one" focus=true size="70%" {
+            start_suspended true
+        }
+    }
+}
+EOF
+assert_eq "picks the focused pane, not an unfocused pane in another tab" \
+  "/base/the-one" \
+  "$(print -r -- "$LAYOUT_MULTI_TAB" | _focused_pane_dir_from_layout)"
+
+# No focused pane carrying a cwd -> non-zero, no output.
+read -r -d '' LAYOUT_NO_FOCUS <<'EOF'
+layout {
+    cwd "/base"
+    tab name="x" {
+        pane command="nvim" cwd="proj" {
+            start_suspended true
+        }
+    }
+}
+EOF
+no_focus_out="$(print -r -- "$LAYOUT_NO_FOCUS" | _focused_pane_dir_from_layout)"
+no_focus_rc=$?
+assert_eq "no focused pane -> empty output" "" "$no_focus_out"
+assert_eq "no focused pane -> non-zero return" "1" "$no_focus_rc"
 
 # --- Summary -----------------------------------------------------------------
 print -r --

@@ -381,6 +381,49 @@ last_pane_tool() {
 	printf '%s' "$tool"
 }
 
+# Parse a `zellij action dump-layout` KDL (read from stdin) and print the
+# absolute cwd of the single globally-focused leaf pane. The dump emits a
+# layout-level base `cwd "<abs>"` (space form) plus per-pane `cwd="<rel-or-abs>"`
+# (attribute form); exactly one leaf `pane ... focus=true ...` is the focused
+# pane. A pane cwd is resolved relative to the base unless it is already
+# absolute. Prints nothing and returns non-zero when no focused pane carries a
+# cwd. Pure text munging — no zellij call — so it is unit-testable.
+_focused_pane_dir_from_layout() {
+	local layout base_cwd pane_line pane_cwd
+	layout="$(cat)"
+
+	# Base cwd: the layout-level `cwd "<abs>"` (space form). Pane lines use the
+	# `cwd="..."` attribute form (with '='), so this regex never matches them.
+	base_cwd="$(printf '%s\n' "$layout" | sed -n 's/^[[:space:]]*cwd "\([^"]*\)".*/\1/p' | head -n1)"
+
+	# Focused pane: the one `pane ... focus=true ...` line that carries a cwd
+	# attribute (the focused tab line also has focus=true but starts with "tab").
+	pane_line="$(printf '%s\n' "$layout" | grep 'focus=true' | grep -E '^[[:space:]]*pane[[:space:]]' | grep 'cwd="' | head -n1)"
+	[[ -n "$pane_line" ]] || return 1
+	pane_cwd="$(printf '%s\n' "$pane_line" | sed -n 's/.*[[:space:]]cwd="\([^"]*\)".*/\1/p')"
+	[[ -n "$pane_cwd" ]] || return 1
+
+	if [[ "$pane_cwd" == /* ]]; then
+		printf '%s' "$pane_cwd"
+	elif [[ -n "$base_cwd" ]]; then
+		printf '%s' "${base_cwd%/}/$pane_cwd"
+	else
+		printf '%s' "$pane_cwd"
+	fi
+}
+
+# Print the absolute cwd of the currently-focused zellij pane (see
+# _focused_pane_dir_from_layout). Returns non-zero *silently* when not inside a
+# zellij session, when dump-layout fails, or when the resolved path is not an
+# existing directory — so callers can fall back to a picker.
+current_pane_dir() {
+	[[ -n "${ZELLIJ:-}" ]] || return 1
+	local dir
+	dir="$(zellij action dump-layout 2>/dev/null | _focused_pane_dir_from_layout)" || return 1
+	[[ -n "$dir" && -d "$dir" ]] || return 1
+	printf '%s' "$dir"
+}
+
 # Open a new stacked zellij pane rooted at $1 running tool $2 (one of
 # PANE_TOOLS). "empty" opens a plain shell pane; every other tool runs in a pane
 # that closes itself on exit (--close-on-exit). The focused tab is renamed after
