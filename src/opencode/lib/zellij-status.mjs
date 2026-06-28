@@ -6,6 +6,7 @@ export const STATES = {
   working: { emoji: "⚙", label: "working" },
   idle: { emoji: "✓", label: "idle" },
   "needs-input": { emoji: "⏸", label: "needs input" },
+  question: { emoji: "❓", label: "question" },
   error: { emoji: "✗", label: "error" },
 }
 
@@ -23,6 +24,14 @@ const EVENT_STATE = {
   "permission.updated": "needs-input",
   // Replying to a prompt resumes work.
   "permission.replied": "working",
+  // The question tool (the AI asking the user to choose an option or clarify)
+  // blocks the turn the same way a permission prompt does, but surfaces its own
+  // ❓ "question" status so a pane waiting on your answer is distinct from one
+  // blocked on a permission. Answering (replied) or dismissing (rejected)
+  // resumes work; session.idle then settles the turn to ✓ as usual.
+  "question.asked": "question",
+  "question.replied": "working",
+  "question.rejected": "working",
   "session.error": "error",
   // session.idle is the turn-end signal. session.cancelled is kept as a
   // defensive alias even though the current SDK folds cancellation into idle.

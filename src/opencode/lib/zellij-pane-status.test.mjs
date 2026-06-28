@@ -67,6 +67,23 @@ test("plugin: a permission prompt shows ⏸, resumes to ⚙, then ends on ✓", 
   ])
 })
 
+test("plugin: a question prompt shows ❓, resumes to ⚙, then ends on ✓", async () => {
+  const { hooks, renames } = await startPlugin()
+
+  await hooks.event({ event: { type: "session.created", properties: { info: { title: "choose" } } } })
+  await hooks["chat.message"]()
+  await hooks.event({ event: { type: "question.asked" } })
+  await hooks.event({ event: { type: "question.replied" } })
+  await hooks.event({ event: { type: "session.idle" } })
+
+  assert.deepEqual(renames, [
+    "⚙ working · choose",
+    "❓ question · choose",
+    "⚙ working · choose",
+    "✓ idle · choose",
+  ])
+})
+
 test("plugin: a busy session.status alone (no chat.message) still shows ⚙", async () => {
   const { hooks, renames } = await startPlugin()
   await hooks.event({ event: { type: "session.updated", properties: { info: { title: "auto" } } } })
