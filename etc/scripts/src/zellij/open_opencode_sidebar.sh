@@ -33,7 +33,7 @@ main() {
 	# validated after it is chosen below.
 	require_tool fzf nvim || exit 1
 
-	# 1. Pick the sidebar tool (nvim, opencode, storecode, ... or empty), using
+	# 1. Pick the sidebar tool (nvim, opencode, storecode, gh-dash, ... or empty), using
 	#    the same picker as Alt [. Cancelling exits cleanly.
 	local tool
 	tool="$(select_pane_tool)" || exit 0

@@ -13,7 +13,7 @@ main() {
 
 	require_tool fzf || exit 1
 
-	# 1. Pick what to open: nvim, opencode, storecode, or an empty shell.
+	# 1. Pick what to open: nvim, opencode, storecode, gh-dash, or an empty shell.
 	#    Cancelling the picker exits cleanly.
 	local tool
 	tool="$(select_pane_tool)" || exit 0

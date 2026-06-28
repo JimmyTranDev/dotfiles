@@ -352,10 +352,10 @@ last_project_dir() {
 
 # The set of programs the stacked-pane launcher can open. "empty" means a plain
 # shell pane with no command. Keep this list in sync with select_pane_tool's UI.
-PANE_TOOLS=(nvim opencode storecode empty)
+PANE_TOOLS=(nvim opencode storecode gh-dash empty)
 
 # fzf-pick which program to open in a new stacked pane — one of nvim, opencode,
-# storecode, or empty (a plain shell). The previously-chosen tool (mirrored into
+# storecode, gh-dash, or empty (a plain shell). The previously-chosen tool (mirrored into
 # ~/.last_pane_tool) floats to the top so repeat use is a single Enter. Prints
 # the choice on stdout; non-zero if cancelled. Requires fzf.
 select_pane_tool() {
