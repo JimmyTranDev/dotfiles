@@ -251,6 +251,15 @@ local function setup_spell()
   })
 end
 
+local function setup_zellij_pane_name()
+  vim.api.nvim_create_autocmd({ 'VimEnter', 'DirChanged' }, {
+    group = augroup('zellij_pane_name'),
+    pattern = '*',
+    callback = function() require('custom.actions.zellij_pane').rename_pane() end,
+    desc = '󰓎 Name the zellij pane after its folder',
+  })
+end
+
 function M.setup()
   setup_filetype_associations()
   setup_language_settings()
@@ -261,6 +270,7 @@ function M.setup()
   setup_auto_refresh()
   setup_toggleterm_whichkey_fix()
   setup_workspace_symbol_cache_commands()
+  setup_zellij_pane_name()
   cleanup_default_keymaps()
 end
 
