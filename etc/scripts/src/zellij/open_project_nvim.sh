@@ -19,18 +19,11 @@ main() {
 	target_dir="$(select_project_dir)" || exit 0
 	[[ -z "$target_dir" ]] && exit 0
 
-	# 2. Open nvim in a new tab rooted at the chosen project. new-tab prints the
-	#    created tab's id on stdout; reindexing below prepends the position
-	#    number, e.g. "7.my-project". --close-on-exit drops the tab when nvim
-	#    quits.
-	local tab_id
-	tab_id="$(zellij action new-tab --cwd "$target_dir" --close-on-exit -- nvim)"
-	sleep 0.2
-	if [[ "$tab_id" =~ ^[0-9]+$ ]]; then
-		zellij action rename-tab --tab-id "$tab_id" "$(basename "$target_dir")"
-	else
-		zellij action rename-tab "$(basename "$target_dir")"
-	fi
+	# 2. Open nvim in a new stacked pane rooted at the chosen project (mirrors
+	#    Alt [ / open_project.sh). open_tool_pane runs nvim in a --stacked pane
+	#    with --close-on-exit and renames the focused tab after the project
+	#    folder; reindex tab names afterward.
+	open_tool_pane "$target_dir" "nvim"
 
 	"$SCRIPT_DIR/update_tab_indexes.sh"
 }

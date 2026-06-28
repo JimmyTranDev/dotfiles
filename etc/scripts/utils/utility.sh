@@ -424,6 +424,32 @@ current_pane_dir() {
 	printf '%s' "$dir"
 }
 
+# Print the absolute cwd of the pane to the RIGHT of the focused one: move focus
+# right, read that pane's dir (see current_pane_dir), then move focus back left
+# so the caller opens its new pane back at the original position. This is the
+# "go right, grab the project, come back left" flow the keybind wants, and it
+# stays correct even when the left and right panes share a project dir (no
+# brittle before/after comparison). The settle sleeps let each focus change land
+# before dump-layout reads it (and before the caller spawns a pane). With no
+# pane to the right the move-focus right is a no-op. Returns non-zero *silently*
+# when not in zellij or the dir can't be resolved, so callers fall back to a
+# picker.
+right_pane_dir() {
+	[[ -n "${ZELLIJ:-}" ]] || return 1
+
+	zellij action move-focus right 2>/dev/null
+	sleep 0.15
+
+	local dir
+	dir="$(current_pane_dir)" || dir=""
+
+	zellij action move-focus left 2>/dev/null
+	sleep 0.1
+
+	[[ -n "$dir" ]] || return 1
+	printf '%s' "$dir"
+}
+
 # Open a new stacked zellij pane rooted at $1 running tool $2 (one of
 # PANE_TOOLS). "empty" opens a plain shell pane; every other tool runs in a pane
 # that closes itself on exit (--close-on-exit). The focused tab is renamed after
