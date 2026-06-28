@@ -63,6 +63,17 @@ main() {
 		if [[ "$answer" =~ ^[Yy]$ ]]; then
 			log_info "Installing gh extensions..."
 			gh extension install dlvhdr/gh-dash || log_warning "gh-dash install failed (may already be installed)"
+			# Expose gh-dash as a bare `gh-dash` command on PATH so the zellij pane
+			# launcher (Alt p / Alt [ / Alt ]) can open it like any other tool. `gh
+			# dash` always resolves to the managed extension, so the wrapper never
+			# recurses into itself.
+			mkdir -p "$HOME/.local/bin"
+			cat >"$HOME/.local/bin/gh-dash" <<'WRAPPER'
+#!/usr/bin/env bash
+exec gh dash "$@"
+WRAPPER
+			chmod +x "$HOME/.local/bin/gh-dash"
+			log_success "gh-dash wrapper installed at ~/.local/bin/gh-dash"
 			gh extension install dlvhdr/gh-enhance ||
 				gh extension install dlvhdr-insiders/gh-enhance ||
 				log_warning "gh-enhance install failed (may already be installed)"
