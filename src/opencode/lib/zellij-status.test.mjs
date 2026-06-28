@@ -12,6 +12,7 @@ test("STATES defines emoji and label for each known state", () => {
   assert.deepEqual(STATES.working, { emoji: "⚙", label: "working" })
   assert.deepEqual(STATES.idle, { emoji: "✓", label: "idle" })
   assert.deepEqual(STATES["needs-input"], { emoji: "⏸", label: "needs input" })
+  assert.deepEqual(STATES.question, { emoji: "❓", label: "question" })
   assert.deepEqual(STATES.error, { emoji: "✗", label: "error" })
 })
 
@@ -19,6 +20,7 @@ test("computeName renders '<emoji> <label> · <title>' for each state", () => {
   assert.equal(computeName("working", "proj"), "⚙ working · proj")
   assert.equal(computeName("idle", "proj"), "✓ idle · proj")
   assert.equal(computeName("needs-input", "proj"), "⏸ needs input · proj")
+  assert.equal(computeName("question", "proj"), "❓ question · proj")
   assert.equal(computeName("error", "proj"), "✗ error · proj")
 })
 
@@ -91,6 +93,18 @@ test("eventToState returns to working once a permission is replied", () => {
   assert.equal(eventToState({ type: "permission.replied" }), "working")
 })
 
+// The question tool blocks the turn on the user just like a permission prompt:
+// question.asked surfaces the ❓ "question" status; answering (replied) or
+// dismissing (rejected) resumes work, after which session.idle settles it to ✓.
+test("eventToState maps question.asked to question (the AI is asking the user)", () => {
+  assert.equal(eventToState({ type: "question.asked" }), "question")
+})
+
+test("eventToState returns to working once a question is replied or rejected", () => {
+  assert.equal(eventToState({ type: "question.replied" }), "working")
+  assert.equal(eventToState({ type: "question.rejected" }), "working")
+})
+
 // Regression for the reported bug: opencode streams trailing activity events
 // AFTER session.idle. These must NOT resurrect the working state.
 test("eventToState ignores trailing activity events that used to stick on working", () => {
@@ -134,6 +148,28 @@ test("a turn that ends then flushes trailing activity settles on idle", () => {
     if (next) state = next
   }
   assert.equal(state, "idle")
+})
+
+// Integration: a question prompt drives the pane working -> question -> working
+// -> idle. The reducer keeps the last NON-NULL state, so the ❓ shows while the
+// AI waits and the turn still settles on idle once answered.
+test("a question prompt drives working -> question -> working -> idle", () => {
+  const sequence = [
+    { type: "session.status", properties: { status: { type: "busy" } } },
+    { type: "question.asked" },
+    { type: "question.replied" },
+    { type: "session.idle" },
+  ]
+  const states = []
+  let state = null
+  for (const event of sequence) {
+    const next = eventToState(event)
+    if (next) {
+      state = next
+      states.push(state)
+    }
+  }
+  assert.deepEqual(states, ["working", "question", "working", "idle"])
 })
 
 test("extractTitle reads the nested session info title", () => {
