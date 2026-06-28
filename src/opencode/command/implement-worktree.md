@@ -89,20 +89,40 @@ needed.
   branch, and report that merge + cleanup is available.
 
 When **merge & clean up** is chosen, do it in this order — merge first, because
-cleanup deletes the branch:
+cleanup deletes the branch.
 
-1. **Merge into the base.** Run from the **main repo**, not the feature
-   worktree — resolve it with
-   `repo=$(dirname "$(git -C <worktree> rev-parse --path-format=absolute --git-common-dir)")`,
-   then update the base and merge the branch in:
+1. **Merge into the base — serialized & concurrency-safe.** Several
+   `/implement-worktree` runs can finish at once and all target the **same base
+   branch in the same main repo**, which a repo cannot do concurrently (one
+   checked-out base, one in-progress merge) and which races on push. Do **not**
+   merge by hand — delegate to the helper, which takes a per-repo lock, **waits**
+   when another merge is already running (reclaiming a stale one), brings the
+   base up to date, merges `--no-ff`, and retries the push on a non-fast-forward
+   race. It resolves the main repo, base, and feature branch from the worktree:
    ```bash
-   git -C "$repo" switch <base>
-   git -C "$repo" pull --ff-only origin <base>
-   git -C "$repo" merge --no-ff <branch>
-   git -C "$repo" push origin <base>
+   zsh "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/worktrees/merge-into-base.sh" \
+     merge --worktree "<worktree>"
    ```
-   On a conflict, load the `merge-conflict-resolution` skill and resolve it
-   (preserving both sides) before pushing.
+   Act on its **exit code** — only proceed to cleanup once the merge reaches `0`:
+   - **`0`** — merged and pushed; continue to cleanup.
+   - **`2`** — real content conflict; the merge is left **in progress** in the
+     main repo with the lock **retained** for you. Resolve it there
+     (`repo=$(dirname "$(git -C <worktree> rev-parse --path-format=absolute --git-common-dir)")`):
+     load the `merge-conflict-resolution` skill and resolve every conflict
+     preserving both sides — for lockfiles / generated files, **regenerate** them
+     (re-run the package manager / generator) rather than hand-merging — then
+     `git -C "$repo" commit --no-edit`. Re-run the helper with
+     `finalize --worktree "<worktree>"` to push and release the lock. If
+     `finalize` itself returns `2` (a fresh conflict from integrating the remote
+     base), repeat resolve → commit → `finalize`; to abandon instead, run the
+     helper's `abort --worktree "<worktree>"` (aborts the merge, releases the
+     lock).
+   - **`3`** — precondition failed: the base repo has uncommitted changes or is
+     stuck in a foreign/abandoned merge. **Do not clean up.** Report it so the
+     base repo can be made clean, then retry.
+   - **`4`** — timed out waiting for another merge still in progress. **Do not
+     clean up.** Report it; the branch is pushed and the merge is still available
+     to retry later.
 2. **Clean up the worktree.** Load the `worktree-management` skill and run its
    **Workflow C (delete a worktree)** — this is a `wcreated` worktree, so it
    removes the worktree and deletes the branch **locally and on the remote**.
