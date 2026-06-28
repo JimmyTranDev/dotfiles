@@ -95,11 +95,28 @@ if [[ -d "$HOMEBREW_PREFIX/Caskroom/gcloud-cli" ]]; then
   fi
 fi
 
+# Cache the (static) output of shell-init hooks so we do not fork a subprocess
+# on every startup; regenerate only when the tool's binary is newer than the
+# cache (e.g. after an upgrade).
+_cache_eval() {
+  local name=$1 bin=$2
+  shift 2
+  local cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/${name}.zsh"
+  local binpath
+  binpath=$(command -v "$bin") || return
+  if [[ ! -s "$cache" || "$binpath" -nt "$cache" ]]; then
+    mkdir -p "${cache:h}"
+    "$binpath" "$@" >| "$cache"
+  fi
+  source "$cache"
+}
+
 if command -v starship >/dev/null 2>&1; then
-  eval "$(starship init zsh)"
+  _cache_eval starship starship init zsh
 fi
 
 if command -v fnm >/dev/null 2>&1; then
+  # fnm env emits a per-shell FNM_MULTISHELL_PATH, so it must run live (uncached).
   eval "$(fnm env --use-on-cd --version-file-strategy=local --resolve-engines --shell zsh)"
   if [[ -f .nvmrc || -f .node-version ]]; then
     fnm use --install-if-missing >/dev/null 2>&1
@@ -107,7 +124,7 @@ if command -v fnm >/dev/null 2>&1; then
 fi
 
 if command -v zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init zsh)"
+  _cache_eval zoxide zoxide init zsh
 fi
 
 alias c='clear'
