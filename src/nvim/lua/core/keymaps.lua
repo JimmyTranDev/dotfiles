@@ -144,6 +144,7 @@ maps('n', {
   { '<leader>cr', file_actions.copy_repo_path, '󰆓 Repo path' },
   { '<leader>cR', project_actions.copy_project_path, '󰆓 Project path (pick)' },
   { '<leader>cg', project_actions.pull_and_copy_project_path, '󰆓 Pull repo + copy path' },
+  { '<leader>cD', file_actions.copy_current_dir, '󰆓 Current dir path' },
 })
 
 -- File reference sub-group (<leader>cu/co/cc/cm)
