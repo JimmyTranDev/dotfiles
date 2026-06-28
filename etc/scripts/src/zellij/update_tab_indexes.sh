@@ -67,83 +67,37 @@ main() {
 		exit 0
 	fi
 
-	local tab_count
-	tab_count=$(echo "$tabs_json" | python3 -c "import sys,json; print(len(json.load(sys.stdin)))")
-	log "Found $tab_count tabs"
-
-	if [[ "$tab_count" -eq 0 ]]; then
-		exit 0
-	fi
-
-	local needs_update=false
-	local idx=0
-
-	while IFS= read -r line; do
-		local tab_id name base_name
-		tab_id=$(echo "$line" | cut -d'|' -f1)
-		name=$(echo "$line" | cut -d'|' -f2)
-
-		base_name=$(echo "$name" | sed 's/^[0-9][0-9]*\.//')
-		base_name=$(echo "$base_name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-		if [[ -z "$base_name" ]]; then
-			base_name="$name"
-		fi
-
-		if [[ -z "$base_name" ]]; then
-			log "Skipping tab_id=$tab_id name='$name' (empty name)"
-			continue
-		fi
-
-		((idx++)) || true
-		local expected_name="${idx}.${base_name}"
-
-		if [[ "$name" != "$expected_name" ]]; then
-			needs_update=true
-			log "Tab '$name' should be '$expected_name' — update needed"
-			break
-		fi
+	# Reindex the whole tab list in a single python pass over the
+	# position-sorted tabs. For each tab we strip a leading "N." index plus any
+	# surrounding whitespace to recover its base name (falling back to the raw
+	# name when stripping empties it, and skipping a blank-named tab without
+	# consuming an index), then emit "tab_id<TAB>expected" only when the current
+	# name already differs from the expected "<index>.<base>". This replaces the
+	# previous two-pass, per-tab `echo | cut` / `echo | sed` fork storm with one
+	# interpreter invocation; the loop below issues just the renames required.
+	local tab_id new_name
+	while IFS=$'\t' read -r tab_id new_name; do
+		log "Renaming tab_id=$tab_id to '$new_name'"
+		zellij action rename-tab-by-id "$tab_id" "$new_name" 2>/dev/null || true
 	done < <(echo "$tabs_json" | python3 -c "
-import sys, json
-tabs = json.load(sys.stdin)
-tabs.sort(key=lambda t: t['position'])
+import sys, json, re
+try:
+    tabs = json.load(sys.stdin)
+    tabs.sort(key=lambda t: t['position'])
+except Exception:
+    sys.exit(0)
+idx = 0
 for t in tabs:
-    print(f\"{t['tab_id']}|{t['name']}\")
-")
-
-	if [[ "$needs_update" == false ]]; then
-		log "No update needed"
-		exit 0
-	fi
-
-	idx=0
-	while IFS= read -r line; do
-		local tab_id name base_name
-		tab_id=$(echo "$line" | cut -d'|' -f1)
-		name=$(echo "$line" | cut -d'|' -f2)
-
-		base_name=$(echo "$name" | sed 's/^[0-9][0-9]*\.//')
-		base_name=$(echo "$base_name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-		if [[ -z "$base_name" ]]; then
-			base_name="$name"
-		fi
-
-		if [[ -z "$base_name" ]]; then
-			continue
-		fi
-
-		((idx++)) || true
-		local new_name="${idx}.${base_name}"
-
-		if [[ "$name" != "$new_name" ]]; then
-			log "Renaming tab_id=$tab_id from '$name' to '$new_name'"
-			zellij action rename-tab-by-id "$tab_id" "$new_name" 2>/dev/null
-		fi
-	done < <(echo "$tabs_json" | python3 -c "
-import sys, json
-tabs = json.load(sys.stdin)
-tabs.sort(key=lambda t: t['position'])
-for t in tabs:
-    print(f\"{t['tab_id']}|{t['name']}\")
+    name = t['name']
+    base = re.sub(r'^[0-9]+\.', '', name).strip()
+    if not base:
+        base = name
+    if not base:
+        continue
+    idx += 1
+    expected = '%d.%s' % (idx, base)
+    if name != expected:
+        sys.stdout.write('%s\t%s\n' % (t['tab_id'], expected))
 ")
 
 	log "Reindex complete"

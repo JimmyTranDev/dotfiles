@@ -241,23 +241,18 @@ bump_project_recency() {
 	fi
 }
 
-# Collect every project (immediate child of each org dir under <programming>)
-# and every git worktree in the <created>/<checkout> containers, one per line
-# as: <mtime>\t<label>\t<absolute-path>. Labels mirror the picker UI
-# ("[org] project", "[wcreated] name"). Missing container dirs are skipped
-# silently. Output is unordered; callers sort by the leading mtime field.
-_collect_project_dir_entries() {
-	local programming_dir="${1:-$HOME/Programming}"
-	local created_dir="${2:-$programming_dir/wcreated}"
-	local checkout_dir="${3:-$programming_dir/wcheckout}"
-	local org_dir org_name proj proj_name mtime
+# Emit every project (immediate child of each org dir under <programming>) and
+# every git worktree in the <created>/<checkout> containers as "<label>\t<path>"
+# — the label and path of a _collect_project_dir_entries row without its leading
+# recency mtime. Split out so the fast (single python os.stat) and portable
+# (per-entry _recency_mtime) mtime passes can share one directory walk. Missing
+# container dirs are skipped silently.
+_emit_project_dir_labels() {
+	local programming_dir="$1"
+	local created_dir="$2"
+	local checkout_dir="$3"
+	local org_dir org_name proj proj_name
 	local container label wt_name wt_path
-
-	# Resolve the stat flavor once in THIS shell so the per-entry
-	# "$(_recency_mtime ...)" command-substitution subshells below inherit the
-	# cached _STAT_MTIME_FMT instead of re-detecting it (an extra stat fork) on
-	# every entry.
-	_stat_mtime / >/dev/null 2>&1
 
 	while IFS= read -r org_dir; do
 		[[ -d "$org_dir" ]] || continue
@@ -266,8 +261,7 @@ _collect_project_dir_entries() {
 		while IFS= read -r proj; do
 			[[ -n "$proj" ]] || continue
 			proj_name="${proj##*/}"
-			mtime="$(_recency_mtime "$proj")"
-			printf '%s\t[%s] %s\t%s\n' "$mtime" "$org_name" "$proj_name" "$proj"
+			printf '[%s] %s\t%s\n' "$org_name" "$proj_name" "$proj"
 		done < <(find -L "${org_dir%/}" -mindepth 1 -maxdepth 1 -type d ! -name '.*' 2>/dev/null)
 	done < <(get_org_dirs "$programming_dir")
 
@@ -278,10 +272,58 @@ _collect_project_dir_entries() {
 		while IFS= read -r wt_name; do
 			[[ -n "$wt_name" ]] || continue
 			wt_path="${container%/}/$wt_name"
-			mtime="$(_recency_mtime "$wt_path")"
-			printf '%s\t[%s] %s\t%s\n' "$mtime" "$label" "$wt_name" "$wt_path"
+			printf '[%s] %s\t%s\n' "$label" "$wt_name" "$wt_path"
 		done < <(find_git_repos_and_worktrees "$container")
 	done
+}
+
+# Collect every project (immediate child of each org dir under <programming>)
+# and every git worktree in the <created>/<checkout> containers, one per line
+# as: <mtime>\t<label>\t<path>. Labels mirror the picker UI ("[org] project",
+# "[wcreated] name"). Missing container dirs are skipped silently. Output is
+# unordered; callers sort by the leading mtime field.
+#
+# The recency mtime (mtime of <dir>/.git when present, else <dir>, else 0 —
+# mirroring _recency_mtime) is resolved for the whole listing in ONE python
+# os.stat pass when python3 is available, replacing the previous per-entry
+# command-substitution subshell + stat fork. Falls back to the portable
+# per-entry _recency_mtime loop when python3 is absent.
+_collect_project_dir_entries() {
+	local programming_dir="${1:-$HOME/Programming}"
+	local created_dir="${2:-$programming_dir/wcreated}"
+	local checkout_dir="${3:-$programming_dir/wcheckout}"
+
+	if command -v python3 >/dev/null 2>&1; then
+		_emit_project_dir_labels "$programming_dir" "$created_dir" "$checkout_dir" | python3 -c '
+import sys, os
+for line in sys.stdin:
+    line = line.rstrip("\n")
+    if not line:
+        continue
+    label, _, path = line.partition("\t")
+    d = path[:-1] if path.endswith("/") else path
+    git = d + "/.git"
+    try:
+        if os.path.exists(git):
+            mtime = int(os.stat(git).st_mtime)
+        elif os.path.exists(d):
+            mtime = int(os.stat(d).st_mtime)
+        else:
+            mtime = 0
+    except OSError:
+        mtime = 0
+    sys.stdout.write("%d\t%s\t%s\n" % (mtime, label, path))
+'
+	else
+		# Resolve the stat flavor once in THIS shell so the per-entry
+		# "$(_recency_mtime ...)" subshells inherit the cached _STAT_MTIME_FMT
+		# instead of re-detecting it (an extra stat fork) on every entry.
+		_stat_mtime / >/dev/null 2>&1
+		local label path
+		while IFS=$'\t' read -r label path; do
+			printf '%s\t%s\t%s\n' "$(_recency_mtime "$path")" "$label" "$path"
+		done < <(_emit_project_dir_labels "$programming_dir" "$created_dir" "$checkout_dir")
+	fi
 }
 
 # fzf-pick a single project or worktree under ~/Programming and print its
@@ -389,27 +431,46 @@ last_pane_tool() {
 # absolute. Prints nothing and returns non-zero when no focused pane carries a
 # cwd. Pure text munging — no zellij call — so it is unit-testable.
 _focused_pane_dir_from_layout() {
-	local layout base_cwd pane_line pane_cwd
-	layout="$(cat)"
-
-	# Base cwd: the layout-level `cwd "<abs>"` (space form). Pane lines use the
-	# `cwd="..."` attribute form (with '='), so this regex never matches them.
-	base_cwd="$(printf '%s\n' "$layout" | sed -n 's/^[[:space:]]*cwd "\([^"]*\)".*/\1/p' | head -n1)"
-
-	# Focused pane: the one `pane ... focus=true ...` line that carries a cwd
-	# attribute (the focused tab line also has focus=true but starts with "tab").
-	pane_line="$(printf '%s\n' "$layout" | grep 'focus=true' | grep -E '^[[:space:]]*pane[[:space:]]' | grep 'cwd="' | head -n1)"
-	[[ -n "$pane_line" ]] || return 1
-	pane_cwd="$(printf '%s\n' "$pane_line" | sed -n 's/.*[[:space:]]cwd="\([^"]*\)".*/\1/p')"
-	[[ -n "$pane_cwd" ]] || return 1
-
-	if [[ "$pane_cwd" == /* ]]; then
-		printf '%s' "$pane_cwd"
-	elif [[ -n "$base_cwd" ]]; then
-		printf '%s' "${base_cwd%/}/$pane_cwd"
-	else
-		printf '%s' "$pane_cwd"
-	fi
+	awk '
+	{
+		# Base cwd: first layout-level `cwd "<abs>"` (space form). A pane line
+		# starts with "pane", so this never matches a per-pane attribute cwd.
+		if (!have_base && match($0, /^[[:space:]]*cwd "[^"]*"/)) {
+			s = substr($0, RSTART, RLENGTH)
+			sub(/^[[:space:]]*cwd "/, "", s)
+			sub(/"$/, "", s)
+			base = s
+			have_base = 1
+		}
+		# Focused pane: first line that is a `pane`, carries focus=true, and has
+		# a cwd="..." attribute (the focused tab line also has focus=true but
+		# starts with "tab"). Lock onto it so a matched-but-unextractable line
+		# returns non-zero instead of falling through to a later pane.
+		if (!seen_pane && $0 ~ /focus=true/ && $0 ~ /^[[:space:]]*pane[[:space:]]/ && $0 ~ /cwd="/) {
+			seen_pane = 1
+			# Greedy `.*` picks the LAST ` cwd="` on the line (matches sed).
+			if (match($0, /.*[[:space:]]cwd="/)) {
+				rest = substr($0, RLENGTH + 1)
+				q = index(rest, "\"")
+				if (q > 1) {
+					pane = substr(rest, 1, q - 1)
+					have_pane = 1
+				}
+			}
+		}
+	}
+	END {
+		if (!have_pane) exit 1
+		if (pane ~ /^\//) {
+			printf "%s", pane
+		} else if (have_base && base != "") {
+			sub(/\/$/, "", base)
+			printf "%s/%s", base, pane
+		} else {
+			printf "%s", pane
+		}
+	}
+	'
 }
 
 # Print the absolute cwd of the currently-focused zellij pane (see
