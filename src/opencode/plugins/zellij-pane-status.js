@@ -1,4 +1,4 @@
-import { computeName, eventToState, extractTitle } from "../lib/zellij-status.mjs"
+import { computeName, eventToState } from "../lib/zellij-status.mjs"
 
 // Reflect opencode's live status in the title of the zellij pane it runs in by
 // shelling out to `zellij action rename-pane --pane-id <id>`. Each opencode
@@ -10,10 +10,11 @@ export const ZellijPaneStatus = async ({ $ }) => {
     return {}
   }
 
-  let title = ""
-  let currentState = null
   let lastName = ""
 
+  // Basename of the current working directory — the text half of the pane name.
+  // The session title is deliberately ignored: a pane should show WHERE you are
+  // (the dir), not what the AI named the chat, so panes stay scannable at a glance.
   const cwdBase = () => {
     try {
       return process.cwd().split("/").filter(Boolean).pop() || ""
@@ -24,11 +25,13 @@ export const ZellijPaneStatus = async ({ $ }) => {
 
   // Compute the desired pane name and only call zellij when it actually changed
   // (status events stream rapidly; renaming on every one would be wasteful).
+  // The name is a function of state + cwd only, so dedup collapses to the
+  // status transitions that matter.
   const render = async (stateKey) => {
     if (!stateKey) {
       return
     }
-    const name = computeName(stateKey, title || cwdBase())
+    const name = computeName(stateKey, cwdBase())
     if (name === lastName) {
       return
     }
@@ -40,30 +43,16 @@ export const ZellijPaneStatus = async ({ $ }) => {
     }
   }
 
-  const apply = async (stateKey) => {
-    if (!stateKey) {
-      return
-    }
-    currentState = stateKey
-    await render(stateKey)
-  }
-
   return {
     // Flip to "working" the instant a prompt is submitted, before the first token.
     "chat.message": async () => {
-      await apply("working")
+      await render("working")
     },
+    // Drive state purely from authoritative lifecycle signals; eventToState
+    // returns null for everything else (incl. session.created/updated, whose
+    // title we no longer read), and render(null) is a no-op.
     event: async ({ event }) => {
-      const type = event?.type
-      if (type === "session.created" || type === "session.updated") {
-        const next = extractTitle(event)
-        if (next && next !== title) {
-          title = next
-          await render(currentState)
-        }
-        return
-      }
-      await apply(eventToState(event))
+      await render(eventToState(event))
     },
   }
 }

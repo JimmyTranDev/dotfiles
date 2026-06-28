@@ -16,21 +16,21 @@ test("STATES defines emoji and label for each known state", () => {
   assert.deepEqual(STATES.error, { emoji: "❌", label: "error" })
 })
 
-test("computeName renders '<emoji> <label> · <title>' for each state", () => {
-  assert.equal(computeName("working", "proj"), "🛠️ working · proj")
-  assert.equal(computeName("idle", "proj"), "✅ idle · proj")
-  assert.equal(computeName("needs-input", "proj"), "⏸️ needs input · proj")
-  assert.equal(computeName("question", "proj"), "❓ question · proj")
-  assert.equal(computeName("error", "proj"), "❌ error · proj")
+test("computeName renders a compact '<emoji> <dir>' for each state", () => {
+  assert.equal(computeName("working", "proj"), "🛠️ proj")
+  assert.equal(computeName("idle", "proj"), "✅ proj")
+  assert.equal(computeName("needs-input", "proj"), "⏸️ proj")
+  assert.equal(computeName("question", "proj"), "❓ proj")
+  assert.equal(computeName("error", "proj"), "❌ proj")
 })
 
-test("computeName omits the separator when the title is empty", () => {
-  assert.equal(computeName("working", ""), "🛠️ working")
-  assert.equal(computeName("idle", "   "), "✅ idle")
+test("computeName shows the emoji alone when the dir is empty", () => {
+  assert.equal(computeName("working", ""), "🛠️")
+  assert.equal(computeName("idle", "   "), "✅")
 })
 
 test("computeName falls back to a neutral marker for an unknown state", () => {
-  assert.equal(computeName("bogus", "proj"), "• bogus · proj")
+  assert.equal(computeName("bogus", "proj"), "• proj")
 })
 
 test("truncateTitle leaves titles at or under the limit unchanged", () => {
