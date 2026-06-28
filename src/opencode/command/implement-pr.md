@@ -44,8 +44,18 @@ Once the change is built, verified, and reviewed:
    Report the PR URL.
 
 If a Jira key was passed, run **`/implement`'s Phase 6 — report back to Jira**,
-including the **PR link** in the comment and proposing the `"In Review"`
-transition.
+including the **PR link** in the comment. Propose the transition that matches the
+PR's readiness:
+
+- **Ready PR (not a draft)** — the work is verified and reviewed, so hand it
+  straight to QA: propose the `"QA"` transition.
+- **Draft PR** — published for early eyes but not yet ready for QA, so keep the
+  `"In Review"` transition. (`yolo` always opens a draft, so it stays
+  `"In Review"`.)
+
+Status names are workflow-specific; if `"QA"` is rejected, `view` the ticket and
+confirm the exact target name (e.g. `"In QA"`, `"Ready for QA"`) before running
+the transition.
 
 ## Done
 
