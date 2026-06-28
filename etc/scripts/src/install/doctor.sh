@@ -108,6 +108,7 @@ main() {
 		"gitleaks:gitleaks"
 		"docker:Docker"
 		"espanso:Espanso"
+		"diffnav:diffnav (git diff pager)"
 	)
 
 	echo
@@ -120,6 +121,21 @@ main() {
 			check_warn "$desc not found (optional)"
 		fi
 	done
+	echo
+
+	log_info "Checking gh extensions..."
+	if command -v gh >/dev/null 2>&1; then
+		gh_exts=$(gh extension list 2>/dev/null || true)
+		for ext in "gh-dash" "gh-enhance"; do
+			if echo "$gh_exts" | grep -q "$ext"; then
+				check_pass "$ext installed"
+			else
+				check_warn "$ext not found (optional)"
+			fi
+		done
+	else
+		check_warn "gh not found, skipping gh extension checks"
+	fi
 	echo
 
 	log_info "Checking symlinks..."

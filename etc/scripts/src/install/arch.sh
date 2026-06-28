@@ -100,6 +100,13 @@ main() {
 		log_info "Install yay: https://github.com/Jguer/yay"
 	fi
 
+	if command -v go >/dev/null 2>&1; then
+		log_info "Installing diffnav via go..."
+		go install github.com/dlvhdr/diffnav@latest || log_warning "diffnav install failed"
+	else
+		log_warning "go not found, skipping diffnav"
+	fi
+
 	log_success "Arch Linux setup completed"
 }
 

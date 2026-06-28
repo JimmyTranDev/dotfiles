@@ -65,6 +65,21 @@ main() {
 		log_warning "pnpm not found, skipping global pnpm packages"
 	fi
 
+	if command -v gh >/dev/null 2>&1; then
+		read -rp "Install gh CLI extensions (gh-dash, gh-enhance)? [y/N] " answer </dev/tty
+		if [[ "$answer" =~ ^[Yy]$ ]]; then
+			log_info "Installing gh extensions..."
+			gh extension install dlvhdr/gh-dash || log_warning "gh-dash install failed (may already be installed)"
+			gh extension install dlvhdr/gh-enhance ||
+				gh extension install dlvhdr-insiders/gh-enhance ||
+				log_warning "gh-enhance install failed (may already be installed)"
+		else
+			log_info "Skipping gh extensions"
+		fi
+	else
+		log_warning "gh not found, skipping gh extensions"
+	fi
+
 	if [[ ! -f "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
 		log_info "Installing SDKMAN..."
 		bash -c "$(curl -fsSL https://get.sdkman.io)" || log_warning "SDKMAN installation failed"

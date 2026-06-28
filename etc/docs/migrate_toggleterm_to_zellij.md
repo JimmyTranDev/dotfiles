@@ -58,7 +58,7 @@ behaviour is the core thing to replicate in Zellij.
 |------|------|
 | `src/zellij/config.kdl` | Locked-mode, `Alt`-prefixed keybinds; many `Run` shell-outs |
 | `src/zellij/layouts/opencode-sidebar.kdl` | 30% stacked tool sidebar + nvim main pane |
-| `etc/scripts/src/zellij/open_project.sh` | `Alt [` — pick tool → open in current pane dir |
+| `etc/scripts/src/zellij/open_project.sh` | `Alt [` — pick tool → open in right pane dir |
 | `etc/scripts/src/zellij/open_project_last.sh` | `Alt ]` — repeat last tool, no prompts |
 | `etc/scripts/src/zellij/open_opencode_sidebar.sh` | `Alt p` — pick tool + project → sidebar layout |
 | `etc/scripts/src/zellij/select_session.sh` | `Alt u` — fzf session switcher |

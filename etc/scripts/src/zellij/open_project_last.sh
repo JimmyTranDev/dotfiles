@@ -19,11 +19,12 @@ main() {
 	tool="$(last_pane_tool)" || tool="empty"
 	[[ "$tool" != "empty" ]] && { require_tool "$tool" || exit 1; }
 
-	# Open in the directory of the currently-focused pane (no prompt). Fall back
-	# to the last project, then the fzf picker, when the pane cwd can't be
-	# resolved (e.g. outside a tracked dir).
+	# Open in the directory of the pane to the right (no prompt). Fall back to
+	# the current pane, then the last project, then the fzf picker, when the
+	# right pane's cwd can't be resolved (e.g. outside a tracked dir).
 	local target_dir
-	target_dir="$(current_pane_dir)" \
+	target_dir="$(right_pane_dir)" \
+		|| target_dir="$(current_pane_dir)" \
 		|| target_dir="$(last_project_dir)" \
 		|| target_dir="$(select_project_dir)" \
 		|| exit 0
