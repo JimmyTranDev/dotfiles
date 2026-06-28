@@ -6,9 +6,6 @@ M.CONFIG = {
   LIMIT = 50,
   AUTO_TRANSITION = true,
   TRANSITION_STATUSES = { 'In Progress Concept', 'Done Concept', 'Prioritised Issues Development' },
-  -- Sentinel marking where the "Done Concept only" path stops within TRANSITION_STATUSES.
-  -- Must exist in the chain above; the slice fails closed if it does not.
-  DONE_CONCEPT_STATUS = 'Done Concept',
 }
 
 function M.get_current_user_email()
@@ -37,6 +34,18 @@ function M.parse_csv_line(line)
 
   table.insert(fields, field:match('^%s*(.-)%s*$'))
   return fields
+end
+
+--- Pure: slice the transition chain from the start up to and INCLUDING `target`.
+--- Returns a new list; empty when `target` is absent, so an unknown selection
+--- fails closed instead of silently running the entire chain.
+function M.slice_transition_chain(statuses, target)
+  local subset = {}
+  for _, status in ipairs(statuses) do
+    table.insert(subset, status)
+    if status == target then return subset end
+  end
+  return {}
 end
 
 return M
