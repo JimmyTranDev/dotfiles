@@ -5,6 +5,9 @@ keybinds clear-defaults=true {
         bind "Alt ;" { SwitchToMode "normal"; }
     }
     shared_among "normal" "locked" {
+        // Leader key: Alt Space enters the tmux (leader) mode for single-key commands
+        bind "Alt Space" { SwitchToMode "tmux"; }
+
         bind "Alt w" {
             LaunchOrFocusPlugin "session-manager" {
                 floating true
@@ -42,6 +45,39 @@ keybinds clear-defaults=true {
         bind "Alt 7" { GoToTab 7; SwitchToMode "locked"; }
         bind "Alt 8" { GoToTab 8; SwitchToMode "locked"; }
         bind "Alt 9" { GoToTab 9; SwitchToMode "locked"; }
+    }
+
+    // Leader (tmux) mode — entered with Alt Space. Single-key commands; each
+    // returns to locked mode. All Alt binds above are intentionally unchanged.
+    tmux {
+        // Panes
+        bind "s" { NewPane "down"; SwitchToMode "locked"; }
+        bind "v" { NewPane "right"; SwitchToMode "locked"; }
+        bind "x" { CloseFocus; SwitchToMode "locked"; }
+        bind "z" { ToggleFocusFullscreen; SwitchToMode "locked"; }
+        bind "f" { ToggleFloatingPanes; SwitchToMode "locked"; }
+        bind "w" { TogglePaneEmbedOrFloating; SwitchToMode "locked"; }
+        bind "h" { MoveFocus "left"; SwitchToMode "locked"; }
+        bind "j" { MoveFocus "down"; SwitchToMode "locked"; }
+        bind "k" { MoveFocus "up"; SwitchToMode "locked"; }
+        bind "l" { MoveFocus "right"; SwitchToMode "locked"; }
+
+        // Tabs
+        bind "c" { NewTab; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
+        bind "n" { GoToNextTab; SwitchToMode "locked"; }
+        bind "b" { GoToPreviousTab; SwitchToMode "locked"; }
+        bind "," { SwitchToMode "renametab"; TabNameInput 0; }
+        bind "Tab" { ToggleTab; SwitchToMode "locked"; }
+
+        // Session
+        bind "d" { Detach; }
+        bind "S" { ToggleActiveSyncTab; SwitchToMode "locked"; }
+
+        // Leave leader mode
+        bind "Esc" { SwitchToMode "locked"; }
+        bind "q" { SwitchToMode "locked"; }
+        bind "Ctrl c" { SwitchToMode "locked"; }
+        bind "Alt Space" { SwitchToMode "locked"; }
     }
 }
 
