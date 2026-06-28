@@ -9,24 +9,24 @@ import {
 } from "./zellij-status.mjs"
 
 test("STATES defines emoji and label for each known state", () => {
-  assert.deepEqual(STATES.working, { emoji: "⚙", label: "working" })
-  assert.deepEqual(STATES.idle, { emoji: "✓", label: "idle" })
-  assert.deepEqual(STATES["needs-input"], { emoji: "⏸", label: "needs input" })
+  assert.deepEqual(STATES.working, { emoji: "🛠️", label: "working" })
+  assert.deepEqual(STATES.idle, { emoji: "✅", label: "idle" })
+  assert.deepEqual(STATES["needs-input"], { emoji: "⏸️", label: "needs input" })
   assert.deepEqual(STATES.question, { emoji: "❓", label: "question" })
-  assert.deepEqual(STATES.error, { emoji: "✗", label: "error" })
+  assert.deepEqual(STATES.error, { emoji: "❌", label: "error" })
 })
 
 test("computeName renders '<emoji> <label> · <title>' for each state", () => {
-  assert.equal(computeName("working", "proj"), "⚙ working · proj")
-  assert.equal(computeName("idle", "proj"), "✓ idle · proj")
-  assert.equal(computeName("needs-input", "proj"), "⏸ needs input · proj")
+  assert.equal(computeName("working", "proj"), "🛠️ working · proj")
+  assert.equal(computeName("idle", "proj"), "✅ idle · proj")
+  assert.equal(computeName("needs-input", "proj"), "⏸️ needs input · proj")
   assert.equal(computeName("question", "proj"), "❓ question · proj")
-  assert.equal(computeName("error", "proj"), "✗ error · proj")
+  assert.equal(computeName("error", "proj"), "❌ error · proj")
 })
 
 test("computeName omits the separator when the title is empty", () => {
-  assert.equal(computeName("working", ""), "⚙ working")
-  assert.equal(computeName("idle", "   "), "✓ idle")
+  assert.equal(computeName("working", ""), "🛠️ working")
+  assert.equal(computeName("idle", "   "), "✅ idle")
 })
 
 test("computeName falls back to a neutral marker for an unknown state", () => {
@@ -75,7 +75,7 @@ test("eventToState ignores idle/retry session.status (session.idle drives idle)"
   assert.equal(eventToState({ type: "session.status" }), null)
 })
 
-test("eventToState maps session.idle to idle (the finished/✓ state)", () => {
+test("eventToState maps session.idle to idle (the finished/✅ state)", () => {
   assert.equal(eventToState({ type: "session.idle" }), "idle")
 })
 
@@ -95,7 +95,7 @@ test("eventToState returns to working once a permission is replied", () => {
 
 // The question tool blocks the turn on the user just like a permission prompt:
 // question.asked surfaces the ❓ "question" status; answering (replied) or
-// dismissing (rejected) resumes work, after which session.idle settles it to ✓.
+// dismissing (rejected) resumes work, after which session.idle settles it to ✅.
 test("eventToState maps question.asked to question (the AI is asking the user)", () => {
   assert.equal(eventToState({ type: "question.asked" }), "question")
 })

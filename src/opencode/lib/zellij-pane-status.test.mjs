@@ -5,7 +5,7 @@ import assert from "node:assert/strict"
 // not just the pure helpers. A fake Bun-style `$` shell records the names the
 // plugin would hand to `zellij action rename-pane`, so we can assert the pane
 // settles on the right glyph through a realistic opencode event stream —
-// including the trailing post-idle flush that used to leave it stuck on ⚙.
+// including the trailing post-idle flush that used to leave it stuck on 🛠️.
 
 const importPlugin = () => import("../plugins/zellij-pane-status.js")
 
@@ -30,7 +30,7 @@ const startPlugin = async ({ paneId = "7" } = {}) => {
   return { hooks, renames }
 }
 
-test("plugin: a finished turn settles on '✓ idle' despite a post-idle activity flush", async () => {
+test("plugin: a finished turn settles on '✅ idle' despite a post-idle activity flush", async () => {
   const { hooks, renames } = await startPlugin()
 
   await hooks.event({ event: { type: "session.created", properties: { info: { title: "fix bug" } } } })
@@ -45,12 +45,12 @@ test("plugin: a finished turn settles on '✓ idle' despite a post-idle activity
   await hooks.event({ event: { type: "tool.execute.after" } })
 
   const last = renames[renames.length - 1]
-  assert.equal(last, "✓ idle · fix bug")
-  assert.ok(!last.startsWith("⚙"), "pane must not be stuck on working after the turn ends")
-  assert.deepEqual(renames, ["⚙ working · fix bug", "✓ idle · fix bug"])
+  assert.equal(last, "✅ idle · fix bug")
+  assert.ok(!last.startsWith("🛠️"), "pane must not be stuck on working after the turn ends")
+  assert.deepEqual(renames, ["🛠️ working · fix bug", "✅ idle · fix bug"])
 })
 
-test("plugin: a permission prompt shows ⏸, resumes to ⚙, then ends on ✓", async () => {
+test("plugin: a permission prompt shows ⏸️, resumes to 🛠️, then ends on ✅", async () => {
   const { hooks, renames } = await startPlugin()
 
   await hooks.event({ event: { type: "session.created", properties: { info: { title: "deploy" } } } })
@@ -60,14 +60,14 @@ test("plugin: a permission prompt shows ⏸, resumes to ⚙, then ends on ✓", 
   await hooks.event({ event: { type: "session.idle" } })
 
   assert.deepEqual(renames, [
-    "⚙ working · deploy",
-    "⏸ needs input · deploy",
-    "⚙ working · deploy",
-    "✓ idle · deploy",
+    "🛠️ working · deploy",
+    "⏸️ needs input · deploy",
+    "🛠️ working · deploy",
+    "✅ idle · deploy",
   ])
 })
 
-test("plugin: a question prompt shows ❓, resumes to ⚙, then ends on ✓", async () => {
+test("plugin: a question prompt shows ❓, resumes to 🛠️, then ends on ✅", async () => {
   const { hooks, renames } = await startPlugin()
 
   await hooks.event({ event: { type: "session.created", properties: { info: { title: "choose" } } } })
@@ -77,27 +77,27 @@ test("plugin: a question prompt shows ❓, resumes to ⚙, then ends on ✓", as
   await hooks.event({ event: { type: "session.idle" } })
 
   assert.deepEqual(renames, [
-    "⚙ working · choose",
+    "🛠️ working · choose",
     "❓ question · choose",
-    "⚙ working · choose",
-    "✓ idle · choose",
+    "🛠️ working · choose",
+    "✅ idle · choose",
   ])
 })
 
-test("plugin: a busy session.status alone (no chat.message) still shows ⚙", async () => {
+test("plugin: a busy session.status alone (no chat.message) still shows 🛠️", async () => {
   const { hooks, renames } = await startPlugin()
   await hooks.event({ event: { type: "session.updated", properties: { info: { title: "auto" } } } })
   await hooks.event({ event: { type: "session.status", properties: { status: { type: "busy" } } } })
   await hooks.event({ event: { type: "session.idle" } })
-  assert.deepEqual(renames, ["⚙ working · auto", "✓ idle · auto"])
+  assert.deepEqual(renames, ["🛠️ working · auto", "✅ idle · auto"])
 })
 
-test("plugin: an errored turn ends on ✗ error", async () => {
+test("plugin: an errored turn ends on ❌ error", async () => {
   const { hooks, renames } = await startPlugin()
   await hooks.event({ event: { type: "session.created", properties: { info: { title: "build" } } } })
   await hooks["chat.message"]()
   await hooks.event({ event: { type: "session.error" } })
-  assert.equal(renames[renames.length - 1], "✗ error · build")
+  assert.equal(renames[renames.length - 1], "❌ error · build")
 })
 
 test("plugin: no-op outside zellij (ZELLIJ unset)", async () => {
