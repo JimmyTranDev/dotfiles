@@ -9,11 +9,19 @@ setopt HIST_VERIFY
 setopt SHARE_HISTORY
 
 autoload -Uz compinit
-if [[ -n "${ZDOTDIR:-$HOME}/.zcompdump"(#qN.mh+24) ]]; then
-  compinit
+# Run the full security audit + rebuild at most once every 24h; otherwise load
+# the cached dump (-C skips the audit). Compile the dump to wordcode so the next
+# shell starts faster.
+zcompdump="${ZDOTDIR:-$HOME}/.zcompdump"
+if [[ -n "$zcompdump"(#qN.mh+24) ]]; then
+  compinit -d "$zcompdump"
 else
-  compinit -C
+  compinit -C -d "$zcompdump"
 fi
+if [[ -s "$zcompdump" && ( ! -s "$zcompdump.zwc" || "$zcompdump" -nt "$zcompdump.zwc" ) ]]; then
+  zcompile -R -- "$zcompdump.zwc" "$zcompdump" 2>/dev/null
+fi
+unset zcompdump
 
 DOTFILES_DIR="$HOME/Programming/JimmyTranDev/dotfiles"
 if [[ "$(uname -m)" == "arm64" ]]; then
@@ -65,7 +73,18 @@ for p in "${path_additions[@]}"; do
   [[ ":$PATH:" != *":$p:"* ]] && export PATH="$PATH:$p"
 done
 
-[[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+export SDKMAN_DIR="$HOME/.sdkman"
+if [[ -d "$SDKMAN_DIR" ]]; then
+  # Put the selected candidate bins on PATH now (cheap), but defer the slow
+  # sdkman-init.sh until `sdk` is first invoked.
+  for _sdk_bin in "$SDKMAN_DIR"/candidates/*/current/bin(N/); do
+    path=("$_sdk_bin" $path)
+  done
+  unset _sdk_bin
+  if [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
+    sdk() { unset -f sdk; source "$SDKMAN_DIR/bin/sdkman-init.sh"; sdk "$@"; }
+  fi
+fi
 [[ -f "$HOME/Programming/JimmyTranDev/secrets/env.sh" ]] && source "$HOME/Programming/JimmyTranDev/secrets/env.sh"
 
 if [[ -d "$HOMEBREW_PREFIX/Caskroom/gcloud-cli" ]]; then

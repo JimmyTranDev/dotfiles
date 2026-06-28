@@ -35,7 +35,11 @@ zellij_update_tab_indexes() {
 }
 zle -N zellij_update_tab_indexes
 
-zellij_tab_name_update
+# Run the initial tab-name update in the background so startup is not blocked on
+# zellij action round-trips (~200ms); chpwd + the zellij() wrapper stay sync.
+if [[ -n $ZELLIJ ]]; then
+  zellij_tab_name_update &!
+fi
 chpwd_functions=(${chpwd_functions:#zellij_tab_name_update} zellij_tab_name_update)
 
 zellij() {
