@@ -13,15 +13,8 @@ main() {
 
 	find "$SCRIPTS_DIR" -type f -name "*.sh" -exec chmod +x {} \;
 
-	if [ ! -d "$HOME/.oh-my-zsh" ]; then
-		log_info "Installing Oh My Zsh..."
-		sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-	else
-		log_info "Oh My Zsh already installed"
-	fi
-
-	if [ ! -d "$DOTFILES_ROOT/src/nvim" ]; then
-		log_warning "Nvim config not found at $DOTFILES_ROOT/src/nvim — it should be part of dotfiles"
+	if [ ! -d "$DOTFILES_DIR/src/nvim" ]; then
+		log_warning "Nvim config not found at $DOTFILES_DIR/src/nvim — it should be part of dotfiles"
 	else
 		log_info "Nvim config exists in dotfiles"
 	fi

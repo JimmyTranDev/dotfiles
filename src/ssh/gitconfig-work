@@ -1,6 +1,0 @@
-[user]
-	email = WORK_EMAIL_HERE
-	name = WORK_NAME_HERE
-
-[url "git@github.com-work:"]
-	insteadOf = git@github.com:WORK_ORG/
