@@ -12,14 +12,14 @@ source "$SCRIPTS_DIR/utils/utility.sh"
 # Render the sidebar layout with $1 as the sidebar command, printing the path to
 # a freshly-created temp layout file (in its own temp dir). The base structure
 # stays defined once in opencode-sidebar.kdl; only the sidebar's command is
-# swapped. "empty" yields a plain shell pane (no command).
+# swapped. "empty" yields a plain shell pane (no command, so its close_on_exit is dropped).
 render_sidebar_layout() {
 	local tool="$1"
 	local out_dir out
 	out_dir="$(mktemp -d)"
 	out="$out_dir/sidebar.kdl"
 	if [[ "$tool" == "empty" ]]; then
-		sed 's|pane command="opencode"|pane|' "$LAYOUT" >"$out"
+		sed 's|pane command="opencode" close_on_exit=true|pane|' "$LAYOUT" >"$out"
 	else
 		sed "s|pane command=\"opencode\"|pane command=\"$tool\"|" "$LAYOUT" >"$out"
 	fi
