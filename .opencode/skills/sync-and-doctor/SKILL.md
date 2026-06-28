@@ -13,7 +13,7 @@ back up anything they replace, but always dry-run symlinking first.
 | Script | Purpose |
 |--------|---------|
 | `sync_links.sh [--dry-run]` | Create/refresh all symlinks for the current platform. |
-| `install.sh` | Full setup: runs `common.sh` (tools, oh-my-zsh, SDKMAN, links) then the platform script (`mac.sh` / `arch.sh`, `wsl.sh`). Interactive. |
+| `install.sh` | Full setup: runs `common.sh` (tools, SDKMAN, links) then the platform script (`mac.sh` / `arch.sh`, `wsl.sh`). Interactive. |
 | `doctor.sh` | Read-only health check: tools, symlinks, dirs, git hooks, SSH perms. |
 
 Run with `bash etc/scripts/src/install/<script>.sh`.

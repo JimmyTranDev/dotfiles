@@ -175,7 +175,7 @@ src/                          # Configs (symlinked to ~/.config or ~/)
 ├── yazi/                     # File manager
 ├── skhd/  yabai/             # Hotkeys + tiling WM (macOS)
 ├── hypr/                     # Tiling WM (Linux)
-├── git/  ssh/                # Git hooks/configs + SSH config
+├── git/                      # Git hooks + per-scope gitconfigs
 ├── .zshrc  starship.toml     # Shell + prompt
 └── Brewfile                  # Homebrew packages
 

@@ -9,11 +9,19 @@ setopt HIST_VERIFY
 setopt SHARE_HISTORY
 
 autoload -Uz compinit
-if [[ -n "${ZDOTDIR:-$HOME}/.zcompdump"(#qN.mh+24) ]]; then
-  compinit
+# Run the full security audit + rebuild at most once every 24h; otherwise load
+# the cached dump (-C skips the audit). Compile the dump to wordcode so the next
+# shell starts faster.
+zcompdump="${ZDOTDIR:-$HOME}/.zcompdump"
+if [[ -n "$zcompdump"(#qN.mh+24) ]]; then
+  compinit -d "$zcompdump"
 else
-  compinit -C
+  compinit -C -d "$zcompdump"
 fi
+if [[ -s "$zcompdump" && ( ! -s "$zcompdump.zwc" || "$zcompdump" -nt "$zcompdump.zwc" ) ]]; then
+  zcompile -R -- "$zcompdump.zwc" "$zcompdump" 2>/dev/null
+fi
+unset zcompdump
 
 DOTFILES_DIR="$HOME/Programming/JimmyTranDev/dotfiles"
 if [[ "$(uname -m)" == "arm64" ]]; then
@@ -65,7 +73,18 @@ for p in "${path_additions[@]}"; do
   [[ ":$PATH:" != *":$p:"* ]] && export PATH="$PATH:$p"
 done
 
-[[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+export SDKMAN_DIR="$HOME/.sdkman"
+if [[ -d "$SDKMAN_DIR" ]]; then
+  # Put the selected candidate bins on PATH now (cheap), but defer the slow
+  # sdkman-init.sh until `sdk` is first invoked.
+  for _sdk_bin in "$SDKMAN_DIR"/candidates/*/current/bin(N/); do
+    path=("$_sdk_bin" $path)
+  done
+  unset _sdk_bin
+  if [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
+    sdk() { unset -f sdk; source "$SDKMAN_DIR/bin/sdkman-init.sh"; sdk "$@"; }
+  fi
+fi
 [[ -f "$HOME/Programming/JimmyTranDev/secrets/env.sh" ]] && source "$HOME/Programming/JimmyTranDev/secrets/env.sh"
 
 if [[ -d "$HOMEBREW_PREFIX/Caskroom/gcloud-cli" ]]; then
@@ -76,11 +95,28 @@ if [[ -d "$HOMEBREW_PREFIX/Caskroom/gcloud-cli" ]]; then
   fi
 fi
 
+# Cache the (static) output of shell-init hooks so we do not fork a subprocess
+# on every startup; regenerate only when the tool's binary is newer than the
+# cache (e.g. after an upgrade).
+_cache_eval() {
+  local name=$1 bin=$2
+  shift 2
+  local cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/${name}.zsh"
+  local binpath
+  binpath=$(command -v "$bin") || return
+  if [[ ! -s "$cache" || "$binpath" -nt "$cache" ]]; then
+    mkdir -p "${cache:h}"
+    "$binpath" "$@" >| "$cache"
+  fi
+  source "$cache"
+}
+
 if command -v starship >/dev/null 2>&1; then
-  eval "$(starship init zsh)"
+  _cache_eval starship starship init zsh
 fi
 
 if command -v fnm >/dev/null 2>&1; then
+  # fnm env emits a per-shell FNM_MULTISHELL_PATH, so it must run live (uncached).
   eval "$(fnm env --use-on-cd --version-file-strategy=local --resolve-engines --shell zsh)"
   if [[ -f .nvmrc || -f .node-version ]]; then
     fnm use --install-if-missing >/dev/null 2>&1
@@ -88,7 +124,7 @@ if command -v fnm >/dev/null 2>&1; then
 fi
 
 if command -v zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init zsh)"
+  _cache_eval zoxide zoxide init zsh
 fi
 
 alias c='clear'

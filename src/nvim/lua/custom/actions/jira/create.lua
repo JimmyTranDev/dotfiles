@@ -280,6 +280,13 @@ local function create_jira_task_workflow(summary, description, fallback_project,
               if work_item_id then
                 vim.notify(string.format('Task %s created successfully', work_item_id), vim.log.levels.INFO)
 
+                local function open_link_if_requested()
+                  if should_open_link then
+                    local jira_link = link_utils.get_jira_link_with_ticket(work_item_id)
+                    if jira_link then vim.system({ 'open', jira_link }) end
+                  end
+                end
+
                 if CONFIG.AUTO_TRANSITION then
                   local function run_transitions(statuses, index, on_complete)
                     if index > #statuses then
@@ -306,55 +313,38 @@ local function create_jira_task_workflow(summary, description, fallback_project,
                     )
                   end
 
-                  local transition_options = {
-                    { name = 'Done Concept only', value = 'done_concept' },
-                    { name = 'Prioritise', value = 'prioritise' },
-                  }
+                  -- Offer each configured status as a target; selecting one runs the chain
+                  -- from the start up to and including it (Jira requires stepping through the
+                  -- intermediate states). Dismissing the picker skips the transition entirely.
+                  local transition_options = {}
+                  for _, status in ipairs(CONFIG.TRANSITION_STATUSES) do
+                    table.insert(transition_options, { name = status, value = status })
+                  end
 
                   vim.ui.select(transition_options, {
                     prompt = 'Select transition target:',
                     format_item = function(item) return item.name end,
                   }, function(selected_transition)
-                    -- Default to Done Concept only (safer, non-final) when the prompt is dismissed
-                    local transition_choice = selected_transition and selected_transition.value or 'done_concept'
-
-                    local statuses = CONFIG.TRANSITION_STATUSES
-                    if transition_choice == 'done_concept' then
-                      -- Slice the configured chain up to and including the Done Concept sentinel
-                      -- rather than duplicating a status list, so this tracks TRANSITION_STATUSES.
-                      local subset = {}
-                      local found = false
-                      for _, status in ipairs(CONFIG.TRANSITION_STATUSES) do
-                        table.insert(subset, status)
-                        if status == CONFIG.DONE_CONCEPT_STATUS then
-                          found = true
-                          break
-                        end
-                      end
-                      -- Fail closed: if the sentinel is missing (e.g. chain renamed), do NOT fall
-                      -- through to the full chain and over-transition past Done Concept — abort instead.
-                      if not found then
-                        vim.notify(
-                          string.format("Transition status '%s' not in chain; skipping auto-transition", CONFIG.DONE_CONCEPT_STATUS),
-                          vim.log.levels.WARN
-                        )
-                        subset = {}
-                      end
-                      statuses = subset
+                    -- Dismissed: leave the ticket in its just-created state, no transition.
+                    if not selected_transition then
+                      open_link_if_requested()
+                      return
                     end
 
-                    run_transitions(statuses, 1, function()
-                      if should_open_link then
-                        local jira_link = link_utils.get_jira_link_with_ticket(work_item_id)
-                        if jira_link then vim.system({ 'open', jira_link }) end
-                      end
-                    end)
+                    -- Fail closed: an unrecognised target slices to an empty chain rather
+                    -- than running every status by accident.
+                    local statuses = util.slice_transition_chain(CONFIG.TRANSITION_STATUSES, selected_transition.value)
+                    if #statuses == 0 then
+                      vim.notify(
+                        string.format("Transition status '%s' not in chain; skipping auto-transition", tostring(selected_transition.value)),
+                        vim.log.levels.WARN
+                      )
+                    end
+
+                    run_transitions(statuses, 1, open_link_if_requested)
                   end)
                 else
-                  if should_open_link then
-                    local jira_link = link_utils.get_jira_link_with_ticket(work_item_id)
-                    if jira_link then vim.system({ 'open', jira_link }) end
-                  end
+                  open_link_if_requested()
                 end
               else
                 vim.notify(string.format("Jira task '%s' created in project '%s'", summary, project), vim.log.levels.INFO)
