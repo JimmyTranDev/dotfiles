@@ -5,9 +5,14 @@
 # they all try to merge into the SAME base branch in the SAME main repo, which a
 # repo cannot do at once (one checked-out branch / one in-progress merge), and
 # concurrent pushes race. This serializes those merges with an atomic mkdir lock
-# (macOS has no flock), WAITS when another merge is already running, retries on
-# push races, and — on a real content conflict — leaves the merge in progress
-# with the lock RETAINED so the caller can auto-resolve and then `finalize`.
+# (macOS has no flock), WAITS when another merge is already running, REBASES the
+# branch onto the freshened base first (linear history; conflicts surface in the
+# worktree), retries on push races, and — on a conflict — hands the caller a
+# resolvable state:
+#   - a REBASE conflict is left in the worktree with the lock RELEASED; resolve
+#     it, `git rebase --continue`, then re-run `merge`.
+#   - a MERGE/push conflict is left in the base repo with the lock RETAINED;
+#     resolve it, commit, then `finalize`.
 #
 # Usage:
 #   merge-into-base.sh merge    --worktree <path> [--timeout S] [--poll S] [--stale S] [--no-push]
@@ -16,8 +21,11 @@
 #
 # Exit codes:
 #   0  merged (and pushed) / finalized cleanly; lock released
-#   2  content conflict — merge left in progress, lock RETAINED for the caller
-#   3  precondition failed (dirty base repo, foreign/abandoned merge, bad branch)
+#   2  conflict — either a rebase conflict in the worktree (lock RELEASED, re-run
+#      `merge` after `rebase --continue`) or a merge/push conflict in the base
+#      repo (lock RETAINED, run `finalize` after committing the resolution)
+#   3  precondition failed (dirty base repo OR dirty worktree, foreign/abandoned
+#      merge, bad branch)
 #   4  timed out waiting for the serialization lock
 #   1  usage or other error
 
@@ -186,6 +194,31 @@ do_merge() {
 	git -C "$repo" fetch origin "$base" 2>/dev/null || true
 	git -C "$repo" merge --ff-only "origin/$base" 2>/dev/null || true
 
+	# Rebase the feature branch onto the freshened base BEFORE merging, so the
+	# integration is linear and any conflict surfaces here — in the worktree,
+	# off-lock — rather than as a merge commit in the shared base repo. A dirty
+	# worktree cannot be rebased, so refuse it up front.
+	if [[ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ]]; then
+		print_color red "  Worktree has uncommitted changes — commit or stash them first: $wt"
+		return 3
+	fi
+	print_color cyan "Rebasing '$branch' onto '$base' before merge..."
+	if ! git -C "$wt" rebase "$base" >/dev/null 2>&1; then
+		print_color red "  CONFLICT rebasing '$branch' onto '$base'."
+		local rf
+		while IFS= read -r rf; do
+			[[ -n "$rf" ]] && print_color red "    conflict: $rf"
+		done < <(git -C "$wt" diff --name-only --diff-filter=U 2>/dev/null)
+		print_color yellow "  Rebase left in progress in the worktree: $wt"
+		print_color yellow "  Resolve (preserve intent), then continue the rebase:"
+		print_color yellow "    git -C '$wt' add -A && git -C '$wt' rebase --continue"
+		print_color yellow "  then re-run the merge:"
+		print_color yellow "    merge-into-base.sh merge --worktree '$wt'"
+		# B2.5: do NOT keep the lock — the conflict lives in the worktree, so
+		# resolution happens off-lock and the re-run re-acquires it cleanly.
+		return 2
+	fi
+
 	print_color cyan "Merging '$branch' -> '$base' in $(basename "$repo")..."
 	if git -C "$repo" merge --no-ff --no-edit "$branch" >/dev/null 2>&1; then
 		print_color green "  Merged cleanly into '$base'."
@@ -244,9 +277,10 @@ do_finalize() {
 do_abort() {
 	local wt="$1" repo
 	repo=$(resolve_repo "$wt") || { print_color red "Cannot resolve main repo from worktree: $wt"; return 1; }
+	git -C "$wt" rebase --abort 2>/dev/null || true
 	git -C "$repo" merge --abort 2>/dev/null || true
 	lock_release "$repo/.git/wt-merge.lock"
-	print_color yellow "  Aborted in-progress merge and released the lock in $(basename "$repo")."
+	print_color yellow "  Aborted any in-progress rebase/merge and released the lock in $(basename "$repo")."
 	return 0
 }
 
@@ -272,7 +306,7 @@ trap on_signal INT TERM
 
 usage() {
 	print_color cyan "Usage: merge-into-base.sh <merge|finalize|abort> --worktree <path> [options]"
-	print_color cyan "  merge     Serialize + merge the worktree's branch into its base, then push."
+	print_color cyan "  merge     Serialize, rebase the branch onto its base, merge, then push."
 	print_color cyan "  finalize  Push a resolved merge and release the lock (after a conflict)."
 	print_color cyan "  abort     Abort an in-progress merge and release the lock."
 	print_color cyan "Options:"
@@ -281,7 +315,7 @@ usage() {
 	print_color cyan "  --poll <sec>       Poll interval while waiting (default $WT_MERGE_POLL)."
 	print_color cyan "  --stale <sec>      Reclaim a lock older than this (default $WT_MERGE_STALE)."
 	print_color cyan "  --no-push          Merge/finalize locally without pushing."
-	print_color cyan "Exit: 0 ok | 2 conflict (lock kept) | 3 precondition | 4 lock timeout | 1 error"
+	print_color cyan "Exit: 0 ok | 2 conflict (rebase: lock freed / merge: lock kept) | 3 precondition | 4 lock timeout | 1 error"
 }
 
 main() {
