@@ -200,6 +200,16 @@ function M.copy_repo_path()
   vim.notify('Copied: ' .. cwd, vim.log.levels.INFO)
 end
 
+function M.copy_current_dir()
+  local dir = vim.fn.expand('%:p:h')
+  if dir == '' then
+    vim.notify('No current file directory found', vim.log.levels.WARN)
+    return
+  end
+  vim.fn.setreg('+', dir)
+  vim.notify('Copied: ' .. dir, vim.log.levels.INFO)
+end
+
 function M.convert_md_to_pdf()
   local filepath = vim.fn.expand('%:p')
   if not filepath:match('%.md$') then
