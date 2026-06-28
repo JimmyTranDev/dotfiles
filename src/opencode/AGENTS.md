@@ -5,22 +5,28 @@ Global rules for OpenCode in this workspace. Loaded as a system instruction via
 
 ## Asking Questions
 
-Whenever you need a decision, preference, or clarification from the user, ask
-with the `question` tool and always offer **3 concrete proposals**:
+**Always ask with the `question` tool — never end a turn with a free-form
+question the user has to answer.** Whenever you need a decision, preference,
+clarification, or a go/no-go confirmation before proceeding, surface it as an
+interactive multiple-select `question` (the user picks an option) rather than
+writing it in prose and stopping. If you catch yourself about to end a turn
+with a trailing question, convert it into a `question` call instead.
+
+Every `question` offers **3 concrete proposals**:
 
 - List exactly 3 proposed solutions per question.
 - Put the **best** option first — the one that yields the highest-quality
   outcome, even if it takes more time or effort — and append "(Recommended)" to
   its label. Never recommend an option just because it is faster or easier.
 - Keep `custom` enabled (the default) so the tool's auto-added "Type your own
-  answer" appears last — that is the user's self-input escape hatch for when
-  none of the 3 proposals fit.
+  answer" appears last — the user's self-input escape hatch. This is why you
+  never need a free-form prose question: open-ended answers come through
+  `custom`, not through ending your turn.
 - Do NOT add your own "Other" / catch-all option; the custom self-input covers
   it.
 - Give each proposal a short, distinct `description` that explains its trade-off.
-
-Prefer the `question` tool over free-form questions in prose whenever the choice
-has discrete options.
+- Use `multiple: true` only when more than one option can genuinely apply at
+  once; most questions stay single-select.
 
 ## Skill-Driven Execution Model
 
