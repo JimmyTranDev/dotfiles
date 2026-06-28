@@ -3,17 +3,17 @@
 // with `node --test` without booting opencode or a live zellij session.
 
 export const STATES = {
-  working: { emoji: "⚙", label: "working" },
-  idle: { emoji: "✓", label: "idle" },
-  "needs-input": { emoji: "⏸", label: "needs input" },
+  working: { emoji: "🛠️", label: "working" },
+  idle: { emoji: "✅", label: "idle" },
+  "needs-input": { emoji: "⏸️", label: "needs input" },
   question: { emoji: "❓", label: "question" },
-  error: { emoji: "✗", label: "error" },
+  error: { emoji: "❌", label: "error" },
 }
 
 // opencode event-bus type -> status key for the events that need no payload
 // inspection. Streaming activity events (tool.execute.*, message.*) are
 // deliberately ABSENT: opencode emits them after session.idle, and treating
-// them as "working" flipped a finished pane back to ⚙ forever and it never
+// them as "working" flipped a finished pane back to 🛠️ forever and it never
 // recovered (the bug this module's tests guard). State is driven only by
 // authoritative session-lifecycle signals, mirroring zellij-tab-status.
 const EVENT_STATE = {
@@ -28,7 +28,7 @@ const EVENT_STATE = {
   // blocks the turn the same way a permission prompt does, but surfaces its own
   // ❓ "question" status so a pane waiting on your answer is distinct from one
   // blocked on a permission. Answering (replied) or dismissing (rejected)
-  // resumes work; session.idle then settles the turn to ✓ as usual.
+  // resumes work; session.idle then settles the turn to ✅ as usual.
   "question.asked": "question",
   "question.replied": "working",
   "question.rejected": "working",
