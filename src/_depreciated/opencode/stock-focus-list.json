@@ -1,6 +1,0 @@
-{
-  "tickers": [
-    { "ticker": "ASTS", "target_weight": null, "notes": "" },
-    { "ticker": "SLS", "target_weight": null, "notes": "" }
-  ]
-}

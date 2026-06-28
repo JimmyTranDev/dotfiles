@@ -66,12 +66,6 @@ main() {
 	else
 		check_warn "Default shell is $SHELL (expected zsh)"
 	fi
-
-	if [ -d "$HOME/.oh-my-zsh" ]; then
-		check_pass "Oh My Zsh installed"
-	else
-		check_fail "Oh My Zsh not installed"
-	fi
 	echo
 
 	log_info "Checking required tools..."
