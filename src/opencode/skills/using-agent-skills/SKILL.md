@@ -49,6 +49,7 @@ Task arrives
     ├── Worktrees in wcreated/wcheckout? → worktree-management
     ├── Resolve git merge/rebase/cherry-pick conflicts? → merge-conflict-resolution
     ├── Handle review comments on your own PR? → handle-github-pr-comments
+    ├── Handle your PR comments in an isolated worktree? → handle-pr-comments-worktree
     ├── CI/CD pipeline work? ──────────→ ci-cd-and-automation
     ├── npm audit + bump deps to minor? → npm-audit-and-bump-minor
     ├── Find/remove unused files, deps, exports (dead code)? → knip
@@ -215,6 +216,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Ship | worktree-management | Create/checkout/delete/update/clean git worktrees in ~/Programming/wcreated & wcheckout |
 | Ship | merge-conflict-resolution | Resolve in-progress git merge/rebase/cherry-pick conflicts, preserving both sides, then verify |
 | Ship | handle-github-pr-comments | Address review comments on your own PR — fix in code, reply, resolve threads |
+| Ship | handle-pr-comments-worktree | Address your PR comments in an isolated wcheckout worktree — fix/reply, push, resolve, cleanup |
 | Ship | ci-cd-and-automation | Automated quality gates on every change |
 | Ship | npm-audit-and-bump-minor | Audit npm deps, bump to latest minor (no majors), re-audit, verify |
 | Ship | deprecation-and-migration | Remove old systems and migrate users safely |
