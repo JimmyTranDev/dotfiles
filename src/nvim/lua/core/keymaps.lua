@@ -243,6 +243,7 @@ maps('n', {
 -- Worktree sub-group (<leader>uw)
 maps('n', {
   { '<Leader>uwn', worktree_actions.create_worktree, '󰐕 Create worktree (repo+branch+commit)' },
+  { '<Leader>uwo', worktree_actions.checkout_worktree, '󰓡 Checkout worktree (remote branch → wcheckout)' },
   { '<Leader>uws', worktree_actions.switch_worktree, '󰖲 Switch worktree (cd + Zellij tab)' },
   { '<Leader>uwd', worktree_actions.delete_worktree, '󰆴 Delete worktree (folder+branch)' },
   { '<Leader>uwr', worktree_actions.rename_current_worktree, '󰑕 Rename worktree (folder+branch+remote)' },

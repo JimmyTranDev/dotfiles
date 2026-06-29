@@ -107,6 +107,30 @@ function M.folder_from_branch(branch)
 end
 local folder_from_branch = M.folder_from_branch
 
+--- Parse `git branch -r` output into a sorted, deduped list of branch names
+--- under `remote` (default 'origin'); the `origin/HEAD -> ...` pointer is dropped.
+--- Pure: the caller captures the listing so this is testable without git.
+---@param out string
+---@param remote? string
+---@return string[]
+function M.remote_branches_from_listing(out, remote)
+  remote = remote or 'origin'
+  local prefix = remote .. '/'
+  local seen, list = {}, {}
+  for line in (out or ''):gmatch('[^\n]+') do
+    local b = line:gsub('^%s+', ''):gsub('%s+$', '')
+    if b:sub(1, #prefix) == prefix and not b:find('%->') then
+      b = b:sub(#prefix + 1)
+      if b ~= 'HEAD' and not seen[b] then
+        seen[b] = true
+        list[#list + 1] = b
+      end
+    end
+  end
+  table.sort(list)
+  return list
+end
+
 --- Return `path`, or `path-1`, `path-2`, ... if it already exists on disk.
 local function unique_path(path)
   if not vim.uv.fs_stat(path) then return path end
@@ -984,6 +1008,73 @@ function M.create_worktree()
       }
     end,
     on_confirm = function(repo) prompt_branch(repo.path) end,
+    empty_msg = 'No repositories found',
+  })
+end
+
+--- Check out an existing remote branch as a worktree under WCHECKOUT_DIR,
+--- tracking origin/<branch>. A wcheckout branch is owned elsewhere, so a later
+--- delete preserves the remote -- never branch this off the base.
+---@param main_repo string
+---@param branch string
+local function run_checkout(main_repo, branch)
+  local target = unique_path(WCHECKOUT_DIR .. '/' .. folder_from_branch(branch))
+  pcall(vim.fn.mkdir, WCHECKOUT_DIR, 'p')
+
+  local local_exists = git_capture(main_repo, { 'show-ref', '--verify', '--quiet', 'refs/heads/' .. branch }) ~= nil
+  local cmd = local_exists
+      and { 'git', '-C', main_repo, 'worktree', 'add', target, branch }
+      or { 'git', '-C', main_repo, 'worktree', 'add', target, '-b', branch, 'origin/' .. branch }
+
+  vim.notify('Checking out ' .. branch .. '…', vim.log.levels.INFO)
+  async.run_cmd(cmd, function(res)
+    if res.code ~= 0 then
+      local err = (res.stderr ~= '' and res.stderr or res.stdout):gsub('%s+$', '')
+      vim.notify('Failed to check out worktree: ' .. err, vim.log.levels.ERROR)
+      return
+    end
+    vim.cmd('cd ' .. vim.fn.fnameescape(target))
+    rename_zellij_tab(folder_from_branch(branch))
+    if vim.uv.fs_stat(target .. '/package.json') then
+      local pm = detect_pm(target) or 'npm'
+      ui.exec_in_terminal(pm .. ' install', 'Installing dependencies (' .. pm .. ')…', { name = 'worktree-install' })
+    end
+    vim.notify(string.format('Checked out "%s" into %s', branch, target), vim.log.levels.INFO)
+  end)
+end
+
+--- Pick a repository, fetch origin, then pick a remote branch to check out as a
+--- worktree under wcheckout (tracking origin/<branch>; remote preserved on delete).
+function M.checkout_worktree()
+  local repos = files.scan_programming()
+  if #repos == 0 then
+    vim.notify('No repositories found under ~/Programming', vim.log.levels.WARN)
+    return
+  end
+
+  ui.pick({
+    title = 'Checkout Worktree: repository (' .. #repos .. ')',
+    items = repos,
+    format = function(item)
+      return { { item.org .. '/', 'Comment' }, { item.name, 'Function' } }
+    end,
+    on_confirm = function(repo)
+      vim.notify('Fetching origin…', vim.log.levels.INFO)
+      async.run_cmd({ 'git', '-C', repo.path, 'fetch', 'origin' }, function()
+        local branches = M.remote_branches_from_listing(git_capture(repo.path, { 'branch', '-r' }) or '')
+        local items = {}
+        for _, b in ipairs(branches) do
+          items[#items + 1] = { branch = b }
+        end
+        ui.pick({
+          title = 'Checkout Worktree: remote branch (' .. #items .. ')',
+          items = items,
+          format = function(item) return { { item.branch, 'Function' } } end,
+          on_confirm = function(item) run_checkout(repo.path, item.branch) end,
+          empty_msg = 'No remote branches found',
+        })
+      end)
+    end,
     empty_msg = 'No repositories found',
   })
 end
