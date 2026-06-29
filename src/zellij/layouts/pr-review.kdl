@@ -1,0 +1,19 @@
+layout {
+    pane split_direction="vertical" {
+        // Left: thin opencode pane that boots straight into the review. The
+        // launcher (open_pr_review.sh -> render_pr_review_layout) stamps the
+        // chosen PR number over __PR_NUMBER__ before zellij loads this, so
+        // opencode opens its TUI and submits "/review-pr <N>" against the
+        // already-checked-out wcheckout worktree this tab is rooted in.
+        pane size="30%" stacked=true {
+            pane command="opencode" close_on_exit=true {
+                args "--prompt" "/review-pr __PR_NUMBER__"
+            }
+        }
+        // Right: the worktree's code, open in nvim for reading along.
+        pane command="nvim" focus=true size="70%" close_on_exit=true
+    }
+    pane size=1 borderless=true {
+        plugin location="zellij:compact-bar"
+    }
+}
