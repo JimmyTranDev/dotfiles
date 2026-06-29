@@ -34,6 +34,21 @@ Load the `worktree-management` skill with the skill tool and follow its
 shell script. This is a `wcheckout` worktree (someone else owns the branch), so
 deleting it later must **preserve** the remote branch.
 
+**First, reuse the worktree if you're already inside it.** The `Alt g` zellij
+launcher (`etc/scripts/src/zellij/open_pr_review.sh`) checks the PR out as a
+wcheckout worktree and starts this command *inside* it, so the checkout is
+already done — recreating it would only spawn a `-1` duplicate. Skip straight to
+Phase 2, reusing the current worktree, when all of these hold:
+
+- `git rev-parse --is-inside-work-tree` prints `true`, and
+- `git rev-parse --show-toplevel` lives under `~/Programming/wcheckout`, and
+- `git branch --show-current` is the PR's `headRefName` (same-repo PR) or
+  `pr-<number>` (a fork snapshot branch).
+
+In that case still refresh the base ref (`git fetch origin <baseRefName>`) so the
+diff is accurate, then go to Phase 2. Otherwise (you invoked `/review-pr`
+directly, not via `Alt g`) create the worktree as below.
+
 Make the PR's head branch available on the source repo, then check it out as a
 worktree under `~/Programming/wcheckout`:
 
