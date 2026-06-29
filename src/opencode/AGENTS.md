@@ -87,6 +87,7 @@ Map every request to the appropriate skill before acting.
 | Git worktrees in ~/Programming/wcreated & wcheckout (create/checkout/delete/update/clean) | `worktree-management` |
 | Resolve in-progress git merge/rebase/cherry-pick conflicts (unmerged paths, conflict markers) | `merge-conflict-resolution` |
 | Handle review comments on your own GitHub PR — address in code, reply, resolve threads | `handle-github-pr-comments` |
+| Handle your PR's review comments in an isolated wcheckout worktree — pull head branch, fix/reply, push, cleanup | `handle-pr-comments-worktree` |
 | Removing/sunsetting systems, migrating implementations | `deprecation-and-migration` |
 | ADRs, decision records, API/feature documentation | `documentation-and-adrs` |
 | New session setup, rules files, context configuration | `context-engineering` |
