@@ -13,16 +13,9 @@ main() {
 
 	require_tool fzf || exit 1
 
-	# 1. Pick what to open: nvim, opencode, storecode, gh-dash, or an empty shell.
-	#    Cancelling the picker exits cleanly.
-	local tool
-	tool="$(select_pane_tool)" || exit 0
-	[[ -z "$tool" ]] && exit 0
-	[[ "$tool" != "empty" ]] && { require_tool "$tool" || exit 1; }
-
-	# 2. Open in the directory of the pane to the right (no prompt). Fall back
-	#    to the current pane, then the last project, then the fzf picker, when
-	#    the right pane's cwd can't be resolved (e.g. outside a tracked dir).
+	# 1. Resolve the target dir first (pane to the right, current pane, last
+	#    project, then fzf picker) so the tool picker can offer THIS project's
+	#    last choice. Any failure exits cleanly.
 	local target_dir
 	target_dir="$(right_pane_dir)" \
 		|| target_dir="$(current_pane_dir)" \
@@ -31,8 +24,15 @@ main() {
 		|| exit 0
 	[[ -z "$target_dir" ]] && exit 0
 
-	# Remember the tool so "Alt ]" can reopen with the same settings.
-	printf '%s' "$tool" >"$HOME/.last_pane_tool"
+	# 2. Pick what to open with this project's last tool floated to the top:
+	#    nvim, opencode, storecode, gh-dash, or an empty shell. Cancelling exits.
+	local tool
+	tool="$(select_pane_tool "$target_dir")" || exit 0
+	[[ -z "$tool" ]] && exit 0
+	[[ "$tool" != "empty" ]] && { require_tool "$tool" || exit 1; }
+
+	# Remember the tool for this project so "Alt ]" reopens it the same way.
+	save_pane_tool "$tool" "$target_dir"
 
 	# 3. Open the chosen tool in a new stacked pane and reindex tab names.
 	open_tool_pane "$target_dir" "$tool"

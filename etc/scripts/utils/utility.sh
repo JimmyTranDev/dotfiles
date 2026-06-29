@@ -396,31 +396,49 @@ last_project_dir() {
 # shell pane with no command. Keep this list in sync with select_pane_tool's UI.
 PANE_TOOLS=(nvim opencode storecode gh-dash empty)
 
+# Per-project pane-tool memory: one "<project_dir>\t<tool>" line per project.
+# Alt [ saves the tool it opened a project with; Alt ] reopens that project's
+# own last tool. Defaults to ~/.pane_tool_by_project; overridable for tests.
+PANE_TOOL_MAP="${PANE_TOOL_MAP:-$HOME/.pane_tool_by_project}"
+
+# Remember $tool as the pane tool last used for project $dir, replacing any
+# prior entry so each project keeps exactly one line. Map defaults to
+# PANE_TOOL_MAP. No-op (non-zero) without both a tool and a dir.
+save_pane_tool() {
+	local tool="$1" dir="$2" map="${3:-$PANE_TOOL_MAP}"
+	[[ -n "$tool" && -n "$dir" ]] || return 1
+	local tmp
+	tmp="$(mktemp)"
+	[[ -f "$map" ]] && awk -F'\t' -v d="$dir" '$1 != d' "$map" >"$tmp"
+	printf '%s\t%s\n' "$dir" "$tool" >>"$tmp"
+	mv "$tmp" "$map"
+}
+
+# Resolve the pane tool last used for project $dir (saved by save_pane_tool).
+# Prints it on stdout; non-zero *silently* when the dir is blank, the map is
+# missing, or nothing is recorded for it so the caller can fall back to a default.
+last_pane_tool() {
+	local dir="$1" map="${2:-$PANE_TOOL_MAP}"
+	[[ -n "$dir" && -s "$map" ]] || return 1
+	local tool
+	tool="$(awk -F'\t' -v d="$dir" '$1 == d { v = $2 } END { if (v != "") print v }' "$map")"
+	[[ -n "$tool" ]] || return 1
+	printf '%s' "$tool"
+}
+
 # fzf-pick which program to open in a new stacked pane — one of nvim, opencode,
-# storecode, gh-dash, or empty (a plain shell). The previously-chosen tool (mirrored into
-# ~/.last_pane_tool) floats to the top so repeat use is a single Enter. Prints
-# the choice on stdout; non-zero if cancelled. Requires fzf.
+# storecode, gh-dash, or empty (a plain shell). The tool last used for project
+# $dir floats to the top so repeat use is a single Enter. Prints the choice on
+# stdout; non-zero if cancelled. Requires fzf.
 select_pane_tool() {
-	local last_file="${1:-$HOME/.last_pane_tool}"
+	local dir="$1" map="${2:-$PANE_TOOL_MAP}"
 	local last_sel=""
-	[[ -s "$last_file" ]] && last_sel="$(<"$last_file")"
+	[[ -n "$dir" ]] && last_sel="$(last_pane_tool "$dir" "$map" 2>/dev/null || true)"
 
 	local selected
 	selected="$(reorder_last_first "$last_sel" "${PANE_TOOLS[@]}" | fzf --prompt="Open: ")" || return 1
 	[[ -z "$selected" ]] && return 1
 	printf '%s' "$selected"
-}
-
-# Resolve the most-recently-chosen pane tool (mirrored into ~/.last_pane_tool by
-# select_pane_tool). Prints it on stdout; non-zero *silently* when none is
-# recorded so the caller can fall back to a default.
-last_pane_tool() {
-	local last_file="${1:-$HOME/.last_pane_tool}"
-	[[ -s "$last_file" ]] || return 1
-	local tool
-	tool="$(<"$last_file")"
-	[[ -n "$tool" ]] || return 1
-	printf '%s' "$tool"
 }
 
 # Parse a `zellij action dump-layout` KDL (read from stdin) and print the

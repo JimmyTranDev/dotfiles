@@ -33,21 +33,21 @@ main() {
 	# validated after it is chosen below.
 	require_tool fzf nvim || exit 1
 
-	# 1. Pick the sidebar tool (nvim, opencode, storecode, gh-dash, ... or empty), using
-	#    the same picker as Alt [. Cancelling exits cleanly.
-	local tool
-	tool="$(select_pane_tool)" || exit 0
-	[[ -z "$tool" ]] && exit 0
-	[[ "$tool" != "empty" ]] && { require_tool "$tool" || exit 1; }
-
-	# 2. Pick the project/worktree with the shared fzf picker.
+	# 1. Pick the project/worktree with the shared fzf picker.
 	local target_dir
 	target_dir="$(select_project_dir)" || exit 0
 	[[ -z "$target_dir" ]] && exit 0
 
-	# Mirror the chosen tool into ~/.last_pane_tool so the picker offers it first;
-	# the project is already mirrored into ~/.last_project by select_project_dir.
-	printf '%s' "$tool" >"$HOME/.last_pane_tool"
+	# 2. Pick the sidebar tool (nvim, opencode, storecode, gh-dash, ... or empty), using
+	#    the same picker as Alt [ with this project's last tool floated first. Cancelling exits.
+	local tool
+	tool="$(select_pane_tool "$target_dir")" || exit 0
+	[[ -z "$tool" ]] && exit 0
+	[[ "$tool" != "empty" ]] && { require_tool "$tool" || exit 1; }
+
+	# Remember the tool for this project so Alt [ / Alt ] offer it first; the
+	# project is already mirrored into ~/.last_project by select_project_dir.
+	save_pane_tool "$tool" "$target_dir"
 
 	# 3. Open the sidebar layout (the chosen tool stacked on the left + one big
 	#    nvim pane on the right) rooted in the chosen project. new-tab prints the
