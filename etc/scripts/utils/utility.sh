@@ -397,8 +397,8 @@ last_project_dir() {
 PANE_TOOLS=(nvim opencode storecode gh-dash empty)
 
 # Per-project pane-tool memory: one "<project_dir>\t<tool>" line per project.
-# Alt [ saves the tool it opened a project with; Alt ] reopens that project's
-# own last tool. Defaults to ~/.pane_tool_by_project; overridable for tests.
+# Alt [ sets a project's tool (without opening); Alt ] opens that project's
+# saved tool. Defaults to ~/.pane_tool_by_project; overridable for tests.
 PANE_TOOL_MAP="${PANE_TOOL_MAP:-$HOME/.pane_tool_by_project}"
 
 # Remember $tool as the pane tool last used for project $dir, replacing any
