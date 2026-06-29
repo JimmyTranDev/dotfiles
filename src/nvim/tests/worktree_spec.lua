@@ -61,6 +61,12 @@ check('folder strips leading segment', worktree.folder_from_branch('feature/foo'
 check('folder passes through plain branch', worktree.folder_from_branch('foo'), 'foo')
 check('folder flattens nested slashes', worktree.folder_from_branch('a/b/c'), 'b-c')
 
+-- remote_branches_from_listing: strip origin/, drop HEAD pointer, dedupe, sort.
+check('remote: strips origin/ and sorts', table.concat(worktree.remote_branches_from_listing('  origin/main\n  origin/feature/foo'), ','), 'feature/foo,main')
+check('remote: drops HEAD pointer line', #worktree.remote_branches_from_listing('  origin/HEAD -> origin/main\n  origin/main'), 1)
+check('remote: dedupes repeats', table.concat(worktree.remote_branches_from_listing('origin/main\norigin/main'), ','), 'main')
+check('remote: empty input -> none', #worktree.remote_branches_from_listing(''), 0)
+
 -- is_wcreated_path: only direct descendants of WCREATED_DIR classify as created.
 check('child of wcreated is created', worktree.is_wcreated_path('/home/u/Programming/wcreated/foo', '/home/u/Programming/wcreated'), true)
 check('wcheckout path is not created', worktree.is_wcreated_path('/home/u/Programming/wcheckout/foo', '/home/u/Programming/wcreated'), false)
