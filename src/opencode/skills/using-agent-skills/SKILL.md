@@ -27,6 +27,7 @@ Task arrives
     │   ├── Need better context? ─────→ context-engineering
     │   ├── Need doc-verified code? ───→ source-driven-development
     │   └── Stakes high / unfamiliar code? ──→ doubt-driven-development
+    ├── Parallelize independent steps / delegate to subagents (context bloat)? → parallelization-and-delegation
     ├── Explicit "yolo" / "full send" / "I'll test later"? → yolo
     ├── Writing/running tests? ────────→ test-driven-development
     │   ├── Existing code hard to test / low coverage? → testability-and-coverage
@@ -194,6 +195,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Build | source-driven-development | Verify against official docs before implementing |
 | Build | doubt-driven-development | Adversarial fresh-context review of every non-trivial decision |
 | Build | context-engineering | Right context at the right time |
+| Build | parallelization-and-delegation | Batch independent tool calls and delegate to explore/general subagents; concurrent fan-out with disjoint scopes |
 | Build | frontend-ui-engineering | Production-quality UI with accessibility |
 | Build | api-and-interface-design | Stable interfaces with clear contracts |
 | Build | turso-database | Embedded Turso Database engine — tursodb shell, @tursodatabase SDKs, MVCC, encryption, local-first sync |

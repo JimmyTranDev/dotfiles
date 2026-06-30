@@ -93,6 +93,7 @@ Map every request to the appropriate skill before acting.
 | Removing/sunsetting systems, migrating implementations | `deprecation-and-migration` |
 | ADRs, decision records, API/feature documentation | `documentation-and-adrs` |
 | New session setup, rules files, context configuration | `context-engineering` |
+| Parallelize independent tool calls; delegate to Task subagents (explore/general) & concurrent fan-out | `parallelization-and-delegation` |
 | Read live output of CLIs running in nvim toggleterm terminals | `nvim-toggleterm-read` |
 | Browse/pull an Android emulator app's private data folder (/data/data) | `android-app-data` |
 | Embedded Turso Database engine — `tursodb` shell, `@tursodatabase/*` SDKs, MVCC/concurrent writes, encryption, local-first sync | `turso-database` |
