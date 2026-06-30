@@ -2,7 +2,8 @@
 
 set -e
 
-DOTFILES_REPO="https://github.com/JimmyTranDev/dotfiles.git"
+DOTFILES_REPO_SSH="git@github.com:JimmyTranDev/dotfiles.git"
+DOTFILES_REPO_HTTPS="https://github.com/JimmyTranDev/dotfiles.git"
 DOTFILES_DIR="$HOME/Programming/JimmyTranDev/dotfiles"
 
 RED='\033[0;31m'
@@ -50,8 +51,16 @@ clone_dotfiles() {
 	fi
 	info "Cloning dotfiles..."
 	mkdir -p "$(dirname "$DOTFILES_DIR")"
-	git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
-	success "Dotfiles cloned"
+	# Prefer SSH so the clone uses your SSH key. On a brand-new machine the
+	# key is not registered with GitHub yet (it arrives later via Bitwarden),
+	# so fall back to HTTPS; main() switches the remote to SSH afterward.
+	if git clone "$DOTFILES_REPO_SSH" "$DOTFILES_DIR" 2>/dev/null; then
+		success "Dotfiles cloned via SSH"
+	else
+		warn "SSH clone failed, falling back to HTTPS..."
+		git clone "$DOTFILES_REPO_HTTPS" "$DOTFILES_DIR"
+		success "Dotfiles cloned via HTTPS"
+	fi
 }
 
 setup_bitwarden_secrets() {

@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-DOTFILES_REPO="https://github.com/JimmyTranDev/dotfiles.git"
+DOTFILES_REPO_SSH="git@github.com:JimmyTranDev/dotfiles.git"
+DOTFILES_REPO_HTTPS="https://github.com/JimmyTranDev/dotfiles.git"
 DOTFILES_DIR="$HOME/Programming/JimmyTranDev/dotfiles"
 
 # When piped from curl, BASH_SOURCE[0] won't resolve to a real path.
@@ -112,8 +113,16 @@ clone_dotfiles() {
   fi
 
   mkdir -p "$(dirname "$DOTFILES_DIR")"
-  git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
-  log_success "Dotfiles cloned to $DOTFILES_DIR"
+  # Prefer SSH so the clone uses your SSH key. setup_ssh generated a key but
+  # it may not be registered with GitHub yet, so fall back to HTTPS;
+  # switch_remote_to_ssh() points the remote back at SSH afterward.
+  if git clone "$DOTFILES_REPO_SSH" "$DOTFILES_DIR" 2>/dev/null; then
+    log_success "Dotfiles cloned via SSH to $DOTFILES_DIR"
+  else
+    log_warning "SSH clone failed, falling back to HTTPS..."
+    git clone "$DOTFILES_REPO_HTTPS" "$DOTFILES_DIR"
+    log_success "Dotfiles cloned via HTTPS to $DOTFILES_DIR"
+  fi
 }
 
 switch_remote_to_ssh() {

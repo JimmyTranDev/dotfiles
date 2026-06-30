@@ -22,7 +22,7 @@ local function scan_programming_org_dirs()
   return dirs
 end
 
---- Clone `name_with_owner` into ~/Programming/<dest_folder>/<repo_name> via gh.
+--- Clone `name_with_owner` into ~/Programming/<dest_folder>/<repo_name> via git over SSH.
 ---@param name_with_owner string e.g. "JimmyTranDev/dotfiles"
 ---@param repo_name string the bare repo name used for the local directory
 ---@param dest_folder string the org folder under ~/Programming to clone into
@@ -42,7 +42,7 @@ local function clone_repo(name_with_owner, repo_name, dest_folder)
 
   vim.notify('Cloning ' .. name_with_owner .. '...', vim.log.levels.INFO)
   vim.system(
-    { 'gh', 'repo', 'clone', name_with_owner, dest },
+    { 'git', 'clone', 'git@github.com:' .. name_with_owner .. '.git', dest },
     { text = true },
     vim.schedule_wrap(function(result)
       if result.code == 0 then
