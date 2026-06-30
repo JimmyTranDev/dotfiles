@@ -151,12 +151,8 @@ As the **very last action of this command** — after the Done report above, the
 PR has been opened, and any Jira report-back — arm pane auto-close so this
 opencode pane closes itself the moment it next goes idle:
 
-```bash
-node "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/lib/implement-auto-close-arm.mjs"
-```
+!`cat "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/_partials/auto-close-arm.md"`
 
-It is best-effort and self-limiting: a no-op outside zellij and when
-`OPENCODE_IMPLEMENT_AUTOCLOSE=0`, and it never fails the run. **Never run it
-earlier** — the mid-run confirm gates (the Phase 3 PR question, and any blocking
-ambiguity) also go idle, so arming before the run is truly finished would close
-the pane during a gate.
+**Never run it earlier** — the mid-run confirm gates (the Phase 3 PR question,
+and any blocking ambiguity) also go idle, so arming before the run is truly
+finished would close the pane during a gate.

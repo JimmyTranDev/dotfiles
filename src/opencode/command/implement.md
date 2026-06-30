@@ -167,13 +167,10 @@ As the **very last action of this command** — after the Done report above and
 every other step has finished — arm pane auto-close so this opencode pane closes
 itself the moment it next goes idle:
 
-```bash
-node "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/lib/implement-auto-close-arm.mjs"
-```
+!`cat "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/_partials/auto-close-arm.md"`
 
-It is best-effort and self-limiting: a no-op outside zellij and when
-`OPENCODE_IMPLEMENT_AUTOCLOSE=0`, and it never fails the run. **Never run it
-earlier** — the mid-run spec/plan confirm gates also go idle, so arming before
-the work is truly finished would close the pane during a gate. When this
-command's Phases 1–5 are reused by `/implement-worktree` or `/implement-pr`, do
-**not** arm here — those commands arm as their own final step.
+**Never run it earlier** — the mid-run spec/plan confirm gates also go idle, so
+arming before the work is truly finished would close the pane during a gate.
+When this command's Phases 1–5 are reused by `/implement-worktree` or
+`/implement-pr`, do **not** arm here — those commands arm as their own final
+step.

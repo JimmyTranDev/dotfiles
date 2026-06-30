@@ -126,7 +126,7 @@ development environment built on [OpenCode](https://opencode.ai):
 
 | Resource | Count | What it does |
 |----------|-------|--------------|
-| **Commands** | 10 | Orchestrated workflows — `/implement`, `/implement-pr`, `/fix-pr`, `/implement-worktree`, `/review-pr`, `/spec-plan`, `/commit`, `/fix`, `/merge-worktrees`, `/audit-npm` |
+| **Commands** | 9 | Orchestrated workflows — `/implement`, `/implement-pr`, `/fix-pr`, `/implement-worktree`, `/review-pr`, `/commit`, `/fix`, `/merge-worktrees`, `/audit-npm` |
 | **Skills** | 43 | On-demand expertise — test-driven development, security hardening, spec-driven development, debugging, code review, Figma-to-code, Turso, and more |
 | **Plugins** | 2 | Custom JS plugins — live Zellij pane/tab status |
 | **Scripts** | 35 | Reusable shell tools — stack detection, branch info, test runners, PR status, security scans, and more |
@@ -140,7 +140,6 @@ checklists) so the model writes idiomatic code.
 **Example workflows:**
 
 ```bash
-/spec-plan add rate limiting to the API   # Produce a spec + ordered task plan, then stop
 /implement ABC-123                         # Run a ticket end-to-end in place (spec → review)
 /implement-pr add a dark-mode toggle       # Same flow, in a worktree, ending in a pull request
 /commit                                    # Conventional commit from your staged changes
