@@ -1,6 +1,6 @@
 local M = {}
 
-local LAZY_REPO = 'https://github.com/folke/lazy.nvim.git'
+local LAZY_REPO = 'git@github.com:folke/lazy.nvim.git'
 local LAZY_BRANCH = 'stable'
 
 local function is_git_available()
