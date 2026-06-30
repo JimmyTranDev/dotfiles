@@ -89,6 +89,7 @@ Map every request to the appropriate skill before acting.
 | Handle review comments on your own GitHub PR — address in code, reply, resolve threads | `handle-github-pr-comments` |
 | Handle your PR's review comments in the existing wcreated worktree you own — fix/reply, push, resolve (keep worktree while PR open) | `handle-pr-comments-worktree` |
 | Auto-address your PR's review comments by delegating to a headless `opencode run` in the existing wcreated worktree you own | `fix-worktree` |
+| Implement in a wcreated worktree and verify the running change in a real browser via the Browser MCP, then push (no PR) & optionally rebase/merge/clean up | `test-pr-worktree` |
 | Removing/sunsetting systems, migrating implementations | `deprecation-and-migration` |
 | ADRs, decision records, API/feature documentation | `documentation-and-adrs` |
 | New session setup, rules files, context configuration | `context-engineering` |
