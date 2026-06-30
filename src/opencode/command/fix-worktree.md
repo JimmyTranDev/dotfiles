@@ -9,7 +9,7 @@ autonomous opencode session walks the **unresolved** review threads and addresse
 each (a code change or a reply), then you verify its work, push, reply, and
 resolve, leaving your main clone untouched. This **requires** that worktree to
 already exist; if it's missing, stop and create it first. This is
-`/handle-pr-comments-worktree` with the handling **delegated to opencode**.
+`/triage-comments-pr-worktree` with the handling **delegated to opencode**.
 
 `$ARGUMENTS` identifies the PR — a number (`123`), a URL
 (`github.com/<org>/<repo>/pull/123`), or its head branch name — and may carry the
@@ -46,7 +46,7 @@ Run it as:
 
 1. **Resolve the PR** — capture `owner`/`repo`, `number`, `headRefName`,
    `baseRefName`, and `isCrossRepository` (a fork PR isn't a branch you own — it
-   has no `wcreated` worktree, so use `/handle-pr-comments` instead).
+   has no `wcreated` worktree, so use `/triage-comments-pr` instead).
 2. **Locate the existing wcreated worktree** — find the worktree under
    `~/Programming/wcreated` whose branch is the head branch (`git -C <repo>
    worktree list`); confirm it's a worktree on the head branch. **If it doesn't

@@ -7,7 +7,7 @@ Handle the review feedback on the pull request **$ARGUMENTS** in the existing
 own — walk its **unresolved** review threads, address each (a code change or a
 reply), push, then reply to and resolve the ones you handled, leaving your main
 clone untouched. This **requires** that worktree to already exist; if it's
-missing, stop and create it first. This is `/handle-pr-comments` run inside the
+missing, stop and create it first. This is `/triage-comments-pr` run inside the
 worktree you own.
 
 `$ARGUMENTS` identifies the PR — a number (`123`), a URL
@@ -39,7 +39,7 @@ fix / reply / resolve). Run it as:
 
 1. **Resolve the PR** — capture `owner`/`repo`, `number`, `headRefName`,
    `baseRefName`, and `isCrossRepository` (a fork PR isn't a branch you own — it
-   has no `wcreated` worktree, so use `/handle-pr-comments` instead).
+   has no `wcreated` worktree, so use `/triage-comments-pr` instead).
 2. **Locate the existing wcreated worktree** — find the worktree under
    `~/Programming/wcreated` whose branch is the head branch (`git -C <repo>
    worktree list`); confirm you're inside it and on the head branch before

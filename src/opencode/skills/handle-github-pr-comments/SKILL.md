@@ -63,7 +63,7 @@ gh repo view --json owner,name --jq '.owner.login + " " + .name'   # owner/repo 
 
 Confirm the PR's head branch is the branch checked out where you will make the
 fixes (you are addressing comments on your own branch). If it is not checked out,
-stop and check it out first (the `/handle-pr-comments` command does this).
+stop and check it out first (the `/triage-comments-pr` command does this).
 
 ### 2. Fetch the unresolved review threads (and general comments)
 
@@ -128,7 +128,7 @@ Categorize every unresolved thread:
 ### 5. Reply, then resolve
 
 Posting a reply and resolving a thread **notify the reviewer** — external side
-effects. Do them deliberately (the `/handle-pr-comments` command gates them).
+effects. Do them deliberately (the `/triage-comments-pr` command gates them).
 
 Reply to the thread by replying to its **top-level** comment's `databaseId`
 (`-f body=` escapes the text safely — do not hand-build JSON):
