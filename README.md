@@ -23,7 +23,7 @@ coding workflows, and a terminal that looks as good as it works.
 - **⚡ One command, whole machine** — `install.sh` detects your platform,
   installs packages, symlinks every config, and sets up SDKs. No checklists, no
   "step 7 of 23." Just run it.
-- **🤖 AI baked into the terminal** — 9 orchestrated commands, 43 on-demand
+- **🤖 AI baked into the terminal** — 10 orchestrated commands, 43 on-demand
   skills, 3 editor plugins, and 35 helper scripts turn your shell into an
   autonomous coding teammate.
 - **🎨 One palette, everywhere** — Catppuccin Mocha across terminal, editor,
@@ -97,7 +97,7 @@ and custom Lua actions for git, Jira, Todoist, and more. Full config lives in
 ### 🌳 Git
 
 **Lazygit** for interactive staging and rebasing, with **Gitsigns**
-right inside Neovim. Custom OpenCode `/commit`, `/implement-pr`, and
+right inside Neovim. Custom OpenCode `/commit`, `/implement-pr`, `/fix-pr`, and
 `/merge-worktrees` commands handle worktrees, conventional commits, and PR
 creation so you stay in flow.
 
@@ -126,7 +126,7 @@ development environment built on [OpenCode](https://opencode.ai):
 
 | Resource | Count | What it does |
 |----------|-------|--------------|
-| **Commands** | 9 | Orchestrated workflows — `/implement`, `/implement-pr`, `/implement-worktree`, `/review-pr`, `/spec-plan`, `/commit`, `/fix`, `/merge-worktrees`, `/audit-npm` |
+| **Commands** | 10 | Orchestrated workflows — `/implement`, `/implement-pr`, `/fix-pr`, `/implement-worktree`, `/review-pr`, `/spec-plan`, `/commit`, `/fix`, `/merge-worktrees`, `/audit-npm` |
 | **Skills** | 43 | On-demand expertise — test-driven development, security hardening, spec-driven development, debugging, code review, Figma-to-code, Turso, and more |
 | **Plugins** | 2 | Custom JS plugins — live Zellij pane/tab status |
 | **Scripts** | 35 | Reusable shell tools — stack detection, branch info, test runners, PR status, security scans, and more |
@@ -168,7 +168,7 @@ repetitive multi-step chores into one call: `detect-stack.sh`,
 ```
 src/                          # Configs (symlinked to ~/.config or ~/)
 ├── nvim/                     # Neovim — 36 plugins, LSP, custom Lua actions
-├── opencode/                 # AI coding — 9 commands, 43 skills, 3 plugins
+├── opencode/                 # AI coding — 10 commands, 43 skills, 3 plugins
 ├── ghostty/  kitty/          # Terminal emulators
 ├── zellij/                   # Multiplexer
 ├── lazygit/ lazydocker/ lazysql/   # TUIs (git, docker, SQL)
