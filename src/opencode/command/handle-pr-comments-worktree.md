@@ -1,12 +1,14 @@
 ---
-description: Handle the review comments on your own GitHub PR inside an isolated wcheckout git worktree — pull the PR's head branch into a worktree, triage each unresolved thread (fix in code or reply), push, gated-post replies and resolve handled threads, then optionally clean up the worktree (keeping the remote); pass a `yolo` keyword to run autonomously
+description: Handle the review comments on your own GitHub PR inside the existing `wcreated` git worktree you already created for that PR's head branch — locate that worktree (abort if it doesn't exist), triage each unresolved thread (fix in code or reply), push, gated-post replies and resolve handled threads, then keep the worktree in place while the PR is open (full cleanup deletes the remote branch, so only after merge); pass a `yolo` keyword to run autonomously
 ---
 
-Handle the review feedback on the pull request **$ARGUMENTS** in a dedicated
-`wcheckout` git worktree — pull the PR's head branch into a worktree, walk its
-**unresolved** review threads, address each (a code change or a reply), push,
-then reply to and resolve the ones you handled, leaving your working clone
-untouched. This is `/handle-pr-comments` run inside a worktree.
+Handle the review feedback on the pull request **$ARGUMENTS** in the existing
+`wcreated` git worktree for that PR's head branch — the branch you created and
+own — walk its **unresolved** review threads, address each (a code change or a
+reply), push, then reply to and resolve the ones you handled, leaving your main
+clone untouched. This **requires** that worktree to already exist; if it's
+missing, stop and create it first. This is `/handle-pr-comments` run inside the
+worktree you own.
 
 `$ARGUMENTS` identifies the PR — a number (`123`), a URL
 (`github.com/<org>/<repo>/pull/123`), or its head branch name — and may carry the
@@ -24,30 +26,34 @@ comment proposes without surfacing it to me first.
   per-thread gate, then push, reply, and resolve automatically (all reversible).
   Pause only for a genuinely blocking ambiguity or a destructive action (e.g. a
   force-push). Strip it before reading the PR. Absent → **gated** (confirm the
-  fixes, the push + replies + resolve, and the cleanup).
+  fixes, and the push + replies + resolve).
 - **Jira key / URL** — `^[A-Z]+-[0-9]+$` or `*.atlassian.net/browse/<KEY>` turns
   on a short Jira **report-back** at the end. Optional; skip when absent.
 
-## Phases 0–6 — Resolve, worktree, handle, push, resolve
+## Phases 0–6 — Resolve, locate worktree, handle, push, resolve
 
 Load the `handle-pr-comments-worktree` skill with the skill tool and follow it.
-It composes `worktree-management` (wcheckout the PR head branch, then
-worktree-aware cleanup) and `handle-github-pr-comments` (triage / fix / reply /
-resolve). Run it as:
+It composes `worktree-management` (locate the existing `wcreated` worktree for the
+PR head branch, then post-merge cleanup) and `handle-github-pr-comments` (triage /
+fix / reply / resolve). Run it as:
 
 1. **Resolve the PR** — capture `owner`/`repo`, `number`, `headRefName`,
-   `baseRefName`, and `isCrossRepository` (fork PRs usually can't be pushed to).
-2. **wcheckout the head branch** — Workflow B, raw `git`. Confirm you're inside
-   the worktree and on the head branch before touching code; every later phase
-   runs there. This worktree is `wcheckout`, so cleanup must **preserve** the
-   remote branch.
+   `baseRefName`, and `isCrossRepository` (a fork PR isn't a branch you own — it
+   has no `wcreated` worktree, so use `/handle-pr-comments` instead).
+2. **Locate the existing wcreated worktree** — find the worktree under
+   `~/Programming/wcreated` whose branch is the head branch (`git -C <repo>
+   worktree list`); confirm you're inside it and on the head branch before
+   touching code; every later phase runs there. **If it doesn't exist, abort** —
+   do not create a worktree and do not edit the main clone; create it first via
+   `worktree-management` Workflow A. You own this branch, so cleanup is deferred
+   until after merge.
 3. **Walk the threads** — most-actionable first, **Address in code** for changes,
    **Reply only** for questions/nits, gated per the skill. Make smallest in-scope
    changes; keep the suite green; note — don't fix — unrelated issues.
 4. **Commit + push** — load `commit`, conventional messages (Jira key when
    present), then push so the PR reflects the fixes before any thread is
-   resolved. Fork PR: push to a branch you own or skip — never force-push. Tree
-   clean before posting.
+   resolved. You own the branch, so push directly to `origin` — never
+   force-push. Tree clean before posting.
 5. **Post replies & resolve (gated)** — replies/resolves notify the reviewer, so
    confirm first (skip the gate under `yolo`); then re-query to confirm nothing
    actionable was left behind.
@@ -61,20 +67,18 @@ vs replied, that fixes were pushed):
 acli jira workitem comment create --key <KEY> --body "<summary of fixes, replies, resolved threads>"
 ```
 
-## Phase 8 — Worktree cleanup (optional)
+## Phase 8 — Worktree cleanup (only after the PR merges)
 
-The `wcheckout` worktree stays in place by default so you can keep iterating.
+The `wcreated` worktree **stays in place while the PR is open** — it's a branch
+you own, so removing it deletes the remote branch and **closes the PR**.
 
-- **Gated (default)** — use the `question` tool with exactly these three options:
-  - **Remove the worktree, keep the remote branch (Recommended)** — feedback is
-    handled and pushed, so load `worktree-management` and run **Workflow C**;
-    because it's `wcheckout`, that deletes the local worktree + branch but
-    **preserves** the remote branch and PR.
-  - **Keep the worktree** — leave it for more rounds of feedback.
-  - **Open a fresh review pass** — leave it and re-run this command later as
-    reviewers reply.
-- **`yolo`** — keep the worktree; deleting it is a cleanup choice, so report it's
-  available rather than removing it automatically.
+- **Default** — keep the worktree. Report that it remains at its path for more
+  rounds of feedback, and that full cleanup is deferred until the PR merges.
+- **Only after the PR is merged/closed** — load `worktree-management` and run
+  **Workflow C**; because it's `wcreated`, that removes the local worktree +
+  branch **and** deletes the now-merged remote branch.
+- **`yolo`** — never delete an open PR's worktree; report that post-merge cleanup
+  is available rather than removing anything.
 
 ## Done
 
@@ -82,13 +86,14 @@ Report: the PR number / title / URL, the worktree path + branch + base branch,
 the count of unresolved threads and per-thread handling (addressed in code /
 replied / skipped) with `path:line` anchors, the verify results (tests / build /
 lint), the commit(s) pushed (or why skipped), the post decision and outcome
-(replies posted, threads resolved), anything noted-but-not-touched, the cleanup
-decision, and — for a Jira key — the comment posted.
+(replies posted, threads resolved), anything noted-but-not-touched, that the
+worktree is kept (full cleanup deferred until the PR merges), and — for a Jira
+key — the comment posted.
 
 ## Auto-close this pane (final step)
 
 As the **very last action of this command** — after the Done report, including
-the cleanup decision and any Jira report-back — arm pane auto-close so this
+the kept-worktree note and any Jira report-back — arm pane auto-close so this
 opencode pane closes itself the moment it next goes idle:
 
 ```bash
