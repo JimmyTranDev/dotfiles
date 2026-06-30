@@ -176,7 +176,7 @@ local function fetch_parent_issues(callback, force_refresh)
 end
 
 local function create_jira_task_workflow(summary, description, fallback_project, should_open_link)
-  local select_project, select_type, select_label, select_parent
+  local select_project, select_type, select_label, select_parent, select_transition, create_and_transition
 
   select_project = function()
     get_user_input('Enter project key: ', function(project) select_type(project) end, fallback_project)
@@ -252,119 +252,152 @@ local function create_jira_task_workflow(summary, description, fallback_project,
 
         save_last_parent(selected_parent.value)
 
-        local assignee_email = get_current_user_email()
-        local assignee_flag = assignee_email and string.format(' --assignee "%s"', assignee_email) or ''
-        local label_flag = selected_label.value and string.format(' --label "%s"', selected_label.value) or ''
-        local description_flag = (description and description ~= '') and string.format(' --description "%s"', description:gsub('"', '\\"')) or ''
-
-        local cmd = string.format(
-          'acli jira workitem create --summary "%s" --project "%s" --type "%s" --parent "%s"%s%s%s',
-          summary:gsub('"', '\\"'),
-          project,
-          selected_type.value,
-          selected_parent.value,
-          assignee_flag,
-          label_flag,
-          description_flag
-        )
-
-        vim.notify('Creating Jira task...', vim.log.levels.INFO)
-
-        vim.system(
-          { 'sh', '-c', cmd },
-          { text = true },
-          vim.schedule_wrap(function(result)
-            if result.code == 0 then
-              local work_item_id = result.stdout:match('([A-Z]+-[0-9]+)')
-
-              if work_item_id then
-                vim.notify(string.format('Task %s created successfully', work_item_id), vim.log.levels.INFO)
-
-                local function open_link_if_requested()
-                  if should_open_link then
-                    local jira_link = link_utils.get_jira_link_with_ticket(work_item_id)
-                    if jira_link then vim.system({ 'open', jira_link }) end
-                  end
-                end
-
-                if CONFIG.AUTO_TRANSITION then
-                  local function run_transitions(statuses, index, on_complete)
-                    if index > #statuses then
-                      on_complete()
-                      return
-                    end
-
-                    local status = statuses[index]
-                    local transition_cmd = string.format('acli jira workitem transition --key "%s" --status "%s" --yes', work_item_id, status)
-
-                    vim.system(
-                      { 'sh', '-c', transition_cmd },
-                      { text = true },
-                      vim.schedule_wrap(function(transition_result)
-                        if transition_result.code == 0 then
-                          vim.notify(string.format('Task %s transitioned to %s', work_item_id, status), vim.log.levels.INFO)
-                          run_transitions(statuses, index + 1, on_complete)
-                        else
-                          local transition_error = transition_result.stderr ~= '' and transition_result.stderr or transition_result.stdout
-                          vim.notify(string.format('Task %s failed to transition to %s: %s', work_item_id, status, transition_error), vim.log.levels.WARN)
-                          on_complete()
-                        end
-                      end)
-                    )
-                  end
-
-                  -- Offer each configured status as a target; selecting one runs the chain
-                  -- from the start up to and including it (Jira requires stepping through the
-                  -- intermediate states). Dismissing the picker skips the transition entirely.
-                  local transition_options = {}
-                  for _, status in ipairs(CONFIG.TRANSITION_STATUSES) do
-                    table.insert(transition_options, { name = status, value = status })
-                  end
-
-                  vim.ui.select(transition_options, {
-                    prompt = 'Select transition target:',
-                    format_item = function(item) return item.name end,
-                  }, function(selected_transition)
-                    -- Dismissed: leave the ticket in its just-created state, no transition.
-                    if not selected_transition then
-                      open_link_if_requested()
-                      return
-                    end
-
-                    -- Fail closed: an unrecognised target slices to an empty chain rather
-                    -- than running every status by accident.
-                    local statuses = util.slice_transition_chain(CONFIG.TRANSITION_STATUSES, selected_transition.value)
-                    if #statuses == 0 then
-                      vim.notify(
-                        string.format("Transition status '%s' not in chain; skipping auto-transition", tostring(selected_transition.value)),
-                        vim.log.levels.WARN
-                      )
-                    end
-
-                    run_transitions(statuses, 1, open_link_if_requested)
-                  end)
-                else
-                  open_link_if_requested()
-                end
-              else
-                vim.notify(string.format("Jira task '%s' created in project '%s'", summary, project), vim.log.levels.INFO)
-              end
-            else
-              local error_msg = result.stderr ~= '' and result.stderr or result.stdout
-              vim.notify('Failed to create Jira task: ' .. error_msg, vim.log.levels.ERROR)
-
-              vim.ui.select(
-                { { name = 'Try again', value = 'retry' }, { name = 'Cancel', value = 'cancel' } },
-                { prompt = 'Task creation failed. What would you like to do?' },
-                function(choice)
-                  if choice and choice.value == 'retry' then select_project() end
-                end
-              )
-            end
-          end)
-        )
+        select_transition(project, selected_type, selected_label, selected_parent)
       end)
     end)
+  end
+
+  -- Pick the transition target BEFORE the ticket is created, so every choice is
+  -- made up front and the create + transition then run as one unattended batch.
+  -- Selecting a status runs the chain from the start up to and including it (Jira
+  -- requires stepping through the intermediate states); "None" creates the ticket
+  -- without transitioning; dismissing (Esc) cancels creation, like the other
+  -- pre-creation pickers.
+  select_transition = function(project, selected_type, selected_label, selected_parent)
+    -- AUTO_TRANSITION off: never offer the picker, just create with no transition.
+    if not CONFIG.AUTO_TRANSITION then
+      create_and_transition(project, selected_type, selected_label, selected_parent, nil)
+      return
+    end
+
+    local transition_options = {}
+    for _, status in ipairs(CONFIG.TRANSITION_STATUSES) do
+      table.insert(transition_options, { name = status, value = status })
+    end
+    table.insert(transition_options, { name = 'None (no transition)', value = '__none__' })
+    ui_utils.add_back_option(transition_options, 'Back to parent')
+
+    vim.ui.select(transition_options, {
+      prompt = 'Select transition target:',
+      format_item = function(item) return item.name end,
+    }, function(selected_transition)
+      -- Esc: cancel the whole creation, consistent with the type/label/parent steps.
+      if not selected_transition then
+        vim.notify('Task creation cancelled', vim.log.levels.INFO)
+        return
+      end
+
+      if selected_transition.value == '__back__' then
+        select_parent(project, selected_type, selected_label)
+        return
+      end
+
+      -- Explicit opt-out: create the ticket but run no transitions.
+      if selected_transition.value == '__none__' then
+        create_and_transition(project, selected_type, selected_label, selected_parent, nil)
+        return
+      end
+
+      -- Fail closed: an unrecognised target slices to an empty chain rather than
+      -- running every status by accident.
+      local statuses = util.slice_transition_chain(CONFIG.TRANSITION_STATUSES, selected_transition.value)
+      if #statuses == 0 then
+        vim.notify(
+          string.format("Transition status '%s' not in chain; skipping auto-transition", tostring(selected_transition.value)),
+          vim.log.levels.WARN
+        )
+      end
+
+      create_and_transition(project, selected_type, selected_label, selected_parent, statuses)
+    end)
+  end
+
+  -- Create the ticket (the "jira generation"), then run the transition chain that
+  -- was chosen up front in select_transition (nil/empty chain = create only).
+  create_and_transition = function(project, selected_type, selected_label, selected_parent, statuses)
+    local assignee_email = get_current_user_email()
+    local assignee_flag = assignee_email and string.format(' --assignee "%s"', assignee_email) or ''
+    local label_flag = selected_label.value and string.format(' --label "%s"', selected_label.value) or ''
+    local description_flag = (description and description ~= '') and string.format(' --description "%s"', description:gsub('"', '\\"')) or ''
+
+    local cmd = string.format(
+      'acli jira workitem create --summary "%s" --project "%s" --type "%s" --parent "%s"%s%s%s',
+      summary:gsub('"', '\\"'),
+      project,
+      selected_type.value,
+      selected_parent.value,
+      assignee_flag,
+      label_flag,
+      description_flag
+    )
+
+    vim.notify('Creating Jira task...', vim.log.levels.INFO)
+
+    vim.system(
+      { 'sh', '-c', cmd },
+      { text = true },
+      vim.schedule_wrap(function(result)
+        if result.code == 0 then
+          local work_item_id = result.stdout:match('([A-Z]+-[0-9]+)')
+
+          if work_item_id then
+            vim.notify(string.format('Task %s created successfully', work_item_id), vim.log.levels.INFO)
+
+            local function open_link_if_requested()
+              if should_open_link then
+                local jira_link = link_utils.get_jira_link_with_ticket(work_item_id)
+                if jira_link then vim.system({ 'open', jira_link }) end
+              end
+            end
+
+            local function run_transitions(chain, index, on_complete)
+              if index > #chain then
+                on_complete()
+                return
+              end
+
+              local status = chain[index]
+              local transition_cmd = string.format('acli jira workitem transition --key "%s" --status "%s" --yes', work_item_id, status)
+
+              vim.system(
+                { 'sh', '-c', transition_cmd },
+                { text = true },
+                vim.schedule_wrap(function(transition_result)
+                  if transition_result.code == 0 then
+                    vim.notify(string.format('Task %s transitioned to %s', work_item_id, status), vim.log.levels.INFO)
+                    run_transitions(chain, index + 1, on_complete)
+                  else
+                    local transition_error = transition_result.stderr ~= '' and transition_result.stderr or transition_result.stdout
+                    vim.notify(string.format('Task %s failed to transition to %s: %s', work_item_id, status, transition_error), vim.log.levels.WARN)
+                    on_complete()
+                  end
+                end)
+              )
+            end
+
+            -- Run the chain chosen up front; nil/empty means create only.
+            if statuses and #statuses > 0 then
+              run_transitions(statuses, 1, open_link_if_requested)
+            else
+              open_link_if_requested()
+            end
+          else
+            vim.notify(string.format("Jira task '%s' created in project '%s'", summary, project), vim.log.levels.INFO)
+          end
+        else
+          local error_msg = result.stderr ~= '' and result.stderr or result.stdout
+          vim.notify('Failed to create Jira task: ' .. error_msg, vim.log.levels.ERROR)
+
+          vim.ui.select(
+            { { name = 'Try again', value = 'retry' }, { name = 'Cancel', value = 'cancel' } },
+            { prompt = 'Task creation failed. What would you like to do?' },
+            function(choice)
+              if choice and choice.value == 'retry' then select_project() end
+            end
+          )
+        end
+      end)
+    )
   end
 
   select_project()
