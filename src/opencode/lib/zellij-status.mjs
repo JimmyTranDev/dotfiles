@@ -15,7 +15,7 @@ export const STATES = {
 // deliberately ABSENT: opencode emits them after session.idle, and treating
 // them as "working" flipped a finished pane back to 🛠️ forever and it never
 // recovered (the bug this module's tests guard). State is driven only by
-// authoritative session-lifecycle signals, mirroring zellij-tab-status.
+// authoritative session-lifecycle signals.
 const EVENT_STATE = {
   // A permission prompt blocks the turn on user input. Both spellings are
   // handled: opencode's v1 bus emits permission.updated, the v2 bus (>= 1.15)
