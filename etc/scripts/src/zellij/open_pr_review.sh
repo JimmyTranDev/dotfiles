@@ -156,9 +156,9 @@ main() {
 	sleep 0.2
 	rm -rf "$(dirname "$layout")"
 	if [[ "$tab_id" =~ ^[0-9]+$ ]]; then
-		zellij action rename-tab --tab-id "$tab_id" "$(basename "$worktree_path")"
+		zellij action rename-tab --tab-id "$tab_id" "$(random_tab_name "$worktree_path")"
 	else
-		zellij action rename-tab "$(basename "$worktree_path")"
+		zellij action rename-tab "$(random_tab_name "$worktree_path")"
 	fi
 
 	"$SCRIPT_DIR/update_tab_indexes.sh"

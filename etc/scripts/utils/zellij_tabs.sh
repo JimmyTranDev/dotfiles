@@ -120,3 +120,108 @@ for r in results:
     print(r)
 "
 }
+
+# --- Random tab names ---------------------------------------------------------
+#
+# random_tab_name maps a stable key (an absolute directory path) to a fun,
+# reproducible "<adjective>-<noun>" tab name. It is a *pure function of the key*
+# -- the same directory always yields the same name -- so the recompute-on-cd
+# naming hook (zellij_tab_name_update) can call it on every cd without the tab
+# name ever flickering, while different directories still get different names.
+#
+# Portability mirrors the rest of this file: the word lists are newline strings
+# (never shell arrays, which index differently under bash 3.2 and zsh) and the
+# hash is POSIX `cksum` piped through `awk`, both already relied on elsewhere in
+# the repo. Two independent, salted cksums pick the adjective and the noun so
+# the two halves vary independently.
+
+# Curated, lowercase, hyphen-free words. ~32 x ~32 => ~1024 distinct names.
+_ZELLIJ_ADJECTIVES='brave
+calm
+clever
+bold
+bright
+swift
+gentle
+keen
+lucky
+merry
+noble
+quiet
+rapid
+sunny
+witty
+mellow
+misty
+cosmic
+lunar
+amber
+azure
+cobalt
+coral
+crimson
+golden
+ivory
+jade
+olive
+scarlet
+teal
+velvet
+wispy'
+
+_ZELLIJ_NOUNS='otter
+falcon
+badger
+heron
+lynx
+marten
+osprey
+raven
+sparrow
+walrus
+willow
+cedar
+maple
+fern
+harbor
+meadow
+canyon
+comet
+ember
+glacier
+lagoon
+summit
+thicket
+tundra
+aspen
+birch
+cypress
+juniper
+pebble
+ripple
+boulder
+quartz'
+
+# _zellij_hash <string>: a stable non-negative integer for <string> via cksum.
+# cksum is POSIX and prints identical output under macOS and Linux, so the same
+# key hashes the same everywhere.
+_zellij_hash() {
+	printf '%s' "$1" | cksum | awk '{print $1}'
+}
+
+# _zellij_pick <newline-list> <index>: print the (index mod line-count) line of
+# <newline-list>, 0-based. Blank lines are ignored so a trailing newline never
+# selects an empty word. One awk pass reads every line, then indexes by modulo.
+_zellij_pick() {
+	awk -v idx="$2" 'NF { a[++n] = $0 } END { if (n > 0) print a[(idx % n) + 1] }' <<<"$1"
+}
+
+# random_tab_name <key>: deterministic "<adjective>-<noun>" for <key>. The noun
+# is picked from a salted hash of the key so the adjective and noun vary
+# independently rather than moving in lockstep.
+random_tab_name() {
+	local key="$1" adj noun
+	adj=$(_zellij_pick "$_ZELLIJ_ADJECTIVES" "$(_zellij_hash "$key")")
+	noun=$(_zellij_pick "$_ZELLIJ_NOUNS" "$(_zellij_hash "noun:$key")")
+	printf '%s-%s\n' "$adj" "$noun"
+}

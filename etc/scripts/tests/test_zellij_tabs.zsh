@@ -37,6 +37,30 @@ assert_eq() {
   fi
 }
 
+# assert_match <desc> <regex> <actual>: pass when $actual matches the zsh regex.
+assert_match() {
+  local desc="$1" pattern="$2" actual="$3"
+  if [[ "$actual" =~ $pattern ]]; then
+    pass "$desc"
+  else
+    fail "$desc"
+    print -r -- "    value:   [$actual]"
+    print -r -- "    pattern: /$pattern/"
+  fi
+}
+
+# assert_in_list <desc> <value> <newline-list>: pass when $value is a whole line
+# of $list (exact match, so a substring is never counted as a member).
+assert_in_list() {
+  local desc="$1" value="$2" list="$3"
+  if print -r -- "$list" | grep -qxF -- "$value"; then
+    pass "$desc"
+  else
+    fail "$desc"
+    print -r -- "    value [$value] is not a line in the given list"
+  fi
+}
+
 folders_of() { print -r -- "$1" | parse_focused_tab_folders }
 
 # --- resolve_tab_base_name: only an exact "nvim" base name is overridden -------
@@ -193,6 +217,48 @@ KDL
 )
 assert_eq "escaped quotes in tab name do not desync brace counting" \
   "dotfiles" "$(folders_of "$escaped_layout")"
+
+# --- random_tab_name: deterministic <adjective>-<noun> per key ----------------
+# random_tab_name maps a stable key (an absolute directory path) to a fun
+# "<adjective>-<noun>" tab name. It is a pure function of the key -- same key in,
+# same name out -- so the recompute-on-cd naming hook never makes a tab flicker,
+# and the whole mapping is unit-testable without a live zellij session.
+
+# Deterministic: the same key always resolves to the same name.
+assert_eq "random_tab_name is deterministic for a given key" \
+  "$(random_tab_name /Users/jimmy/Programming/JimmyTranDev/dotfiles)" \
+  "$(random_tab_name /Users/jimmy/Programming/JimmyTranDev/dotfiles)"
+
+# Format: lowercase "<adjective>-<noun>" joined by a single hyphen.
+assert_match "random_tab_name yields lowercase <adjective>-<noun>" \
+  '^[a-z]+-[a-z]+$' "$(random_tab_name /Users/jimmy/Programming/JimmyTranDev/dotfiles)"
+
+# Membership: each half is drawn from its curated word list.
+sample_name="$(random_tab_name /some/project/path)"
+assert_in_list "adjective half is a curated adjective" \
+  "${sample_name%%-*}" "$_ZELLIJ_ADJECTIVES"
+assert_in_list "noun half is a curated noun" \
+  "${sample_name##*-}" "$_ZELLIJ_NOUNS"
+
+# Variation: distinct keys spread across the space (not collapsed to one name).
+typeset -A _rtn_seen
+typeset -i _rtn_uniq=0
+for _rtn_key in /a /b /c /d /e /f /g /h; do
+  _rtn_name="$(random_tab_name "$_rtn_key")"
+  if [[ -z "${_rtn_seen[$_rtn_name]:-}" ]]; then
+    _rtn_seen[$_rtn_name]=1
+    (( _rtn_uniq++ ))
+  fi
+done
+if (( _rtn_uniq >= 2 )); then
+  pass "distinct keys produce varied names ($_rtn_uniq unique of 8)"
+else
+  fail "distinct keys produce varied names ($_rtn_uniq unique of 8)"
+fi
+
+# An empty key must still resolve to a valid name (cksum of "" is defined).
+assert_match "empty key still yields a valid name" \
+  '^[a-z]+-[a-z]+$' "$(random_tab_name '')"
 
 # --- Summary -----------------------------------------------------------------
 print -r --

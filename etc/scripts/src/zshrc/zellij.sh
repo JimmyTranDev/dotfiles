@@ -1,18 +1,13 @@
+# random_tab_name (used below) lives in the shared bash/zsh-portable helper.
+source "$DOTFILES_DIR/etc/scripts/utils/zellij_tabs.sh"
+
 zellij_tab_name_update() {
   if [[ -n $ZELLIJ ]]; then
-    local current_dir="${PWD##*/}"
-    [[ "$PWD" == "$HOME" ]] && current_dir="~"
+    # Name the tab after a deterministic random "<adjective>-<noun>" derived
+    # from the current directory: the same directory always maps to the same
+    # name, so this recompute-on-cd hook never makes the tab name flicker.
     local tab_name
-    local git_branch
-    git_branch=$(git branch --show-current 2>/dev/null)
-    if [[ -n "$git_branch" && "$git_branch" =~ ([A-Z]+-[0-9]+) ]]; then
-      tab_name="$MATCH"
-    elif [[ "$current_dir" =~ ^[A-Z]+-[0-9]+ ]]; then
-      tab_name="$MATCH"
-    else
-      local max_length="${ZELLIJ_TAB_NAME_MAX_LENGTH:-20}"
-      tab_name="${current_dir:0:$max_length}"
-    fi
+    tab_name=$(random_tab_name "$PWD")
     local layout
     layout=$(zellij action dump-layout 2>/dev/null)
     local tab_index

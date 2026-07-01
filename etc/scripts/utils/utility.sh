@@ -2,6 +2,7 @@
 
 _UTILITY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")" && pwd)"
 source "$_UTILITY_DIR/../consts/dirs.sh"
+source "$_UTILITY_DIR/zellij_tabs.sh"
 
 require_tool() {
     local missing=0
@@ -578,8 +579,9 @@ visible_project_dir() {
 
 # Open a new stacked zellij pane rooted at $1 running tool $2 (one of
 # PANE_TOOLS). "empty" opens a plain shell pane; every other tool runs in a pane
-# that closes itself on exit (--close-on-exit). The focused tab is renamed after
-# the project folder; callers should reindex tab names afterward.
+# that closes itself on exit (--close-on-exit). The focused tab is renamed to a
+# deterministic random "<adjective>-<noun>" name for the project directory;
+# callers should reindex tab names afterward.
 open_tool_pane() {
 	local target_dir="$1"
 	local tool="$2"
@@ -590,7 +592,7 @@ open_tool_pane() {
 		zellij action new-pane --cwd "$target_dir" --stacked --close-on-exit -- "$tool"
 	fi
 
-	zellij action rename-tab "$(basename "$target_dir")"
+	zellij action rename-tab "$(random_tab_name "$target_dir")"
 }
 
 # --- PR review launcher (Alt g) ----------------------------------------------
