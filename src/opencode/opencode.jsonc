@@ -6,7 +6,7 @@
   "model": "anthropic/claude-opus-4-8",
   // Additional markdown files injected as system instructions
   "instructions": [
-    "CLAUDE.md"
+    "AGENTS.md"
   ],
   // File edits denied; other actions allowed for autonomous operation
   "permission": {

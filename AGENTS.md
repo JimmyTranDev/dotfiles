@@ -10,7 +10,6 @@ dotfiles/
 ├── src/                    # Config files (symlinked to their destinations)
 │   ├── nvim/               # -> ~/.config/nvim/
 │   ├── opencode/           # -> ~/.config/opencode/
-│   ├── claude/             # -> ~/.claude/
 │   ├── ghostty/            # -> ~/.config/ghostty/
 │   ├── kitty/              # -> ~/.config/kitty/
 │   ├── yazi/               # -> ~/.config/yazi/
@@ -46,4 +45,4 @@ dotfiles/
 
 - **Adding a new tool config**: Create a directory under `src/`, add it to the appropriate `get_macos_links()` or `get_linux_links()` function in `sync_links.sh`, then run the script.
 - **Shell scripts**: All scripts use bash, source `common/logging.sh` and `common/utility.sh` for shared functions. Follow the existing pattern of `set -e`, function-based structure, and the logging helpers (`log_info`, `log_success`, `log_warning`, `log_error`).
-- **OpenCode config**: `src/opencode/` contains agents (`agent/*.md`), commands (`command/*.md`), and skills (`skills/<name>/SKILL.md`, auto-discovered). Global LLM rules live in `src/opencode/CLAUDE.md`, loaded by opencode via the `instructions` array in `opencode.jsonc`; `src/claude/CLAUDE.md` symlinks to that file (and links to `~/.claude/CLAUDE.md`) so Claude Code reads the same rules. Deprecated items are moved to `_depreciated/` subdirectories within `command/` and `skills/` — they are excluded from auto-discovery.
+- **OpenCode config**: `src/opencode/` contains agents, commands, skills, and `AGENTS.md` (global LLM rules). The `opencode.json` loads `agent/*.md`, `command/*.md`, and `AGENTS.md` via its `instructions` array. Skills at `skills/<name>/SKILL.md` are auto-discovered. Deprecated items are moved to `_depreciated/` subdirectories within `command/` and `skills/` — they are excluded from auto-discovery.

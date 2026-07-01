@@ -1,1 +1,1 @@
-../opencode/CLAUDE.md
+../opencode/AGENTS.md

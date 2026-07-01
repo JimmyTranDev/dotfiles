@@ -111,8 +111,8 @@ Add a supporting `.md` only when reference material exceeds ~100 lines, keeping 
 
 Auto-discovery picks up the new `SKILL.md` from frontmatter, but this repo also maintains human/agent-facing maps that must be updated for the skill to be routed:
 
-- `src/opencode/CLAUDE.md` — add a row to the relevant **Intent → Skill Mapping** table.
-- `~/.config/opencode/CLAUDE.md` (global) — add to its mapping if the skill is global in nature.
+- `src/opencode/AGENTS.md` — add a row to the relevant **Intent → Skill Mapping** table.
+- `~/.config/opencode/AGENTS.md` (global) — add to its mapping if the skill is global in nature.
 - `src/opencode/skills/using-agent-skills/SKILL.md` — add to the discovery tree and the Quick Reference table.
 
 ### 8. Verify and propagate
@@ -135,7 +135,7 @@ Run the verification checklist below, then remind the user to **quit and restart
 | "I'll summarize the steps in the description so it's discoverable." | Agents may follow the summary instead of reading the skill. Describe *what* and *when*, never the *how*. |
 | "More sections make it more thorough." | Token-bloat degrades agent attention. Each section must justify its inclusion. |
 | "I'll add a scripts/ folder like the other skills." | Empty directories add noise. Add `scripts/` only when shipping real helpers. |
-| "Auto-discovery will pick it up, so I don't need to register it." | This repo's CLAUDE.md and `using-agent-skills` maps drive routing. Skipping them leaves the skill effectively invisible to the intent mapping. |
+| "Auto-discovery will pick it up, so I don't need to register it." | This repo's AGENTS.md and `using-agent-skills` maps drive routing. Skipping them leaves the skill effectively invisible to the intent mapping. |
 | "This workflow is close to an existing skill but mine is slightly different." | Near-duplicates fragment discovery. Extend the existing skill unless the intent is genuinely distinct. |
 | "It's a one-off, but a skill makes it reusable." | Skills are for recurring workflows. A one-off belongs in a command or direct action, not a skill. |
 
@@ -148,7 +148,7 @@ Run the verification checklist below, then remind the user to **quit and restart
 - No `## Common Rationalizations` table for a process with skippable steps.
 - An empty `scripts/` directory.
 - The new skill overlaps heavily with an existing one.
-- New skill not added to CLAUDE.md / `using-agent-skills` maps.
+- New skill not added to AGENTS.md / `using-agent-skills` maps.
 - A `README.md` or extra docs created without the user asking (repo rule: never create docs unless explicitly asked).
 
 ## Verification
@@ -160,5 +160,5 @@ After authoring the skill, confirm:
 - [ ] The description does not embed the step-by-step process.
 - [ ] Body has Overview, When to Use, a Workflow, Common Rationalizations, Red Flags, and Verification (or clear equivalents).
 - [ ] No empty `scripts/` directory; supporting files added only when justified.
-- [ ] Registered in `src/opencode/CLAUDE.md` and `using-agent-skills/SKILL.md` (and global CLAUDE.md if applicable).
+- [ ] Registered in `src/opencode/AGENTS.md` and `using-agent-skills/SKILL.md` (and global AGENTS.md if applicable).
 - [ ] User reminded to restart opencode so the skill loads.

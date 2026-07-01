@@ -88,7 +88,7 @@ src/nvim/
 
 ## Code Style
 
-Existing conventions are non-negotiable (see `.opencode/CLAUDE.md`):
+Existing conventions are non-negotiable (see `.opencode/AGENTS.md`):
 
 - 160 columns, 2-space indent, single quotes, `collapse_simple_statement = Always`
   (one-line `function M.x() ... end` bodies are idiomatic here).
