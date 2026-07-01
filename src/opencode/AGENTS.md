@@ -102,6 +102,7 @@ Map every request to the appropriate skill before acting.
 | Manage the Turso Cloud platform (libSQL) — databases, groups, branches, tokens, local dev server via the `turso` CLI | `turso-cloud` |
 | Operate the `opencode` CLI binary — `run`, `serve`/`web`/`attach`, auth, agents, MCP, models, sessions, stats, plugins, `upgrade`/`uninstall` | `opencode-cli` |
 | Create a well-formed Jira ticket/work item (gather details, Figma, APIs, acceptance criteria; confirm; create via `acli`) | `create-jira-ticket` |
+| Create multiple Jira tasks from a Figma design (read via `figma`; decompose into one task per screen/component/flow; confirm; batch-create via `create-jira-ticket`/`acli`) | `create-jira-tasks-from-figma` |
 | Which skill applies? (meta) | `using-agent-skills` |
 
 ## Execution Model
