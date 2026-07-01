@@ -1,6 +1,6 @@
--- Headless assertions for custom.utils.gh_team_prs.
+-- Headless assertions for custom.utils.gh_pr_unresolved_comments.
 -- Run from the nvim config root (src/nvim):
---   nvim --headless -l tests/gh_team_prs_spec.lua
+--   nvim --headless -l tests/gh_pr_unresolved_comments_spec.lua
 -- The script resolves its own module path, so it needs no plugin runtime.
 
 local function script_dir()
@@ -17,7 +17,7 @@ package.path = lua_root .. '?.lua;' .. lua_root .. '?/init.lua;' .. package.path
 -- than the one beside this spec (e.g. when running inside a git worktree). dofile
 -- pins the test to the local file; its internal `custom.*` requires are identical
 -- across copies and resolve normally.
-local gh_team_prs = dofile(lua_root .. 'custom/utils/gh_team_prs.lua')
+local gh_pr_unresolved_comments = dofile(lua_root .. 'custom/utils/gh_pr_unresolved_comments.lua')
 
 local failures = 0
 local function check(name, got, want)
@@ -29,16 +29,16 @@ local function check(name, got, want)
   end
 end
 
-check('zero count is hidden', gh_team_prs.format_count(0), '')
-check('negative count is hidden', gh_team_prs.format_count(-3), '')
-check('non-number is hidden', gh_team_prs.format_count(nil), '')
-check('one pr renders with a leading space', gh_team_prs.format_count(1), ' 1')
-check('many prs render the number', gh_team_prs.format_count(12), ' 12')
-check('get_count starts empty before any fetch', gh_team_prs.get_count(), '')
+check('zero count is hidden', gh_pr_unresolved_comments.format_count(0), '')
+check('negative count is hidden', gh_pr_unresolved_comments.format_count(-3), '')
+check('non-number is hidden', gh_pr_unresolved_comments.format_count(nil), '')
+check('one comment renders with a leading space', gh_pr_unresolved_comments.format_count(1), ' 1')
+check('many comments render the number', gh_pr_unresolved_comments.format_count(12), ' 12')
+check('get_count starts empty before any fetch', gh_pr_unresolved_comments.get_count(), '')
 
 if failures > 0 then
   io.write(string.format('\n%d assertion(s) failed\n', failures))
   os.exit(1)
 end
-io.write('\nall gh_team_prs assertions passed\n')
+io.write('\nall gh_pr_unresolved_comments assertions passed\n')
 os.exit(0)

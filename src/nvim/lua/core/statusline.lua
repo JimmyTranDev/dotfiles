@@ -155,33 +155,23 @@ local function build_config()
     always_visible = true,
   })
 
-  local gh_notifications = require('custom.utils.gh_notifications')
+  local gh_pr_unresolved_comments = require('custom.utils.gh_pr_unresolved_comments')
   right_bubble(
     function() return { fg = colors.peach, gui = 'bold' } end,
-    '',
+    '',
     {
-      gh_notifications.get_count,
-      cond = function() return gh_notifications.get_count() ~= '' end,
-    }
-  )
-
-  local gh_pr_reviews = require('custom.utils.gh_pr_reviews')
-  right_bubble(
-    function() return { fg = colors.mauve or colors.lavender, gui = 'bold' } end,
-    '󰊤',
-    {
-      gh_pr_reviews.get_count,
-      cond = function() return gh_pr_reviews.get_count() ~= '' end,
+      gh_pr_unresolved_comments.get_count,
+      cond = function() return gh_pr_unresolved_comments.get_count() ~= '' end,
     }
   )
 
   local gh_team_prs = require('custom.utils.gh_team_prs')
   right_bubble(
-    function() return { fg = colors.teal or colors.green, gui = 'bold' } end,
-    gh_team_prs.READY_ICON,
+    function() return { fg = colors.mauve or colors.lavender, gui = 'bold' } end,
+    '󰊤',
     {
-      gh_team_prs.get_counts,
-      cond = function() return gh_team_prs.get_counts() ~= '' end,
+      gh_team_prs.get_count,
+      cond = function() return gh_team_prs.get_count() ~= '' end,
     }
   )
 
@@ -244,9 +234,7 @@ function M.setup()
 
   lualine.setup(config)
 
-  require('custom.utils.gh_notifications').setup()
-
-  require('custom.utils.gh_pr_reviews').setup()
+  require('custom.utils.gh_pr_unresolved_comments').setup()
 
   require('custom.utils.gh_team_prs').setup()
 
