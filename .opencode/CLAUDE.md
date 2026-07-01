@@ -1,8 +1,8 @@
-# AGENTS.md — dotfiles (project scope)
+# CLAUDE.md — dotfiles (project scope)
 
 Project rules for working **on this dotfiles repo**. Loaded via
-`.opencode/opencode.json` (`instructions: ["AGENTS.md"]`). The repo-root
-`AGENTS.md` carries the universal rules and the full directory tree — read it
+`.opencode/opencode.json` (`instructions: ["CLAUDE.md"]`). The repo-root
+`CLAUDE.md` carries the universal rules and the full directory tree — read it
 for structure; this file routes work to the project skills and states the
 invariants that are easy to break.
 
@@ -45,7 +45,7 @@ the repo-specific mechanics.
   function-based, and end with `main "$@"`. Indent with tabs.
 - **Catppuccin Mocha** is the unified theme across every tool.
 - **Never create documentation files** (README/markdown/docs) unless explicitly
-  asked. Updating the structure tree in the root `AGENTS.md` after adding a tool
+  asked. Updating the structure tree in the root `CLAUDE.md` after adding a tool
   is allowed.
 
 ## Verify before done

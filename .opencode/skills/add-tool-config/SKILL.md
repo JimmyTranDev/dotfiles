@@ -58,7 +58,7 @@ both files, in the correct platform bucket.
 7. **Verify.** `bash etc/scripts/src/install/doctor.sh` should report
    `Symlink <tool> -> correct target`.
 
-8. **Update the structure tree** in the repo-root `AGENTS.md` if the new tool is
+8. **Update the structure tree** in the repo-root `CLAUDE.md` if the new tool is
    worth listing there (allowed even under the no-docs rule — it is repo metadata,
    not new documentation).
 
@@ -80,4 +80,4 @@ both files, in the correct platform bucket.
 - [ ] Matching entry added to `SYMLINKS` in `doctor.sh` (same platform block).
 - [ ] `sync_links.sh --dry-run` lists the tool and is otherwise clean.
 - [ ] `doctor.sh` passes for the new symlink.
-- [ ] Root `AGENTS.md` tree updated if the tool was added to the documented set.
+- [ ] Root `CLAUDE.md` tree updated if the tool was added to the documented set.

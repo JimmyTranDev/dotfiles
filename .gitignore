@@ -8,7 +8,7 @@ src/opencode/node_modules/
 src/opencode/bun.lock
 src/claude/tasks/
 
-!AGENTS.md
+!CLAUDE.md
 
 .env
 secrets/
