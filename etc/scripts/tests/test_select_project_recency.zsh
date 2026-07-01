@@ -246,6 +246,171 @@ no_focus_rc=$?
 assert_eq "no focused pane -> empty output" "" "$no_focus_out"
 assert_eq "no focused pane -> non-zero return" "1" "$no_focus_rc"
 
+# --- _visible_project_dir_from_layout: the visible (expanded) non-agent pane --
+# Backs visible_project_dir(), the first target resolver for Alt ] and Alt [.
+# Alt ] opens an agent for the project you are VIEWING -- the expanded pane in
+# the editor column -- which is NOT the focused pane (you press the key from the
+# agent pane) and NOT the agent column's own expanded pane. Same dump-layout KDL
+# as _focused_pane_dir_from_layout; selects the first expanded=true leaf pane in
+# the focused tab whose command is not opencode/storecode.
+
+# Core regression: a two-column stacked layout with BOTH the agent column (left,
+# opencode) and the editor column (right, nvim) expanded. The old move-focus peek
+# returned whichever stack member lined up geometrically (often the agent's
+# dotfiles pane); this must return the visible editor project.
+read -r -d '' LAYOUT_TWO_COLUMN <<'EOF'
+layout {
+    cwd "/Users/jimmy/Programming"
+    tab name="1.flow" focus=true {
+        pane split_direction="vertical" {
+            pane size="30%" stacked=true {
+                pane command="opencode" cwd="JimmyTranDev/dotfiles" expanded=true {
+                    start_suspended true
+                }
+                pane command="opencode" cwd="JimmyTranDev/dotfiles" {
+                    start_suspended true
+                }
+            }
+            pane size="70%" stacked=true {
+                pane command="nvim" cwd="JimmyTranDev/massvocabulary" {
+                    start_suspended true
+                }
+                pane command="nvim" cwd="wcheckout/credit-card-flow" focus=true expanded=true {
+                    start_suspended true
+                }
+            }
+        }
+    }
+}
+EOF
+assert_eq "returns the expanded editor pane, not the expanded agent pane" \
+  "/Users/jimmy/Programming/wcheckout/credit-card-flow" \
+  "$(print -r -- "$LAYOUT_TWO_COLUMN" | _visible_project_dir_from_layout)"
+
+# Focus on the LEFT agent pane (the usual trigger): the target is still the
+# editor column's expanded pane, never the focused agent dir.
+read -r -d '' LAYOUT_FOCUS_ON_AGENT <<'EOF'
+layout {
+    cwd "/Users/jimmy/Programming"
+    tab name="1.flow" focus=true {
+        pane split_direction="vertical" {
+            pane size="30%" stacked=true {
+                pane command="opencode" cwd="JimmyTranDev/dotfiles" focus=true expanded=true {
+                    start_suspended true
+                }
+            }
+            pane size="70%" stacked=true {
+                pane command="nvim" cwd="JimmyTranDev/massknowledge" expanded=true {
+                    start_suspended true
+                }
+                pane command="nvim" cwd="JimmyTranDev/dotfiles" {
+                    start_suspended true
+                }
+            }
+        }
+    }
+}
+EOF
+assert_eq "ignores the focused agent pane, returns the visible editor project" \
+  "/Users/jimmy/Programming/JimmyTranDev/massknowledge" \
+  "$(print -r -- "$LAYOUT_FOCUS_ON_AGENT" | _visible_project_dir_from_layout)"
+
+# An absolute pane cwd is used as-is.
+read -r -d '' LAYOUT_VP_ABSOLUTE <<'EOF'
+layout {
+    cwd "/Users/jimmy/Programming"
+    tab name="1" focus=true {
+        pane command="nvim" cwd="/tmp/elsewhere/proj" expanded=true {
+            start_suspended true
+        }
+    }
+}
+EOF
+assert_eq "an absolute expanded pane cwd is used as-is" \
+  "/tmp/elsewhere/proj" \
+  "$(print -r -- "$LAYOUT_VP_ABSOLUTE" | _visible_project_dir_from_layout)"
+
+# storecode is an agent too -> skipped, the editor pane wins.
+read -r -d '' LAYOUT_STORECODE <<'EOF'
+layout {
+    cwd "/base"
+    tab name="1" focus=true {
+        pane split_direction="vertical" {
+            pane command="storecode" cwd="agent-dir" expanded=true {
+                start_suspended true
+            }
+            pane command="nvim" cwd="editor-dir" expanded=true {
+                start_suspended true
+            }
+        }
+    }
+}
+EOF
+assert_eq "storecode counts as an agent and is skipped" \
+  "/base/editor-dir" \
+  "$(print -r -- "$LAYOUT_STORECODE" | _visible_project_dir_from_layout)"
+
+# An expanded pane with no command attribute is a plain shell (empty) -- it is
+# non-agent, so it is returned once the agent column is skipped.
+read -r -d '' LAYOUT_EMPTY_SHELL <<'EOF'
+layout {
+    cwd "/base"
+    tab name="1" focus=true {
+        pane split_direction="vertical" {
+            pane command="opencode" cwd="agent-dir" expanded=true {
+                start_suspended true
+            }
+            pane cwd="shell-dir" expanded=true {
+            }
+        }
+    }
+}
+EOF
+assert_eq "a commandless expanded shell pane counts as non-agent" \
+  "/base/shell-dir" \
+  "$(print -r -- "$LAYOUT_EMPTY_SHELL" | _visible_project_dir_from_layout)"
+
+# Only panes in the FOCUSED tab count: an expanded editor pane in a background
+# tab is ignored even though it appears first in the dump.
+read -r -d '' LAYOUT_VP_MULTI_TAB <<'EOF'
+layout {
+    cwd "/base"
+    tab name="bg" {
+        pane command="nvim" cwd="background-proj" expanded=true {
+            start_suspended true
+        }
+    }
+    tab name="fg" focus=true {
+        pane command="nvim" cwd="foreground-proj" expanded=true {
+            start_suspended true
+        }
+    }
+}
+EOF
+assert_eq "only the focused tab's expanded pane is considered" \
+  "/base/foreground-proj" \
+  "$(print -r -- "$LAYOUT_VP_MULTI_TAB" | _visible_project_dir_from_layout)"
+
+# No non-agent expanded pane (only the agent is expanded) -> non-zero, no output,
+# so callers fall back to current_pane_dir.
+read -r -d '' LAYOUT_VP_NONE <<'EOF'
+layout {
+    cwd "/base"
+    tab name="1" focus=true {
+        pane command="opencode" cwd="agent-dir" expanded=true {
+            start_suspended true
+        }
+        pane command="nvim" cwd="editor-dir" {
+            start_suspended true
+        }
+    }
+}
+EOF
+vp_none_out="$(print -r -- "$LAYOUT_VP_NONE" | _visible_project_dir_from_layout)"
+vp_none_rc=$?
+assert_eq "no non-agent expanded pane -> empty output" "" "$vp_none_out"
+assert_eq "no non-agent expanded pane -> non-zero return" "1" "$vp_none_rc"
+
 # --- Summary -----------------------------------------------------------------
 print -r --
 print -r -- "Passed: $PASS  Failed: $FAIL"

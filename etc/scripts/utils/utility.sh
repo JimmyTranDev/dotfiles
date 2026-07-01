@@ -491,6 +491,63 @@ _focused_pane_dir_from_layout() {
 	'
 }
 
+# Print the absolute cwd of the VISIBLE project pane from a zellij dump-layout on
+# stdin: the first expanded=true leaf pane in the focused tab whose command is
+# not an agent (opencode/storecode) -- the project shown in the editor column,
+# which is what Alt ] / Alt [ should target. Unlike the focused pane it is found
+# with no move-focus even when focus sits on the agent pane. A pane with no
+# command attribute is a plain shell and counts as non-agent. Prints nothing and
+# returns non-zero when no such pane exists. Pure text munging -- no zellij call
+# -- so it is unit-testable.
+_visible_project_dir_from_layout() {
+	awk '
+	{
+		# Base cwd: first layout-level `cwd "<abs>"` (space form). A pane line
+		# starts with "pane", so this never matches a per-pane attribute cwd.
+		if (!have_base && match($0, /^[[:space:]]*cwd "[^"]*"/)) {
+			s = substr($0, RSTART, RLENGTH)
+			sub(/^[[:space:]]*cwd "/, "", s)
+			sub(/"$/, "", s)
+			base = s
+			have_base = 1
+		}
+		# Track the focused tab: a `tab ... focus=true` line opens the focused
+		# region and the next `tab` line (a background tab) closes it. Panes
+		# are only considered inside the focused tab, since the visible editor
+		# pane is not itself focus=true.
+		if ($0 ~ /^[[:space:]]*tab[[:space:]]/) {
+			in_focus_tab = ($0 ~ /focus=true/) ? 1 : 0
+		}
+		# Visible project pane: first expanded=true `pane` with a cwd in the
+		# focused tab whose command is not opencode/storecode. Lock onto the
+		# first match so a later pane cannot override it.
+		if (!seen_pane && in_focus_tab && $0 ~ /^[[:space:]]*pane[[:space:]]/ && $0 ~ /expanded=true/ && $0 ~ /cwd="/ && $0 !~ /command="opencode"/ && $0 !~ /command="storecode"/) {
+			seen_pane = 1
+			# Greedy `.*` picks the LAST ` cwd="` on the line (matches sed).
+			if (match($0, /.*[[:space:]]cwd="/)) {
+				rest = substr($0, RLENGTH + 1)
+				q = index(rest, "\"")
+				if (q > 1) {
+					pane = substr(rest, 1, q - 1)
+					have_pane = 1
+				}
+			}
+		}
+	}
+	END {
+		if (!have_pane) exit 1
+		if (pane ~ /^\//) {
+			printf "%s", pane
+		} else if (have_base && base != "") {
+			sub(/\/$/, "", base)
+			printf "%s/%s", base, pane
+		} else {
+			printf "%s", pane
+		}
+	}
+	'
+}
+
 # Print the absolute cwd of the currently-focused zellij pane (see
 # _focused_pane_dir_from_layout). Returns non-zero *silently* when not inside a
 # zellij session, when dump-layout fails, or when the resolved path is not an
@@ -503,29 +560,19 @@ current_pane_dir() {
 	printf '%s' "$dir"
 }
 
-# Print the absolute cwd of the pane to the RIGHT of the focused one: move focus
-# right, read that pane's dir (see current_pane_dir), then move focus back left
-# so the caller opens its new pane back at the original position. This is the
-# "go right, grab the project, come back left" flow the keybind wants, and it
-# stays correct even when the left and right panes share a project dir (no
-# brittle before/after comparison). The settle sleeps let each focus change land
-# before dump-layout reads it (and before the caller spawns a pane). With no
-# pane to the right the move-focus right is a no-op. Returns non-zero *silently*
-# when not in zellij or the dir can't be resolved, so callers fall back to a
-# picker.
-right_pane_dir() {
+# Print the absolute cwd of the VISIBLE project pane -- the expanded, non-agent
+# leaf pane in the focused tab (see _visible_project_dir_from_layout). This is
+# the project the user is viewing in the editor column, which is what Alt ] /
+# Alt [ should open an agent for. Read straight from dump-layout with no
+# move-focus, so it stays correct even when focus is on the agent pane. Returns
+# non-zero *silently* when not inside a zellij session, when dump-layout fails,
+# or when the resolved path is not an existing directory -- so callers can fall
+# back to current_pane_dir / a picker.
+visible_project_dir() {
 	[[ -n "${ZELLIJ:-}" ]] || return 1
-
-	zellij action move-focus right 2>/dev/null
-	sleep 0.15
-
 	local dir
-	dir="$(current_pane_dir)" || dir=""
-
-	zellij action move-focus left 2>/dev/null
-	sleep 0.1
-
-	[[ -n "$dir" ]] || return 1
+	dir="$(zellij action dump-layout 2>/dev/null | _visible_project_dir_from_layout)" || return 1
+	[[ -n "$dir" && -d "$dir" ]] || return 1
 	printf '%s' "$dir"
 }
 

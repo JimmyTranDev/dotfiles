@@ -13,11 +13,11 @@ main() {
 
 	require_tool fzf || exit 1
 
-	# 1. Resolve the target dir (pane to the right, current pane, last project,
+	# 1. Resolve the target dir (visible editor pane, current pane, last project,
 	#    then fzf picker) so we set the tool for THIS project. Any failure exits
 	#    cleanly.
 	local target_dir
-	target_dir="$(right_pane_dir)" \
+	target_dir="$(visible_project_dir)" \
 		|| target_dir="$(current_pane_dir)" \
 		|| target_dir="$(last_project_dir)" \
 		|| target_dir="$(select_project_dir)" \

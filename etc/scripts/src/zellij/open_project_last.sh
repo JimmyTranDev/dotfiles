@@ -13,10 +13,10 @@ main() {
 
 	require_tool fzf || exit 1
 
-	# Resolve the target dir (pane to the right, current pane, last project,
+	# Resolve the target dir (visible editor pane, current pane, last project,
 	# then fzf picker) before the tool, so the reopen is keyed to THIS project.
 	local target_dir
-	target_dir="$(right_pane_dir)" \
+	target_dir="$(visible_project_dir)" \
 		|| target_dir="$(current_pane_dir)" \
 		|| target_dir="$(last_project_dir)" \
 		|| target_dir="$(select_project_dir)" \
@@ -24,9 +24,9 @@ main() {
 	[[ -z "$target_dir" ]] && exit 0
 
 	# Reuse the tool last saved for this project (~/.pane_tool_by_project) with
-	# no prompt, falling back to an empty shell when nothing is recorded yet.
+	# no prompt, falling back to this repo's agent when nothing is recorded yet.
 	local tool
-	tool="$(last_pane_tool "$target_dir")" || tool="empty"
+	tool="$(last_pane_tool "$target_dir")" || tool="$(resolve_repo_agent "$target_dir")"
 
 	# Route the two AI agents to the one matching THIS repo (jimmytrandev repos ->
 	# opencode, everything else -> storecode); nvim/gh-dash/empty pass through.
