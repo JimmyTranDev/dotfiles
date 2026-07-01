@@ -39,7 +39,7 @@ const EVENT_STATE = {
   "session.cancelled": "idle",
 }
 
-export const truncateTitle = (title, max = 24) => {
+export const truncateTitle = (title, max = 40) => {
   const text = String(title ?? "").trim()
   if (text.length <= max) {
     return text
