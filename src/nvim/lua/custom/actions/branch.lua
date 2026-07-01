@@ -210,6 +210,19 @@ end
 ---@return string[]
 function M.build_delete_remote_cmd(branch, remote) return { 'git', 'push', remote or 'origin', '--delete', branch } end
 
+--- Build the argv that retargets a local branch's upstream to
+--- `<remote>/<branch>` (remote default 'origin'). With no `current`, git
+--- targets the checked-out branch; an empty `current` is omitted. Pure.
+---@param branch string remote branch name (no remote prefix)
+---@param remote? string default 'origin'
+---@param current? string local branch to modify; omitted -> current HEAD
+---@return string[]
+function M.build_set_upstream_cmd(branch, remote, current)
+  local cmd = { 'git', 'branch', '--set-upstream-to=' .. (remote or 'origin') .. '/' .. branch }
+  if current and current ~= '' then cmd[#cmd + 1] = current end
+  return cmd
+end
+
 --- Delete each already-confirmed remote branch on origin, collecting a summary.
 --- Best-effort and concurrent: a failed delete is reported but does not abort the
 --- rest. Deleting the remote ref also drops its `origin/<branch>` tracking ref.
@@ -292,6 +305,70 @@ function M.delete_remote_branches()
               end,
             },
           })
+        end)
+      end)
+    end)
+  end)
+end
+
+--- Retarget the current branch's upstream: fetch+prune, list origin's remote
+--- branches, pick one, then `git branch --set-upstream-to=origin/<pick>` the
+--- current branch. Does not switch branches. The current branch is kept in the
+--- list on purpose (tracking origin/<same-name> is the common case).
+function M.set_upstream_branch()
+  async.run_cmd({ 'git', 'rev-parse', '--is-inside-work-tree' }, function(wt)
+    if wt.code ~= 0 or not (wt.stdout or ''):match('true') then
+      vim.notify('Not inside a git repository', vim.log.levels.WARN)
+      return
+    end
+
+    async.run_cmd({ 'git', 'rev-parse', '--abbrev-ref', 'HEAD' }, function(head)
+      local current = head.code == 0 and (head.stdout or ''):gsub('%s+$', '') or ''
+      if current == '' or current == 'HEAD' then
+        vim.notify('Detached HEAD — checkout a branch before setting its upstream', vim.log.levels.WARN)
+        return
+      end
+
+      async.run_cmd({ 'git', 'fetch', '--prune', 'origin' }, function(fetch)
+        if fetch.code ~= 0 then vim.notify('git fetch --prune failed; listing cached remote branches', vim.log.levels.WARN) end
+
+        async.run_cmd({ 'git', 'branch', '-r' }, function(result)
+          if result.code ~= 0 then
+            vim.notify('Failed to list remote branches: ' .. (result.stderr or ''), vim.log.levels.ERROR)
+            return
+          end
+
+          local names = M.parse_remote_branches(result.stdout)
+          if #names == 0 then
+            vim.notify('No remote branches on origin to track', vim.log.levels.INFO)
+            return
+          end
+
+          async.run_cmd({ 'git', 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}' }, function(up)
+            local upstream = up.code == 0 and (up.stdout or ''):gsub('%s+$', '') or ''
+            local now = upstream ~= '' and ('now: ' .. upstream) or 'no upstream set'
+
+            local items = {}
+            for _, name in ipairs(names) do
+              items[#items + 1] = { text = name, branch = name }
+            end
+
+            ui.pick({
+              title = string.format('Set upstream for %s — %s', current, now),
+              items = items,
+              format = function(item) return { { item.text, 'DiagnosticInfo' } } end,
+              on_confirm = function(item)
+                if not item then return end
+                async.run_cmd(M.build_set_upstream_cmd(item.branch, 'origin', current), function(res)
+                  if res.code == 0 then
+                    vim.notify(string.format('%s now tracks origin/%s', current, item.branch), vim.log.levels.INFO)
+                  else
+                    vim.notify('Failed to set upstream: ' .. ((res.stderr or ''):gsub('%s+$', '')), vim.log.levels.ERROR)
+                  end
+                end)
+              end,
+            })
+          end)
         end)
       end)
     end)
