@@ -35,13 +35,13 @@ test("computeName falls back to a neutral marker for an unknown state", () => {
 
 test("truncateTitle leaves titles at or under the limit unchanged", () => {
   assert.equal(truncateTitle("short"), "short")
-  assert.equal(truncateTitle("x".repeat(24)), "x".repeat(24))
+  assert.equal(truncateTitle("x".repeat(40)), "x".repeat(40))
 })
 
 test("truncateTitle clips long titles to the limit with an ellipsis", () => {
-  const result = truncateTitle("x".repeat(40))
-  assert.equal(result.length, 24)
-  assert.equal(result, "x".repeat(23) + "…")
+  const result = truncateTitle("x".repeat(60))
+  assert.equal(result.length, 40)
+  assert.equal(result, "x".repeat(39) + "…")
 })
 
 test("truncateTitle trims surrounding whitespace", () => {
