@@ -15,7 +15,7 @@ main() {
 
 	# 1. Pick the project to open nvim in with the shared fzf picker (projects
 	#    and worktrees, most-recently-used first). Unlike Alt ]
-	#    (open_project_last.sh), Alt ' does NOT peek at the pane to the right, so
+	#    (open_ai_chat.sh), Alt ' does NOT peek at the pane to the right, so
 	#    it never shifts focus right-then-left; it always prompts you to choose
 	#    the project instead. Cancelling the picker exits cleanly.
 	local target_dir

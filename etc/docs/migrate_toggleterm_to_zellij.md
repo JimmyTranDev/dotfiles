@@ -58,7 +58,7 @@ behaviour is the core thing to replicate in Zellij.
 |------|------|
 | `src/zellij/config.kdl` | Locked-mode, `Alt`-prefixed keybinds; many `Run` shell-outs |
 | `src/zellij/layouts/pr-review.kdl` | `Alt g` — 30% opencode `/review-pr` pane + 70% nvim main pane |
-| `etc/scripts/src/zellij/open_project_last.sh` | `Alt ]` — repeat last tool, no prompts |
+| `etc/scripts/src/zellij/open_ai_chat.sh` | `Alt ]` — open the repo's AI chat (opencode/storecode), no prompts |
 | `etc/scripts/src/zellij/open_project_tool.sh` | `Alt p` — pick project + tool → open the tool as a stacked pane (like `Alt ]`) |
 | `etc/scripts/src/zellij/select_session.sh` | `Alt u` — fzf session switcher |
 | `etc/scripts/src/zellij/update_tab_indexes.sh` | Re-prefix tab names (`1.foo`, `2.bar`) |
@@ -109,7 +109,7 @@ Zellij named pane. The translation table:
    command via `zsh -ic '<cmd>; echo; read -k1'` (or `exec zsh`) so the pane
    doesn't vanish — do **not** pass `--close-on-exit`.
 3. **Working directory.** Toggleterm inherits nvim's cwd. Zellij launchers should
-   reuse `current_pane_dir` (already battle-tested in `open_project_last.sh`).
+   reuse `current_pane_dir` (already battle-tested in `open_ai_chat.sh`).
 
 ---
 

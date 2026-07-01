@@ -36,7 +36,7 @@ main() {
 	save_pane_tool "$tool" "$target_dir"
 
 	# 4. Open the chosen tool as a new stacked pane in the current tab -- the
-	#    identical open path as Alt ] (open_project_last.sh) -- then reindex tab
+	#    identical open path as Alt ] (open_ai_chat.sh) -- then reindex tab
 	#    names so the position prefix stays correct.
 	open_tool_pane "$target_dir" "$tool"
 	"$SCRIPT_DIR/update_tab_indexes.sh"

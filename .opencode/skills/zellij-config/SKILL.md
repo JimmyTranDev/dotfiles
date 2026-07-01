@@ -19,7 +19,7 @@ src/zellij/
 
 etc/scripts/src/zellij/   # launcher scripts the binds Run (see dotfiles-shell-scripts)
 ├── open_project_tool.sh     # Alt p — pick project + tool, save it, open the tool as a stacked pane (like Alt ])
-├── open_project_last.sh     # Alt ] — open last tool in the right pane's dir as a new stacked pane (no prompt)
+├── open_ai_chat.sh          # Alt ] — open the repo's AI chat (opencode/storecode) as a new stacked pane (no prompt)
 ├── select_session.sh        # Alt u — fzf session switcher
 └── update_tab_indexes.sh    # re-prefixes tab names with position (1.foo, 2.bar)
 ```

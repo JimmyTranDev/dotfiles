@@ -23,16 +23,16 @@ main() {
 		|| exit 0
 	[[ -z "$target_dir" ]] && exit 0
 
-	# Reuse the tool last saved for this project (~/.pane_tool_by_project) with
-	# no prompt, falling back to this repo's agent when nothing is recorded yet.
+	# Alt ] only ever opens an AI agent -- the one matching THIS repo: personal
+	# (jimmytrandev) repos open opencode, everything else opens storecode.
+	# resolve_repo_agent always returns one of those two, so the per-project
+	# saved tool (~/.pane_tool_by_project, used by Alt p) is deliberately NOT
+	# consulted here -- otherwise a project whose saved tool is nvim/gh-dash/
+	# empty would reopen that instead of its agent.
 	local tool
-	tool="$(last_pane_tool "$target_dir")" || tool="$(resolve_repo_agent "$target_dir")"
+	tool="$(resolve_repo_agent "$target_dir")"
 
-	# Route the two AI agents to the one matching THIS repo (jimmytrandev repos ->
-	# opencode, everything else -> storecode); nvim/gh-dash/empty pass through.
-	tool="$(normalize_pane_tool "$tool" "$target_dir")"
-
-	[[ "$tool" != "empty" ]] && { require_tool "$tool" || exit 1; }
+	require_tool "$tool" || exit 1
 
 	open_tool_pane "$target_dir" "$tool"
 	"$SCRIPT_DIR/update_tab_indexes.sh"

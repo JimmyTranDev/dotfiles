@@ -1,10 +1,9 @@
 #!/usr/bin/env zsh
 # Tests for the repo -> AI-agent routing in utils/utility.sh — the logic behind
-# Alt ] (open_project_last.sh) choosing opencode vs storecode per repo. A repo
+# Alt ] (open_ai_chat.sh) choosing opencode vs storecode per repo. A repo
 # whose git `origin` owner is in PERSONAL_AGENT_ORGS (Jimmy's personal orgs)
 # opens opencode; every other repo — including one with no origin — opens
-# storecode. Only the two AI agents are routed — nvim, gh-dash, and empty are
-# opened unchanged.
+# storecode.
 #
 # Run: zsh etc/scripts/tests/test_pane_agent_by_repo.zsh
 
@@ -103,24 +102,6 @@ assert_eq "work repo resolves to storecode" \
   "storecode" "$(resolve_repo_agent "$work_repo")"
 assert_eq "repo with no origin resolves to storecode" \
   "storecode" "$(resolve_repo_agent "$no_origin_repo")"
-
-# --- normalize_pane_tool: only opencode/storecode are routed -----------------
-assert_eq "storecode on a work repo stays storecode" \
-  "storecode" "$(normalize_pane_tool storecode "$work_repo")"
-assert_eq "opencode on a work repo normalizes to storecode" \
-  "storecode" "$(normalize_pane_tool opencode "$work_repo")"
-assert_eq "storecode on a personal repo normalizes to opencode" \
-  "opencode" "$(normalize_pane_tool storecode "$personal_repo")"
-assert_eq "opencode on a personal repo stays opencode" \
-  "opencode" "$(normalize_pane_tool opencode "$personal_repo")"
-assert_eq "an AI agent on a no-origin repo normalizes to storecode" \
-  "storecode" "$(normalize_pane_tool opencode "$no_origin_repo")"
-assert_eq "nvim is left untouched on a work repo" \
-  "nvim" "$(normalize_pane_tool nvim "$work_repo")"
-assert_eq "gh-dash is left untouched on a work repo" \
-  "gh-dash" "$(normalize_pane_tool gh-dash "$work_repo")"
-assert_eq "empty is left untouched on a work repo" \
-  "empty" "$(normalize_pane_tool empty "$work_repo")"
 
 print -r --
 print -r -- "Passed: $PASS  Failed: $FAIL"

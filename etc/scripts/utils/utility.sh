@@ -397,8 +397,9 @@ last_project_dir() {
 PANE_TOOLS=(nvim opencode storecode gh-dash empty)
 
 # Per-project pane-tool memory: one "<project_dir>\t<tool>" line per project.
-# Alt p saves a project's tool when it opens it; Alt ] reopens that project's
-# saved tool. Defaults to ~/.pane_tool_by_project; overridable for tests.
+# Alt p saves a project's tool when it opens it and floats it first in that
+# project's picker next time. Alt ] does NOT read this map -- it always opens
+# the repo's AI agent. Defaults to ~/.pane_tool_by_project; overridable for tests.
 PANE_TOOL_MAP="${PANE_TOOL_MAP:-$HOME/.pane_tool_by_project}"
 
 # Remember $tool as the pane tool last used for project $dir, replacing any
@@ -684,12 +685,12 @@ select_source_repo_dir() {
 }
 
 # --- Alt ] repo -> AI-agent routing ------------------------------------------
-# open_project_last.sh (Alt ]) opens a project's saved pane tool. When that tool
-# is an AI agent, the RIGHT agent depends on the repo: Jimmy's personal repos use
-# opencode while everything else — work repos, and anything with an unknown or
-# missing origin — uses storecode (the GCP-authed internal build from
-# src/install/storecode.sh). These helpers pick the agent from the repo's git
-# origin owner so Alt ] never opens the wrong one; nvim/gh-dash/empty stay.
+# open_ai_chat.sh (Alt ]) always opens an AI agent, and the RIGHT agent
+# depends on the repo: Jimmy's personal repos use opencode while everything
+# else — work repos, and anything with an unknown or missing origin — uses
+# storecode (the GCP-authed internal build from src/install/storecode.sh).
+# These helpers pick the agent from the repo's git origin owner so Alt ] never
+# opens the wrong one.
 
 # GitHub owners whose repos open opencode instead of storecode, matched
 # case-insensitively against the origin remote's owner. Everything not listed
@@ -748,16 +749,4 @@ resolve_repo_agent() {
 	local dir="$1" owner
 	owner="$(github_remote_owner "$dir" 2>/dev/null || true)"
 	agent_for_owner "$owner"
-}
-
-# Normalize a pane tool for project $dir before opening: the two AI agents
-# (opencode/storecode) are routed to the one matching the repo (see
-# resolve_repo_agent); every other tool (nvim, gh-dash, empty) is printed back
-# unchanged. This is what lets Alt ] open the right agent per repo.
-normalize_pane_tool() {
-	local tool="$1" dir="$2"
-	case "$tool" in
-	opencode | storecode) resolve_repo_agent "$dir" ;;
-	*) printf '%s' "$tool" ;;
-	esac
 }
