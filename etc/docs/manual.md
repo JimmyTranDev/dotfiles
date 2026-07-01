@@ -17,7 +17,6 @@
 | `<leader>f` | 󰭎 Find |
 | `<leader>ff` | 󰈔 Files |
 | `<leader>fs` | 󰊄 Search |
-| `<leader>fg` | 󰊢 Git |
 | `<leader>fl` | 󰒡 LSP & Diagnostics |
 | `<leader>fv` | 󰒓 Editor |
 | `<leader>g` | 󰊢 Git |
@@ -67,6 +66,7 @@
 | `<leader>ug` | 󰊤 GitHub |
 | `<leader>uj` | 󰌧 Jira |
 | `<leader>ul` | 󰌷 Links |
+| `<leader>uw` | 󰘴 Worktree |
 | `<leader>z` | 󰒲 Lazy |
 | `<c-w>` | 󰖲 Windows |
 
@@ -121,6 +121,7 @@
 | `csv` | `git ls-files "*/core/*.csv" 2>/dev/null \| fzf --preview "head -20 {}" \| xargs -r vd --csv-delimiter "\|"` |
 | `google-chrome` | `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"` |
 | `wl` | `$DOTFILES_DIR/etc/scripts/src/worktrees/worktree list` |
+| `wd` | `$DOTFILES_DIR/etc/scripts/src/worktrees/worktree diff` |
 | `wD` | `$DOTFILES_DIR/etc/scripts/src/worktrees/worktree delete` |
 | `wC` | `$DOTFILES_DIR/etc/scripts/src/worktrees/worktree clean` |
 | `wr` | `$DOTFILES_DIR/etc/scripts/src/worktrees/worktree rename` |
@@ -140,6 +141,7 @@
 
 | Function |
 |----------|
+| `_cache_eval` |
 | `y` |
 
 ## Shell Keybindings (zsh)
@@ -168,20 +170,22 @@
 | Key | Action |
 |-----|--------|
 | `Alt ;` | SwitchToMode "normal" |
+| `Alt Space` | SwitchToMode "tmux" |
 | `Alt r` | SwitchToMode "renametab"; TabNameInput 0 |
 | `Alt n` | close_on_exit true; floating true; }; SwitchToMode "locked" |
-| `Alt q` | close_on_exit true; floating true; }; SwitchToMode "locked" |
+| `Alt x` | close_on_exit true; floating true; }; SwitchToMode "locked" |
 | `Alt i` | close_on_exit true; floating true; }; SwitchToMode "locked" |
 | `Alt o` | close_on_exit true; floating true; }; SwitchToMode "locked" |
 | `Alt p` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
+| `Alt g` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
 | `Alt ]` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
-| `Alt [` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
+| `Alt \\` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
 | `Alt u` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
 | `Alt y` | close_on_exit true; floating true; }; SwitchToMode "locked" |
 | `Alt d` | NewPane "down"; SwitchToMode "locked" |
 | `Alt e` | NewPane "right"; SwitchToMode "locked" |
 | `Alt Enter` | ToggleFocusFullscreen; SwitchToMode "locked" |
-| `Alt x` | CloseFocus; SwitchToMode "locked" |
+| `Alt q` | CloseFocus; SwitchToMode "locked" |
 | `Alt left` | MoveFocus "left" |
 | `Alt down` | MoveFocus "down" |
 | `Alt up` | MoveFocus "up" |
@@ -195,4 +199,25 @@
 | `Alt 7` | GoToTab 7; SwitchToMode "locked" |
 | `Alt 8` | GoToTab 8; SwitchToMode "locked" |
 | `Alt 9` | GoToTab 9; SwitchToMode "locked" |
+| `s` | NewPane "down"; SwitchToMode "locked" |
+| `v` | NewPane "right"; SwitchToMode "locked" |
+| `x` | CloseFocus; SwitchToMode "locked" |
+| `z` | ToggleFocusFullscreen; SwitchToMode "locked" |
+| `f` | ToggleFloatingPanes; SwitchToMode "locked" |
+| `w` | TogglePaneEmbedOrFloating; SwitchToMode "locked" |
+| `h` | MoveFocus "left"; SwitchToMode "locked" |
+| `j` | MoveFocus "down"; SwitchToMode "locked" |
+| `k` | MoveFocus "up"; SwitchToMode "locked" |
+| `l` | MoveFocus "right"; SwitchToMode "locked" |
+| `c` | close_on_exit true; floating true; }; SwitchToMode "locked" |
+| `n` | GoToNextTab; SwitchToMode "locked" |
+| `b` | GoToPreviousTab; SwitchToMode "locked" |
+| `,` | SwitchToMode "renametab"; TabNameInput 0 |
+| `Tab` | ToggleTab; SwitchToMode "locked" |
+| `d` | Detach |
+| `S` | ToggleActiveSyncTab; SwitchToMode "locked" |
+| `Esc` | SwitchToMode "locked" |
+| `q` | SwitchToMode "locked" |
+| `Ctrl c` | SwitchToMode "locked" |
+| `Alt Space` | SwitchToMode "locked" |
 

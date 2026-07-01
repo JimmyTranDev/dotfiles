@@ -64,7 +64,7 @@ main() {
 			log_info "Installing gh extensions..."
 			gh extension install dlvhdr/gh-dash || log_warning "gh-dash install failed (may already be installed)"
 			# Expose gh-dash as a bare `gh-dash` command on PATH so the zellij pane
-			# launcher (Alt p / Alt [ / Alt ]) can open it like any other tool. `gh
+			# launcher (Alt p / Alt ]) can open it like any other tool. `gh
 			# dash` always resolves to the managed extension, so the wrapper never
 			# recurses into itself.
 			mkdir -p "$HOME/.local/bin"

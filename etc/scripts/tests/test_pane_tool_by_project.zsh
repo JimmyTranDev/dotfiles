@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # Tests for save_pane_tool / last_pane_tool in utils/utility.sh — the
-# per-project pane-tool memory behind Alt [ (set the chosen tool for a
-# project, no open) and Alt ] (open that project's saved tool). The map file
+# per-project pane-tool memory behind Alt p (save the chosen tool when a
+# project's pane opens) and Alt ] (open that project's saved tool). The map file
 # stores one "<dir>\t<tool>" line per project; saving the same dir replaces its
 # line, and looking up an unknown/empty dir fails non-zero and silent so the
 # caller can fall back to "empty".

@@ -397,7 +397,7 @@ last_project_dir() {
 PANE_TOOLS=(nvim opencode storecode gh-dash empty)
 
 # Per-project pane-tool memory: one "<project_dir>\t<tool>" line per project.
-# Alt [ sets a project's tool (without opening); Alt ] opens that project's
+# Alt p saves a project's tool when it opens it; Alt ] reopens that project's
 # saved tool. Defaults to ~/.pane_tool_by_project; overridable for tests.
 PANE_TOOL_MAP="${PANE_TOOL_MAP:-$HOME/.pane_tool_by_project}"
 
@@ -494,7 +494,7 @@ _focused_pane_dir_from_layout() {
 # Print the absolute cwd of the VISIBLE project pane from a zellij dump-layout on
 # stdin: the first expanded=true leaf pane in the focused tab whose command is
 # not an agent (opencode/storecode) -- the project shown in the editor column,
-# which is what Alt ] / Alt [ should target. Unlike the focused pane it is found
+# which is what Alt ] should target. Unlike the focused pane it is found
 # with no move-focus even when focus sits on the agent pane. A pane with no
 # command attribute is a plain shell and counts as non-agent. Prints nothing and
 # returns non-zero when no such pane exists. Pure text munging -- no zellij call
@@ -562,8 +562,7 @@ current_pane_dir() {
 
 # Print the absolute cwd of the VISIBLE project pane -- the expanded, non-agent
 # leaf pane in the focused tab (see _visible_project_dir_from_layout). This is
-# the project the user is viewing in the editor column, which is what Alt ] /
-# Alt [ should open an agent for. Read straight from dump-layout with no
+# the project the user is viewing in the editor column, which is what Alt ] should open an agent for. Read straight from dump-layout with no
 # move-focus, so it stays correct even when focus is on the agent pane. Returns
 # non-zero *silently* when not inside a zellij session, when dump-layout fails,
 # or when the resolved path is not an existing directory -- so callers can fall

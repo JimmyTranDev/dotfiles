@@ -19,7 +19,6 @@ src/zellij/
 
 etc/scripts/src/zellij/   # launcher scripts the binds Run (see dotfiles-shell-scripts)
 ├── open_project_tool.sh     # Alt p — pick project + tool, save it, open the tool as a stacked pane (like Alt ])
-├── set_project_tool.sh      # Alt [ — pick tool (nvim/opencode/storecode/gh-dash/empty) and save it as the project's tool (opens nothing)
 ├── open_project_last.sh     # Alt ] — open last tool in the right pane's dir as a new stacked pane (no prompt)
 ├── select_session.sh        # Alt u — fzf session switcher
 └── update_tab_indexes.sh    # re-prefixes tab names with position (1.foo, 2.bar)
@@ -49,8 +48,8 @@ Two bind flavours:
 
 ## Add / rebind a keybind
 
-1. Pick a free `Alt <key>`. Taken: `; w r n q i o p ] [ u y d e Enter x`,
-   arrows, and `1`-`9`. Free again: `\` and `'`. There is no collision guard —
+1. Pick a free `Alt <key>`. Taken: `; w r n q i o p ] u y d e Enter x`,
+   arrows, and `1`-`9`. Free again: `'` and `[`. There is no collision guard —
    check `config.kdl` first.
 2. Add it inside `shared_among "normal" "locked"`:
    ```kdl

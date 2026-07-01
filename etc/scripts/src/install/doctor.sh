@@ -127,7 +127,7 @@ main() {
 				check_warn "$ext not found (optional)"
 			fi
 		done
-		# The Alt p / Alt [ / Alt ] launcher runs `gh-dash` as a bare command, so
+		# The Alt p / Alt ] launcher runs `gh-dash` as a bare command, so
 		# verify the ~/.local/bin/gh-dash wrapper is on PATH.
 		if command -v gh-dash >/dev/null 2>&1; then
 			check_pass "gh-dash command on PATH"

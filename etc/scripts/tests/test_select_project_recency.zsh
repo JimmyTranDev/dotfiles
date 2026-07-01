@@ -3,7 +3,7 @@
 #   _stat_mtime, _recency_mtime, bump_project_recency, _collect_project_dir_entries
 #
 # These back the shared select_project_dir() picker (Alt p sidebar, mass_tab,
-# side, plus the Alt [ / Alt ] fallback), which now lists projects/worktrees
+# side, plus the Alt ] fallback), which now lists projects/worktrees
 # most-recently-used first (by .git/dir mtime). The fzf/cd glue inside
 # select_project_dir itself is interactive and is not unit-tested here; this
 # pins the pure, deterministic core: mtime reading, the .git->dir fallback,
@@ -176,7 +176,7 @@ assert_eq "missing container dir is skipped without error (wt-beta drops, 6 rema
   "6" "$res_count"
 
 # --- _focused_pane_dir_from_layout: resolve the focused pane's cwd -----------
-# Backs current_pane_dir() (Alt ] and Alt [), which now opens a new pane in the
+# Backs current_pane_dir() (Alt ]), which now opens a new pane in the
 # right pane's directory. Parses `zellij action dump-layout` KDL: a
 # layout-level `cwd "<abs>"` base plus per-pane `cwd="<rel-or-abs>"`, with the
 # single focused leaf carrying focus=true.
@@ -247,7 +247,7 @@ assert_eq "no focused pane -> empty output" "" "$no_focus_out"
 assert_eq "no focused pane -> non-zero return" "1" "$no_focus_rc"
 
 # --- _visible_project_dir_from_layout: the visible (expanded) non-agent pane --
-# Backs visible_project_dir(), the first target resolver for Alt ] and Alt [.
+# Backs visible_project_dir(), the first target resolver for Alt ].
 # Alt ] opens an agent for the project you are VIEWING -- the expanded pane in
 # the editor column -- which is NOT the focused pane (you press the key from the
 # agent pane) and NOT the agent column's own expanded pane. Same dump-layout KDL

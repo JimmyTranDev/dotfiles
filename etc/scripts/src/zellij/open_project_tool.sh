@@ -12,8 +12,7 @@ source "$SCRIPTS_DIR/utils/utility.sh"
 # -- as a single stacked pane in the current tab (open_tool_pane). The only
 # difference from Alt ] is the front half: Alt p always prompts for the project
 # and the tool, whereas Alt ] reuses the pane-to-the-right / last project and the
-# tool already saved for it. Alt [ (set_project_tool.sh) is these same two
-# prompts without opening anything.
+# tool already saved for it.
 main() {
 	[[ -z "$ZELLIJ" ]] && exit 0
 
@@ -25,14 +24,14 @@ main() {
 	[[ -z "$target_dir" ]] && exit 0
 
 	# 2. Pick the tool (nvim, opencode, storecode, gh-dash, ... or empty), using
-	#    the same picker as Alt [ with this project's last tool floated first.
+	#    the shared picker with this project's last tool floated first.
 	#    Cancelling exits; a non-empty tool is validated once chosen.
 	local tool
 	tool="$(select_pane_tool "$target_dir")" || exit 0
 	[[ -z "$tool" ]] && exit 0
 	[[ "$tool" != "empty" ]] && { require_tool "$tool" || exit 1; }
 
-	# 3. Remember the tool for this project so Alt [ / Alt ] offer it first; the
+	# 3. Remember the tool for this project so Alt ] reuses it; the
 	#    project is already mirrored into ~/.last_project by select_project_dir.
 	save_pane_tool "$tool" "$target_dir"
 
