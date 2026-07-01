@@ -84,6 +84,7 @@ Map every request to the appropriate skill before acting.
 | Commit already-staged changes with a conventional message | `commit` |
 | Commits, branching, conflicts, parallel work | `git-workflow-and-versioning` |
 | Write a GitHub PR title + body (the `gh pr create` content) | `github-pr-description` |
+| Mark a draft GitHub PR as ready for review (`gh pr ready`) — resolve, confirm it's an open draft, gate the flip, verify | `undraft-pr` |
 | Git worktrees in ~/Programming/wcreated & wcheckout (create/checkout/delete/update/clean) | `worktree-management` |
 | Bulk-prune managed worktrees whose branch is ALREADY MERGED into base/develop (the `worktree clean` op, ownership-aware: wcreated deletes the remote, wcheckout keeps it) | `cleanup-worktrees` |
 | Resolve in-progress git merge/rebase/cherry-pick conflicts (unmerged paths, conflict markers) | `merge-conflict-resolution` |

@@ -50,6 +50,7 @@ Task arrives
     ├── Commit already-staged changes? ─→ commit
     ├── Committing/branching? ─────────→ git-workflow-and-versioning
     ├── Write a GitHub PR title/body? ──→ github-pr-description
+    ├── Mark a draft PR ready for review? → undraft-pr
     ├── Worktrees in wcreated/wcheckout? → worktree-management
     ├── Bulk-prune already-merged worktrees (worktree clean)? → cleanup-worktrees
     ├── Resolve git merge/rebase/cherry-pick conflicts? → merge-conflict-resolution
@@ -224,6 +225,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Ship | commit | Conventional commit for already-staged changes |
 | Ship | git-workflow-and-versioning | Atomic commits, clean history |
 | Ship | github-pr-description | Reviewer-focused GitHub PR title + body, grounded in the diff and verification |
+| Ship | undraft-pr | Mark a draft GitHub PR as ready for review (gh pr ready) — resolve, confirm it's an open draft, gate, verify |
 | Ship | worktree-management | Create/checkout/delete/update/clean git worktrees in ~/Programming/wcreated & wcheckout |
 | Ship | cleanup-worktrees | Bulk-prune managed worktrees whose branch is already merged into base/develop (the worktree clean op), ownership-aware: wcreated deletes the remote, wcheckout keeps it |
 | Ship | merge-conflict-resolution | Resolve in-progress git merge/rebase/cherry-pick conflicts, preserving both sides, then verify |
