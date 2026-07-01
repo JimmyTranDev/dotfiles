@@ -15,10 +15,10 @@ src/zellij/
 ├── config.kdl          # keybinds (locked default mode), plugins, ui, options
 ├── catppuccin.kdl      # `themes { ... }` block, imported by config.kdl
 └── layouts/            # one KDL pane layout per file
-    └── opencode-sidebar.kdl # Alt p — base layout: 30% stacked tool sidebar + nvim main pane
+    └── pr-review.kdl       # Alt g — PR review: 30% opencode /review-pr pane + 70% nvim main pane
 
 etc/scripts/src/zellij/   # launcher scripts the binds Run (see dotfiles-shell-scripts)
-├── open_opencode_sidebar.sh # Alt p — pick tool → project → tool sidebar + nvim layout
+├── open_project_tool.sh     # Alt p — pick project + tool, save it, open the tool as a stacked pane (like Alt ])
 ├── set_project_tool.sh      # Alt [ — pick tool (nvim/opencode/storecode/gh-dash/empty) and save it as the project's tool (opens nothing)
 ├── open_project_last.sh     # Alt ] — open last tool in the right pane's dir as a new stacked pane (no prompt)
 ├── select_session.sh        # Alt u — fzf session switcher

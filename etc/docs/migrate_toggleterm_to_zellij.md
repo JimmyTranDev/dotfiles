@@ -57,10 +57,10 @@ behaviour is the core thing to replicate in Zellij.
 | File | Role |
 |------|------|
 | `src/zellij/config.kdl` | Locked-mode, `Alt`-prefixed keybinds; many `Run` shell-outs |
-| `src/zellij/layouts/opencode-sidebar.kdl` | 30% stacked tool sidebar + nvim main pane |
+| `src/zellij/layouts/pr-review.kdl` | `Alt g` — 30% opencode `/review-pr` pane + 70% nvim main pane |
 | `etc/scripts/src/zellij/set_project_tool.sh` | `Alt [` — pick tool → save as project's tool (no open) |
 | `etc/scripts/src/zellij/open_project_last.sh` | `Alt ]` — repeat last tool, no prompts |
-| `etc/scripts/src/zellij/open_opencode_sidebar.sh` | `Alt p` — pick tool + project → sidebar layout |
+| `etc/scripts/src/zellij/open_project_tool.sh` | `Alt p` — pick project + tool → open the tool as a stacked pane (like `Alt ]`) |
 | `etc/scripts/src/zellij/select_session.sh` | `Alt u` — fzf session switcher |
 | `etc/scripts/src/zellij/update_tab_indexes.sh` | Re-prefix tab names (`1.foo`, `2.bar`) |
 | `etc/scripts/utils/utility.sh` | Shared helpers (see below) |
