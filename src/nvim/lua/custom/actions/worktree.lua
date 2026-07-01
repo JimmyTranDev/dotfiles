@@ -184,7 +184,12 @@ local function run_sequence(steps, idx, on_done)
   end)
 end
 
+-- Containers that hold linked worktrees (override via env to relocate them).
+-- Expanded and realpath'd so path comparisons and directory scans share one
+-- canonical absolute path; realpath falls back to the expanded path until the
+-- directory exists (containers are created lazily on first create/checkout).
 local WCREATED_DIR = realpath(vim.fn.expand(vim.env.WCREATED_DIR or '$HOME/Programming/wcreated'))
+local WCHECKOUT_DIR = realpath(vim.fn.expand(vim.env.WCHECKOUT_DIR or '$HOME/Programming/wcheckout'))
 
 --- True when an (already realpath'd) worktree path lives under the wcreated dir,
 --- i.e. a branch we own whose remote branch should also be deleted on cleanup.
@@ -583,9 +588,6 @@ function M.merge_and_cleanup_worktree()
   })
 end
 
--- Containers that hold linked worktrees (override via env to relocate them).
-local WCREATED_DIR = vim.env.WCREATED_DIR or vim.fn.expand('$HOME/Programming/wcreated')
-local WCHECKOUT_DIR = vim.env.WCHECKOUT_DIR or vim.fn.expand('$HOME/Programming/wcheckout')
 local MAX_TAB_NAME_LENGTH = 20
 
 --- Rename the focused Zellij tab to `name` (no-op outside Zellij), mirroring the
@@ -759,10 +761,13 @@ local function delete_worktree_entry(item)
       return
     end
 
-    -- Never sit inside the directory we are about to delete.
-    if main_repo and realpath(wt) == realpath(vim.fn.getcwd()) then
-      vim.cmd('cd ' .. vim.fn.fnameescape(main_repo))
-      vim.notify('Moved to main repo: ' .. main_repo, vim.log.levels.INFO)
+    -- Never sit inside the directory we are about to delete -- this also catches
+    -- being in a subdirectory of it. Prefer the main repo; fall back to the
+    -- worktree's parent container when the main repo cannot be resolved.
+    if is_inside(vim.fn.getcwd(), wt) then
+      local dest = main_repo or vim.fn.fnamemodify(wt, ':h')
+      vim.cmd('cd ' .. vim.fn.fnameescape(dest))
+      vim.notify('Moved out of the worktree to: ' .. dest, vim.log.levels.INFO)
     end
 
     local steps = M.build_delete_steps({
@@ -777,7 +782,14 @@ local function delete_worktree_entry(item)
 
     run_best_effort(steps, 1, function()
       if vim.uv.fs_stat(wt) and is_managed_path(wt) then vim.fn.delete(wt, 'rf') end
-      vim.notify('Deleted worktree "' .. item.text .. '"', vim.log.levels.INFO)
+      local function announce() vim.notify('Deleted worktree "' .. item.text .. '"', vim.log.levels.INFO) end
+      -- If `worktree remove` failed but the folder is now gone, git still lists a
+      -- stale worktree; prune reconciles it. A no-op when already consistent.
+      if main_repo then
+        async.run_cmd({ 'git', '-C', main_repo, 'worktree', 'prune' }, announce)
+      else
+        announce()
+      end
     end)
   end)
 end
