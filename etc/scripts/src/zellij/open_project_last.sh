@@ -27,6 +27,11 @@ main() {
 	# no prompt, falling back to an empty shell when nothing is recorded yet.
 	local tool
 	tool="$(last_pane_tool "$target_dir")" || tool="empty"
+
+	# Route the two AI agents to the one matching THIS repo (work repos ->
+	# storecode, everything else -> opencode); nvim/gh-dash/empty pass through.
+	tool="$(normalize_pane_tool "$tool" "$target_dir")"
+
 	[[ "$tool" != "empty" ]] && { require_tool "$tool" || exit 1; }
 
 	open_tool_pane "$target_dir" "$tool"

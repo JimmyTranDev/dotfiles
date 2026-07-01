@@ -636,3 +636,81 @@ select_source_repo_dir() {
 	[[ -n "$selected" ]] || return 1
 	printf '%s' "${selected#*$'\t'}"
 }
+
+# --- Alt ] repo -> AI-agent routing ------------------------------------------
+# open_project_last.sh (Alt ]) opens a project's saved pane tool. When that tool
+# is an AI agent, the RIGHT agent depends on the repo: Storebrand work repos use
+# storecode (the GCP-authed internal build from src/install/storecode.sh) while
+# everything else uses opencode. These helpers pick the agent from the repo's
+# git origin owner so Alt ] never opens the wrong one; nvim/gh-dash/empty stay.
+
+# GitHub owners whose repos open storecode instead of opencode, matched
+# case-insensitively against the origin remote's owner. Keep in sync with the
+# storecode source org (src/install/storecode.sh). Set WORK_AGENT_ORGS before
+# sourcing this file to override it (e.g. in tests).
+if [[ -z "${WORK_AGENT_ORGS+set}" ]]; then
+	WORK_AGENT_ORGS=(storebrand-digital)
+fi
+
+# Print the owner (the "<owner>" in <owner>/<repo>) parsed from a git remote URL:
+# scp form (git@host:owner/repo.git), ssh:// and https:// URLs, with or without a
+# trailing ".git". Returns non-zero *silently* for an empty or owner-less URL so
+# callers can fall back to a default. Pure text munging (no git call), so it is
+# unit-testable.
+_owner_from_remote_url() {
+	local url="$1"
+	[[ -n "$url" ]] || return 1
+	url="${url%.git}"
+	url="${url%/}"
+	[[ "$url" == */* ]] || return 1
+	local owner_seg="${url%/*}"    # drop "/<repo>"
+	local owner="${owner_seg##*/}" # strip scheme/host for URL forms
+	owner="${owner##*:}"           # strip "git@host:" for scp form
+	[[ -n "$owner" ]] || return 1
+	printf '%s' "$owner"
+}
+
+# Print the GitHub owner of $dir's origin remote (see _owner_from_remote_url).
+# Returns non-zero *silently* when $dir has no origin remote (or is not a repo).
+github_remote_owner() {
+	local dir="$1" url
+	url="$(git -C "$dir" remote get-url origin 2>/dev/null)" || return 1
+	_owner_from_remote_url "$url"
+}
+
+# Map a GitHub owner to the AI agent its repos should open: "storecode" when the
+# owner is one of WORK_AGENT_ORGS (case-insensitive), else "opencode". An empty
+# or unknown owner yields "opencode". Always prints one of the two agents.
+# Lowercases with tr so it behaves the same under bash launchers and zsh tests.
+agent_for_owner() {
+	local owner="$1"
+	[[ -n "$owner" ]] || { printf 'opencode'; return 0; }
+	local o work w
+	o="$(printf '%s' "$owner" | tr '[:upper:]' '[:lower:]')"
+	for work in "${WORK_AGENT_ORGS[@]}"; do
+		w="$(printf '%s' "$work" | tr '[:upper:]' '[:lower:]')"
+		[[ "$o" == "$w" ]] && { printf 'storecode'; return 0; }
+	done
+	printf 'opencode'
+}
+
+# Print the AI agent $dir's repo should open: storecode for a work repo (its
+# origin owner is in WORK_AGENT_ORGS), else opencode (including a repo with no
+# origin). Always prints one of the two agents.
+resolve_repo_agent() {
+	local dir="$1" owner
+	owner="$(github_remote_owner "$dir" 2>/dev/null || true)"
+	agent_for_owner "$owner"
+}
+
+# Normalize a pane tool for project $dir before opening: the two AI agents
+# (opencode/storecode) are routed to the one matching the repo (see
+# resolve_repo_agent); every other tool (nvim, gh-dash, empty) is printed back
+# unchanged. This is what lets Alt ] open the right agent per repo.
+normalize_pane_tool() {
+	local tool="$1" dir="$2"
+	case "$tool" in
+	opencode | storecode) resolve_repo_agent "$dir" ;;
+	*) printf '%s' "$tool" ;;
+	esac
+}
