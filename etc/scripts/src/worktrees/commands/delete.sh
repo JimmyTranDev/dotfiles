@@ -146,16 +146,35 @@ delete_single_worktree() {
 	cd "$original_dir" 2>/dev/null || true
 }
 
+# List worktree dirs under the created/checkout containers, newest-change
+# first. Args default to the configured containers but are injectable for
+# tests. Sort by mtime -- macOS %m, NOT %B/birth, so a re-touched worktree
+# resurfaces; Linux %T@ is already mtime.
 collect_worktrees_from_dirs() {
-	local dirs=("$WCREATED_DIR" "$WCHECKOUT_DIR")
-	for dir in "${dirs[@]}"; do
+	local created_dir="${1:-$WCREATED_DIR}"
+	local checkout_dir="${2:-$WCHECKOUT_DIR}"
+	local dir
+	for dir in "$created_dir" "$checkout_dir"; do
 		[[ ! -d "$dir" ]] && continue
 		if [[ "$(uname)" == "Darwin" ]]; then
-			find "$dir" -mindepth 1 -maxdepth 1 -type d -exec stat -f '%B %N' {} \; 2>/dev/null
+			find "$dir" -mindepth 1 -maxdepth 1 -type d -exec stat -f '%m %N' {} \; 2>/dev/null
 		else
 			find "$dir" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' 2>/dev/null
 		fi
 	done | sort -rn | cut -d' ' -f2-
+}
+
+# Build the fzf picker label for a worktree path: "[<repo>] <parent>/<name>".
+# The parent-folder segment (wcreated / wcheckout) disambiguates same-named
+# worktrees under different containers; the repo name comes from the worktree's
+# gitdir pointer (falling back to "unknown").
+worktree_delete_label() {
+	local wt="${1%/}"
+	local name="${wt:t}"
+	local parent="${wt:h:t}"
+	local repo
+	repo=$(get_worktree_project_name "$wt")
+	print -r -- "[$repo] $parent/$name"
 }
 
 cmd_delete() {
@@ -181,12 +200,10 @@ cmd_delete() {
 		fi
 
 		local labels=()
-		local wt_name project_name label
+		local label
 		typeset -A label_to_path
 		for wt in "${available_worktrees[@]}"; do
-			wt_name="${wt##*/}"
-			project_name=$(get_worktree_project_name "$wt")
-			label="[$project_name] $wt_name"
+			label=$(worktree_delete_label "$wt")
 			labels+=("$label")
 			label_to_path[$label]="$wt"
 		done
