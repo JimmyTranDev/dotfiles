@@ -72,7 +72,7 @@ return {
       silent = true,
     },
 
-    { mode = 'n', '<leader>tvs', language_actions.run_project_jar, desc = '󰫙 Start Project (Maven/Node)', silent = true },
+    { mode = 'n', '<leader>tvs', language_actions.run_spring_boot, desc = '󰫙 Start Spring Boot (local)', silent = true },
     {
       mode = 'n',
       '<leader>tvp',
