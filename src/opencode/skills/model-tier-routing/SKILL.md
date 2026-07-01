@@ -1,6 +1,6 @@
 ---
 name: model-tier-routing
-description: Routes the agent's own work across the Claude model tiers — Haiku, Sonnet, and Opus — to spend the fewest tokens and dollars for the quality a task actually needs. Use when deciding which model tier should run a task, a session, or a delegated subagent; when high-volume or mechanical work (searches, bulk file reads, boilerplate, renames, log scans) is burning expensive top-tier tokens; when configuring a cheaper subagent via `opencode agent create --model`/`--mode subagent`; or when choosing a per-run/per-session `--model`. Triggers on "token usage", "reduce cost", "cheaper model", "which model", "model tier", "haiku", "sonnet", "opus", "downgrade/upgrade the model", "too expensive". Use ONLY for choosing WHICH tier runs the work — for WHEN to delegate use parallelization-and-delegation, for WHAT context to load use context-engineering, and for the opencode config/CLI mechanics use customize-opencode / opencode-cli.
+description: Routes the agent's own work across the Claude model tiers — Haiku, Sonnet, and Opus — to spend the fewest tokens and dollars for the quality a task actually needs. Use when deciding which model tier should run a task, a session, or a delegated subagent; when high-volume or mechanical work (searches, bulk file reads, boilerplate, renames, log scans) is burning expensive top-tier tokens; when configuring a cheaper subagent via `opencode agent create --model`/`--mode subagent`; or when choosing a per-run/per-session `--model`. Triggers on "token usage", "reduce cost", "cheaper model", "which model", "model tier", "haiku", "sonnet", "opus", "downgrade/upgrade the model", "too expensive". Use ONLY for choosing WHICH tier runs the work — for WHEN to delegate use delegation, for WHAT context to load use context-engineering, and for the opencode config/CLI mechanics use customize-opencode / opencode-cli.
 ---
 
 # Model Tier Routing
@@ -21,7 +21,7 @@ high-volume work pays Opus prices for no quality gain. This skill is the guidanc
 for changing that per task and per subagent.
 
 The skill owns **which tier** runs the work. It stacks with two sibling levers:
-`parallelization-and-delegation` decides **when** to hand work to a subagent, and
+`delegation` decides **when** to hand work to a subagent, and
 `context-engineering` decides **what** to load into the context. Use all three
 together — they cut tokens along different axes.
 
@@ -39,7 +39,7 @@ together — they cut tokens along different axes.
 **Do NOT use when:**
 
 - You need to decide *whether* to delegate or batch calls at all — that's
-  `parallelization-and-delegation`.
+  `delegation` (delegate) or `parallelization` (batch calls).
 - The problem is too much or wrong context, not the model — that's
   `context-engineering`.
 - You need the mechanics of editing opencode config or agent definitions — that's
@@ -101,7 +101,7 @@ Three places to set the tier — see `opencode-cli` for the binary mechanics and
   `Task` subagent running a cheaper tier so the expensive main context never pays
   for it. Set a subagent's model in opencode config, or scaffold one with
   `opencode agent create --mode subagent --model anthropic/<haiku-or-sonnet>`.
-  See `parallelization-and-delegation` for *when* to delegate; this skill picks
+  See `delegation` for *when* to delegate; this skill picks
   the subagent's *tier*.
 - **Per run / session.** Start a cheaper run with the `--model`/`-m` flag
   (`opencode run -m anthropic/<model>` or the TUI `--model`), or switch models
@@ -135,7 +135,7 @@ beats a top tier drowning in noise.
 - Accepting a cheap-tier result without verifying it — or refusing the cheap tier
   because you *won't* verify.
 - Reaching for this skill to trim context or decide whether to delegate — wrong
-  lever (that's `context-engineering` / `parallelization-and-delegation`).
+  lever (that's `context-engineering` / `delegation`).
 
 ## Verification
 
@@ -149,4 +149,4 @@ beats a top tier drowning in noise.
 - [ ] The tier was chosen by task complexity, and the concrete model resolved via
   `opencode models anthropic` rather than a stale hard-coded ID.
 - [ ] Context and delegation levers were considered alongside tier
-  (`context-engineering`, `parallelization-and-delegation`), not conflated with it.
+  (`context-engineering`, `delegation`), not conflated with it.

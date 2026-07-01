@@ -27,7 +27,8 @@ Task arrives
     │   ├── Need better context? ─────→ context-engineering
     │   ├── Need doc-verified code? ───→ source-driven-development
     │   └── Stakes high / unfamiliar code? ──→ doubt-driven-development
-    ├── Parallelize independent steps / delegate to subagents (context bloat)? → parallelization-and-delegation
+    ├── Batch independent tool calls in one message (in parallel)? → parallelization
+    ├── Delegate open-ended/self-contained work to explore/general subagents? → delegation
     ├── Which model tier (Haiku/Sonnet/Opus) should run this / cut token cost? → model-tier-routing
     ├── Explicit "yolo" / "full send" / "I'll test later"? → yolo
     ├── Writing/running tests? ────────→ test-driven-development
@@ -202,7 +203,8 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Build | source-driven-development | Verify against official docs before implementing |
 | Build | doubt-driven-development | Adversarial fresh-context review of every non-trivial decision |
 | Build | context-engineering | Right context at the right time |
-| Build | parallelization-and-delegation | Batch independent tool calls and delegate to explore/general subagents; concurrent fan-out with disjoint scopes |
+| Build | parallelization | Batch independent tool calls into one message so they run at once (data- and write-independent) |
+| Build | delegation | Hand open-ended/self-contained work to explore/general Task subagents; concurrent fan-out with disjoint write scopes |
 | Build | model-tier-routing | Route each task/subagent to the cheapest Claude tier (Haiku/Sonnet/Opus) that does it well; escalate on failure |
 | Build | frontend-ui-engineering | Production-quality UI with accessibility |
 | Build | api-and-interface-design | Stable interfaces with clear contracts |
