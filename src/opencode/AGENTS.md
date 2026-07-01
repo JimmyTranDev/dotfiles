@@ -85,6 +85,7 @@ Map every request to the appropriate skill before acting.
 | Commits, branching, conflicts, parallel work | `git-workflow-and-versioning` |
 | Write a GitHub PR title + body (the `gh pr create` content) | `github-pr-description` |
 | Git worktrees in ~/Programming/wcreated & wcheckout (create/checkout/delete/update/clean) | `worktree-management` |
+| Bulk-prune managed worktrees whose branch is ALREADY MERGED into base/develop (the `worktree clean` op, ownership-aware: wcreated deletes the remote, wcheckout keeps it) | `cleanup-worktrees` |
 | Resolve in-progress git merge/rebase/cherry-pick conflicts (unmerged paths, conflict markers) | `merge-conflict-resolution` |
 | Handle review comments on your own GitHub PR — address in code, reply, resolve threads | `handle-github-pr-comments` |
 | Handle your PR's review comments in the existing wcreated worktree you own — fix/reply, push, resolve (keep worktree while PR open) | `handle-pr-comments-worktree` |

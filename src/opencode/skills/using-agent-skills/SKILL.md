@@ -50,6 +50,7 @@ Task arrives
     ├── Committing/branching? ─────────→ git-workflow-and-versioning
     ├── Write a GitHub PR title/body? ──→ github-pr-description
     ├── Worktrees in wcreated/wcheckout? → worktree-management
+    ├── Bulk-prune already-merged worktrees (worktree clean)? → cleanup-worktrees
     ├── Resolve git merge/rebase/cherry-pick conflicts? → merge-conflict-resolution
     ├── Handle review comments on your own PR? → handle-github-pr-comments
     ├── Handle your PR comments in your wcreated worktree? → handle-pr-comments-worktree
@@ -222,6 +223,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Ship | git-workflow-and-versioning | Atomic commits, clean history |
 | Ship | github-pr-description | Reviewer-focused GitHub PR title + body, grounded in the diff and verification |
 | Ship | worktree-management | Create/checkout/delete/update/clean git worktrees in ~/Programming/wcreated & wcheckout |
+| Ship | cleanup-worktrees | Bulk-prune managed worktrees whose branch is already merged into base/develop (the worktree clean op), ownership-aware: wcreated deletes the remote, wcheckout keeps it |
 | Ship | merge-conflict-resolution | Resolve in-progress git merge/rebase/cherry-pick conflicts, preserving both sides, then verify |
 | Ship | handle-github-pr-comments | Address review comments on your own PR — fix in code, reply, resolve threads |
 | Ship | handle-pr-comments-worktree | Address your PR comments in the existing wcreated worktree you own — fix/reply, push, resolve; keep while PR open |

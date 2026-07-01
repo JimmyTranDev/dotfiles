@@ -7,6 +7,33 @@ cmd_clean_worktrees() {
 		return 1
 	fi
 
+	local dry_run=false assume_yes=false
+	while [[ $# -gt 0 ]]; do
+		case "$1" in
+		--dry-run)
+			dry_run=true
+			shift
+			;;
+		-y | --yes)
+			assume_yes=true
+			shift
+			;;
+		-h | --help)
+			print_color cyan "Usage: worktree clean [--dry-run] [-y|--yes]"
+			print_color cyan "  Delete every managed worktree whose branch is already merged"
+			print_color cyan "  into its base branch (main/master) or develop, then delete the"
+			print_color cyan "  worktree and its local branch. Created worktrees also delete"
+			print_color cyan "  their remote branch; checkout worktrees keep it."
+			print_color cyan "  --dry-run shows the plan without deleting; -y skips the prompt."
+			return 0
+			;;
+		*)
+			print_color yellow "Unknown option: $1"
+			shift
+			;;
+		esac
+	done
+
 	local all_worktree_dirs=()
 	for dir in "$WCREATED_DIR" "$WCHECKOUT_DIR"; do
 		[[ -d "$dir" ]] && all_worktree_dirs+=("$dir")
@@ -114,12 +141,19 @@ cmd_clean_worktrees() {
 		print_color cyan "  - $(basename "$wt")"
 	done
 
-	print_color yellow "Are you sure you want to delete these merged worktrees? (y/N)"
-	local confirm
-	read -r confirm
-	if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
-		print_color yellow "Cleanup cancelled."
+	if [[ "$dry_run" == true ]]; then
+		print_color yellow "Dry run — no changes made."
 		return 0
+	fi
+
+	if [[ "$assume_yes" != true ]]; then
+		print_color yellow "Are you sure you want to delete these merged worktrees? (y/N)"
+		local confirm
+		read -r confirm
+		if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+			print_color yellow "Cleanup cancelled."
+			return 0
+		fi
 	fi
 
 	local success_count=0
