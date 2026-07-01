@@ -16,7 +16,94 @@ local function get_pm()
   return pm
 end
 
-function M.run_project_jar()
+-- Parse the target Java major version from pom.xml text. Tries the common
+-- version-carrying tags in priority order and normalizes legacy `1.8` -> `8`.
+-- Pure (text in, string|nil out) so it is unit-tested headlessly.
+---@param pom_xml string
+---@return string|nil
+function M.parse_pom_java_version(pom_xml)
+  local tags = { 'java%.version', 'maven%.compiler%.release', 'maven%.compiler%.target', 'release', 'target' }
+  for _, tag in ipairs(tags) do
+    local value = pom_xml:match('<' .. tag .. '>%s*([^<]-)%s*</' .. tag .. '>')
+    if value and value ~= '' then
+      if value:match('^%${') then return nil end
+      local legacy = value:match('^1%.(%d+)$')
+      if legacy then return legacy end
+      local major = value:match('^(%d+)')
+      if major then return major end
+    end
+  end
+  return nil
+end
+
+-- True when the pom.xml text declares the Spring Boot Maven plugin, i.e. the
+-- module is a runnable Spring Boot application.
+---@param pom_xml string
+---@return boolean
+function M.pom_declares_spring_boot(pom_xml) return pom_xml:find('spring-boot-maven-plugin', 1, true) ~= nil end
+
+-- Resolve a major Java version ("21") to an installed SDKMAN JDK home, preferring
+-- Temurin (`-tem`) builds and the newest patch. `candidates` is the list of dir
+-- names under ~/.sdkman/candidates/java; `opts.home` injects HOME for tests.
+---@param version string
+---@param candidates string[]
+---@param opts? { home?: string }
+---@return string|nil
+function M.resolve_sdkman_java_home(version, candidates, opts)
+  opts = opts or {}
+  local home = opts.home or vim.env.HOME
+
+  local function parts(name)
+    local nums = {}
+    for num in name:gmatch('%d+') do
+      nums[#nums + 1] = tonumber(num)
+    end
+    return nums
+  end
+
+  local function newer(a, b)
+    local ka, kb = parts(a), parts(b)
+    for i = 1, math.max(#ka, #kb) do
+      local va, vb = ka[i] or 0, kb[i] or 0
+      if va ~= vb then return va > vb end
+    end
+    return false
+  end
+
+  local matches = {}
+  for _, name in ipairs(candidates) do
+    if name == version or name:match('^' .. version .. '[%.%-]') then matches[#matches + 1] = name end
+  end
+  if #matches == 0 then return nil end
+
+  table.sort(matches, function(a, b)
+    local a_tem = a:find('tem', 1, true) ~= nil
+    local b_tem = b:find('tem', 1, true) ~= nil
+    if a_tem ~= b_tem then return a_tem end
+    return newer(a, b)
+  end)
+
+  return home .. '/.sdkman/candidates/java/' .. matches[1]
+end
+
+-- Assemble the `spring-boot:run` command. Pure string builder so the exact
+-- output is asserted in tests.
+---@param opts { module?: string, profile?: string, java_home?: string }
+---@return string
+function M.build_spring_boot_run_command(opts)
+  opts = opts or {}
+  local profile = opts.profile or 'local'
+  local prefix = opts.java_home and ('JAVA_HOME="' .. opts.java_home .. '" ') or ''
+  local pl = opts.module and (' -pl ' .. opts.module) or ''
+  return prefix .. 'mvn' .. pl .. ' spring-boot:run -Dspring-boot.run.profiles=' .. profile
+end
+
+-- <leader>tvs: run a Spring Boot app from cwd via `spring-boot:run` with the
+-- `local` profile. Auto-selects the runnable module (the submodule declaring the
+-- Spring Boot Maven plugin) and pins JAVA_HOME to the SDKMAN JDK matching the
+-- project's declared Java version, falling back to the default JDK when it can't
+-- be resolved.
+function M.run_spring_boot()
   local cwd = vim.fn.getcwd()
 
   if vim.fn.filereadable(cwd .. '/pom.xml') ~= 1 then
@@ -24,42 +111,37 @@ function M.run_project_jar()
     return
   end
 
-  local function find_app_modules()
-    local modules = {}
-    local entries = vim.fn.readdir(
-      cwd,
-      function(name) return vim.fn.isdirectory(cwd .. '/' .. name) == 1 and vim.fn.filereadable(cwd .. '/' .. name .. '/pom.xml') == 1 end
-    )
-    for _, name in ipairs(entries) do
-      table.insert(modules, name)
-    end
-    return modules
+  local function read_pom(path) return table.concat(vim.fn.readfile(path), '\n') end
+
+  local java_home
+  local version = M.parse_pom_java_version(read_pom(cwd .. '/pom.xml'))
+  if version then
+    local java_dir = (vim.env.HOME or '') .. '/.sdkman/candidates/java'
+    if vim.fn.isdirectory(java_dir) == 1 then java_home = M.resolve_sdkman_java_home(version, vim.fn.readdir(java_dir)) end
   end
 
   local function run_with_module(module)
-    local jar_path = module and (module .. '/target/' .. module .. '.jar') or ('target/' .. vim.fn.fnamemodify(cwd, ':t') .. '.jar')
+    local cmd = M.build_spring_boot_run_command({ module = module, java_home = java_home })
     local label = module or vim.fn.fnamemodify(cwd, ':t')
-    local cmd = 'mvn clean package -Dmaven.gitcommitid.skip=true -Dmaven.test.skip=true'
-      .. ' && java -jar'
-      .. ' -Dspring.profiles.active=local'
-      .. ' -Dspring.cloud.gcp.sql.enabled=false'
-      .. ' '
-      .. jar_path
     ui_utils.exec_in_terminal(cmd, 'Spring Boot: ' .. label, { name = 'spring-boot' })
   end
 
-  local modules = find_app_modules()
+  local subdirs = vim.fn.readdir(
+    cwd,
+    function(name) return vim.fn.isdirectory(cwd .. '/' .. name) == 1 and vim.fn.filereadable(cwd .. '/' .. name .. '/pom.xml') == 1 end
+  )
+  local modules = {}
+  for _, name in ipairs(subdirs) do
+    if M.pom_declares_spring_boot(read_pom(cwd .. '/' .. name .. '/pom.xml')) then modules[#modules + 1] = name end
+  end
+
   if #modules == 0 then
     run_with_module(nil)
-    return
-  end
-
-  if #modules == 1 then
+  elseif #modules == 1 then
     run_with_module(modules[1])
-    return
+  else
+    ui_utils.safe_select(modules, { prompt = 'Select Spring Boot module:' }, run_with_module)
   end
-
-  ui_utils.safe_select(modules, { prompt = 'Select module:' }, function(selected) run_with_module(selected) end)
 end
 
 function M.run_java_class_maven()
