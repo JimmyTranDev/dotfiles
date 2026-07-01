@@ -153,4 +153,149 @@ function M.stale_branch_cleanup()
   end
 end
 
+--- Parse `git branch -r` output into a sorted, deduped list of branch names
+--- under `remote` (default 'origin'); the `origin/HEAD -> ...` pointer is dropped.
+--- Pure: the caller captures the listing, so this is testable without git.
+---@param out string
+---@param remote? string
+---@return string[]
+function M.parse_remote_branches(out, remote)
+  remote = remote or 'origin'
+  local prefix = remote .. '/'
+  local seen, list = {}, {}
+  for line in (out or ''):gmatch('[^\n]+') do
+    local b = line:gsub('^%s+', ''):gsub('%s+$', '')
+    if b:sub(1, #prefix) == prefix and not b:find('%->') then
+      b = b:sub(#prefix + 1)
+      if b ~= 'HEAD' and not seen[b] then
+        seen[b] = true
+        list[#list + 1] = b
+      end
+    end
+  end
+  table.sort(list)
+  return list
+end
+
+--- Base branches never offered for remote deletion; the current branch is added
+--- to this set at call time. Deleting any of these on the remote is destructive.
+local DEFAULT_PROTECTED = { 'main', 'master', 'develop' }
+
+--- Filter a remote-branch list to the names safe to delete: drop the protected
+--- set (default main/master/develop) and the current branch. Order is preserved.
+--- Pure/testable.
+---@param names string[]
+---@param current string|nil currently checked-out branch
+---@param protected? string[] override the default protected set
+---@return string[]
+function M.deletable_remote_branches(names, current, protected)
+  protected = protected or DEFAULT_PROTECTED
+  local blocked = {}
+  for _, name in ipairs(protected) do
+    blocked[name] = true
+  end
+  if current and current ~= '' then blocked[current] = true end
+
+  local out = {}
+  for _, name in ipairs(names or {}) do
+    if not blocked[name] then out[#out + 1] = name end
+  end
+  return out
+end
+
+--- Build the argv that deletes `branch` on `remote` (default 'origin'). Deleting
+--- the remote ref also drops the local `<remote>/<branch>` tracking ref. Pure.
+---@param branch string
+---@param remote? string
+---@return string[]
+function M.build_delete_remote_cmd(branch, remote) return { 'git', 'push', remote or 'origin', '--delete', branch } end
+
+--- Delete each already-confirmed remote branch on origin, collecting a summary.
+--- Best-effort and concurrent: a failed delete is reported but does not abort the
+--- rest. Deleting the remote ref also drops its `origin/<branch>` tracking ref.
+---@param names string[]
+local function delete_remote_branches_now(names)
+  local total = #names
+  local done, ok_count = 0, 0
+  for _, name in ipairs(names) do
+    async.run_cmd(M.build_delete_remote_cmd(name), function(res)
+      done = done + 1
+      if res.code == 0 then
+        ok_count = ok_count + 1
+      else
+        vim.notify(string.format('Failed to delete origin/%s: %s', name, (res.stderr or ''):gsub('%s+$', '')), vim.log.levels.ERROR)
+      end
+      if done == total then
+        local level = ok_count == total and vim.log.levels.INFO or vim.log.levels.WARN
+        vim.notify(string.format('Deleted %d/%d remote branch(es) on origin', ok_count, total), level)
+      end
+    end)
+  end
+end
+
+--- Destructive Yes/No gate before deleting the picked branches on the remote.
+---@param items { branch: string }[]
+local function confirm_and_delete_remote(items)
+  local names = {}
+  for _, item in ipairs(items) do
+    names[#names + 1] = item.branch
+  end
+  local prompt = string.format('Delete %d remote branch(es) on origin? This cannot be undone.', #names)
+  vim.ui.select({ 'Yes', 'No' }, { prompt = prompt }, function(choice)
+    if choice == 'Yes' then delete_remote_branches_now(names) end
+  end)
+end
+
+--- List the current repo's remote branches, multi-select them in a picker
+--- (<Tab>/<S-Tab> to toggle, <Enter> to confirm), then delete the selected
+--- branches on origin after a confirmation. Remote-only: local branches and
+--- worktrees are left untouched. Base branches (main/master/develop) and the
+--- current branch are excluded from the list as a safety guard.
+function M.delete_remote_branches()
+  async.run_cmd({ 'git', 'rev-parse', '--is-inside-work-tree' }, function(wt)
+    if wt.code ~= 0 or not (wt.stdout or ''):match('true') then
+      vim.notify('Not inside a git repository', vim.log.levels.WARN)
+      return
+    end
+
+    async.run_cmd({ 'git', 'fetch', '--prune', 'origin' }, function(fetch)
+      if fetch.code ~= 0 then vim.notify('git fetch --prune failed; listing cached remote branches', vim.log.levels.WARN) end
+
+      async.run_cmd({ 'git', 'branch', '-r' }, function(result)
+        if result.code ~= 0 then
+          vim.notify('Failed to list remote branches: ' .. (result.stderr or ''), vim.log.levels.ERROR)
+          return
+        end
+
+        async.run_cmd({ 'git', 'rev-parse', '--abbrev-ref', 'HEAD' }, function(head)
+          local current = head.code == 0 and (head.stdout or ''):gsub('%s+$', '') or ''
+          local names = M.deletable_remote_branches(M.parse_remote_branches(result.stdout), current)
+          if #names == 0 then
+            vim.notify('No deletable remote branches (base + current excluded)', vim.log.levels.INFO)
+            return
+          end
+
+          local items = {}
+          for _, name in ipairs(names) do
+            items[#items + 1] = { text = name, branch = name }
+          end
+
+          ui.pick({
+            title = string.format('Delete remote branches — %d (Tab select, Enter confirm)', #items),
+            items = items,
+            format = function(item) return { { item.text, 'DiagnosticWarn' } } end,
+            extra = {
+              confirm = function(picker)
+                picker:close()
+                local chosen = picker:selected({ fallback = true })
+                if chosen and #chosen > 0 then confirm_and_delete_remote(chosen) end
+              end,
+            },
+          })
+        end)
+      end)
+    end)
+  end)
+end
+
 return M
