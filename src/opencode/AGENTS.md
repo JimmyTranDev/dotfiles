@@ -82,6 +82,7 @@ Map every request to the appropriate skill before acting.
 | npm audit + bump deps to latest minor (no majors), re-audit, verify | `npm-audit-and-bump-minor` |
 | Find/remove unused files, dependencies, exports & dead code in JS/TS via Knip | `knip` |
 | Commit already-staged changes with a conventional message | `commit` |
+| Implement a change in place on the current branch, then commit it locally — no push/PR/worktree (the /implement lifecycle finished with a commit) | `implement-commit` |
 | Commits, branching, conflicts, parallel work | `git-workflow-and-versioning` |
 | Write a GitHub PR title + body (the `gh pr create` content) | `github-pr-description` |
 | Mark a draft GitHub PR as ready for review (`gh pr ready`) — resolve, confirm it's an open draft, gate the flip, verify | `undraft-pr` |
