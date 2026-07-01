@@ -114,15 +114,15 @@ function M.open_current_repo_in_browser()
     return
   end
 
-  local org, repo = remote_url:match('github%.com[:/]([^/]+)/([^/%.]+)')
-  if not org or not repo then
+  local owner, repo = github_utils.parse_repo_url(remote_url)
+  if not owner or not repo then
     vim.notify('Could not parse GitHub URL from: ' .. remote_url, vim.log.levels.WARN)
     return
   end
 
-  local url = string.format('https://github.com/%s/%s', org, repo)
+  local url = string.format('https://github.com/%s/%s', owner, repo)
   file_utils.open(url)
-  vim.notify('Opened ' .. org .. '/' .. repo, vim.log.levels.INFO)
+  vim.notify('Opened ' .. owner .. '/' .. repo, vim.log.levels.INFO)
 end
 
 function M.open_current_commit_in_github()

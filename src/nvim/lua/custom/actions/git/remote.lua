@@ -1,5 +1,6 @@
 local git_utils = require('custom.utils.git')
 local file_utils = require('custom.utils.files')
+local github_utils = require('custom.utils.github')
 
 local M = {}
 
@@ -41,10 +42,9 @@ local function get_repo_slug()
   local remote_url = vim.fn.system('git remote get-url origin 2>/dev/null'):gsub('%s+$', '')
   if vim.v.shell_error ~= 0 or remote_url == '' then return nil end
 
-  local owner, repo = remote_url:match('github%.com[:/]([^/]+)/(.+)$')
+  local owner, repo = github_utils.parse_repo_url(remote_url)
   if not owner or not repo then return nil end
 
-  repo = repo:gsub('%.git$', ''):gsub('/$', '')
   return owner .. '/' .. repo
 end
 
