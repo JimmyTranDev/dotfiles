@@ -7,6 +7,50 @@ is_wcreated_worktree() {
 	[[ "$resolved_wt" == "$resolved_created"/* ]]
 }
 
+# Pure PR-ownership verdict behind the remote-branch-deletion guard. Given a
+# branch's PR state, its PR author's login, and my login, return 0 (block the
+# remote delete) iff the PR is OPEN and authored by someone else. Every other
+# case -- no PR, merged/closed, unknown author, unknown me -- returns 1 (allow),
+# so the guard only ever *adds* safety and falls back to prior behavior on any
+# uncertainty (fail-open).
+remote_delete_blocked_by_pr() {
+	local state="$1" author="$2" me="$3"
+	[[ "$state" == "OPEN" && -n "$author" && -n "$me" && "$author" != "$me" ]]
+}
+
+# Resolve my GitHub login once per shell (memoized). Empty when gh is missing,
+# unauthenticated, or failing -- callers treat empty as "unknown me" (fail-open).
+_resolve_gh_me() {
+	if [[ -z "${_WT_GH_ME+set}" ]]; then
+		if command -v gh >/dev/null 2>&1; then
+			_WT_GH_ME="$(gh api user --jq .login 2>/dev/null)" || _WT_GH_ME=""
+		else
+			_WT_GH_ME=""
+		fi
+	fi
+}
+
+# Guard a remote-branch deletion by PR ownership. Run with the working directory
+# inside the repo that owns <branch>. Returns 0 when the remote delete is allowed
+# and 1 when it must be skipped (an OPEN PR is owned by someone else). Fails open:
+# no gh, no PR, or any error -> allowed.
+remote_delete_allowed() {
+	local branch="$1"
+	command -v gh >/dev/null 2>&1 || return 0
+	_resolve_gh_me
+	local me="$_WT_GH_ME"
+	if [[ -z "$me" ]]; then return 0; fi
+	local info state author
+	info="$(gh pr view "$branch" --json state,author --jq '.state + "|" + (.author.login // "")' 2>/dev/null)" || return 0
+	if [[ -z "$info" ]]; then return 0; fi
+	state="${info%%|*}"
+	author="${info#*|}"
+	if remote_delete_blocked_by_pr "$state" "$author" "$me"; then
+		return 1
+	fi
+	return 0
+}
+
 delete_single_worktree() {
 	local worktree_path="$1"
 	local original_dir="$PWD"
@@ -123,11 +167,15 @@ delete_single_worktree() {
 
 		if [[ "$delete_remote" == true ]]; then
 			if git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
-				print_color yellow "Deleting remote branch origin/$branch_name (created worktree)..."
-				if git push origin --delete "$branch_name" 2>/dev/null; then
-					print_color green "Successfully deleted remote branch: origin/$branch_name"
+				if ! remote_delete_allowed "$branch_name"; then
+					print_color yellow "Keeping remote origin/$branch_name: it has an open PR owned by someone else."
 				else
-					print_color red "Failed to delete remote branch: origin/$branch_name"
+					print_color yellow "Deleting remote branch origin/$branch_name (created worktree)..."
+					if git push origin --delete "$branch_name" 2>/dev/null; then
+						print_color green "Successfully deleted remote branch: origin/$branch_name"
+					else
+						print_color red "Failed to delete remote branch: origin/$branch_name"
+					fi
 				fi
 			fi
 		else
@@ -298,11 +346,15 @@ cmd_delete() {
 
 				if [[ "$should_delete_remote" == true ]]; then
 					if git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
-						repo_key="${main_repo}"
-						if [[ -n "${remote_branches_by_repo[$repo_key]}" ]]; then
-							remote_branches_by_repo[$repo_key]="${remote_branches_by_repo[$repo_key]} $branch_name"
+						if ! remote_delete_allowed "$branch_name"; then
+							print_color yellow "Keeping remote origin/$branch_name: open PR owned by someone else."
 						else
-							remote_branches_by_repo[$repo_key]="$branch_name"
+							repo_key="${main_repo}"
+							if [[ -n "${remote_branches_by_repo[$repo_key]}" ]]; then
+								remote_branches_by_repo[$repo_key]="${remote_branches_by_repo[$repo_key]} $branch_name"
+							else
+								remote_branches_by_repo[$repo_key]="$branch_name"
+							fi
 						fi
 					fi
 				fi

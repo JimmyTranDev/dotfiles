@@ -100,6 +100,27 @@ assert_eq "missing checkout container is skipped without error" \
   "$SCREATED/newest
 $SCREATED/oldest" "$miss"
 
+# --- Part C: remote_delete_blocked_by_pr (PR-ownership veto) ------------------
+# Pure verdict behind the remote-branch-deletion guard. Blocks the remote delete
+# iff an OPEN PR is authored by someone other than me; every other case (no PR,
+# merged/closed, unknown author or unknown me) is allowed (fail-open).
+assert_blocked() {
+  local desc="$1"; shift
+  if remote_delete_blocked_by_pr "$@"; then pass "$desc"; else fail "$desc"; fi
+}
+assert_allowed() {
+  local desc="$1"; shift
+  if remote_delete_blocked_by_pr "$@"; then fail "$desc"; else pass "$desc"; fi
+}
+
+assert_blocked "OPEN PR by another user blocks the remote delete" OPEN alice bob
+assert_allowed "OPEN PR authored by me is allowed"                OPEN bob bob
+assert_allowed "MERGED PR by another user is allowed"             MERGED alice bob
+assert_allowed "CLOSED PR by another user is allowed"             CLOSED alice bob
+assert_allowed "no PR (empty state) is allowed"                   "" "" bob
+assert_allowed "OPEN PR with unknown author is allowed"           OPEN "" bob
+assert_allowed "OPEN PR with unknown me is allowed"               OPEN alice ""
+
 # --- Summary -----------------------------------------------------------------
 print -r --
 print -r -- "Passed: $PASS  Failed: $FAIL"

@@ -1,4 +1,5 @@
 local async = require('custom.utils.async')
+local pr_ownership = require('custom.utils.pr_ownership')
 local ui = require('custom.utils.ui')
 
 local M = {}
@@ -76,13 +77,20 @@ local function delete_branch(branch, on_done)
     local flag = branch.merged and '-d' or '-D'
     async.run_cmd({ 'git', 'branch', flag, branch.name }, function(result)
       if result.code == 0 then
-        async.run_cmd({ 'git', 'push', 'origin', '--delete', branch.name }, function(push_result)
-          if push_result.code == 0 then
-            vim.notify('Deleted branch and remote: ' .. branch.name, vim.log.levels.INFO)
-          else
-            vim.notify('Deleted local branch: ' .. branch.name .. ' (remote delete failed)', vim.log.levels.WARN)
+        pr_ownership.check(nil, branch.name, function(blocked, reason)
+          if blocked then
+            vim.notify('Deleted local branch: ' .. branch.name .. ' (remote kept: ' .. reason .. ')', vim.log.levels.WARN)
+            if on_done then on_done() end
+            return
           end
-          if on_done then on_done() end
+          async.run_cmd({ 'git', 'push', 'origin', '--delete', branch.name }, function(push_result)
+            if push_result.code == 0 then
+              vim.notify('Deleted branch and remote: ' .. branch.name, vim.log.levels.INFO)
+            else
+              vim.notify('Deleted local branch: ' .. branch.name .. ' (remote delete failed)', vim.log.levels.WARN)
+            end
+            if on_done then on_done() end
+          end)
         end)
       else
         vim.notify('Failed to delete branch: ' .. (result.stderr or ''), vim.log.levels.ERROR)
@@ -229,19 +237,31 @@ end
 ---@param names string[]
 local function delete_remote_branches_now(names)
   local total = #names
-  local done, ok_count = 0, 0
+  local done, ok_count, skipped = 0, 0, 0
+  local function finish_one()
+    done = done + 1
+    if done == total then
+      local level = ok_count == total and vim.log.levels.INFO or vim.log.levels.WARN
+      local msg = string.format('Deleted %d/%d remote branch(es) on origin', ok_count, total)
+      if skipped > 0 then msg = msg .. string.format(' (%d kept: open PR owned by others)', skipped) end
+      vim.notify(msg, level)
+    end
+  end
   for _, name in ipairs(names) do
-    async.run_cmd(M.build_delete_remote_cmd(name), function(res)
-      done = done + 1
-      if res.code == 0 then
-        ok_count = ok_count + 1
-      else
-        vim.notify(string.format('Failed to delete origin/%s: %s', name, (res.stderr or ''):gsub('%s+$', '')), vim.log.levels.ERROR)
+    pr_ownership.check(nil, name, function(blocked, reason)
+      if blocked then
+        skipped = skipped + 1
+        vim.notify(string.format('Kept origin/%s (%s)', name, reason), vim.log.levels.WARN)
+        return finish_one()
       end
-      if done == total then
-        local level = ok_count == total and vim.log.levels.INFO or vim.log.levels.WARN
-        vim.notify(string.format('Deleted %d/%d remote branch(es) on origin', ok_count, total), level)
-      end
+      async.run_cmd(M.build_delete_remote_cmd(name), function(res)
+        if res.code == 0 then
+          ok_count = ok_count + 1
+        else
+          vim.notify(string.format('Failed to delete origin/%s: %s', name, (res.stderr or ''):gsub('%s+$', '')), vim.log.levels.ERROR)
+        end
+        finish_one()
+      end)
     end)
   end
 end

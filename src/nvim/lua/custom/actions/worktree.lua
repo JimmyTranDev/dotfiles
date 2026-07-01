@@ -1,6 +1,7 @@
 local async = require('custom.utils.async')
 local files = require('custom.utils.files')
 local input = require('custom.utils.input')
+local pr_ownership = require('custom.utils.pr_ownership')
 local ui = require('custom.utils.ui')
 
 local M = {}
@@ -266,9 +267,15 @@ local function clear_targets(main_repo, targets)
 
         if not wt.delete_remote then return done_one() end
 
-        async.run_cmd({ 'git', '-C', main_repo, 'push', 'origin', '--delete', wt.branch }, function(push)
-          if push.code ~= 0 then vim.notify(string.format('%s: remote branch delete failed (kept)', wt.branch), vim.log.levels.WARN) end
-          done_one()
+        pr_ownership.check(main_repo, wt.branch, function(blocked, reason)
+          if blocked then
+            vim.notify(string.format('%s: remote kept (%s)', wt.branch, reason), vim.log.levels.WARN)
+            return done_one()
+          end
+          async.run_cmd({ 'git', '-C', main_repo, 'push', 'origin', '--delete', wt.branch }, function(push)
+            if push.code ~= 0 then vim.notify(string.format('%s: remote branch delete failed (kept)', wt.branch), vim.log.levels.WARN) end
+            done_one()
+          end)
         end)
       end)
     end)
@@ -387,10 +394,17 @@ function M.rename_current_worktree()
           label = 'Push renamed branch',
           cmd = { 'git', '-C', main_repo, 'push', '-u', remote, new_branch },
         }
-        steps[#steps + 1] = {
-          label = 'Delete old remote branch',
-          cmd = { 'git', '-C', main_repo, 'push', remote, '--delete', old_branch },
-        }
+        -- Keep the old remote branch when it carries an open PR owned by someone
+        -- else; fail-open (any uncertainty still deletes it).
+        local blocked, reason = pr_ownership.check_sync(main_repo, old_branch)
+        if blocked then
+          vim.notify(string.format('Keeping old remote branch %s (%s)', old_branch, reason), vim.log.levels.WARN)
+        else
+          steps[#steps + 1] = {
+            label = 'Delete old remote branch',
+            cmd = { 'git', '-C', main_repo, 'push', remote, '--delete', old_branch },
+          }
+        end
       end
 
       run_sequence(steps, 1, function() vim.notify(string.format('Worktree renamed to "%s" (branch "%s")', final_folder, new_branch), vim.log.levels.INFO) end)
@@ -574,13 +588,19 @@ function M.merge_and_cleanup_worktree()
         }
 
         run_sequence(steps, 1, function()
-          vim.notify('Deleting remote branch ' .. item.branch .. '...', vim.log.levels.INFO)
-          async.run_cmd({ 'git', '-C', main_repo, 'push', 'origin', '--delete', item.branch }, function(res)
-            if res.code == 0 then
-              vim.notify(string.format('Merged %s into %s and cleaned up the worktree', item.branch, base), vim.log.levels.INFO)
-            else
-              vim.notify(string.format('Merged & removed worktree; remote %s not deleted (already gone?)', item.branch), vim.log.levels.WARN)
+          pr_ownership.check(main_repo, item.branch, function(blocked, reason)
+            if blocked then
+              vim.notify(string.format('Merged & removed worktree; kept remote %s (%s)', item.branch, reason), vim.log.levels.WARN)
+              return
             end
+            vim.notify('Deleting remote branch ' .. item.branch .. '...', vim.log.levels.INFO)
+            async.run_cmd({ 'git', '-C', main_repo, 'push', 'origin', '--delete', item.branch }, function(res)
+              if res.code == 0 then
+                vim.notify(string.format('Merged %s into %s and cleaned up the worktree', item.branch, base), vim.log.levels.INFO)
+              else
+                vim.notify(string.format('Merged & removed worktree; remote %s not deleted (already gone?)', item.branch), vim.log.levels.WARN)
+              end
+            end)
           end)
         end)
       end)
@@ -733,9 +753,22 @@ local function delete_worktree_entry(item)
   local local_exists = ref_exists('refs/heads/')
   local remote_exists = ref_exists('refs/remotes/origin/')
 
+  -- PR-ownership guard: even for a wcreated branch, keep the remote when it has an
+  -- open PR owned by someone else (fail-open on any uncertainty).
+  local pr_block_reason
+  if delete_remote and branch and remote_exists then
+    local blocked, reason = pr_ownership.check_sync(main_repo, branch)
+    if blocked then
+      delete_remote = false
+      pr_block_reason = reason
+    end
+  end
+
   local remote_line
   if not branch then
     remote_line = 'Remote:  (no branch detected)'
+  elseif pr_block_reason then
+    remote_line = 'Remote:  origin/' .. branch .. '  (kept -- ' .. pr_block_reason .. ')'
   elseif delete_remote and remote_exists then
     remote_line = 'Remote:  origin/' .. branch .. '  (will be DELETED)'
   elseif delete_remote then
