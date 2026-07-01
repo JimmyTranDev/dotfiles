@@ -36,6 +36,8 @@ keybinds clear-defaults=true {
         bind "Alt down" { MoveFocus "down"; }
         bind "Alt up" { MoveFocus "up"; }
         bind "Alt right" { MoveFocus "right"; }
+        bind "Alt [" { MovePane "Up"; }
+        bind "Alt '" { MovePane "Down"; }
 
         bind "Alt 1" { GoToTab 1; SwitchToMode "locked"; }
         bind "Alt 2" { GoToTab 2; SwitchToMode "locked"; }
