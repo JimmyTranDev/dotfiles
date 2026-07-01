@@ -45,6 +45,47 @@ function M.get_repo_name()
   return info and info.name or nil
 end
 
+--- Parse the GitHub owner and repository from a git remote URL.
+---
+--- Handles the remote shapes real setups produce — crucially the SSH host
+--- aliases used to juggle multiple keys (a `~/.ssh/config` `Host github.com-work`
+--- or `Host github-personal`), which the old `github.com[:/]` match rejected
+--- because the host is then no longer literally `github.com`:
+---   git@github.com:owner/repo.git        · git@github.com-work:owner/repo.git
+---   git@github-personal:owner/repo.git   · ssh://git@github.com[:22]/owner/repo.git
+---   https://github.com/owner/repo[.git]  · git://github.com/owner/repo.git
+--- The host must contain "github" so a GitLab/Bitbucket remote is never resolved
+--- to github.com by mistake.
+---@param remote_url string|nil
+---@return string|nil owner
+---@return string|nil repo
+function M.parse_repo_url(remote_url)
+  if type(remote_url) ~= 'string' then return nil, nil end
+
+  -- Reduce the remote to "host<sep>owner/repo": drop a scheme (ssh://, git+ssh://,
+  -- https://, git://), trailing whitespace, a trailing ".git", and trailing slashes.
+  local s = remote_url:gsub('%s+$', '')
+  s = s:gsub('^%w[%w+.-]*://', '')
+  s = s:gsub('%.git$', ''):gsub('/+$', '')
+
+  -- scp-style remotes separate host from path with ':' (git@host:owner/repo);
+  -- URL-style (and scheme-stripped) remotes use '/' (host/owner/repo).
+  local host, path = s:match('^([^/]+):(.+)$')
+  if not host then
+    host, path = s:match('^([^/]+)/(.+)$')
+  end
+  if not host or not path then return nil, nil end
+
+  host = host:gsub('^[^@]*@', ''):gsub(':%d+$', '') -- strip 'user@' and ':port'
+  if not host:lower():match('github') then return nil, nil end
+
+  -- owner/repo are the final two path segments; a deeper prefix (e.g. a leftover
+  -- ':port' segment from an scp-style split) is ignored.
+  local owner, repo = path:match('([^/:]+)/([^/:]+)$')
+  if owner and owner ~= '' and repo and repo ~= '' then return owner, repo end
+  return nil, nil
+end
+
 function M.get_github_owners()
   local orgs = {
     vim.env.ORG_GITHUB_NAME,
