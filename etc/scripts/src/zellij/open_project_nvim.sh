@@ -13,23 +13,19 @@ main() {
 
 	require_tool fzf nvim || exit 1
 
-	# 1. Resolve the target project with NO prompt, keyed to where you already
-	#    are -- the pane to the right, then the current pane, then the last
-	#    project -- mirroring Alt ] (open_project_last.sh). Alt ' always opens
-	#    nvim, so it shouldn't ask which project either; only fall back to the
-	#    shared fzf picker when none of those resolve. Cancelling it exits cleanly.
+	# 1. Pick the project to open nvim in with the shared fzf picker (projects
+	#    and worktrees, most-recently-used first). Unlike Alt ]
+	#    (open_project_last.sh), Alt ' does NOT peek at the pane to the right, so
+	#    it never shifts focus right-then-left; it always prompts you to choose
+	#    the project instead. Cancelling the picker exits cleanly.
 	local target_dir
-	target_dir="$(right_pane_dir)" \
-		|| target_dir="$(current_pane_dir)" \
-		|| target_dir="$(last_project_dir)" \
-		|| target_dir="$(select_project_dir)" \
-		|| exit 0
+	target_dir="$(select_project_dir)" || exit 0
 	[[ -z "$target_dir" ]] && exit 0
 
-	# 2. Open nvim in a new stacked pane rooted at the resolved project (mirrors
-	#    Alt ] / open_project_last.sh). open_tool_pane runs nvim in a --stacked pane
-	#    with --close-on-exit and renames the focused tab after the project
-	#    folder; reindex tab names afterward.
+	# 2. Open nvim in a new stacked pane rooted at the chosen project.
+	#    open_tool_pane runs nvim in a --stacked pane with --close-on-exit and
+	#    renames the focused tab after the project folder; reindex tab names
+	#    afterward.
 	open_tool_pane "$target_dir" "nvim"
 
 	"$SCRIPT_DIR/update_tab_indexes.sh"
