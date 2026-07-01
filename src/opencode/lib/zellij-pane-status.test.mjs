@@ -1,35 +1,11 @@
-import { test, beforeEach, afterEach } from "node:test"
+import { test } from "node:test"
 import assert from "node:assert/strict"
-import fs from "node:fs"
-import os from "node:os"
-import path from "node:path"
 
 // End-to-end checks of the real pane-status plugin (plugins/zellij-pane-status.js),
 // not just the pure helpers. A fake Bun-style `$` shell records the names the
 // plugin would hand to `zellij action rename-pane`, so we can assert the pane
 // settles on the right glyph through a realistic opencode event stream —
 // including the trailing post-idle flush that used to leave it stuck on 🛠️.
-//
-// The pane name is the compact "<emoji> <dir>" form, so every test runs from a
-// fixture directory named "proj": that makes the expected names deterministic
-// and proves the name now tracks the cwd, not the (ignored) session title.
-const DIR = "proj"
-
-let originalCwd
-let fixtureRoot
-
-beforeEach(() => {
-  originalCwd = process.cwd()
-  fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), "pane-status-"))
-  const fixtureDir = path.join(fixtureRoot, DIR)
-  fs.mkdirSync(fixtureDir)
-  process.chdir(fixtureDir)
-})
-
-afterEach(() => {
-  process.chdir(originalCwd)
-  fs.rmSync(fixtureRoot, { recursive: true, force: true })
-})
 
 const importPlugin = () => import("../plugins/zellij-pane-status.js")
 
@@ -54,10 +30,9 @@ const startPlugin = async ({ paneId = "7" } = {}) => {
   return { hooks, renames }
 }
 
-test("plugin: a finished turn settles on '✅ <dir>' despite a post-idle activity flush", async () => {
+test("plugin: a finished turn settles on '✅ idle' despite a post-idle activity flush", async () => {
   const { hooks, renames } = await startPlugin()
 
-  // A titled session is created, but the pane name must track the dir, not the title.
   await hooks.event({ event: { type: "session.created", properties: { info: { title: "fix bug" } } } })
   await hooks["chat.message"]() // user submits -> working
   await hooks.event({ event: { type: "session.status", properties: { status: { type: "busy" } } } })
@@ -70,9 +45,9 @@ test("plugin: a finished turn settles on '✅ <dir>' despite a post-idle activit
   await hooks.event({ event: { type: "tool.execute.after" } })
 
   const last = renames[renames.length - 1]
-  assert.equal(last, "✅ proj")
+  assert.equal(last, "✅ idle · fix bug")
   assert.ok(!last.startsWith("🛠️"), "pane must not be stuck on working after the turn ends")
-  assert.deepEqual(renames, ["🛠️ proj", "✅ proj"])
+  assert.deepEqual(renames, ["🛠️ working · fix bug", "✅ idle · fix bug"])
 })
 
 test("plugin: a permission prompt shows ⏸️, resumes to 🛠️, then ends on ✅", async () => {
@@ -85,10 +60,10 @@ test("plugin: a permission prompt shows ⏸️, resumes to 🛠️, then ends on
   await hooks.event({ event: { type: "session.idle" } })
 
   assert.deepEqual(renames, [
-    "🛠️ proj",
-    "⏸️ proj",
-    "🛠️ proj",
-    "✅ proj",
+    "🛠️ working · deploy",
+    "⏸️ needs input · deploy",
+    "🛠️ working · deploy",
+    "✅ idle · deploy",
   ])
 })
 
@@ -102,10 +77,10 @@ test("plugin: a question prompt shows ❓, resumes to 🛠️, then ends on ✅"
   await hooks.event({ event: { type: "session.idle" } })
 
   assert.deepEqual(renames, [
-    "🛠️ proj",
-    "❓ proj",
-    "🛠️ proj",
-    "✅ proj",
+    "🛠️ working · choose",
+    "❓ question · choose",
+    "🛠️ working · choose",
+    "✅ idle · choose",
   ])
 })
 
@@ -114,7 +89,7 @@ test("plugin: a busy session.status alone (no chat.message) still shows 🛠️"
   await hooks.event({ event: { type: "session.updated", properties: { info: { title: "auto" } } } })
   await hooks.event({ event: { type: "session.status", properties: { status: { type: "busy" } } } })
   await hooks.event({ event: { type: "session.idle" } })
-  assert.deepEqual(renames, ["🛠️ proj", "✅ proj"])
+  assert.deepEqual(renames, ["🛠️ working · auto", "✅ idle · auto"])
 })
 
 test("plugin: an errored turn ends on ❌ error", async () => {
@@ -122,7 +97,7 @@ test("plugin: an errored turn ends on ❌ error", async () => {
   await hooks.event({ event: { type: "session.created", properties: { info: { title: "build" } } } })
   await hooks["chat.message"]()
   await hooks.event({ event: { type: "session.error" } })
-  assert.equal(renames[renames.length - 1], "❌ proj")
+  assert.equal(renames[renames.length - 1], "❌ error · build")
 })
 
 test("plugin: no-op outside zellij (ZELLIJ unset)", async () => {
