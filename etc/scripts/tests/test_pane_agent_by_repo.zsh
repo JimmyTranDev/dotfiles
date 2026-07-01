@@ -1,9 +1,10 @@
 #!/usr/bin/env zsh
 # Tests for the repo -> AI-agent routing in utils/utility.sh — the logic behind
 # Alt ] (open_project_last.sh) choosing opencode vs storecode per repo. A repo
-# whose git `origin` owner is in WORK_AGENT_ORGS (Storebrand work orgs) opens
-# storecode; every other repo opens opencode. Only the two AI agents are
-# routed — nvim, gh-dash, and empty are opened unchanged.
+# whose git `origin` owner is in PERSONAL_AGENT_ORGS (Jimmy's personal orgs)
+# opens opencode; every other repo — including one with no origin — opens
+# storecode. Only the two AI agents are routed — nvim, gh-dash, and empty are
+# opened unchanged.
 #
 # Run: zsh etc/scripts/tests/test_pane_agent_by_repo.zsh
 
@@ -74,40 +75,46 @@ assert_eq "owner from a personal repo's https origin" \
 out="$(github_remote_owner "$no_origin_repo" 2>/dev/null)"; rc=$?
 assert_eq "no origin returns non-zero" "1" "$rc"
 
-# --- agent_for_owner: owner -> agent (default WORK_AGENT_ORGS) ----------------
+# --- agent_for_owner: owner -> agent (default PERSONAL_AGENT_ORGS) ------------
+assert_eq "personal org owner -> opencode" \
+  "opencode" "$(agent_for_owner jimmytrandev)"
+assert_eq "personal org owner is case-insensitive" \
+  "opencode" "$(agent_for_owner JimmyTranDev)"
 assert_eq "work org owner -> storecode" \
   "storecode" "$(agent_for_owner storebrand-digital)"
-assert_eq "work org owner is case-insensitive" \
-  "storecode" "$(agent_for_owner Storebrand-Digital)"
-assert_eq "personal owner -> opencode" \
-  "opencode" "$(agent_for_owner JimmyTranDev)"
-assert_eq "empty owner -> opencode" \
-  "opencode" "$(agent_for_owner '')"
+assert_eq "unknown owner -> storecode" \
+  "storecode" "$(agent_for_owner some-other-org)"
+assert_eq "empty owner -> storecode" \
+  "storecode" "$(agent_for_owner '')"
 
-# --- agent_for_owner: WORK_AGENT_ORGS is overridable -------------------------
-saved_orgs=("${WORK_AGENT_ORGS[@]}")
-WORK_AGENT_ORGS=(acme-corp)
-assert_eq "override: added org -> storecode" \
-  "storecode" "$(agent_for_owner acme-corp)"
-assert_eq "override: former default org -> opencode" \
-  "opencode" "$(agent_for_owner storebrand-digital)"
-WORK_AGENT_ORGS=("${saved_orgs[@]}")
+# --- agent_for_owner: PERSONAL_AGENT_ORGS is overridable ---------------------
+saved_orgs=("${PERSONAL_AGENT_ORGS[@]}")
+PERSONAL_AGENT_ORGS=(acme-corp)
+assert_eq "override: added org -> opencode" \
+  "opencode" "$(agent_for_owner acme-corp)"
+assert_eq "override: former default org -> storecode" \
+  "storecode" "$(agent_for_owner jimmytrandev)"
+PERSONAL_AGENT_ORGS=("${saved_orgs[@]}")
 
 # --- resolve_repo_agent: repo dir -> agent -----------------------------------
-assert_eq "work repo resolves to storecode" \
-  "storecode" "$(resolve_repo_agent "$work_repo")"
 assert_eq "personal repo resolves to opencode" \
   "opencode" "$(resolve_repo_agent "$personal_repo")"
-assert_eq "repo with no origin resolves to opencode" \
-  "opencode" "$(resolve_repo_agent "$no_origin_repo")"
+assert_eq "work repo resolves to storecode" \
+  "storecode" "$(resolve_repo_agent "$work_repo")"
+assert_eq "repo with no origin resolves to storecode" \
+  "storecode" "$(resolve_repo_agent "$no_origin_repo")"
 
 # --- normalize_pane_tool: only opencode/storecode are routed -----------------
+assert_eq "storecode on a work repo stays storecode" \
+  "storecode" "$(normalize_pane_tool storecode "$work_repo")"
 assert_eq "opencode on a work repo normalizes to storecode" \
   "storecode" "$(normalize_pane_tool opencode "$work_repo")"
 assert_eq "storecode on a personal repo normalizes to opencode" \
   "opencode" "$(normalize_pane_tool storecode "$personal_repo")"
 assert_eq "opencode on a personal repo stays opencode" \
   "opencode" "$(normalize_pane_tool opencode "$personal_repo")"
+assert_eq "an AI agent on a no-origin repo normalizes to storecode" \
+  "storecode" "$(normalize_pane_tool opencode "$no_origin_repo")"
 assert_eq "nvim is left untouched on a work repo" \
   "nvim" "$(normalize_pane_tool nvim "$work_repo")"
 assert_eq "gh-dash is left untouched on a work repo" \
