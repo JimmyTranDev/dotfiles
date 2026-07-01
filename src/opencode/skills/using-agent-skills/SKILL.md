@@ -39,6 +39,7 @@ Task arrives
     ├── Manage Turso Cloud platform via turso CLI? → turso-cloud
     ├── Manage a Bitwarden vault via the bw CLI? → bitwarden-cli
     ├── Operate the opencode CLI binary (run/serve/attach/auth/mcp)? → opencode-cli
+    ├── Create a well-formed Jira ticket/work item? → create-jira-ticket
     ├── Reviewing code? ───────────────→ code-review-and-quality
     │   ├── Too complex? ─────────────→ code-simplification
     │   ├── Comments: why-not-what, TODO:/FIX:/HACK:/NOTE:? → good-code-comments
@@ -188,6 +189,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Define | interview-me | Surface what the user actually wants before any plan, spec, or code exists |
 | Define | idea-refine | Refine ideas through structured divergent and convergent thinking |
 | Define | spec-driven-development | Requirements and acceptance criteria before code |
+| Define | create-jira-ticket | Interactively gather, confirm, and create a well-formed Jira work item via the acli skill |
 | Plan | planning-and-task-breakdown | Decompose into small, verifiable tasks |
 | Build | fast-implementation | Express lane for small, low-risk, obvious changes with a minimal safety net |
 | Build | yolo | Opt-in no-gate pass: clarifies the target, then full-sends everything and hands back a test plan |

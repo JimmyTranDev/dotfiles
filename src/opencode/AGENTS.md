@@ -99,6 +99,7 @@ Map every request to the appropriate skill before acting.
 | Embedded Turso Database engine — `tursodb` shell, `@tursodatabase/*` SDKs, MVCC/concurrent writes, encryption, local-first sync | `turso-database` |
 | Manage the Turso Cloud platform (libSQL) — databases, groups, branches, tokens, local dev server via the `turso` CLI | `turso-cloud` |
 | Operate the `opencode` CLI binary — `run`, `serve`/`web`/`attach`, auth, agents, MCP, models, sessions, stats, plugins, `upgrade`/`uninstall` | `opencode-cli` |
+| Create a well-formed Jira ticket/work item (gather details, Figma, APIs, acceptance criteria; confirm; create via `acli`) | `create-jira-ticket` |
 | Which skill applies? (meta) | `using-agent-skills` |
 
 ## Execution Model
