@@ -63,6 +63,7 @@ Task arrives
     ├── Find/remove unused files, deps, exports (dead code)? → knip
     ├── Deprecating/migrating? ────────→ deprecation-and-migration
     ├── Writing docs/ADRs? ───────────→ documentation-and-adrs
+    ├── Create/update a CLAUDE.md rules file (or migrate AGENTS.md)? → claude-md
     ├── Adding logs/metrics/alerts? ───→ observability-and-instrumentation
     └── Deploying/launching? ─────────→ shipping-and-launch
 ```
@@ -202,6 +203,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Build | source-driven-development | Verify against official docs before implementing |
 | Build | doubt-driven-development | Adversarial fresh-context review of every non-trivial decision |
 | Build | context-engineering | Right context at the right time |
+| Build | claude-md | Create/update a CLAUDE.md rules file, or migrate a legacy AGENTS.md → CLAUDE.md |
 | Build | parallelization-and-delegation | Batch independent tool calls and delegate to explore/general subagents; concurrent fan-out with disjoint scopes |
 | Build | model-tier-routing | Route each task/subagent to the cheapest Claude tier (Haiku/Sonnet/Opus) that does it well; escalate on failure |
 | Build | frontend-ui-engineering | Production-quality UI with accessibility |

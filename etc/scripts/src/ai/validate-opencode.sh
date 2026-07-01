@@ -136,19 +136,19 @@ validate_agents() {
 	done
 }
 
-validate_agents_md_refs() {
+validate_claude_md_refs() {
 	local opencode_dir="$1"
-	local agents_md="$opencode_dir/AGENTS.md"
+	local claude_md="$opencode_dir/CLAUDE.md"
 
-	log_info "Validating AGENTS.md references"
+	log_info "Validating CLAUDE.md references"
 
-	if [[ ! -f "$agents_md" ]]; then
-		log_warning "No AGENTS.md found"
+	if [[ ! -f "$claude_md" ]]; then
+		log_warning "No CLAUDE.md found"
 		return 0
 	fi
 
 	local referenced_skills
-	referenced_skills=$(grep -oE 'skills/[a-z0-9_-]+' "$agents_md" 2>/dev/null | sort -u || echo "")
+	referenced_skills=$(grep -oE 'skills/[a-z0-9_-]+' "$claude_md" 2>/dev/null | sort -u || echo "")
 
 	while IFS= read -r ref; do
 		if [[ -z "$ref" ]]; then
@@ -156,19 +156,19 @@ validate_agents_md_refs() {
 		fi
 		local skill_path="$opencode_dir/$ref"
 		if [[ ! -d "$skill_path" ]]; then
-			log_error "AGENTS.md references '$ref' but directory does not exist"
-			add_issue "error" "agents_md" "$ref" "referenced directory does not exist"
+			log_error "CLAUDE.md references '$ref' but directory does not exist"
+			add_issue "error" "claude_md" "$ref" "referenced directory does not exist"
 		fi
 	done <<<"$referenced_skills"
 }
 
 check_deprecated_refs() {
 	local opencode_dir="$1"
-	local agents_md="$opencode_dir/AGENTS.md"
+	local claude_md="$opencode_dir/CLAUDE.md"
 
 	log_info "Checking deprecated references"
 
-	if [[ ! -f "$agents_md" ]]; then
+	if [[ ! -f "$claude_md" ]]; then
 		return 0
 	fi
 
@@ -178,9 +178,9 @@ check_deprecated_refs() {
 				if [[ -e "$item" ]]; then
 					local item_name
 					item_name=$(basename "$item" .md)
-					if grep -q "$item_name" "$agents_md" 2>/dev/null; then
-						log_warning "AGENTS.md references deprecated item: $item_name"
-						add_issue "warning" "deprecated" "$item_name" "referenced in AGENTS.md but deprecated"
+					if grep -q "$item_name" "$claude_md" 2>/dev/null; then
+						log_warning "CLAUDE.md references deprecated item: $item_name"
+						add_issue "warning" "deprecated" "$item_name" "referenced in CLAUDE.md but deprecated"
 					fi
 				fi
 			done
@@ -191,9 +191,9 @@ check_deprecated_refs() {
 		if [[ -d "$dep_dir" ]]; then
 			local skill_name
 			skill_name=$(basename "$dep_dir")
-			if grep -q "$skill_name" "$agents_md" 2>/dev/null; then
-				log_warning "AGENTS.md references deprecated skill: $skill_name"
-				add_issue "warning" "deprecated" "$skill_name" "deprecated skill referenced in AGENTS.md"
+			if grep -q "$skill_name" "$claude_md" 2>/dev/null; then
+				log_warning "CLAUDE.md references deprecated skill: $skill_name"
+				add_issue "warning" "deprecated" "$skill_name" "deprecated skill referenced in CLAUDE.md"
 			fi
 		fi
 	done
@@ -202,7 +202,7 @@ check_deprecated_refs() {
 show_help() {
 	echo "Usage: validate-opencode.sh [opencode-directory]"
 	echo ""
-	echo "Validate OpenCode config: skills, commands, agents, and AGENTS.md references."
+	echo "Validate OpenCode config: skills, commands, agents, and CLAUDE.md references."
 	echo ""
 	echo "Options:"
 	echo "  --help    Show this help message"
@@ -229,7 +229,7 @@ main() {
 	validate_skills "$opencode_dir"
 	validate_commands "$opencode_dir"
 	validate_agents "$opencode_dir"
-	validate_agents_md_refs "$opencode_dir"
+	validate_claude_md_refs "$opencode_dir"
 	check_deprecated_refs "$opencode_dir"
 
 	if [[ "$TOTAL_ERRORS" -eq 0 ]] && [[ "$TOTAL_WARNINGS" -eq 0 ]]; then

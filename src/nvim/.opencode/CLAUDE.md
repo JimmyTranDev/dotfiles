@@ -1,7 +1,7 @@
-# AGENTS.md — Neovim config (project scope)
+# CLAUDE.md — Neovim config (project scope)
 
 Project rules for working **on this Neovim configuration**. Loaded via
-`.opencode/opencode.json` (`instructions: ["AGENTS.md"]`).
+`.opencode/opencode.json` (`instructions: ["CLAUDE.md"]`).
 
 This repo is a self-contained Lua config managed with **lazy.nvim**. It lives at
 `src/nvim/` inside the dotfiles repo and is symlinked to `~/.config/nvim`, so the

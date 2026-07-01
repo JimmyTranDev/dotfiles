@@ -131,7 +131,7 @@ development environment built on [OpenCode](https://opencode.ai):
 | **Plugins** | 2 | Custom JS plugins — live Zellij pane/tab status |
 | **Scripts** | 35 | Reusable shell tools — stack detection, branch info, test runners, PR status, security scans, and more |
 
-There are no bespoke "agents" to babysit. Instead, a single `AGENTS.md` rule file
+There are no bespoke "agents" to babysit. Instead, a single `CLAUDE.md` rule file
 routes every request to the right **skill**, **commands** drive multi-phase
 workflows (spec → plan → build → verify → review), and **skills** inject
 just-in-time domain knowledge (TDD discipline, idiomatic API design, security

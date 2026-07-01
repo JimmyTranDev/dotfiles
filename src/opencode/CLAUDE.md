@@ -1,7 +1,7 @@
-# AGENTS.md
+# CLAUDE.md
 
-Global rules for OpenCode in this workspace. Loaded as a system instruction via
-`opencode.jsonc` (`instructions: ["AGENTS.md"]`).
+Global rules for OpenCode and Claude Code. Loaded by opencode via
+`opencode.jsonc` (`instructions: ["CLAUDE.md"]`); Claude Code reads `~/.claude/CLAUDE.md`.
 
 ## Asking Questions
 
@@ -95,6 +95,7 @@ Map every request to the appropriate skill before acting.
 | Removing/sunsetting systems, migrating implementations | `deprecation-and-migration` |
 | ADRs, decision records, API/feature documentation | `documentation-and-adrs` |
 | New session setup, rules files, context configuration | `context-engineering` |
+| Create/update a CLAUDE.md rules file, or migrate AGENTS.md → CLAUDE.md | `claude-md` |
 | Parallelize independent tool calls; delegate to Task subagents (explore/general) & concurrent fan-out | `parallelization-and-delegation` |
 | Route the agent's own work across Claude model tiers (Haiku/Sonnet/Opus) to cut token cost — pick a cheaper subagent/`--model` | `model-tier-routing` |
 | Read live output of CLIs running in nvim toggleterm terminals | `nvim-toggleterm-read` |
