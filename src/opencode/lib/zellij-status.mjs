@@ -47,13 +47,12 @@ export const truncateTitle = (title, max = 24) => {
   return text.slice(0, max - 1).trimEnd() + "…"
 }
 
-// Compact pane name: the state emoji followed by the supplied text (the current
-// directory). The emoji alone carries the state, so the word label is dropped to
-// keep the pane name short; with no text to show, the emoji stands on its own.
-export const computeName = (stateKey, text) => {
-  const state = STATES[stateKey] || { emoji: "•" }
-  const clipped = truncateTitle(text)
-  return clipped ? `${state.emoji} ${clipped}` : state.emoji
+export const computeName = (stateKey, title) => {
+  const state = STATES[stateKey] || { emoji: "•", label: String(stateKey) }
+  const text = truncateTitle(title)
+  return text
+    ? `${state.emoji} ${state.label} · ${text}`
+    : `${state.emoji} ${state.label}`
 }
 
 // Map an opencode event (or a bare event-type string) to a pane status key,
