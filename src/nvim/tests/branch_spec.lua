@@ -61,6 +61,12 @@ check('deletable: empty input -> none', #branch.deletable_remote_branches({}, 'm
 check('cmd: default remote origin', table.concat(branch.build_delete_remote_cmd('feature/x'), ' '), 'git push origin --delete feature/x')
 check('cmd: custom remote', table.concat(branch.build_delete_remote_cmd('feature/x', 'upstream'), ' '), 'git push upstream --delete feature/x')
 
+-- build_set_upstream_cmd: argv retargeting the current branch's upstream.
+check('upstream: default remote origin', table.concat(branch.build_set_upstream_cmd('feature/x'), ' '), 'git branch --set-upstream-to=origin/feature/x')
+check('upstream: explicit current branch', table.concat(branch.build_set_upstream_cmd('feature/x', 'origin', 'local-b'), ' '), 'git branch --set-upstream-to=origin/feature/x local-b')
+check('upstream: custom remote', table.concat(branch.build_set_upstream_cmd('foo', 'upstream'), ' '), 'git branch --set-upstream-to=upstream/foo')
+check('upstream: empty current omitted', table.concat(branch.build_set_upstream_cmd('x', 'origin', ''), ' '), 'git branch --set-upstream-to=origin/x')
+
 if failures > 0 then
   io.write(string.format('\n%d assertion(s) failed\n', failures))
   os.exit(1)
