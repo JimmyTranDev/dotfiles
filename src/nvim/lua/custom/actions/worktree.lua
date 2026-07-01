@@ -920,29 +920,6 @@ local function run_create(ctx)
   end)
 end
 
---- Step 4: choose the container (wcreated / wcheckout), then create.
----@param ctx table
-local function choose_target(ctx)
-  ui.pick({
-    title = 'Create Worktree: target directory',
-    items = {
-      { text = 'wcreated', dir = WCREATED_DIR },
-      { text = 'wcheckout', dir = WCHECKOUT_DIR },
-    },
-    format = function(item)
-      return {
-        { item.text, 'Function' },
-        { '  ' .. item.dir, 'Comment' },
-      }
-    end,
-    on_confirm = function(choice)
-      ctx.target_dir = choice.dir
-      run_create(ctx)
-    end,
-    empty_msg = 'No target directory',
-  })
-end
-
 --- Step 3: choose the commit type for the seed commit (feat is the default).
 ---@param ctx table
 local function choose_commit_type(ctx)
@@ -956,7 +933,8 @@ local function choose_commit_type(ctx)
     format = function(item) return { { item.text, 'Function' } } end,
     on_confirm = function(choice)
       ctx.commit_type = choice.text
-      choose_target(ctx)
+      ctx.target_dir = WCREATED_DIR
+      run_create(ctx)
     end,
     empty_msg = 'No commit types',
   })
@@ -989,8 +967,8 @@ local function prompt_branch(main_repo)
 end
 
 --- Step 1: pick a repository under ~/Programming, then drive the create flow:
---- repo -> branch/JIRA -> commit type -> container -> fetch + worktree add +
---- seed commit -> cd in (Zellij tab synced) + optional dependency install.
+--- repo -> branch/JIRA -> commit type -> fetch + worktree add + seed commit ->
+--- cd in (Zellij tab synced) + optional dependency install.
 function M.create_worktree()
   local repos = files.scan_programming()
   if #repos == 0 then
