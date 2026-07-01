@@ -13,13 +13,20 @@ main() {
 
 	require_tool fzf nvim || exit 1
 
-	# 1. Pick the project/worktree with the shared fzf picker (same one Alt p
-	#    uses). Cancelling the picker exits cleanly.
+	# 1. Resolve the target project with NO prompt, keyed to where you already
+	#    are -- the pane to the right, then the current pane, then the last
+	#    project -- mirroring Alt ] (open_project_last.sh). Alt ' always opens
+	#    nvim, so it shouldn't ask which project either; only fall back to the
+	#    shared fzf picker when none of those resolve. Cancelling it exits cleanly.
 	local target_dir
-	target_dir="$(select_project_dir)" || exit 0
+	target_dir="$(right_pane_dir)" \
+		|| target_dir="$(current_pane_dir)" \
+		|| target_dir="$(last_project_dir)" \
+		|| target_dir="$(select_project_dir)" \
+		|| exit 0
 	[[ -z "$target_dir" ]] && exit 0
 
-	# 2. Open nvim in a new stacked pane rooted at the chosen project (mirrors
+	# 2. Open nvim in a new stacked pane rooted at the resolved project (mirrors
 	#    Alt ] / open_project_last.sh). open_tool_pane runs nvim in a --stacked pane
 	#    with --close-on-exit and renames the focused tab after the project
 	#    folder; reindex tab names afterward.
