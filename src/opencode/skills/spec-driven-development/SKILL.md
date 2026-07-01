@@ -168,8 +168,13 @@ The spec is a living document, not a one-time artifact:
 
 - **Update when decisions change** — If you discover the data model needs to change, update the spec first, then implement.
 - **Update when scope changes** — Features added or cut should be reflected in the spec.
-- **Commit the spec** — The spec belongs in version control alongside the code.
-- **Reference the spec in PRs** — Link back to the spec section that each PR implements.
+- **Save the spec to `spec/spec.md`** — write specs to the repo-root `spec/`
+  folder by default, so there is one predictable location. In a standalone
+  spec-driven project the spec is a living document that belongs in version
+  control alongside the code, referenced from each PR. When this skill runs
+  inside the `/implement` family, that same `spec/spec.md` is instead a
+  throwaway working aid the command clears before the change lands, so it never
+  reaches the base branch or a PR.
 
 ## Common Rationalizations
 
@@ -197,4 +202,4 @@ Before proceeding to implementation, confirm:
 - [ ] The human has reviewed and approved the spec
 - [ ] Success criteria are specific and testable
 - [ ] Boundaries (Always/Ask First/Never) are defined
-- [ ] The spec is saved to a file in the repository
+- [ ] The spec is saved to `spec/spec.md` (repo-root `spec/` folder)
