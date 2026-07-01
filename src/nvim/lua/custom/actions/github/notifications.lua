@@ -232,6 +232,17 @@ local function filter_comment_notifications(notifications)
   return filtered
 end
 
+--- Keep only notifications whose reason is strictly a comment (excludes mentions).
+---@param notifications table[]
+---@return table[]
+local function filter_strict_comment_notifications(notifications)
+  local filtered = {}
+  for _, notif in ipairs(notifications) do
+    if notif.reason == 'comment' then table.insert(filtered, notif) end
+  end
+  return filtered
+end
+
 function M.show_notifications()
   fetch_notifications(function(notifications)
     local filtered = filter_comment_notifications(notifications)
@@ -245,8 +256,8 @@ end
 
 ---@param org_name string
 ---@param slugs string[]
----@param comment_only boolean|nil when true, keep only comment/mention notifications
-local function fetch_notifications_for_team(org_name, slugs, comment_only)
+---@param filter_fn (fun(notifications: table[]): table[])|nil optional reason filter applied before author resolution
+local function fetch_notifications_for_team(org_name, slugs, filter_fn)
   get_team_members_for_slugs(org_name, slugs, function(usernames)
     if #usernames == 0 then
       vim.notify('No members found for selected team', vim.log.levels.WARN)
@@ -259,7 +270,7 @@ local function fetch_notifications_for_team(org_name, slugs, comment_only)
     end
 
     fetch_notifications(function(notifications)
-      if comment_only then notifications = filter_comment_notifications(notifications) end
+      if filter_fn then notifications = filter_fn(notifications) end
       vim.notify('Resolving notification authors...', vim.log.levels.INFO)
       local pending = #notifications
       local author_map = {}
@@ -337,7 +348,15 @@ function M.show_notifications_by_default_team()
   local team_slugs, org_name = parse_team_config()
   if not team_slugs or not org_name then return end
 
-  fetch_notifications_for_team(org_name, { team_slugs[1] }, true)
+  fetch_notifications_for_team(org_name, { team_slugs[1] }, filter_comment_notifications)
+end
+
+--- Default-team notifications whose reason is strictly a comment (no mentions).
+function M.show_comment_notifications_by_default_team()
+  local team_slugs, org_name = parse_team_config()
+  if not team_slugs or not org_name then return end
+
+  fetch_notifications_for_team(org_name, { team_slugs[1] }, filter_strict_comment_notifications)
 end
 
 function M.redeploy_pr()

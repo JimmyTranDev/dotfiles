@@ -233,6 +233,7 @@ maps('n', {
   { '<Leader>ugn', github_actions.show_notifications_by_default_team, '󰂚 Team comment/mention notifications' },
   -- { '<Leader>ugN', github_actions.show_notifications, 'Comment/mention notifications' },
   { '<Leader>ugN', github_actions.show_notifications_by_team, '󰂚 Team notifications (select)' },
+  { '<Leader>ugs', github_actions.show_comment_notifications_by_default_team, '󰂚 Team comments only' },
   { '<Leader>ugt', github_actions.select_open_prs_by_default_team, '󰓢 Team + my PRs' },
   { '<Leader>ugT', github_actions.select_open_prs_by_people, '󰓢 Team + my PRs (select)' },
   { '<Leader>ugb', github_actions.open_team_pr_board, '󰓢 Team PR board' },
