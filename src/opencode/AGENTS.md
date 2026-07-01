@@ -94,6 +94,7 @@ Map every request to the appropriate skill before acting.
 | ADRs, decision records, API/feature documentation | `documentation-and-adrs` |
 | New session setup, rules files, context configuration | `context-engineering` |
 | Parallelize independent tool calls; delegate to Task subagents (explore/general) & concurrent fan-out | `parallelization-and-delegation` |
+| Route the agent's own work across Claude model tiers (Haiku/Sonnet/Opus) to cut token cost — pick a cheaper subagent/`--model` | `model-tier-routing` |
 | Read live output of CLIs running in nvim toggleterm terminals | `nvim-toggleterm-read` |
 | Browse/pull an Android emulator app's private data folder (/data/data) | `android-app-data` |
 | Embedded Turso Database engine — `tursodb` shell, `@tursodatabase/*` SDKs, MVCC/concurrent writes, encryption, local-first sync | `turso-database` |
