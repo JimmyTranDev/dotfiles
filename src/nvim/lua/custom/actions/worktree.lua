@@ -608,6 +608,53 @@ function M.merge_and_cleanup_worktree()
   })
 end
 
+--- Select one of this project's linked worktrees and open a diff review of its
+--- branch against the base branch (develop -> main -> master), scoped to that
+--- worktree. This is the "review this worktree before merging" view -- it mirrors
+--- merge_and_cleanup_worktree's picker but shows the diff instead of merging.
+function M.review_worktree_diff()
+  local cwd = vim.fn.getcwd()
+
+  local common = git_capture(cwd, { 'rev-parse', '--path-format=absolute', '--git-common-dir' })
+  if not common then
+    vim.notify('Not inside a git repository', vim.log.levels.ERROR)
+    return
+  end
+  local main_repo = vim.fn.fnamemodify(common, ':h')
+
+  local base = detect_base(main_repo)
+  if not base then
+    vim.notify('No base branch (develop/main/master) found', vim.log.levels.ERROR)
+    return
+  end
+
+  local worktrees = list_linked_worktrees(main_repo)
+
+  ui.pick({
+    title = string.format('Review worktree diff (vs %s)', base),
+    items = worktrees,
+    empty_msg = 'No linked worktrees to review for this project',
+    format = function(item)
+      return {
+        { folder_from_branch(item.branch), 'Function' },
+        { '  ' .. item.branch, 'Comment' },
+      }
+    end,
+    on_confirm = function(item)
+      if item.branch == base then
+        vim.notify('Nothing to review: that worktree is on the base branch ' .. base, vim.log.levels.INFO)
+        return
+      end
+      local ok, snacks = pcall(require, 'snacks')
+      if not ok then
+        vim.notify('snacks.nvim is not available', vim.log.levels.WARN)
+        return
+      end
+      snacks.picker.git_diff({ cwd = item.path, base = base })
+    end,
+  })
+end
+
 local MAX_TAB_NAME_LENGTH = 20
 
 --- Rename the focused Zellij tab to `name` (no-op outside Zellij), mirroring the
