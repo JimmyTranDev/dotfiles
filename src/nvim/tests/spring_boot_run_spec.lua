@@ -61,14 +61,14 @@ check(
 )
 
 -- build_spring_boot_run_command: byte-exact command assembly.
-check('defaults: root, local profile, no JDK pin', language.build_spring_boot_run_command({}), 'mvn spring-boot:run -Dspring-boot.run.profiles=local')
-check('with module', language.build_spring_boot_run_command({ module = 'app' }), 'mvn -pl app spring-boot:run -Dspring-boot.run.profiles=local')
+check('defaults: root, local profile, no JDK pin', language.build_spring_boot_run_command({}), 'mvn spring-boot:run -Dspring-boot.run.profiles=local -Dmaven.gitcommitid.skip=true')
+check('with module', language.build_spring_boot_run_command({ module = 'app' }), 'mvn -pl app spring-boot:run -Dspring-boot.run.profiles=local -Dmaven.gitcommitid.skip=true')
 check(
   'with module and JDK pin',
   language.build_spring_boot_run_command({ module = 'bank-loan-rest-api-app', java_home = '/h/j21' }),
-  'JAVA_HOME="/h/j21" mvn -pl bank-loan-rest-api-app spring-boot:run -Dspring-boot.run.profiles=local'
+  'JAVA_HOME="/h/j21" mvn -pl bank-loan-rest-api-app spring-boot:run -Dspring-boot.run.profiles=local -Dmaven.gitcommitid.skip=true'
 )
-check('custom profile', language.build_spring_boot_run_command({ profile = 'dev' }), 'mvn spring-boot:run -Dspring-boot.run.profiles=dev')
+check('custom profile', language.build_spring_boot_run_command({ profile = 'dev' }), 'mvn spring-boot:run -Dspring-boot.run.profiles=dev -Dmaven.gitcommitid.skip=true')
 
 if failures > 0 then
   io.write(string.format('\n%d assertion(s) failed\n', failures))

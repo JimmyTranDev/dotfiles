@@ -73,6 +73,7 @@ return {
     },
 
     { mode = 'n', '<leader>tvs', language_actions.run_spring_boot, desc = '󰫙 Start Spring Boot (local)', silent = true },
+    { mode = 'n', '<leader>tvj', language_actions.run_jar, desc = '󰫙 Run Jar (java -jar)', silent = true },
     { mode = 'n', '<leader>tvp', language_actions.run_maven_package, desc = '󰫙 Maven Package', silent = true },
     { mode = 'n', '<leader>tvt', language_actions.run_maven_test, desc = '󰫙 Maven Test', silent = true },
     { mode = 'n', '<leader>tvf', language_actions.run_maven_test_file, desc = '󰫙 Maven Test Current File', silent = true },

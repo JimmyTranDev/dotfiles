@@ -16,6 +16,12 @@ local function get_pm()
   return pm
 end
 
+-- Every Maven runner here skips the git-commit-id plugin via this flag. It is
+-- slow and irrelevant for local runs, and 4.9.10 in particular cannot resolve
+-- HEAD inside a git worktree (the `.git` is a file, not a dir) — so without it
+-- `spring-boot:run` from a worktree fails with "Could not get HEAD Ref".
+local MVN_SKIP = '-Dmaven.gitcommitid.skip=true'
+
 -- Parse the target Java major version from pom.xml text. Tries the common
 -- version-carrying tags in priority order and normalizes legacy `1.8` -> `8`.
 -- Pure (text in, string|nil out) so it is unit-tested headlessly.
@@ -95,7 +101,7 @@ function M.build_spring_boot_run_command(opts)
   local profile = opts.profile or 'local'
   local prefix = opts.java_home and ('JAVA_HOME="' .. opts.java_home .. '" ') or ''
   local pl = opts.module and (' -pl ' .. opts.module) or ''
-  return prefix .. 'mvn' .. pl .. ' spring-boot:run -Dspring-boot.run.profiles=' .. profile
+  return prefix .. 'mvn' .. pl .. ' spring-boot:run -Dspring-boot.run.profiles=' .. profile .. ' ' .. MVN_SKIP
 end
 
 -- <leader>tvs: run a Spring Boot app from cwd via `spring-boot:run` with the
@@ -144,10 +150,6 @@ function M.run_spring_boot()
   end
 end
 
--- Maven builds skip the git-commit-id plugin: slow and irrelevant for local
--- compile/test/coverage runs. Shared shell fragments keep the coverage
--- commands DRY.
-local MVN_SKIP = '-Dmaven.gitcommitid.skip=true'
 local MVN_COVERAGE_REPORT = 'mvn clean test jacoco:report ' .. MVN_SKIP
 local GIT_CHANGED_JAVA = 'git diff --name-only HEAD~1 -- "*.java"'
 local JACOCO_OPEN = 'for d in */target/site/jacoco/index.html; do [ -f "$d" ] && open "$d"; done'
@@ -215,6 +217,88 @@ function M.run_maven_diff_coverage()
     'echo "Diff coverage report opened"',
   }, ' && ')
   registry.get_or_create('mvn-diff-cover', { cmd = cmd })
+end
+
+-- Locate built *.jar artifacts under `dir`, newest first. Prefers `fd` (fast,
+-- respects .gitignore) and falls back to `find`. Shade/assembly plugins leave
+-- an `original-*.jar` backup next to the real fat jar, so those are excluded.
+---@param dir string
+---@return string[]
+local function find_jars(dir)
+  local out
+  if vim.fn.executable('fd') == 1 then
+    out = vim.fn.systemlist({ 'fd', '--extension', 'jar', '--type', 'f', '.', dir })
+  else
+    out = vim.fn.systemlist({ 'find', dir, '-type', 'f', '-name', '*.jar' })
+  end
+  if vim.v.shell_error ~= 0 then return {} end
+
+  local jars = {}
+  for _, path in ipairs(out) do
+    if path ~= '' and not vim.fn.fnamemodify(path, ':t'):match('^original%-') then
+      jars[#jars + 1] = { path = path, mtime = vim.fn.getftime(path) }
+    end
+  end
+  table.sort(jars, function(a, b) return a.mtime > b.mtime end)
+
+  local paths = {}
+  for _, jar in ipairs(jars) do
+    paths[#paths + 1] = jar.path
+  end
+  return paths
+end
+
+-- <leader>tvj: pick a built *.jar under the cwd and run it with `java -jar` in a
+-- named registry terminal. Skips the picker when exactly one jar is found.
+function M.run_jar()
+  if vim.fn.executable('java') ~= 1 then
+    vim.notify('java is not installed', vim.log.levels.ERROR)
+    return
+  end
+
+  local cwd = vim.fn.getcwd()
+  local jars = find_jars(cwd)
+  if #jars == 0 then
+    vim.notify('No .jar files found under ' .. cwd, vim.log.levels.WARN)
+    return
+  end
+
+  local function run(jar)
+    local label = vim.fn.fnamemodify(jar, ':t')
+    ui_utils.exec_in_terminal(('java -jar %s'):format(vim.fn.shellescape(jar)), 'Running jar: ' .. label, { name = 'java-jar-' .. label })
+  end
+
+  if #jars == 1 then
+    run(jars[1])
+    return
+  end
+
+  local ok, snacks = pcall(require, 'snacks')
+  if not ok then
+    ui_utils.safe_select(jars, { prompt = 'Select jar to run:' }, function(jar)
+      if jar then run(jar) end
+    end)
+    return
+  end
+
+  local items = {}
+  for _, path in ipairs(jars) do
+    items[#items + 1] = { text = vim.fn.fnamemodify(path, ':~:.'), file = path }
+  end
+
+  snacks.picker({
+    title = 'Run Jar',
+    items = items,
+    preview = 'file',
+    format = function(item)
+      local icon, hl = snacks.util.icon(item.file, 'file')
+      return { { icon, hl }, { ' ' }, { item.text } }
+    end,
+    confirm = function(picker, item)
+      picker:close()
+      run(item.file)
+    end,
+  })
 end
 
 -- <leader>td* Database runners.
