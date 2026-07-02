@@ -15,6 +15,7 @@ return {
     { '<leader>hl', '<cmd>Octo pr list<CR>', desc = '󰊤 PR list', silent = true },
     { '<leader>hs', '<cmd>Octo pr search<CR>', desc = '󰊤 PR search', silent = true },
     { '<leader>hd', '<cmd>Octo pr diff<CR>', desc = '󰊤 PR diff', silent = true },
+    { '<leader>hc', '<cmd>Octo pr commits<CR>', desc = '󰊤 PR commits', silent = true },
     { '<leader>hr', '<cmd>Octo review start<CR>', desc = '󰊤 Review start', silent = true },
     { '<leader>hR', '<cmd>Octo review submit<CR>', desc = '󰊤 Review submit', silent = true },
     { '<leader>ha', '<cmd>Octo review comments<CR>', desc = '󰊤 Review comments', silent = true },

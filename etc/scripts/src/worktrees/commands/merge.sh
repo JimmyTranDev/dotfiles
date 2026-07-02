@@ -1,10 +1,15 @@
 #!/bin/zsh
 
 # worktree merge — integrate every managed worktree's branch into its local base
-# branch (develop/main/master) with NO push, then delete the merged worktree and
+# branch (develop/main/master) CHECKOUT-FREE: REBASE the branch onto the base IN
+# THE WORKTREE, then advance the base ref onto it with a checkout-free
+# `update-ref` (linear history, NO merge commit, NO push, and the base is NEVER
+# checked out or mutated in the main repo — its HEAD is detached at the old base
+# commit when it had the base checked out), then delete the merged worktree and
 # its local branch. Worktrees whose branch is already merged are simply deleted
-# ("clear already merged worktrees"). On a merge conflict the merge is left in
-# progress so it can be resolved, and the run stops so you can fix it and re-run.
+# ("clear already merged worktrees"). On a rebase conflict the rebase is left in
+# progress in the worktree so it can be resolved, and the run stops so you can fix
+# it and re-run.
 
 # Remove a worktree and its now-merged local branch. Local only: never pushes and
 # never deletes a remote branch, honoring the no-push contract.
@@ -53,10 +58,12 @@ cmd_merge_worktrees() {
 			;;
 		-h | --help)
 			print_color cyan "Usage: worktree merge [--dry-run] [-y|--yes]"
-			print_color cyan "  Merge each worktree's branch into its local base branch"
-			print_color cyan "  (develop/main/master) with NO push, then delete the worktree"
-			print_color cyan "  and its local branch. Already-merged worktrees are deleted."
-			print_color cyan "  On conflict the merge is left in progress; resolve it, commit,"
+			print_color cyan "  Rebase each worktree's branch onto its local base branch"
+			print_color cyan "  (develop/main/master) IN THE WORKTREE and advance the base ref onto"
+			print_color cyan "  it checkout-free (linear, no merge commit, NO push, base never checked"
+			print_color cyan "  out in the main repo), then delete the worktree and its local branch."
+			print_color cyan "  Already-merged worktrees are deleted. On a rebase conflict the rebase"
+			print_color cyan "  is left in progress in the worktree; resolve it, 'rebase --continue',"
 			print_color cyan "  then re-run 'worktree merge' to continue."
 			return 0
 			;;
@@ -152,7 +159,7 @@ cmd_merge_worktrees() {
 	print_color cyan "=== Plan ==="
 	local i
 	if ((${#merge_paths[@]})); then
-		print_color cyan "Merge (local, no push) then delete:"
+		print_color cyan "Rebase + advance base ref (local, checkout-free, no push) then delete:"
 		for ((i = 1; i <= ${#merge_paths[@]}; i++)); do
 			print_color cyan "  - $(basename "${merge_paths[$i]}")  [${merge_branches[$i]} -> ${merge_bases[$i]}]"
 		done
@@ -170,7 +177,7 @@ cmd_merge_worktrees() {
 	fi
 
 	if [[ "$assume_yes" != true ]]; then
-		print_color yellow "Proceed with local merge (no push) and deletion? (y/N)"
+		print_color yellow "Proceed with local rebase + checkout-free base advance (no push) and deletion? (y/N)"
 		local confirm
 		read -r confirm
 		if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
@@ -194,7 +201,7 @@ cmd_merge_worktrees() {
 		branch="${merge_branches[$i]}"
 		base="${merge_bases[$i]}"
 
-		print_color cyan "Merging '$branch' -> '$base' in $(basename "$repo")..."
+		print_color cyan "Rebasing '$branch' onto '$base', then advancing '$base' checkout-free in $(basename "$repo")..."
 
 		if ! merge_is_clean_repo "$repo"; then
 			print_color yellow "  Skip: main repo is dirty or mid-merge — resolve it first."
@@ -202,27 +209,39 @@ cmd_merge_worktrees() {
 			continue
 		fi
 
-		if [[ "$(git -C "$repo" branch --show-current 2>/dev/null)" != "$base" ]]; then
-			if ! git -C "$repo" checkout "$base" 2>/dev/null; then
-				print_color yellow "  Skip: could not checkout '$base' (checked out elsewhere?)."
-				((skipped_count++))
-				continue
-			fi
+		# Rebase the branch onto its base IN THE WORKTREE first, so the base is
+		# integrated by a pure fast-forward (linear history, no merge commit).
+		# A rebase conflict is left in the worktree for resolution; the run stops.
+		if ! git -C "$wt_path" rebase "$base" >/dev/null 2>&1; then
+			print_color red "  CONFLICT rebasing '$branch' onto '$base'."
+			while IFS= read -r f; do
+				[[ -n "$f" ]] && print_color red "    conflict: $f"
+			done < <(git -C "$wt_path" diff --name-only --diff-filter=U 2>/dev/null)
+			print_color yellow "  Rebase left in progress in the worktree: $wt_path"
+			print_color yellow "  Resolve, then: git -C '$wt_path' add -A && git -C '$wt_path' rebase --continue"
+			print_color yellow "  Agents: load the 'merge-conflict-resolution' skill to finish it."
+			print_color yellow "  Then re-run 'worktree merge' to continue the rest."
+			print_color cyan "=== Partial summary ==="
+			print_color green "  Merged & deleted:        $merged_count"
+			print_color green "  Already-merged deleted:  $deleted_count"
+			[[ $skipped_count -gt 0 ]] && print_color yellow "  Skipped:                 $skipped_count"
+			return 2
 		fi
 
-		if git -C "$repo" merge --no-ff --no-edit "$branch" >/dev/null 2>&1; then
-			print_color green "  Merged cleanly into '$base'."
+		# Advance the base ref onto the just-rebased branch tip WITHOUT checking it
+		# out (detaching the main repo's HEAD first when it has <base> checked
+		# out). Guaranteed fast-forward — the branch was just rebased onto '$base'
+		# — so this is a pure, linear ref move with NO merge commit and no change
+		# to the main repo's working tree. No push (this command is no-push).
+		local old_tip new_tip
+		old_tip=$(git -C "$repo" rev-parse "$base" 2>/dev/null)
+		new_tip=$(git -C "$wt_path" rev-parse HEAD 2>/dev/null)
+		if advance_base_ref "$repo" "$base" "$new_tip" "$old_tip"; then
+			print_color green "  Advanced '$base' onto '$branch' (linear, no merge commit, no checkout)."
 			merge_remove_worktree_local "$wt_path" "$repo" "$branch"
 			((merged_count++))
 		else
-			print_color red "  CONFLICT merging '$branch' into '$base'."
-			while IFS= read -r f; do
-				[[ -n "$f" ]] && print_color red "    conflict: $f"
-			done < <(git -C "$repo" diff --name-only --diff-filter=U 2>/dev/null)
-			print_color yellow "  Merge left in progress in: $repo"
-			print_color yellow "  Resolve the conflicts, then: git -C '$repo' commit --no-edit"
-			print_color yellow "  Agents: load the 'merge-conflict-resolution' skill to finish it."
-			print_color yellow "  Then re-run 'worktree merge' to continue the rest."
+			print_color yellow "  Re-run 'worktree merge' to re-rebase '$branch' onto the updated '$base'."
 			print_color cyan "=== Partial summary ==="
 			print_color green "  Merged & deleted:        $merged_count"
 			print_color green "  Already-merged deleted:  $deleted_count"

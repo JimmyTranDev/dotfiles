@@ -95,7 +95,7 @@ Aborting restores the pre-operation state — a legitimate outcome when the merg
 
 ### 9. `worktree merge` follow-through
 
-When this conflict came from `worktree merge`: after Step 7 commits the merge into the base branch, **re-run `worktree merge`**. The now-merged branch is detected as already-merged, its worktree is deleted, and the remaining worktrees continue.
+When this conflict came from `worktree merge`, it is a **rebase** conflict left in the worktree (that command rebases each branch onto its base, then advances the base ref checkout-free — it never checks the base out): after Step 7 stages the resolution, continue the rebase with `git -C <wt_path> add -A && git -C <wt_path> rebase --continue` (repeat for each stopped commit) — do **not** `commit` — then **re-run `worktree merge`**. The now-rebased branch is detected as already-merged, its worktree is deleted, and the remaining worktrees continue.
 
 ## Common Rationalizations
 
@@ -124,4 +124,4 @@ When this conflict came from `worktree merge`: after Step 7 commits the merge in
 - [ ] Build, type-check, lint, and tests all pass on the resolved tree (evidence, not assumption).
 - [ ] The final commit preserves the intended behavior of **both** sides (or a deliberate, stated decision to supersede one).
 - [ ] The paused operation was finalized (`--continue`/commit) or cleanly aborted (`--abort`) — the repo is never left mid-operation.
-- [ ] If from `worktree merge`: the merge was committed and `worktree merge` was re-run to continue.
+- [ ] If from `worktree merge`: the rebase was continued (`rebase --continue`, not committed) and `worktree merge` was re-run to continue.

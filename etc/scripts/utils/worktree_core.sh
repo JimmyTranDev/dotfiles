@@ -92,6 +92,53 @@ worktree_branch_from_porcelain() {
 	echo "$branch"
 }
 
+# Advance a base branch ref to a new tip WITHOUT checking it out — the primitive
+# that keeps worktree->base integration entirely off the main repo's working
+# tree. git refuses `push .`/`branch -f` on a checked-out branch and a bare
+# `update-ref` on a checked-out branch leaves the index inconsistent, so when
+# <base> is the repo's checked-out branch we first DETACH HEAD at the current
+# (old) commit — leaving the working tree untouched and clean — then move the ref
+# with an atomic compare-and-swap. The <old_tip> guard makes the CAS race-safe:
+# a concurrent advance fails the update instead of clobbering it.
+#
+#   advance_base_ref <repo> <base> <new_tip> <old_tip>
+#
+# Returns 0 on success (ref moved, repo left clean; detached at <old_tip> if it
+# had <base> checked out), 1 on failure (non-fast-forward move refused, could not
+# detach, or the CAS failed because the ref no longer pointed at <old_tip>). On
+# failure the caller should re-rebase onto the (moved) base and retry.
+advance_base_ref() {
+	local repo="$1" base="$2" new_tip="$3" old_tip="$4"
+
+	# Nothing to do when the ref is already at the target (idempotent re-runs).
+	[[ "$new_tip" == "$old_tip" ]] && return 0
+
+	# Refuse a non-fast-forward move: <old_tip> must be an ancestor of <new_tip>,
+	# so the base only ever advances linearly (never rewinds or rewrites history).
+	# The caller rebases the branch onto the base first, which guarantees this in
+	# the normal path; a refusal means the local base diverged and needs a manual
+	# look rather than a silent clobber.
+	if ! git -C "$repo" merge-base --is-ancestor "$old_tip" "$new_tip" 2>/dev/null; then
+		print_color red "  Refusing to advance '$base' — the move is not a fast-forward (base diverged)."
+		return 1
+	fi
+
+	# Detach only when <base> is the checked-out branch; HEAD stays at <old_tip>
+	# so the working tree/index are never touched.
+	if [[ "$(git -C "$repo" branch --show-current 2>/dev/null)" == "$base" ]]; then
+		if ! git -C "$repo" checkout --detach >/dev/null 2>&1; then
+			print_color red "  Could not detach HEAD in $(basename "$repo") to advance '$base' off-checkout."
+			return 1
+		fi
+	fi
+
+	if ! git -C "$repo" update-ref "refs/heads/$base" "$new_tip" "$old_tip" 2>/dev/null; then
+		print_color red "  Could not advance '$base' (it moved under us; re-rebase and retry)."
+		return 1
+	fi
+	return 0
+}
+
 resolve_unique_dir() {
 	local base_dir="$1"
 
