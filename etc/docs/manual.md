@@ -41,6 +41,7 @@
 | `<leader>gw` | 󰘴 Worktree |
 | `<leader>gy` | 󰋫 Quick |
 | `<leader>t` | 󰆍 Terminal |
+| `<leader>td` | 󰆼 Database |
 | `<leader>tm` | 󰣖 Makefile |
 | `<leader>tn` | 󰎙 NPM |
 | `<leader>tnu` | 󰏔 Updates |
@@ -177,11 +178,8 @@
 | `Alt i` | close_on_exit true; floating true; }; SwitchToMode "locked" |
 | `Alt o` | close_on_exit true; floating true; }; SwitchToMode "locked" |
 | `Alt p` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
-| `Alt g` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
 | `Alt ]` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
 | `Alt \\` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
-| `Alt u` | close_on_exit true; in_place true; }; SwitchToMode "locked" |
-| `Alt y` | close_on_exit true; floating true; }; SwitchToMode "locked" |
 | `Alt d` | NewPane "down"; SwitchToMode "locked" |
 | `Alt e` | NewPane "right"; SwitchToMode "locked" |
 | `Alt Enter` | ToggleFocusFullscreen; SwitchToMode "locked" |
@@ -190,6 +188,8 @@
 | `Alt down` | MoveFocus "down" |
 | `Alt up` | MoveFocus "up" |
 | `Alt right` | MoveFocus "right" |
+| `Alt [` | MovePane "Up" |
+| `Alt '` | MovePane "Down" |
 | `Alt 1` | GoToTab 1; SwitchToMode "locked" |
 | `Alt 2` | GoToTab 2; SwitchToMode "locked" |
 | `Alt 3` | GoToTab 3; SwitchToMode "locked" |

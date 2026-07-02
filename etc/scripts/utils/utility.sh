@@ -700,9 +700,9 @@ open_tool_pane() {
 # layouts/opencode-sidebar.kdl; only the sidebar's command is swapped. "empty"
 # yields a plain shell pane (the command is dropped, so its close_on_exit goes
 # with it). $2 overrides the source layout for tests (defaults to the installed
-# copy under ~/.config). Mirrors render_pr_review_layout: returns non-zero
-# WITHOUT creating anything when the source layout is missing or $1 is blank, so
-# a bad tool never reaches a spawned pane.
+# copy under ~/.config). Returns non-zero WITHOUT creating anything when the
+# source layout is missing or $1 is blank, so a bad tool never reaches a
+# spawned pane.
 render_sidebar_layout() {
 	local tool="$1"
 	local layout_src="${2:-$HOME/.config/zellij/layouts/opencode-sidebar.kdl}"
@@ -717,97 +717,6 @@ render_sidebar_layout() {
 		sed "s|pane command=\"opencode\"|pane command=\"$tool\"|" "$layout_src" >"$out"
 	fi
 	printf '%s' "$out"
-}
-
-# --- PR review launcher (Alt g) ----------------------------------------------
-# Helpers behind open_pr_review.sh: pick a repo, fzf one of its open PRs, check
-# it out as a wcheckout worktree, then open a 30% opencode pane that boots into
-# "/review-pr <N>" beside a 70% nvim pane. The three pure ones below carry no
-# fzf/gh/zellij dependency so they are unit-tested in tests/test_pr_review_layout.zsh.
-
-# Pull the PR number out of one `gh pr list` row as the fzf picker shows it —
-# "#<number>  <title>  (<author>)" — tolerating a row without the leading '#'.
-# Prints the digits on stdout; returns non-zero (printing nothing) when the row
-# has no leading number so the caller aborts. Strips the '#' then keeps only the
-# leading digit run via parameter expansion (no =~ capture group, whose match
-# var differs between bash's BASH_REMATCH and zsh's $match) so it behaves the
-# same whether utility.sh is sourced by a bash launcher or the zsh test.
-pr_number_from_selection() {
-	local line="$1"
-	line="${line#\#}"
-	local num="${line%%[!0-9]*}"
-	[[ -n "$num" ]] || return 1
-	printf '%s' "$num"
-}
-
-# The wcheckout folder name for a PR head branch: everything after the first
-# "<segment>/" ("feat/foo" -> "foo", "feat/foo/bar" -> "foo/bar"), or the branch
-# unchanged when it has no slash. Mirrors the worktree machinery's
-# get_folder_name_from_branch (worktree_core.sh) — reimplemented here without its
-# zsh-only $match capture — so this launcher's reuse-detection resolves to the
-# same path the worktree tooling would create.
-folder_name_from_branch() {
-	local branch="$1"
-	if [[ "$branch" == */* ]]; then
-		printf '%s' "${branch#*/}"
-	else
-		printf '%s' "$branch"
-	fi
-}
-
-# Render a throwaway copy of the PR-review layout with $1 (a PR number) stamped
-# in, printing the path to the freshly-created temp layout (in its own temp dir)
-# on stdout. The base structure stays defined once in layouts/pr-review.kdl;
-# only the "__PR_NUMBER__" placeholder — the argument to the opencode pane's
-# "--prompt /review-pr" — is substituted, mirroring render_sidebar_layout. $2
-# overrides the source layout for tests (defaults to the installed copy under
-# ~/.config). Returns non-zero WITHOUT creating anything when $1 is not all
-# digits, so an injected PR title can never reach the sed replacement.
-render_pr_review_layout() {
-	local pr_number="$1"
-	local layout_src="${2:-$HOME/.config/zellij/layouts/pr-review.kdl}"
-	[[ -n "$pr_number" && -z "${pr_number//[0-9]/}" ]] || return 1
-	[[ -f "$layout_src" ]] || return 1
-	local out_dir out
-	out_dir="$(mktemp -d)"
-	out="$out_dir/pr-review.kdl"
-	sed "s|__PR_NUMBER__|$pr_number|g" "$layout_src" >"$out"
-	printf '%s' "$out"
-}
-
-# fzf-pick a source repository to review a PR from — an immediate child of an
-# org dir under ~/Programming that is a git clone (carries a .git) — and print
-# its absolute path on stdout. Goes through get_org_dirs so the wcreated /
-# wcheckout worktree containers (and other excluded dirs) are skipped: you want
-# the real clone whose GitHub remote `gh pr list` resolves against, not a
-# worktree. Rows read "[org] repo" like the other pickers. Returns non-zero when
-# nothing is chosen. Requires fzf, and log_error (logging.sh) for the empty case.
-select_source_repo_dir() {
-	local programming_dir="${1:-$HOME/Programming}"
-	local org_dir org_name repo repo_name
-	local listing=""
-	while IFS= read -r org_dir; do
-		[[ -d "$org_dir" ]] || continue
-		org_name="${org_dir%/}"
-		org_name="${org_name##*/}"
-		for repo in "${org_dir%/}"/*/; do
-			[[ -d "$repo" ]] || continue
-			[[ -e "${repo%/}/.git" ]] || continue
-			repo_name="${repo%/}"
-			repo_name="${repo_name##*/}"
-			listing+="[$org_name] $repo_name"$'\t'"${repo%/}"$'\n'
-		done
-	done < <(get_org_dirs "$programming_dir")
-
-	if [[ -z "$listing" ]]; then
-		log_error "No git repositories found under $programming_dir"
-		return 1
-	fi
-
-	local selected
-	selected="$(printf '%s' "$listing" | fzf --delimiter=$'\t' --with-nth=1 --prompt='Review PR from repo: ')" || return 1
-	[[ -n "$selected" ]] || return 1
-	printf '%s' "${selected#*$'\t'}"
 }
 
 # --- Alt ] repo -> AI-agent routing ------------------------------------------
