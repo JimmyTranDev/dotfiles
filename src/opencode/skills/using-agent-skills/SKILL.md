@@ -28,6 +28,7 @@ Task arrives
     │   ├── Need doc-verified code? ───→ source-driven-development
     │   └── Stakes high / unfamiliar code? ──→ doubt-driven-development
     ├── Batch independent tool calls in one message (in parallel)? → parallelization
+    ├── Script or AI instruction for a repeatable step? → prefer-scripts-over-ai-instructions
     ├── Delegate open-ended/self-contained work to explore/general subagents? → delegation
     ├── Which model tier (Haiku/Sonnet/Opus) should run this / cut token cost? → model-tier-routing
     ├── Explicit "yolo" / "full send" / "I'll test later"? → yolo
@@ -204,6 +205,7 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Build | doubt-driven-development | Adversarial fresh-context review of every non-trivial decision |
 | Build | context-engineering | Right context at the right time |
 | Build | parallelization | Batch independent tool calls into one message so they run at once (data- and write-independent) |
+| Build | prefer-scripts-over-ai-instructions | Decide per step: committed script vs natural-language instruction — favor a deterministic script when more efficient and reproducible |
 | Build | delegation | Hand open-ended/self-contained work to explore/general Task subagents; concurrent fan-out with disjoint write scopes |
 | Build | model-tier-routing | Route each task/subagent to the cheapest Claude tier (Haiku/Sonnet/Opus) that does it well; escalate on failure |
 | Build | frontend-ui-engineering | Production-quality UI with accessibility |
