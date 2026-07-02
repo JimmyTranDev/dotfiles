@@ -251,6 +251,7 @@ maps('n', {
   { '<Leader>uws', worktree_actions.switch_worktree, '󰖲 Switch worktree (cd + Zellij tab)' },
   { '<Leader>uwd', worktree_actions.delete_worktree, '󰆴 Delete worktree (folder+branch)' },
   { '<Leader>uwr', worktree_actions.rename_current_worktree, '󰑕 Rename worktree (folder+branch+remote)' },
+  { '<Leader>uwR', worktree_actions.rename_current_worktree_full, '󰑕 Rename worktree fully (folder+branch+remote+PR+commit)' },
   { '<Leader>uwc', worktree_actions.clear_project_worktrees, '󰃢 Clear worktrees (current project)' },
   { '<Leader>uwm', worktree_actions.merge_and_cleanup_worktree, '󰆴 Merge & clean up project worktree' },
 })

@@ -180,6 +180,20 @@ check(
   'yarn'
 )
 
+
+-- build_rename_commit_subject: conventional subject for the amended tip commit
+-- after a rename. Preserves a known old type, else defaults to feat; surfaces a
+-- Jira key; turns the folder description's separators into spaces.
+check('rename subject: preserves known old type', worktree.build_rename_commit_subject('feature/new-name', 'fix: old thing'), 'fix: new name')
+check('rename subject: unknown old type -> feat', worktree.build_rename_commit_subject('feature/new-name', 'wip old thing'), 'feat: new name')
+check('rename subject: nil old subject -> feat', worktree.build_rename_commit_subject('feature/cool-thing', nil), 'feat: cool thing')
+check('rename subject: strips old scope to get type', worktree.build_rename_commit_subject('feature/x', 'docs(readme): tweak'), 'docs: x')
+check('rename subject: jira key surfaced', worktree.build_rename_commit_subject('ABC-123-add-login', nil), 'feat: ABC-123 add login')
+check('rename subject: jira key with segment prefix', worktree.build_rename_commit_subject('feature/ABC-123-add-login', 'fix: old'), 'fix: ABC-123 add login')
+check('rename subject: jira key only', worktree.build_rename_commit_subject('ABC-123', nil), 'feat: ABC-123')
+check('rename subject: plain no-segment branch', worktree.build_rename_commit_subject('just-a-name', nil), 'feat: just a name')
+check('rename subject: underscores become spaces', worktree.build_rename_commit_subject('feature/foo_bar_baz', nil), 'feat: foo bar baz')
+
 if failures > 0 then
   io.write(string.format('\n%d assertion(s) failed\n', failures))
   os.exit(1)

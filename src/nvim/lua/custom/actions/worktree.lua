@@ -78,6 +78,39 @@ function M.build_commit_message(commit_type, input, summary, org_name)
   return commit_type .. ': ' .. input
 end
 
+--- Derive a conventional-commit subject for the amended latest commit after a
+--- worktree rename. Pure so it is unit-testable without git.
+---   * Preserves an existing conventional `<type>` from the old subject when it
+---     is a known type (so a `fix:`/`docs:` worktree keeps its type); otherwise
+---     defaults to `feat`.
+---   * A Jira key in the new branch (matches JIRA_PATTERN on the leading segment)
+---     is surfaced as `<type>: <KEY> <rest>`; the folder name (leading `segment/`
+---     stripped, remaining separators spaced) becomes the human description.
+---@param new_branch string
+---@param old_subject string|nil the current HEAD subject line (may be nil/empty)
+---@return string
+function M.build_rename_commit_subject(new_branch, old_subject)
+  local known = {
+    feat = true, fix = true, docs = true, style = true, refactor = true,
+    test = true, chore = true, revert = true, build = true, ci = true, perf = true,
+  }
+  local old_type = old_subject and old_subject:match('^(%w+)[%(:]') or nil
+  local commit_type = (old_type and known[old_type]) and old_type or 'feat'
+
+  -- Folder-style description: drop a single leading `segment/`, then turn the
+  -- remaining `/`, `-`, `_` runs into single spaces and trim.
+  local rest = new_branch:match('^[^/]+/(.+)$') or new_branch
+  local key = rest:match('^(%u+%-%d+)')
+  local desc = rest
+  if key then desc = (rest:gsub('^' .. key:gsub('%-', '%%-') .. '[_%-/]*', '')) end
+  desc = desc:gsub('[/_%-]+', ' '):gsub('^%s+', ''):gsub('%s+$', '')
+
+  if key and desc ~= '' then return commit_type .. ': ' .. key .. ' ' .. desc end
+  if key then return commit_type .. ': ' .. key end
+  if desc == '' then desc = rest end
+  return commit_type .. ': ' .. desc
+end
+
 --- True when `path` is a direct descendant of `wcreated_dir` (the create-side
 --- container whose branches own their remote and may be deleted on cleanup).
 ---@param path string
@@ -408,6 +441,182 @@ function M.rename_current_worktree()
       end
 
       run_sequence(steps, 1, function() vim.notify(string.format('Worktree renamed to "%s" (branch "%s")', final_folder, new_branch), vim.log.levels.INFO) end)
+    end)
+  end, old_folder)
+end
+
+--- Fully rename the current linked worktree in one action: its folder, local
+--- branch, remote branch, the latest commit's subject, and the open PR's title.
+--- A superset of M.rename_current_worktree that also rewrites the tip commit
+--- (amend) and updates the PR — so the push is force-with-lease and the PR edit
+--- is best-effort (skipped when there is no gh / no open PR for the branch).
+--- Only operates on a linked worktree (not the primary checkout) with a branch
+--- checked out. Remote-affecting steps run only when an upstream exists and the
+--- branch name actually changes.
+function M.rename_current_worktree_full()
+  local cwd = vim.fn.getcwd()
+
+  local toplevel = git_capture(cwd, { 'rev-parse', '--show-toplevel' })
+  if not toplevel then
+    vim.notify('Not inside a git worktree', vim.log.levels.ERROR)
+    return
+  end
+
+  local common = git_capture(cwd, { 'rev-parse', '--path-format=absolute', '--git-common-dir' })
+  if not common then
+    vim.notify('Could not resolve the main repository', vim.log.levels.ERROR)
+    return
+  end
+  local main_repo = vim.fn.fnamemodify(common, ':h')
+
+  if realpath(toplevel) == realpath(main_repo) then
+    vim.notify('Refusing: this is the primary worktree, not a linked worktree', vim.log.levels.ERROR)
+    return
+  end
+
+  local old_branch = git_capture(cwd, { 'rev-parse', '--abbrev-ref', 'HEAD' })
+  if not old_branch or old_branch == 'HEAD' then
+    vim.notify('Refusing: detached HEAD (no branch to rename)', vim.log.levels.ERROR)
+    return
+  end
+
+  local upstream = git_capture(cwd, { 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}' })
+  local remote = upstream and (upstream:match('^([^/]+)/') or 'origin')
+  local old_subject = git_capture(cwd, { 'log', '-1', '--format=%s' })
+
+  local old_folder = vim.fn.fnamemodify(toplevel, ':t')
+  local parent = vim.fn.fnamemodify(toplevel, ':h')
+
+  input.get_input('New worktree name: ', function(raw)
+    if not raw then
+      vim.notify('Rename cancelled', vim.log.levels.INFO)
+      return
+    end
+
+    local new_branch = sanitize_branch(raw)
+    if new_branch == '' then
+      vim.notify('Invalid name', vim.log.levels.ERROR)
+      return
+    end
+
+    local new_folder = folder_from_branch(new_branch)
+    local branch_changed = new_branch ~= old_branch
+    local folder_changed = new_folder ~= old_folder
+    local new_subject = M.build_rename_commit_subject(new_branch, old_subject)
+    local subject_changed = new_subject ~= (old_subject or '')
+
+    if not branch_changed and not folder_changed and not subject_changed then
+      vim.notify('Name unchanged; nothing to do', vim.log.levels.INFO)
+      return
+    end
+
+    local new_path = folder_changed and unique_path(parent .. '/' .. new_folder) or toplevel
+    local final_folder = vim.fn.fnamemodify(new_path, ':t')
+
+    local remote_line
+    if not (upstream and remote) then
+      remote_line = 'Remote:  (local only — unchanged)'
+    elseif branch_changed then
+      remote_line = string.format('Remote:  %s/%s  ->  %s/%s', remote, old_branch, remote, new_branch)
+    else
+      remote_line = string.format('Remote:  %s/%s  (force-with-lease push)', remote, old_branch)
+    end
+
+    local commit_line = subject_changed and string.format('Commit:  %s  ->  %s', old_subject or '(none)', new_subject) or string.format('Commit:  %s  (unchanged)', old_subject or '(none)')
+    local pr_line = (upstream and remote) and string.format('PR:      retitle to "%s" (if an open PR exists)', new_subject) or 'PR:      (no upstream — skipped)'
+
+    local summary = table.concat({
+      'Fully rename this worktree?',
+      string.format('Folder:  %s  ->  %s', old_folder, final_folder),
+      string.format('Branch:  %s  ->  %s', old_branch, new_branch),
+      remote_line,
+      commit_line,
+      pr_line,
+    }, '\n')
+
+    vim.ui.select({ 'Yes', 'No' }, { prompt = summary }, function(choice)
+      if choice ~= 'Yes' then
+        vim.notify('Rename cancelled', vim.log.levels.INFO)
+        return
+      end
+
+      -- The worktree folder may move mid-sequence, so every git step targets the
+      -- stable main repo (-C main_repo) except the commit amend, which must run in
+      -- the worktree; it is ordered after the folder move so its cwd is current.
+      local steps = {}
+
+      if branch_changed then
+        steps[#steps + 1] = {
+          label = 'Rename local branch',
+          cmd = { 'git', '-C', main_repo, 'branch', '-m', old_branch, new_branch },
+        }
+      end
+
+      if folder_changed then
+        steps[#steps + 1] = {
+          label = 'Move worktree folder',
+          cmd = { 'git', '-C', main_repo, 'worktree', 'move', toplevel, new_path },
+          -- Step out of the soon-to-be-moved directory so nvim's cwd never goes stale.
+          before = function() pcall(vim.cmd, 'cd ' .. vim.fn.fnameescape(main_repo)) end,
+          after = function()
+            vim.cmd('cd ' .. vim.fn.fnameescape(new_path))
+            repoint_buffers(toplevel, new_path)
+          end,
+        }
+      end
+
+      if subject_changed then
+        steps[#steps + 1] = {
+          label = 'Amend commit subject',
+          cmd = { 'git', '-C', new_path, 'commit', '--amend', '--only', '-m', new_subject },
+        }
+      end
+
+      if upstream and remote then
+        -- Amending rewrites the tip, so the (possibly renamed) branch is no longer
+        -- a fast-forward of its old upstream; --force-with-lease pushes the rewrite
+        -- while still refusing to clobber unexpected remote updates.
+        steps[#steps + 1] = {
+          label = 'Push renamed branch',
+          cmd = { 'git', '-C', main_repo, 'push', '-u', '--force-with-lease', remote, new_branch },
+        }
+
+        if branch_changed then
+          -- Keep the old remote branch when it carries an open PR owned by someone
+          -- else; fail-open (any uncertainty still deletes it).
+          local blocked, reason = pr_ownership.check_sync(main_repo, old_branch)
+          if blocked then
+            vim.notify(string.format('Keeping old remote branch %s (%s)', old_branch, reason), vim.log.levels.WARN)
+          else
+            steps[#steps + 1] = {
+              label = 'Delete old remote branch',
+              cmd = { 'git', '-C', main_repo, 'push', remote, '--delete', old_branch },
+            }
+          end
+        end
+      end
+
+      run_sequence(steps, 1, function()
+        local function announce()
+          vim.notify(string.format('Worktree fully renamed to "%s" (branch "%s")', final_folder, new_branch), vim.log.levels.INFO)
+        end
+
+        -- Best-effort PR retitle. GitHub follows the branch rename to the new head
+        -- ref automatically, so only the title needs updating; a missing gh, no
+        -- open PR, or any failure is a warning, never an error.
+        if not (upstream and remote) or vim.fn.executable('gh') == 0 then return announce() end
+
+        vim.notify('Updating PR title…', vim.log.levels.INFO)
+        async.run_cmd({ 'gh', 'pr', 'edit', new_branch, '--title', new_subject }, function(res)
+          if res.code ~= 0 then
+            local err = (res.stderr ~= '' and res.stderr or res.stdout):gsub('%s+$', '')
+            vim.notify('PR title not updated (no open PR?): ' .. (err ~= '' and err or 'skipped'), vim.log.levels.WARN)
+          else
+            vim.notify('PR retitled to "' .. new_subject .. '"', vim.log.levels.INFO)
+          end
+          announce()
+        end, { cwd = main_repo })
+      end)
     end)
   end, old_folder)
 end
