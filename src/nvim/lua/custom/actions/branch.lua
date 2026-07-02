@@ -211,6 +211,59 @@ function M.deletable_remote_branches(names, current, protected)
   return out
 end
 
+--- Build the argv that lists each remote branch tip's short name and author
+--- email under `remote` (default 'origin'), one `<short>|<email>` per line.
+--- Offline (no network): reads the local `refs/remotes/<remote>` tracking refs
+--- populated by the preceding fetch. Pure.
+---@param remote? string
+---@return string[]
+function M.build_ref_authors_cmd(remote)
+  return { 'git', 'for-each-ref', '--format=%(refname:short)|%(authoremail)', 'refs/remotes/' .. (remote or 'origin') }
+end
+
+--- Parse `git for-each-ref --format=%(refname:short)|%(authoremail)` output into
+--- a { [branch] = email } map for branches under `remote` (default 'origin').
+--- The `origin/` prefix is stripped, the `<>` around the email removed, and the
+--- `origin/HEAD` pointer dropped. Pure: the caller captures the listing.
+---@param out string
+---@param remote? string
+---@return table<string, string>
+function M.parse_ref_authors(out, remote)
+  remote = remote or 'origin'
+  local prefix = remote .. '/'
+  local map = {}
+  for line in (out or ''):gmatch('[^\n]+') do
+    local ref, email = line:match('^(.-)|(.*)$')
+    if ref and ref:sub(1, #prefix) == prefix then
+      local name = ref:sub(#prefix + 1)
+      email = (email or ''):gsub('^%s*<?', ''):gsub('>?%s*$', '')
+      if name ~= '' and name ~= 'HEAD' then map[name] = email end
+    end
+  end
+  return map
+end
+
+--- Filter a remote-branch list to those authored by me: keep only names whose
+--- tip author email (from `author_by_branch`) equals `me`, compared
+--- case-insensitively. Order is preserved. When `me` is nil/empty the author is
+--- unknown, so this fails open and returns the list unchanged. A branch with no
+--- known author is dropped only when `me` is known. Pure/testable.
+---@param names string[]
+---@param author_by_branch table<string, string>
+---@param me string|nil my `git config user.email`
+---@return string[]
+function M.mine_remote_branches(names, author_by_branch, me)
+  if me == nil or me == '' then return names or {} end
+  local want = me:lower()
+  author_by_branch = author_by_branch or {}
+  local out = {}
+  for _, name in ipairs(names or {}) do
+    local email = author_by_branch[name]
+    if email and email:lower() == want then out[#out + 1] = name end
+  end
+  return out
+end
+
 --- Build the argv that deletes `branch` on `remote` (default 'origin'). Deleting
 --- the remote ref also drops the local `<remote>/<branch>` tracking ref. Pure.
 ---@param branch string
@@ -302,29 +355,47 @@ function M.delete_remote_branches()
 
         async.run_cmd({ 'git', 'rev-parse', '--abbrev-ref', 'HEAD' }, function(head)
           local current = head.code == 0 and (head.stdout or ''):gsub('%s+$', '') or ''
-          local names = M.deletable_remote_branches(M.parse_remote_branches(result.stdout), current)
-          if #names == 0 then
+          local deletable = M.deletable_remote_branches(M.parse_remote_branches(result.stdout), current)
+          if #deletable == 0 then
             vim.notify('No deletable remote branches (base + current excluded)', vim.log.levels.INFO)
             return
           end
 
-          local items = {}
-          for _, name in ipairs(names) do
-            items[#items + 1] = { text = name, branch = name }
-          end
+          -- Restrict the list to branches whose tip commit I authored (matched by
+          -- git config user.email). Both lookups are offline: for-each-ref reads
+          -- the tracking refs the fetch above refreshed, and user.email is local
+          -- config. If user.email is unset, mine_remote_branches fails open and
+          -- the full deletable list is shown.
+          async.run_cmd({ 'git', 'config', '--get', 'user.email' }, function(cfg)
+            local me = cfg.code == 0 and (cfg.stdout or ''):gsub('%s+$', '') or ''
 
-          ui.pick({
-            title = string.format('Delete remote branches — %d (Tab select, Enter confirm)', #items),
-            items = items,
-            format = function(item) return { { item.text, 'DiagnosticWarn' } } end,
-            extra = {
-              confirm = function(picker)
-                picker:close()
-                local chosen = picker:selected({ fallback = true })
-                if chosen and #chosen > 0 then confirm_and_delete_remote(chosen) end
-              end,
-            },
-          })
+            async.run_cmd(M.build_ref_authors_cmd(), function(refs)
+              local authors = refs.code == 0 and M.parse_ref_authors(refs.stdout) or {}
+              local names = M.mine_remote_branches(deletable, authors, me)
+              if #names == 0 then
+                vim.notify('No remote branches authored by you (' .. (me ~= '' and me or 'user.email unset') .. ')', vim.log.levels.INFO)
+                return
+              end
+
+              local items = {}
+              for _, name in ipairs(names) do
+                items[#items + 1] = { text = name, branch = name }
+              end
+
+              ui.pick({
+                title = string.format('Delete my remote branches — %d (Tab select, Enter confirm)', #items),
+                items = items,
+                format = function(item) return { { item.text, 'DiagnosticWarn' } } end,
+                extra = {
+                  confirm = function(picker)
+                    picker:close()
+                    local chosen = picker:selected({ fallback = true })
+                    if chosen and #chosen > 0 then confirm_and_delete_remote(chosen) end
+                  end,
+                },
+              })
+            end)
+          end)
         end)
       end)
     end)
