@@ -152,9 +152,13 @@ instead*. Under **`yolo`, never auto-merge** (pushing a shared base and deleting
 branches are external side effects) — leave the pushed branch and report that
 rebase + merge + cleanup is available.
 
-When chosen, do it in order — rebase, then merge, then cleanup (cleanup deletes
-the branch). This is **identical to `/implement-worktree`'s Phase 7**: delegate to
-the serialized, concurrency-safe helper rather than merging by hand —
+When chosen, do it in order — integrate, then cleanup (cleanup deletes the
+branch). This is **identical to `/implement-worktree`'s Phase 7**: delegate to the
+serialized, concurrency-safe, **checkout-free** helper rather than integrating by
+hand. It rebases the branch onto the base in the worktree, pushes the rebased tip
+straight to `origin/<base>`, then advances the local `<base>` ref with a
+checkout-free `update-ref` — the base is **never checked out or mutated** in the
+main repo (no merge commit) —
 
 ```bash
 zsh "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/worktrees/merge-into-base.sh" \
@@ -163,18 +167,20 @@ zsh "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/worktrees/merge-int
 
 Act on its **exit code**, only cleaning up after `0`:
 
-- **`0`** — merged and pushed; run `worktree-management` **Workflow C** to remove
-  the worktree and delete the branch locally and on the remote.
-- **`2`** — a conflict to resolve with `merge-conflict-resolution` (regenerate
-  lockfiles/generated files rather than hand-merging). A **rebase** conflict is
-  left in the **worktree** with the lock **released** — resolve,
-  `git -C "<worktree>" add -A && git -C "<worktree>" rebase --continue`, then
-  re-run `merge`. A **merge** conflict is left in the **main repo** with the lock
-  **retained** — resolve there, `git -C "$repo" commit --no-edit`, then re-run the
-  helper with `finalize --worktree "<worktree>"`. `abort --worktree "<worktree>"`
-  abandons either and releases the lock.
-- **`3`** — precondition failed (base repo or worktree dirty, or a foreign
-  in-progress merge): **do not clean up**; report so it can be made clean, retry.
+- **`0`** — rebased, pushed, and the base advanced checkout-free; run
+  `worktree-management` **Workflow C** to remove the worktree and delete the
+  branch locally and on the remote. (The main repo is left detached at the old
+  base commit, its working tree untouched.)
+- **`2`** — a **rebase conflict left in the worktree** with the lock **released**
+  (covers both the initial rebase onto the base and a push-race rebase onto an
+  advanced remote — both stay in the worktree, never the main repo). Resolve with
+  `merge-conflict-resolution` (regenerate lockfiles/generated files rather than
+  hand-merging), `git -C "<worktree>" add -A && git -C "<worktree>" rebase
+  --continue`, then re-run `merge`. `abort --worktree "<worktree>"` abandons it and
+  releases the lock.
+- **`3`** — precondition failed (base repo or worktree dirty, a foreign
+  in-progress merge, or the base ref moved under the lock): **do not clean up**;
+  report so it can be made clean, retry.
 - **`4`** — timed out waiting for another merge: **do not clean up**; the branch
   is pushed and the merge can be retried later.
 

@@ -162,7 +162,11 @@ local function repoint_buffers(old_root, new_root)
 end
 
 --- Execute `steps` sequentially, aborting (with a notify) on the first failure.
---- Each step: { label, cmd (argv), before?, after? }.
+--- Each step: { label, cmd, before?, after? }. `cmd` is an argv, or a function
+--- returning an argv (evaluated at run time, so a step can build its command
+--- from state produced by earlier steps — e.g. a rev-parse after a rebase). A
+--- `cmd` function may return nil/{} to skip the step (e.g. a conditional
+--- detach that turns out to be unnecessary).
 local function run_sequence(steps, idx, on_done)
   idx = idx or 1
   if idx > #steps then
@@ -172,9 +176,17 @@ local function run_sequence(steps, idx, on_done)
 
   local step = steps[idx]
   if step.before then step.before() end
+
+  local cmd = type(step.cmd) == 'function' and step.cmd() or step.cmd
+  if not cmd or #cmd == 0 then
+    if step.after then step.after() end
+    run_sequence(steps, idx + 1, on_done)
+    return
+  end
+
   vim.notify(step.label .. '…', vim.log.levels.INFO)
 
-  async.run_cmd(step.cmd, function(res)
+  async.run_cmd(cmd, function(res)
     if res.code ~= 0 then
       local err = (res.stderr ~= '' and res.stderr or res.stdout):gsub('%s+$', '')
       vim.notify(step.label .. ' failed: ' .. err, vim.log.levels.ERROR)
@@ -514,11 +526,16 @@ local function is_inside(cwd, dir)
   return a == b or a:sub(1, #b + 1) == (b .. '/')
 end
 
---- Select one of this project's linked worktrees, merge its branch into the base
---- branch (develop -> main -> master), then remove the worktree and delete the
---- branch locally and on the remote. The merge + cleanup run from the main
---- repository, mirroring /implement-worktree's Phase 7 (merge first, since
---- cleanup deletes the branch).
+--- Select one of this project's linked worktrees, integrate its branch into the
+--- base branch (develop -> main -> master) CHECKOUT-FREE, then remove the
+--- worktree and delete the branch locally and on the remote. Integration happens
+--- entirely in the worktree: rebase the branch onto origin/<base> in the
+--- worktree, push the rebased tip straight to origin/<base>, then advance the
+--- LOCAL <base> ref onto it with a checkout-free `update-ref` (detaching the main
+--- repo's HEAD first when it has <base> checked out, so the working tree is never
+--- touched — no merge commit, and the main repo is left detached at the old base
+--- commit). Mirrors /implement-worktree's Phase 7 — integrate, then clean up
+--- (cleanup deletes the branch, so it runs last).
 function M.merge_and_cleanup_worktree()
   local cwd = vim.fn.getcwd()
 
@@ -560,7 +577,7 @@ function M.merge_and_cleanup_worktree()
         string.format('Branch:    %s', item.branch),
         string.format('Base:      %s', base),
         '',
-        string.format('- merge --no-ff %s into %s and push', item.branch, base),
+        string.format('- rebase %s onto %s in the worktree, push it to origin/%s, then advance %s checkout-free (linear, no merge commit)', item.branch, base, base, base),
         '- remove the worktree (--force)',
         string.format('- delete %s locally and on origin', item.branch),
       }, '\n')
@@ -572,11 +589,44 @@ function M.merge_and_cleanup_worktree()
         end
 
         local inside = is_inside(cwd, item.path)
+        -- Prefer rebasing onto (and advancing to) origin/<base> when the remote
+        -- branch exists, so the local base ends level with the pushed remote.
+        local rebase_onto = base
+        if git_capture(main_repo, { 'rev-parse', '--verify', '--quiet', 'origin/' .. base }) then
+          rebase_onto = 'origin/' .. base
+        end
         local steps = {
-          { label = 'Switch to ' .. base, cmd = { 'git', '-C', main_repo, 'switch', base } },
-          { label = 'Update ' .. base, cmd = { 'git', '-C', main_repo, 'pull', '--ff-only', 'origin', base } },
-          { label = string.format('Merge %s into %s', item.branch, base), cmd = { 'git', '-C', main_repo, 'merge', '--no-ff', item.branch } },
-          { label = 'Push ' .. base, cmd = { 'git', '-C', main_repo, 'push', 'origin', base } },
+          -- Freshen the remote-tracking base WITHOUT checking anything out.
+          { label = 'Fetch origin ' .. base, cmd = { 'git', '-C', main_repo, 'fetch', 'origin', base } },
+          -- Rebase the branch onto the freshened base IN THE WORKTREE, so the
+          -- base is integrated by a pure fast-forward of its ref (linear, no
+          -- merge commit). A conflict stops the sequence with the rebase left in
+          -- the worktree for resolution.
+          { label = string.format('Rebase %s onto %s', item.branch, rebase_onto), cmd = { 'git', '-C', item.path, 'rebase', rebase_onto } },
+          -- Push the rebased tip straight to origin/<base> FROM THE WORKTREE —
+          -- the main repo is never touched for the push.
+          { label = string.format('Push %s to origin/%s', item.branch, base), cmd = { 'git', '-C', item.path, 'push', 'origin', 'HEAD:' .. base } },
+          -- Advance the LOCAL <base> ref onto the rebased tip WITHOUT checking it
+          -- out: detach the main repo's HEAD first when it has <base> checked out
+          -- (HEAD stays at the old base commit, working tree untouched), then move
+          -- the ref with an atomic compare-and-swap. Both commands are lazy so
+          -- they read the tips produced by the rebase above.
+          {
+            label = string.format('Detach %s in %s (if checked out)', base, vim.fn.fnamemodify(main_repo, ':t')),
+            cmd = function()
+              local cur = git_capture(main_repo, { 'branch', '--show-current' })
+              if cur == base then return { 'git', '-C', main_repo, 'checkout', '--detach' } end
+              return nil -- not checked out here; skip
+            end,
+          },
+          {
+            label = string.format('Advance %s onto %s (checkout-free)', base, item.branch),
+            cmd = function()
+              local old_tip = git_capture(main_repo, { 'rev-parse', base })
+              local new_tip = git_capture(item.path, { 'rev-parse', 'HEAD' })
+              return { 'git', '-C', main_repo, 'update-ref', 'refs/heads/' .. base, new_tip, old_tip }
+            end,
+          },
           {
             label = 'Remove worktree',
             cmd = { 'git', '-C', main_repo, 'worktree', 'remove', '--force', item.path },

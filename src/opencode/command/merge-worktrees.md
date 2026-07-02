@@ -4,10 +4,14 @@ description: Merge every managed git worktree's branch into its local base branc
 
 Run the dotfiles `worktree merge` workflow to integrate every managed worktree
 (`~/Programming/wcreated` + `~/Programming/wcheckout`) into its **local** base
-branch (`develop` -> `main` -> `master`) with **no push**, deleting each worktree
-and its local branch once merged. Already-merged worktrees are just deleted. On a
-merge conflict the run stops with the merge left in progress so you resolve it and
-continue.
+branch (`develop` -> `main` -> `master`) **checkout-free**: **rebase** each branch
+onto its base in the worktree, then **advance the base ref** onto it with a
+checkout-free `update-ref` (linear history, no merge commit, **no push**, and the
+base is **never checked out or mutated** in the main repo — its HEAD is detached
+at the old base commit when it had the base checked out). Each worktree and its
+local branch are deleted once integrated. Already-merged worktrees are just
+deleted. On a rebase conflict the run stops with the rebase left in progress in
+the worktree so you resolve it and continue.
 
 ## Invocation
 
@@ -36,14 +40,15 @@ skip the confirm gate in Phase 1.
 Repeat until `worktree merge` exits `0`:
 
 1. Run `worktree merge -y`. Capture its exit code and stdout.
-2. **Exit 0** -> everything merged/deleted (or nothing left). Go to Done.
-3. **Exit 2 (conflict)** -> a merge was left in progress in the repo printed as
-   `Merge left in progress in: <repo>`:
+2. **Exit 0** -> everything integrated/deleted (or nothing left). Go to Done.
+3. **Exit 2 (conflict)** -> a rebase was left in progress in the worktree printed
+   as `Rebase left in progress in the worktree: <wt_path>`:
    a. Load the `merge-conflict-resolution` skill with the skill tool and follow
-      it exactly to resolve the conflict in `<repo>`, integrating **both** sides.
-   b. Stage the resolved files and finish the merge:
-      `git -C <repo> commit --no-edit`. Do **not** push.
-   c. Re-run the loop. The next `worktree merge -y` detects the now-merged branch
+      it exactly to resolve the conflict in `<wt_path>`, integrating **both** sides.
+   b. Stage the resolved files and continue the rebase:
+      `git -C <wt_path> add -A && git -C <wt_path> rebase --continue` (repeat for
+      each stopped commit). Do **not** push.
+   c. Re-run the loop. The next `worktree merge -y` detects the now-rebased branch
       as already-merged and deletes its worktree, then proceeds to the next one.
 4. **Any other nonzero exit** -> stop and report the error; do not loop.
 5. **Loop guard**: if the same `<repo>` conflicts on two consecutive iterations

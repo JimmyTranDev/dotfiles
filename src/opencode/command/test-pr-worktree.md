@@ -129,50 +129,46 @@ worktree** — no PR needed.
   branches are external side effects, so skip the question, leave the pushed
   branch, and report that rebase + merge + cleanup is available.
 
-When **rebase, merge & clean up** is chosen, do it in this order — rebase, then
-merge, because cleanup deletes the branch.
+When **rebase, merge & clean up** is chosen, do it in this order — integrate,
+then clean up, because cleanup deletes the branch.
 
-1. **Rebase onto, then merge into, the base — serialized & concurrency-safe.** Several
+1. **Rebase onto, then advance, the base — serialized, concurrency-safe & checkout-free.** Several
    `/test-pr-worktree` runs can finish at once and all target the **same base
    branch in the same main repo**, which a repo cannot do concurrently (one
-   checked-out base, one in-progress merge) and which races on push. Do **not**
-   merge by hand — delegate to the helper, which takes a per-repo lock, **waits**
-   when another merge is already running (reclaiming a stale one), brings the
-   base up to date, **rebases the branch onto it** for linear history, merges
-   `--no-ff`, and retries the push on a non-fast-forward race. It resolves the
-   main repo, base, and feature branch from the worktree:
+   in-progress rebase) and which races on push. Do **not** integrate by hand —
+   delegate to the helper, which takes a per-repo lock, **waits** when another is
+   already running (reclaiming a stale one), then integrates **entirely in the
+   worktree**: it **rebases the branch onto the freshened base** for linear
+   history, **pushes the rebased tip straight to `origin/<base>`** from the
+   worktree, and **advances the local `<base>` ref onto it with a checkout-free
+   `update-ref`** (detaching the main repo's HEAD when it has `<base>` checked
+   out, so the base is **never checked out or mutated** in the main repo — no
+   merge commit). It resolves the main repo, base, and feature branch from the
+   worktree:
    ```bash
    zsh "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/worktrees/merge-into-base.sh" \
      merge --worktree "<worktree>"
    ```
-   Act on its **exit code** — only proceed to cleanup once the merge reaches `0`:
-   - **`0`** — merged and pushed; continue to cleanup.
-   - **`2`** — a conflict handed back for you to resolve, of one of two kinds.
-     For either, load the `merge-conflict-resolution` skill, resolve every
+   Act on its **exit code** — only proceed to cleanup once it reaches `0`:
+   - **`0`** — rebased, pushed, and the base advanced checkout-free; continue to
+     cleanup. (The main repo is left on a detached HEAD at the old base commit,
+     its working tree untouched — re-attach later with `git checkout <base>`.)
+   - **`2`** — a **rebase conflict left in the worktree** with the lock
+     **RELEASED** (this covers both the initial rebase onto the base and a
+     push-race rebase onto an advanced remote — both happen in the worktree, never
+     in the main repo). Load the `merge-conflict-resolution` skill, resolve every
      conflict preserving both sides, and for lockfiles / generated files
      **regenerate** them (re-run the package manager / generator) rather than
-     hand-merging:
-     - **Rebase conflict — in the worktree, lock RELEASED.** Replaying the
-       branch onto the base hit a conflict, so the rebase is left **in progress
-       in the worktree** and the lock is already freed (resolution happens
-       off-lock). Resolve in the worktree, then `git -C "<worktree>" add -A &&
-       git -C "<worktree>" rebase --continue` (repeat for each stopped commit).
-       Once the rebase finishes, **re-run the same `merge` command** — it
-       re-acquires the lock and merges the now-linear branch.
-     - **Merge conflict — in the main repo, lock RETAINED.** Merging into the
-       base (or integrating the remote base during the push) conflicted, so the
-       merge is left **in progress in the main repo** with the lock **retained**
-       for you (`repo=$(dirname "$(git -C <worktree> rev-parse --path-format=absolute --git-common-dir)")`).
-       Resolve it there, `git -C "$repo" commit --no-edit`, then re-run the
-       helper with `finalize --worktree "<worktree>"` to push and release the
-       lock; if `finalize` itself returns `2`, repeat resolve → commit →
-       `finalize`.
-     To abandon either case, run the helper's `abort --worktree "<worktree>"`
-     (aborts any in-progress rebase/merge and releases the lock).
+     hand-merging. Then continue the rebase in the worktree: `git -C "<worktree>"
+     add -A && git -C "<worktree>" rebase --continue` (repeat for each stopped
+     commit). Once the rebase finishes, **re-run the same `merge` command** — it
+     re-acquires the lock and advances the base onto the now-linear branch. To
+     abandon instead, run the helper's `abort --worktree "<worktree>"` (aborts the
+     in-progress rebase and releases the lock).
    - **`3`** — precondition failed: the base repo **or the worktree** has
-     uncommitted changes, or the base repo is stuck in a foreign/abandoned
-     merge. **Do not clean up.** Report it so the offending repo can be made
-     clean, then retry.
+     uncommitted changes, the base repo is stuck in a foreign/abandoned merge, or
+     the base ref moved under the lock. **Do not clean up.** Report it so the
+     offending repo can be made clean, then retry.
    - **`4`** — timed out waiting for another merge still in progress. **Do not
      clean up.** Report it; the branch is pushed and the merge is still available
      to retry later.
