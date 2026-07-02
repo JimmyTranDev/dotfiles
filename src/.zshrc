@@ -87,6 +87,9 @@ if [[ -d "$SDKMAN_DIR" ]]; then
 fi
 [[ -f "$HOME/Programming/JimmyTranDev/secrets/env.sh" ]] && source "$HOME/Programming/JimmyTranDev/secrets/env.sh"
 
+# gcloud CLI: run on Homebrew's Python 3.14 instead of system Python.
+export CLOUDSDK_PYTHON="$HOMEBREW_PREFIX/opt/python@3.14/bin/python3.14"
+
 if [[ -d "$HOMEBREW_PREFIX/Caskroom/gcloud-cli" ]]; then
   GCLOUD_SDK_DIR=($HOMEBREW_PREFIX/Caskroom/gcloud-cli/*/google-cloud-sdk(N/))
   if [[ ${#GCLOUD_SDK_DIR[@]} -gt 0 ]]; then

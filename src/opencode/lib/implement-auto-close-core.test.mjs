@@ -12,28 +12,28 @@ test("SENTINEL_DIR is the dedicated /tmp directory", () => {
   assert.equal(SENTINEL_DIR, "/tmp/opencode-implement-autoclose")
 })
 
-test("parseEnabled defaults to true when unset or empty", () => {
-  assert.equal(parseEnabled(undefined), true)
-  assert.equal(parseEnabled(null), true)
-  assert.equal(parseEnabled(""), true)
-  assert.equal(parseEnabled("   "), true)
+test("parseEnabled defaults to false when unset or empty", () => {
+  assert.equal(parseEnabled(undefined), false)
+  assert.equal(parseEnabled(null), false)
+  assert.equal(parseEnabled(""), false)
+  assert.equal(parseEnabled("   "), false)
 })
 
-test("parseEnabled treats common truthy/other values as enabled", () => {
+test("parseEnabled enables only for explicit opt-in values", () => {
   assert.equal(parseEnabled("1"), true)
   assert.equal(parseEnabled("true"), true)
   assert.equal(parseEnabled("yes"), true)
   assert.equal(parseEnabled("on"), true)
-  assert.equal(parseEnabled("anything-else"), true)
 })
 
-test("parseEnabled disables only for 0/false/off/no, case- and space-insensitive", () => {
+test("parseEnabled stays disabled for 0/false/off/no and any other value, case- and space-insensitive", () => {
   assert.equal(parseEnabled("0"), false)
   assert.equal(parseEnabled("false"), false)
   assert.equal(parseEnabled("off"), false)
   assert.equal(parseEnabled("no"), false)
-  assert.equal(parseEnabled("FALSE"), false)
-  assert.equal(parseEnabled(" Off "), false)
+  assert.equal(parseEnabled("anything-else"), false)
+  assert.equal(parseEnabled("TRUE"), true)
+  assert.equal(parseEnabled(" On "), true)
 })
 
 test("shouldClose is true only when idle, in zellij, enabled, and armed", () => {

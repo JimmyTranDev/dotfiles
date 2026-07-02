@@ -80,6 +80,7 @@ return {
     { mode = 'n', '<leader>tvn', language_actions.run_maven_coverage_changed, desc = '󰫙 Maven Test Coverage (Changed Tests)', silent = true },
     { mode = 'n', '<leader>tvN', language_actions.run_maven_diff_coverage, desc = '󰫙 Maven Test Coverage (New Code via diff-cover)', silent = true },
     { mode = 'n', '<leader>tvb', language_actions.run_maven_compile, desc = '󰫙 Maven Compile', silent = true },
+    { mode = 'n', '<leader>tvd', language_actions.start_cloud_sql_proxy, desc = '󰆼 Cloud SQL Proxy', silent = true },
 
     { mode = 'n', '<leader>tds', language_actions.start_postgres, desc = '󰆼 Start PostgreSQL', silent = true },
     { mode = 'n', '<leader>tdr', language_actions.reset_postgres_db, desc = '󰆼 Reset PostgreSQL DB', silent = true },

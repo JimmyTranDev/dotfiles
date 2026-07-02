@@ -7,15 +7,16 @@
 
 export const SENTINEL_DIR = "/tmp/opencode-implement-autoclose"
 
-// Only these explicit values disable the feature. Everything else (including an
-// unset / empty value) leaves it enabled — the feature is default-on in zellij.
-const DISABLED_VALUES = new Set(["0", "false", "off", "no"])
+// The feature is default-OFF: the pane stays open after a command finishes. Only
+// these explicit opt-in values turn it on; everything else (including an unset /
+// empty value) leaves it disabled. Re-enable per-session with
+// OPENCODE_IMPLEMENT_AUTOCLOSE=1.
+const ENABLED_VALUES = new Set(["1", "true", "on", "yes"])
 
 export function parseEnabled(value) {
-  if (value === undefined || value === null) return true
+  if (value === undefined || value === null) return false
   const normalized = String(value).trim().toLowerCase()
-  if (normalized === "") return true
-  return !DISABLED_VALUES.has(normalized)
+  return ENABLED_VALUES.has(normalized)
 }
 
 export function shouldClose({ eventType, inZellij, enabled, armed } = {}) {

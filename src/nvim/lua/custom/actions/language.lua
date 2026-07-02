@@ -221,6 +221,10 @@ end
 M.start_postgres = M.create_registry_runner('postgresql', 'brew services restart postgresql@15')
 M.reset_postgres_db = M.create_registry_runner('reset-db', '~/Programming/JimmyTranDev/secrets/reset-db.sh')
 
+-- <leader>tvd: Cloud SQL Auth Proxy for the bank instance. The launcher lives
+-- in the external secrets dir because the instance name is confidential.
+M.start_cloud_sql_proxy = M.create_registry_runner('cloud-sql-proxy', '~/Programming/JimmyTranDev/secrets/cloud-sql-proxy.sh')
+
 function M.run_java_class_maven()
   local class = language_utils.get_current_java_class()
   if not class or class == '' then

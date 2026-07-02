@@ -9,8 +9,9 @@
 //
 // Invoked as `node implement-auto-close-arm.mjs`. It must never break the
 // command flow, so every path exits 0; the worst case is "pane just won't
-// auto-close". No-op outside zellij and when OPENCODE_IMPLEMENT_AUTOCLOSE is
-// disabled, so no stale sentinel is ever left behind.
+// auto-close". No-op outside zellij and unless OPENCODE_IMPLEMENT_AUTOCLOSE is
+// enabled (the feature is opt-in / default-off), so no stale sentinel is ever
+// left behind.
 
 import { mkdir, writeFile } from "node:fs/promises"
 import { SENTINEL_DIR, parseEnabled, sentinelPath } from "./implement-auto-close-core.mjs"
@@ -20,7 +21,7 @@ async function arm() {
     return "skip: not running inside zellij"
   }
   if (!parseEnabled(process.env.OPENCODE_IMPLEMENT_AUTOCLOSE)) {
-    return "skip: disabled via OPENCODE_IMPLEMENT_AUTOCLOSE"
+    return "skip: not enabled via OPENCODE_IMPLEMENT_AUTOCLOSE"
   }
   const path = sentinelPath(process.env.ZELLIJ_PANE_ID)
   if (!path) {
