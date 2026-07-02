@@ -96,6 +96,7 @@ return {
       { '<leader>gw', '󰘴 Worktree' },
       { '<leader>gy', '󰋫 Quick' },
       { '<leader>t', '󰆍 Terminal' },
+      { '<leader>td', '󰆼 Database' },
       { '<leader>tm', '󰣖 Makefile' },
       { '<leader>tn', '󰎙 NPM' },
       { '<leader>tnu', '󰏔 Updates' },

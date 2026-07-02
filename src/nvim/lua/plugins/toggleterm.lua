@@ -73,128 +73,16 @@ return {
     },
 
     { mode = 'n', '<leader>tvs', language_actions.run_spring_boot, desc = '󰫙 Start Spring Boot (local)', silent = true },
-    {
-      mode = 'n',
-      '<leader>tvp',
-      function()
-        local registry = require('custom.utils.terminal_registry')
-        registry.get_or_create('mvn-package', { cmd = 'mvn package' })
-      end,
-      desc = '󰫙 Maven Package',
-      silent = true,
-    },
-    {
-      mode = 'n',
-      '<leader>tvt',
-      function()
-        local registry = require('custom.utils.terminal_registry')
-        registry.get_or_create('mvn-test', { cmd = 'mvn clean test -Dmaven.gitcommitid.skip=true' })
-      end,
-      desc = '󰫙 Maven Test',
-      silent = true,
-    },
-    {
-      mode = 'n',
-      '<leader>tvf',
-      function()
-        if vim.bo.filetype ~= 'java' then
-          vim.notify('Not a Java file', vim.log.levels.WARN)
-          return
-        end
-        local filename = vim.fn.expand('%:t:r')
-        local cmd = 'mvn -Dtest="' .. filename .. '" test -Dmaven.gitcommitid.skip=true'
-        local registry = require('custom.utils.terminal_registry')
-        registry.get_or_create('mvn-test-' .. filename, { cmd = cmd })
-      end,
-      desc = '󰫙 Maven Test Current File',
-      silent = true,
-    },
-    {
-      mode = 'n',
-      '<leader>tvc',
-      function()
-        local cmd = 'mvn clean test jacoco:report -Dmaven.gitcommitid.skip=true && for d in */target/site/jacoco/index.html; do [ -f "$d" ] && open "$d"; done && echo "Coverage reports opened"'
-        local registry = require('custom.utils.terminal_registry')
-        registry.get_or_create('mvn-coverage', { cmd = cmd })
-      end,
-      desc = '󰫙 Maven Test Coverage',
-      silent = true,
-    },
-    {
-      mode = 'n',
-      '<leader>tvn',
-      function()
-        local cmd = table.concat({
-          'CHANGED_CLASSES=$(git diff --name-only HEAD~1 -- "*.java"',
-          '  | grep "src/test/.*Test\\.java$"',
-          '  | sed "s|.*/src/test/java/||; s|\\.java$||; s|/|.|g"',
-          '  | paste -sd "," -)',
-          'if [ -z "$CHANGED_CLASSES" ]; then echo "No changed test classes found"; exit 0; fi',
-          'MODULES=$(git diff --name-only HEAD~1 -- "*.java"',
-          '  | grep "src/test/"',
-          '  | sed "s|/src/.*||"',
-          '  | sort -u',
-          '  | paste -sd "," -)',
-          'echo "Running tests: $CHANGED_CLASSES in modules: $MODULES"',
-          'mvn test jacoco:report -Dmaven.gitcommitid.skip=true -pl "$MODULES" -Dtest="$CHANGED_CLASSES"',
-          '&& for d in */target/site/jacoco/index.html; do [ -f "$d" ] && open "$d"; done',
-          '&& echo "Coverage reports opened for changed tests"',
-        }, ' && ')
-        local registry = require('custom.utils.terminal_registry')
-        registry.get_or_create('mvn-coverage-changed', { cmd = cmd })
-      end,
-      desc = '󰫙 Maven Test Coverage (Changed Tests)',
-      silent = true,
-    },
-    {
-      mode = 'n',
-      '<leader>tvN',
-      function()
-        local cmd = table.concat({
-          'mvn clean test jacoco:report -Dmaven.gitcommitid.skip=true',
-          '&& JACOCO_XML=$(find . -path "*/target/site/jacoco/jacoco.xml" -print -quit)',
-          '&& if [ -z "$JACOCO_XML" ]; then echo "No JaCoCo XML report found"; exit 1; fi',
-          '&& diff-cover "$JACOCO_XML" --compare-branch=develop --html-report target/diff-cover.html',
-          '&& open target/diff-cover.html',
-          '&& echo "Diff coverage report opened"',
-        }, ' ')
-        local registry = require('custom.utils.terminal_registry')
-        registry.get_or_create('mvn-diff-cover', { cmd = cmd })
-      end,
-      desc = '󰫙 Maven Test Coverage (New Code via diff-cover)',
-      silent = true,
-    },
-    {
-      mode = 'n',
-      '<leader>tvb',
-      function()
-        local registry = require('custom.utils.terminal_registry')
-        registry.get_or_create('mvn-compile', { cmd = 'mvn compile -Dmaven.gitcommitid.skip=true' })
-      end,
-      desc = '󰫙 Maven Compile',
-      silent = true,
-    },
+    { mode = 'n', '<leader>tvp', language_actions.run_maven_package, desc = '󰫙 Maven Package', silent = true },
+    { mode = 'n', '<leader>tvt', language_actions.run_maven_test, desc = '󰫙 Maven Test', silent = true },
+    { mode = 'n', '<leader>tvf', language_actions.run_maven_test_file, desc = '󰫙 Maven Test Current File', silent = true },
+    { mode = 'n', '<leader>tvc', language_actions.run_maven_coverage, desc = '󰫙 Maven Test Coverage', silent = true },
+    { mode = 'n', '<leader>tvn', language_actions.run_maven_coverage_changed, desc = '󰫙 Maven Test Coverage (Changed Tests)', silent = true },
+    { mode = 'n', '<leader>tvN', language_actions.run_maven_diff_coverage, desc = '󰫙 Maven Test Coverage (New Code via diff-cover)', silent = true },
+    { mode = 'n', '<leader>tvb', language_actions.run_maven_compile, desc = '󰫙 Maven Compile', silent = true },
 
-    {
-      mode = 'n',
-      '<leader>tvq',
-      function()
-        local registry = require('custom.utils.terminal_registry')
-        registry.get_or_create('postgresql', { cmd = 'brew services restart postgresql@15' })
-      end,
-      desc = '󰫙 Start PostgreSQL',
-      silent = true,
-    },
-    {
-      mode = 'n',
-      '<leader>tvr',
-      function()
-        local registry = require('custom.utils.terminal_registry')
-        registry.get_or_create('reset-db', { cmd = '~/Programming/JimmyTranDev/secrets/reset-db.sh' })
-      end,
-      desc = '󰫙 Reset PostgreSQL DB',
-      silent = true,
-    },
+    { mode = 'n', '<leader>tds', language_actions.start_postgres, desc = '󰆼 Start PostgreSQL', silent = true },
+    { mode = 'n', '<leader>tdr', language_actions.reset_postgres_db, desc = '󰆼 Reset PostgreSQL DB', silent = true },
   },
   config = function()
     require('toggleterm').setup({

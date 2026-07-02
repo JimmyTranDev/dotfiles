@@ -13,10 +13,15 @@ main() {
 
 	require_tool fzf || exit 1
 
-	# Resolve the target dir (visible editor pane, current pane, last project,
-	# then fzf picker) before the tool, so the reopen is keyed to THIS project.
+	# Resolve the target dir before opening the tool, so the reopen is keyed to
+	# THIS project. Prefer the visible editor pane BY NAME: nvim keeps its pane
+	# name synced to the worktree (rename_pane on DirChanged), so it stays
+	# correct even when an in-place worktree switch has left the pane's recorded
+	# cwd stale. Fall back to the pane cwd, the focused pane, the last project,
+	# then an fzf picker.
 	local target_dir
-	target_dir="$(visible_project_dir)" \
+	target_dir="$(visible_project_dir_by_name)" \
+		|| target_dir="$(visible_project_dir)" \
 		|| target_dir="$(current_pane_dir)" \
 		|| target_dir="$(last_project_dir)" \
 		|| target_dir="$(select_project_dir)" \

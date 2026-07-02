@@ -520,9 +520,12 @@ _visible_project_dir_from_layout() {
 			in_focus_tab = ($0 ~ /focus=true/) ? 1 : 0
 		}
 		# Visible project pane: first expanded=true `pane` with a cwd in the
-		# focused tab whose command is not opencode/storecode. Lock onto the
-		# first match so a later pane cannot override it.
-		if (!seen_pane && in_focus_tab && $0 ~ /^[[:space:]]*pane[[:space:]]/ && $0 ~ /expanded=true/ && $0 ~ /cwd="/ && $0 !~ /command="opencode"/ && $0 !~ /command="storecode"/) {
+		# focused tab whose command is not an agent. Agents are opencode,
+		# storecode, and the real exec path storecode runs as
+		# (~/.storecode/lib/claude, what zellij actually records) -- the last
+		# clause stops that agent dir leaking through as if it were the editor
+		# pane. Lock onto the first match so a later pane cannot override it.
+		if (!seen_pane && in_focus_tab && $0 ~ /^[[:space:]]*pane[[:space:]]/ && $0 ~ /expanded=true/ && $0 ~ /cwd="/ && $0 !~ /command="opencode"/ && $0 !~ /command="storecode"/ && $0 !~ /command="[^"]*\.storecode\//) {
 			seen_pane = 1
 			# Greedy `.*` picks the LAST ` cwd="` on the line (matches sed).
 			if (match($0, /.*[[:space:]]cwd="/)) {
@@ -576,9 +579,98 @@ visible_project_dir() {
 	printf '%s' "$dir"
 }
 
+# Parse a `zellij action dump-layout` KDL (read from stdin) and print the NAME
+# of the VISIBLE project pane: the first expanded=true `pane` in the focused tab
+# whose command is nvim. nvim renames its own pane to the basename of its cwd on
+# every DirChanged (see src/nvim/lua/custom/actions/zellij_pane.lua), so this
+# name tracks the worktree the user is viewing even after an in-place worktree
+# switch has left the pane's recorded cwd pointing at the original repo -- which
+# is exactly the case the cwd-based resolvers get wrong. Prints nothing and
+# returns non-zero when no such pane exists. Pure text munging -- no zellij call
+# -- so it is unit-testable.
+_visible_project_name_from_layout() {
+	awk '
+	{
+		# Track the focused tab: a `tab ... focus=true` line opens it and the
+		# next `tab` line (a background tab) closes it. Panes only count inside
+		# the focused tab.
+		if ($0 ~ /^[[:space:]]*tab[[:space:]]/) {
+			in_focus_tab = ($0 ~ /focus=true/) ? 1 : 0
+		}
+		# Visible project pane: the first expanded=true nvim `pane` carrying a
+		# name in the focused tab. Lock onto the first match.
+		if (!seen_pane && in_focus_tab && $0 ~ /^[[:space:]]*pane[[:space:]]/ && $0 ~ /expanded=true/ && $0 ~ /command="nvim"/ && $0 ~ /name="/) {
+			seen_pane = 1
+			# Greedy `.*` picks the LAST ` name="` on the line.
+			if (match($0, /.*[[:space:]]name="/)) {
+				rest = substr($0, RLENGTH + 1)
+				q = index(rest, "\"")
+				if (q > 1) {
+					name = substr(rest, 1, q - 1)
+					have_name = 1
+				}
+			}
+		}
+	}
+	END {
+		if (!have_name) exit 1
+		printf "%s", name
+	}
+	'
+}
+
+# Resolve a project/worktree NAME (a directory basename -- e.g. the name nvim
+# gives its zellij pane, kept in sync with the worktree by rename_pane) to an
+# absolute path by matching the basename of every enumerated ~/Programming
+# project and wcreated/wcheckout worktree, most-recently-used first so a basename
+# collision resolves to the copy the user touched last. Prints the absolute path
+# and bumps its recency on a hit; returns non-zero *silently* when the name is
+# blank or resolves to no existing directory so the caller can fall back. The
+# three container args default to the production paths and are overridable for
+# tests.
+project_dir_for_name() {
+	local name="$1"
+	local programming_dir="${2:-$HOME/Programming}"
+	local created_dir="${3:-${WCREATED_DIR:-$programming_dir/wcreated}}"
+	local checkout_dir="${4:-${WCHECKOUT_DIR:-$programming_dir/wcheckout}}"
+	[[ -n "$name" ]] || return 1
+
+	local entry_path base found=""
+	while IFS=$'\t' read -r _ _ entry_path; do
+		base="${entry_path%/}"
+		base="${base##*/}"
+		if [[ "$base" == "$name" ]]; then
+			found="$entry_path"
+			break
+		fi
+	done < <(_collect_project_dir_entries "$programming_dir" "$created_dir" "$checkout_dir" | sort -t$'\t' -k1,1 -rn)
+
+	[[ -n "$found" && -d "$found" ]] || return 1
+	bump_project_recency "$found"
+	printf '%s' "$found"
+}
+
+# Print the absolute dir of the VISIBLE project pane resolved BY NAME: read the
+# expanded nvim pane's name from dump-layout (see
+# _visible_project_name_from_layout) and resolve it to a directory (see
+# project_dir_for_name). Because nvim keeps its pane name in sync with the
+# worktree, this stays correct even when the pane's recorded cwd goes stale after
+# an in-place worktree switch -- the case visible_project_dir / current_pane_dir
+# get wrong. Returns non-zero *silently* when not inside a zellij session, when
+# dump-layout fails, when no visible nvim pane exists, or when the name resolves
+# to no directory -- so callers fall back to the cwd-based resolvers.
+visible_project_dir_by_name() {
+	[[ -n "${ZELLIJ:-}" ]] || return 1
+	local name
+	name="$(zellij action dump-layout 2>/dev/null | _visible_project_name_from_layout)" || return 1
+	[[ -n "$name" ]] || return 1
+	project_dir_for_name "$name"
+}
+
 # Open a new stacked zellij pane rooted at $1 running tool $2 (one of
-# PANE_TOOLS). "empty" opens a plain shell pane; every other tool runs in a pane
-# that closes itself on exit (--close-on-exit). The focused tab is renamed after
+# PANE_TOOLS). "empty" opens a plain shell pane; every other tool runs the tool
+# and then drops into an interactive zsh in $target_dir when the tool exits, so
+# the pane stays usable instead of vanishing. The focused tab is renamed after
 # the project folder; callers should reindex tab names afterward.
 open_tool_pane() {
 	local target_dir="$1"
@@ -587,7 +679,11 @@ open_tool_pane() {
 	if [[ "$tool" == "empty" ]]; then
 		zellij action new-pane --cwd "$target_dir" --stacked
 	else
-		zellij action new-pane --cwd "$target_dir" --stacked --close-on-exit -- "$tool"
+		# Run the tool, then `exec zsh` so exiting it drops into an
+		# interactive shell in the project dir instead of closing the pane
+		# (no --close-on-exit). `zsh -c` keeps `tool; exec zsh` as one argv.
+		zellij action new-pane --cwd "$target_dir" --stacked -- \
+			zsh -c "$tool; exec zsh -i"
 	fi
 
 	zellij action rename-tab "$(basename "$target_dir")"

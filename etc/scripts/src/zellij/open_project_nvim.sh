@@ -23,9 +23,9 @@ main() {
 	[[ -z "$target_dir" ]] && exit 0
 
 	# 2. Open nvim in a new stacked pane rooted at the chosen project.
-	#    open_tool_pane runs nvim in a --stacked pane with --close-on-exit and
-	#    renames the focused tab after the project folder; reindex tab names
-	#    afterward.
+	#    open_tool_pane runs nvim in a --stacked pane that drops into an
+	#    interactive shell when nvim exits, and renames the focused tab after
+	#    the project folder; reindex tab names afterward.
 	open_tool_pane "$target_dir" "nvim"
 
 	"$SCRIPT_DIR/update_tab_indexes.sh"

@@ -50,7 +50,8 @@ behaviour is the core thing to replicate in Zellij.
 - make: `tmj` pick target · `tms` `make start`
 - maven/java: `tvs` run jar/Spring · `tvp` package · `tvt` test · `tvf` test
   current file · `tvc` coverage · `tvn` coverage (changed) · `tvN` diff-cover ·
-  `tvb` compile · `tvq` restart postgres · `tvr` reset DB
+  `tvb` compile
+- database: `tds` start PostgreSQL · `tdr` reset DB
 
 ### Zellij side (the target platform)
 
@@ -70,7 +71,8 @@ behaviour is the core thing to replicate in Zellij.
 - `current_pane_dir` — abs cwd of the focused pane (parses `dump-layout`).
 - `last_project_dir` / `select_project_dir` — project dir fallbacks.
 - `open_tool_pane <dir> <tool>` — `zellij action new-pane --cwd <dir> --stacked
-  [--close-on-exit -- <tool>]`, then renames the tab.
+  -- zsh -c '<tool>; exec zsh -i'` (drops to a shell when the tool exits),
+  then renames the tab.
 - `update_tab_indexes.sh` — renumber tabs after a structural change.
 
 **The Zellij keybind model** (`config.kdl`): `clear-defaults=true`,

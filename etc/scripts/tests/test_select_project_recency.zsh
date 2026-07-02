@@ -411,6 +411,158 @@ vp_none_rc=$?
 assert_eq "no non-agent expanded pane -> empty output" "" "$vp_none_out"
 assert_eq "no non-agent expanded pane -> non-zero return" "1" "$vp_none_rc"
 
+# --- project_dir_for_name: resolve a pane/worktree NAME to a dir --------------
+# Backs visible_project_dir_by_name(), the FIRST target resolver for Alt ].
+# nvim keeps its zellij pane name synced to the worktree basename (rename_pane
+# on DirChanged) even when an in-place worktree switch leaves the pane's recorded
+# cwd stale, so the NAME is the reliable signal. Resolved against the same
+# ~/Programming + wcreated/wcheckout enumeration the pickers use, most-recent
+# first so a basename collision resolves to the most-recently-used copy.
+assert_eq "project_dir_for_name resolves a worktree name to its path" \
+  "$CREATED/wt-alpha" \
+  "$(project_dir_for_name "wt-alpha" "$PROG" "$CREATED" "$CHECKOUT")"
+assert_eq "project_dir_for_name resolves a project name to its path" \
+  "$PROG/orgA/repo2" \
+  "$(project_dir_for_name "repo2" "$PROG" "$CREATED" "$CHECKOUT")"
+
+pdfn_unknown_out="$(project_dir_for_name "no-such-project-xyz" "$PROG" "$CREATED" "$CHECKOUT")"
+pdfn_unknown_rc=$?
+assert_eq "an unknown name -> empty output" "" "$pdfn_unknown_out"
+assert_eq "an unknown name -> non-zero return" "1" "$pdfn_unknown_rc"
+
+pdfn_blank_out="$(project_dir_for_name "" "$PROG" "$CREATED" "$CHECKOUT")"
+pdfn_blank_rc=$?
+assert_eq "a blank name -> empty output" "" "$pdfn_blank_out"
+assert_eq "a blank name -> non-zero return" "1" "$pdfn_blank_rc"
+
+# Basename collision: the same folder name under two org dirs. The most-recently
+# used copy (bumped newest) wins.
+mkdir -p "$PROG/orgA/dupname" "$PROG/orgB/dupname"
+touch -t 202001010000 "$PROG/orgA/dupname"
+bump_project_recency "$PROG/orgB/dupname" # orgB copy is now newest
+assert_eq "a name collision resolves to the most-recently-used copy" \
+  "$PROG/orgB/dupname" \
+  "$(project_dir_for_name "dupname" "$PROG" "$CREATED" "$CHECKOUT")"
+
+# --- _visible_project_name_from_layout: NAME of the visible nvim editor pane --
+# The visible editor pane is the expanded nvim pane in the focused tab; its NAME
+# (basename of the worktree) is what visible_project_dir_by_name resolves.
+read -r -d '' LAYOUT_NAME_TWO_COLUMN <<'EOF'
+layout {
+    cwd "/Users/jimmy/Programming"
+    tab name="1.flow" focus=true {
+        pane split_direction="vertical" {
+            pane size="30%" stacked=true {
+                pane command="opencode" name="dotfiles" cwd="JimmyTranDev/dotfiles" expanded=true {
+                    start_suspended true
+                }
+            }
+            pane size="70%" stacked=true {
+                pane command="nvim" name="massvocabulary" cwd="JimmyTranDev/massvocabulary" {
+                    start_suspended true
+                }
+                pane command="nvim" name="credit-card-flow" cwd="wcheckout/credit-card-flow" focus=true expanded=true {
+                    start_suspended true
+                }
+            }
+        }
+    }
+}
+EOF
+assert_eq "returns the expanded nvim pane name, not the agent or unexpanded pane" \
+  "credit-card-flow" \
+  "$(print -r -- "$LAYOUT_NAME_TWO_COLUMN" | _visible_project_name_from_layout)"
+
+# The reported bug: an in-place worktree switch left the nvim pane's cwd stale
+# (bank-loans-web, the main repo) while its NAME tracks the worktree. The name
+# parser returns the NAME -- the correct signal -- despite the stale cwd, and
+# the expanded storecode agent (its real exec path) is not mistaken for it.
+read -r -d '' LAYOUT_NAME_STALE_CWD <<'EOF'
+layout {
+    cwd "/Users/jimmy/Programming"
+    tab name="1.cred" focus=true {
+        pane split_direction="vertical" {
+            pane size="30%" stacked=true {
+                pane command="/Users/jimmy/.storecode/lib/claude" name="working bank-loans-web" cwd="storebrand-digital/bank-loans-web" expanded=true {
+                    start_suspended true
+                }
+            }
+            pane size="70%" stacked=true {
+                pane command="nvim" name="BW-10624-update-the-credit-card-intro-page-text" cwd="storebrand-digital/bank-loans-web" focus=true expanded=true {
+                    start_suspended true
+                }
+            }
+        }
+    }
+}
+EOF
+assert_eq "returns the nvim pane NAME even when its recorded cwd is stale" \
+  "BW-10624-update-the-credit-card-intro-page-text" \
+  "$(print -r -- "$LAYOUT_NAME_STALE_CWD" | _visible_project_name_from_layout)"
+
+# Only the focused tab's expanded nvim pane counts.
+read -r -d '' LAYOUT_NAME_MULTI_TAB <<'EOF'
+layout {
+    cwd "/base"
+    tab name="bg" {
+        pane command="nvim" name="background-proj" cwd="bg" expanded=true {
+            start_suspended true
+        }
+    }
+    tab name="fg" focus=true {
+        pane command="nvim" name="foreground-proj" cwd="fg" expanded=true {
+            start_suspended true
+        }
+    }
+}
+EOF
+assert_eq "only the focused tab's expanded nvim pane name is considered" \
+  "foreground-proj" \
+  "$(print -r -- "$LAYOUT_NAME_MULTI_TAB" | _visible_project_name_from_layout)"
+
+# No expanded nvim pane (only an agent is expanded) -> non-zero, no output, so
+# visible_project_dir_by_name falls back to the cwd-based resolvers.
+read -r -d '' LAYOUT_NAME_NONE <<'EOF'
+layout {
+    cwd "/base"
+    tab name="1" focus=true {
+        pane command="opencode" name="agent" cwd="agent-dir" expanded=true {
+            start_suspended true
+        }
+        pane command="nvim" name="editor" cwd="editor-dir" {
+            start_suspended true
+        }
+    }
+}
+EOF
+name_none_out="$(print -r -- "$LAYOUT_NAME_NONE" | _visible_project_name_from_layout)"
+name_none_rc=$?
+assert_eq "no expanded nvim pane -> empty output" "" "$name_none_out"
+assert_eq "no expanded nvim pane -> non-zero return" "1" "$name_none_rc"
+
+# --- _visible_project_dir_from_layout: storecode's REAL exec path is an agent -
+# Safety net for the cwd fallback: storecode runs as ~/.storecode/lib/claude, so
+# the literal command="storecode" exclusion missed it and the agent's dir leaked
+# through. It must be treated as an agent and skipped.
+read -r -d '' LAYOUT_STORECODE_REALPATH <<'EOF'
+layout {
+    cwd "/base"
+    tab name="1" focus=true {
+        pane split_direction="vertical" {
+            pane command="/Users/jimmy/.storecode/lib/claude" cwd="agent-dir" expanded=true {
+                start_suspended true
+            }
+            pane command="nvim" cwd="editor-dir" expanded=true {
+                start_suspended true
+            }
+        }
+    }
+}
+EOF
+assert_eq "storecode's real exec path counts as an agent and is skipped" \
+  "/base/editor-dir" \
+  "$(print -r -- "$LAYOUT_STORECODE_REALPATH" | _visible_project_dir_from_layout)"
+
 # --- Summary -----------------------------------------------------------------
 print -r --
 print -r -- "Passed: $PASS  Failed: $FAIL"

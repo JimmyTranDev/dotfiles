@@ -144,6 +144,83 @@ function M.run_spring_boot()
   end
 end
 
+-- Maven builds skip the git-commit-id plugin: slow and irrelevant for local
+-- compile/test/coverage runs. Shared shell fragments keep the coverage
+-- commands DRY.
+local MVN_SKIP = '-Dmaven.gitcommitid.skip=true'
+local MVN_COVERAGE_REPORT = 'mvn clean test jacoco:report ' .. MVN_SKIP
+local GIT_CHANGED_JAVA = 'git diff --name-only HEAD~1 -- "*.java"'
+local JACOCO_OPEN = 'for d in */target/site/jacoco/index.html; do [ -f "$d" ] && open "$d"; done'
+
+-- Factory: return a fn that toggles (or spawns) a named registry terminal
+-- running a fixed command. Keeps one-shot Maven/DB keymaps to a single line
+-- instead of a repeated inline closure.
+---@param name string
+---@param cmd string
+---@return function
+function M.create_registry_runner(name, cmd)
+  return function() registry.get_or_create(name, { cmd = cmd }) end
+end
+
+-- <leader>tv* Maven runners.
+M.run_maven_package = M.create_registry_runner('mvn-package', 'mvn package')
+M.run_maven_test = M.create_registry_runner('mvn-test', 'mvn clean test ' .. MVN_SKIP)
+M.run_maven_compile = M.create_registry_runner('mvn-compile', 'mvn compile ' .. MVN_SKIP)
+
+-- <leader>tvf: run only the current Java test file.
+function M.run_maven_test_file()
+  if vim.bo.filetype ~= 'java' then
+    vim.notify('Not a Java file', vim.log.levels.WARN)
+    return
+  end
+  local filename = vim.fn.expand('%:t:r')
+  registry.get_or_create('mvn-test-' .. filename, { cmd = ('mvn -Dtest="%s" test %s'):format(filename, MVN_SKIP) })
+end
+
+-- <leader>tvc: full clean test + JaCoCo HTML report, opened per module.
+function M.run_maven_coverage()
+  registry.get_or_create('mvn-coverage', {
+    cmd = table.concat({ MVN_COVERAGE_REPORT, JACOCO_OPEN, 'echo "Coverage reports opened"' }, ' && '),
+  })
+end
+
+-- <leader>tvn: JaCoCo coverage for only the test classes changed since HEAD~1,
+-- scoped to the modules that own them.
+function M.run_maven_coverage_changed()
+  local changed_classes = GIT_CHANGED_JAVA
+    .. ' | grep "src/test/.*Test\\.java$"'
+    .. ' | sed "s|.*/src/test/java/||; s|\\.java$||; s|/|.|g"'
+    .. ' | paste -sd "," -'
+  local changed_modules = GIT_CHANGED_JAVA .. ' | grep "src/test/" | sed "s|/src/.*||" | sort -u | paste -sd "," -'
+  local cmd = table.concat({
+    'CHANGED_CLASSES=$(' .. changed_classes .. ')',
+    'if [ -z "$CHANGED_CLASSES" ]; then echo "No changed test classes found"; exit 0; fi',
+    'MODULES=$(' .. changed_modules .. ')',
+    'echo "Running tests: $CHANGED_CLASSES in modules: $MODULES"',
+    'mvn test jacoco:report ' .. MVN_SKIP .. ' -pl "$MODULES" -Dtest="$CHANGED_CLASSES"',
+    JACOCO_OPEN,
+    'echo "Coverage reports opened for changed tests"',
+  }, ' && ')
+  registry.get_or_create('mvn-coverage-changed', { cmd = cmd })
+end
+
+-- <leader>tvN: diff-cover report of new code vs develop from the JaCoCo XML.
+function M.run_maven_diff_coverage()
+  local cmd = table.concat({
+    MVN_COVERAGE_REPORT,
+    'JACOCO_XML=$(find . -path "*/target/site/jacoco/jacoco.xml" -print -quit)',
+    'if [ -z "$JACOCO_XML" ]; then echo "No JaCoCo XML report found"; exit 1; fi',
+    'diff-cover "$JACOCO_XML" --compare-branch=develop --html-report target/diff-cover.html',
+    'open target/diff-cover.html',
+    'echo "Diff coverage report opened"',
+  }, ' && ')
+  registry.get_or_create('mvn-diff-cover', { cmd = cmd })
+end
+
+-- <leader>td* Database runners.
+M.start_postgres = M.create_registry_runner('postgresql', 'brew services restart postgresql@15')
+M.reset_postgres_db = M.create_registry_runner('reset-db', '~/Programming/JimmyTranDev/secrets/reset-db.sh')
+
 function M.run_java_class_maven()
   local class = language_utils.get_current_java_class()
   if not class or class == '' then
@@ -206,9 +283,7 @@ function M.run_package_script()
   if #scripts > 0 then
     ui_utils.safe_select(scripts, { prompt = 'Select script:' }, function(script)
       local pm = get_pm()
-      if pm then
-        registry.restart('npm-' .. script, { cmd = pm .. ' ' .. script })
-      end
+      if pm then registry.restart('npm-' .. script, { cmd = pm .. ' ' .. script }) end
     end)
     return
   end
@@ -224,9 +299,7 @@ function M.run_package_script()
     end
 
     if #targets > 0 then
-      ui_utils.safe_select(targets, { prompt = 'Make target:' }, function(target)
-        registry.restart('make-' .. target, { cmd = 'make ' .. target })
-      end)
+      ui_utils.safe_select(targets, { prompt = 'Make target:' }, function(target) registry.restart('make-' .. target, { cmd = 'make ' .. target }) end)
       return
     end
   end
@@ -307,7 +380,9 @@ function M.run_multiple_package_scripts()
     -- Scope recency per project so each repo keeps its own most-recent order.
     local ns = 'npm_scripts:' .. vim.fn.getcwd()
     snacks.picker(M.build_multi_script_picker_opts(scripts, pm, {
-      sort_items = function(items) return usage_cache.sort_by_recency(ns, items, function(item) return item.script end) end,
+      sort_items = function(items)
+        return usage_cache.sort_by_recency(ns, items, function(item) return item.script end)
+      end,
       record = function(script) usage_cache.record(ns, script) end,
     }))
   end
@@ -332,9 +407,7 @@ function M.create_package_command_runner(command, should_exit)
     local pm = get_pm()
     if not pm or not command then return end
     local full_cmd = pm .. ' ' .. command
-    if should_exit then
-      full_cmd = full_cmd .. ' && exit'
-    end
+    if should_exit then full_cmd = full_cmd .. ' && exit' end
     registry.get_or_create('npm-' .. command:gsub('%s+', '-'), { cmd = full_cmd, close_on_exit = should_exit })
   end
 end
@@ -356,7 +429,15 @@ local function find_nearest_package_json()
 end
 
 local TEST_RUNNER_CONFIGS = {
-  vitest = { 'vitest.config.ts', 'vitest.config.js', 'vitest.config.mjs', 'vitest.config.mts', 'vitest.config.cjs', 'vitest.workspace.ts', 'vitest.workspace.js' },
+  vitest = {
+    'vitest.config.ts',
+    'vitest.config.js',
+    'vitest.config.mjs',
+    'vitest.config.mts',
+    'vitest.config.cjs',
+    'vitest.workspace.ts',
+    'vitest.workspace.js',
+  },
   jest = { 'jest.config.ts', 'jest.config.js', 'jest.config.mjs', 'jest.config.cjs', 'jest.config.json' },
 }
 
@@ -520,10 +601,21 @@ function M.run_knip_unused_code()
     for _, issue in ipairs(result.issues or {}) do
       local file = issue.file
       for _, export in ipairs(issue.exports or {}) do
-        table.insert(items, { file = file, line = export.line or 1, pos = { export.line or 1, 0 }, text = ('%s:%d - export: %s'):format(file, export.line or 1, export.name or '?') })
+        table.insert(
+          items,
+          {
+            file = file,
+            line = export.line or 1,
+            pos = { export.line or 1, 0 },
+            text = ('%s:%d - export: %s'):format(file, export.line or 1, export.name or '?'),
+          }
+        )
       end
       for _, typ in ipairs(issue.types or {}) do
-        table.insert(items, { file = file, line = typ.line or 1, pos = { typ.line or 1, 0 }, text = ('%s:%d - type: %s'):format(file, typ.line or 1, typ.name or '?') })
+        table.insert(
+          items,
+          { file = file, line = typ.line or 1, pos = { typ.line or 1, 0 }, text = ('%s:%d - type: %s'):format(file, typ.line or 1, typ.name or '?') }
+        )
       end
     end
     show_knip_picker(items, 'Knip Unused Code')
@@ -597,9 +689,7 @@ function M.create_make_command_runner()
       end
     end
 
-    ui_utils.safe_select(targets, { prompt = 'Make target:' }, function(target)
-      registry.get_or_create('make-' .. target, { cmd = 'make ' .. target })
-    end)
+    ui_utils.safe_select(targets, { prompt = 'Make target:' }, function(target) registry.get_or_create('make-' .. target, { cmd = 'make ' .. target }) end)
   end
 end
 
@@ -610,9 +700,7 @@ function M.create_npm_update_command(type)
 end
 
 function M.create_npm_update_executor(type)
-  return function()
-    registry.get_or_create('npm-update-' .. type, { cmd = M.create_npm_update_command(type) })
-  end
+  return function() registry.get_or_create('npm-update-' .. type, { cmd = M.create_npm_update_command(type) }) end
 end
 
 function M.fms_key_lookup()
@@ -659,15 +747,20 @@ function M.fms_key_lookup()
       picker:close()
       local key = item.fms_key
       local rg_output = vim.fn.systemlist({
-        'rg', '--no-heading', '--line-number', '--column',
+        'rg',
+        '--no-heading',
+        '--line-number',
+        '--column',
         '--fixed-strings',
-        '--type=ts', '--type=js',
+        '--type=ts',
+        '--type=js',
         '--glob=!src/fms-fallbacks/**',
         '--glob=!node_modules/**',
         '--glob=!**/fmsTypes.ts',
         '--glob=!**/FmsType.ts',
         '--glob=!**/FmsTypes.ts',
-        key, cwd,
+        key,
+        cwd,
       })
 
       if #rg_output == 0 then
