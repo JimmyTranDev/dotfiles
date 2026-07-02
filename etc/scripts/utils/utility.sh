@@ -689,6 +689,36 @@ open_tool_pane() {
 	zellij action rename-tab "$(basename "$target_dir")"
 }
 
+# --- Project sidebar launcher (Alt p) ----------------------------------------
+# Alt p opens the 30% chosen-tool / 70% nvim SPLIT LAYOUT (the sidebar) in a new
+# tab -- not a single stacked pane. render_sidebar_layout is the one pure piece
+# (no fzf/zellij) so it is unit-tested in tests/test_sidebar_layout.zsh.
+
+# Render a throwaway copy of the sidebar layout with $1 as the left sidebar
+# pane's command, printing the path to the freshly-created temp layout (in its
+# own temp dir) on stdout. The base structure stays defined once in
+# layouts/opencode-sidebar.kdl; only the sidebar's command is swapped. "empty"
+# yields a plain shell pane (the command is dropped, so its close_on_exit goes
+# with it). $2 overrides the source layout for tests (defaults to the installed
+# copy under ~/.config). Mirrors render_pr_review_layout: returns non-zero
+# WITHOUT creating anything when the source layout is missing or $1 is blank, so
+# a bad tool never reaches a spawned pane.
+render_sidebar_layout() {
+	local tool="$1"
+	local layout_src="${2:-$HOME/.config/zellij/layouts/opencode-sidebar.kdl}"
+	[[ -n "$tool" ]] || return 1
+	[[ -f "$layout_src" ]] || return 1
+	local out_dir out
+	out_dir="$(mktemp -d)"
+	out="$out_dir/opencode-sidebar.kdl"
+	if [[ "$tool" == "empty" ]]; then
+		sed 's|pane command="opencode" close_on_exit=true|pane|' "$layout_src" >"$out"
+	else
+		sed "s|pane command=\"opencode\"|pane command=\"$tool\"|" "$layout_src" >"$out"
+	fi
+	printf '%s' "$out"
+}
+
 # --- PR review launcher (Alt g) ----------------------------------------------
 # Helpers behind open_pr_review.sh: pick a repo, fzf one of its open PRs, check
 # it out as a wcheckout worktree, then open a 30% opencode pane that boots into

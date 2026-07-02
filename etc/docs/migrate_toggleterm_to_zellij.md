@@ -59,8 +59,9 @@ behaviour is the core thing to replicate in Zellij.
 |------|------|
 | `src/zellij/config.kdl` | Locked-mode, `Alt`-prefixed keybinds; many `Run` shell-outs |
 | `src/zellij/layouts/pr-review.kdl` | `Alt g` — 30% opencode `/review-pr` pane + 70% nvim main pane |
+| `src/zellij/layouts/opencode-sidebar.kdl` | `Alt p` — 30% chosen-tool sidebar + 70% nvim main pane |
 | `etc/scripts/src/zellij/open_ai_chat.sh` | `Alt ]` — open the repo's AI chat (opencode/storecode), no prompts |
-| `etc/scripts/src/zellij/open_project_tool.sh` | `Alt p` — pick project + tool → open the tool as a stacked pane (like `Alt ]`) |
+| `etc/scripts/src/zellij/open_project_tool.sh` | `Alt p` — pick project + tool → open the 30% tool / 70% nvim sidebar layout in a new tab |
 | `etc/scripts/src/zellij/select_session.sh` | `Alt u` — fzf session switcher |
 | `etc/scripts/src/zellij/update_tab_indexes.sh` | Re-prefix tab names (`1.foo`, `2.bar`) |
 | `etc/scripts/utils/utility.sh` | Shared helpers (see below) |
