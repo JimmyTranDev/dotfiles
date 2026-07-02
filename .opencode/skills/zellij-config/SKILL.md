@@ -15,13 +15,11 @@ src/zellij/
 ├── config.kdl          # keybinds (locked default mode), plugins, ui, options
 ├── catppuccin.kdl      # `themes { ... }` block, imported by config.kdl
 └── layouts/            # one KDL pane layout per file
-    ├── opencode-sidebar.kdl # Alt p — 30% chosen-tool sidebar + 70% nvim main pane
-    └── pr-review.kdl       # Alt g — PR review: 30% opencode /review-pr pane + 70% nvim main pane
+    └── opencode-sidebar.kdl # Alt p — 30% chosen-tool sidebar + 70% nvim main pane
 
 etc/scripts/src/zellij/   # launcher scripts the binds Run (see dotfiles-shell-scripts)
 ├── open_project_tool.sh     # Alt p — pick project + tool, save it, open the 30% tool / 70% nvim sidebar layout in a new tab
 ├── open_ai_chat.sh          # Alt ] — open the repo's AI chat (opencode/storecode) as a new stacked pane (no prompt)
-├── select_session.sh        # Alt u — fzf session switcher
 └── update_tab_indexes.sh    # re-prefixes tab names with position (1.foo, 2.bar)
 ```
 
