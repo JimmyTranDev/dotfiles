@@ -168,13 +168,15 @@ The spec is a living document, not a one-time artifact:
 
 - **Update when decisions change** — If you discover the data model needs to change, update the spec first, then implement.
 - **Update when scope changes** — Features added or cut should be reflected in the spec.
-- **Save the spec to `spec/spec.md`** — write specs to the repo-root `spec/`
-  folder by default, so there is one predictable location. In a standalone
-  spec-driven project the spec is a living document that belongs in version
-  control alongside the code, referenced from each PR. When this skill runs
-  inside the `/implement` family, that same `spec/spec.md` is instead a
-  throwaway working aid the command clears before the change lands, so it never
-  reaches the base branch or a PR.
+- **Save the spec** — standalone, write it to the repo-root `spec/spec.md` by
+  default, so there is one predictable location; in a standalone spec-driven
+  project the spec is a living document that belongs in version control
+  alongside the code, referenced from each PR. When this skill runs inside the
+  `/implement` family, the spec is instead a **throwaway working aid** written to
+  a **per-task subfolder** — `spec/<task-slug>/spec.md` (the `<task-slug>` the
+  command derives from the Jira `<KEY>` or the task description) — which the
+  command clears before the change lands, so it never reaches the base branch or
+  a PR.
 
 ## Common Rationalizations
 
@@ -202,4 +204,5 @@ Before proceeding to implementation, confirm:
 - [ ] The human has reviewed and approved the spec
 - [ ] Success criteria are specific and testable
 - [ ] Boundaries (Always/Ask First/Never) are defined
-- [ ] The spec is saved to `spec/spec.md` (repo-root `spec/` folder)
+- [ ] The spec is saved to `spec/spec.md` standalone, or to
+      `spec/<task-slug>/spec.md` under the `/implement` family

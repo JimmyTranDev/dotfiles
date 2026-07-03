@@ -185,11 +185,13 @@ If a task is L or larger, it should be broken into smaller tasks. An agent perfo
 - [Question needing human input]
 ```
 
-**Save the plan to `spec/plan.md`.** Write the plan document to the repo-root
-`spec/` folder (alongside `spec/spec.md`) so there is one predictable location.
-When this skill runs inside the `/implement` family the plan is a throwaway
-working aid the command clears before the change lands; used standalone it can
-stay in version control like any planning doc.
+**Save the plan.** Standalone, write the plan document to the repo-root
+`spec/plan.md` (alongside `spec/spec.md`) so there is one predictable location;
+used standalone it can stay in version control like any planning doc. When this
+skill runs inside the `/implement` family the plan is a **throwaway working aid**
+written to the **per-task subfolder** alongside the spec —
+`spec/<task-slug>/plan.md` (reusing the `<task-slug>` chosen for the spec) — which
+the command clears before the change lands.
 
 ## Parallelization Opportunities
 
@@ -226,5 +228,6 @@ Before starting implementation, confirm:
 - [ ] Task dependencies are identified and ordered correctly
 - [ ] No task touches more than ~5 files
 - [ ] Checkpoints exist between major phases
-- [ ] The plan is saved to `spec/plan.md` (repo-root `spec/` folder)
+- [ ] The plan is saved to `spec/plan.md` standalone, or to
+      `spec/<task-slug>/plan.md` under the `/implement` family
 - [ ] The human has reviewed and approved the plan

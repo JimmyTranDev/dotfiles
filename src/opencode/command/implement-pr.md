@@ -16,10 +16,11 @@ verify → review) inside the worktree — up to but **not** including its Phase
 
 Once the change is built, verified, and reviewed:
 
-**First, clear the spec/plan artifacts.** Remove the repo-root `spec/` folder
-(`rm -rf spec/`) so the spec (`spec/spec.md`) and plan (`spec/plan.md`) working
-files never reach the PR or the base branch — do it before the commit below so
-the removal lands in the finalize commit.
+**First, clear the spec/plan artifacts.** Remove the whole repo-root `spec/`
+folder (`rm -rf spec/`) so the per-task subfolder holding the spec
+(`spec/<task-slug>/spec.md`) and plan (`spec/<task-slug>/plan.md`) working files
+never reaches the PR or the base branch — do it before the commit below so the
+removal lands in the finalize commit.
 
 1. **Commit everything.** Load the `commit` skill and commit all work with
    conventional messages (include the Jira key when present). The tree must be

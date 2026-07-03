@@ -60,11 +60,15 @@ as concrete success criteria.
    testable), scope/boundaries (always / ask-first / never), and open questions.
    Keep it proportional to the task — a small change gets a few lines, not pages.
    For a Jira key, the **success criteria are the ticket's acceptance criteria**.
-4. **Save the spec to `spec/spec.md`.** Write it to the repo-root `spec/` folder
-   so it persists as a working aid through the build. It is a throwaway
-   artifact, not part of the deliverable: the finalize step clears the `spec/`
-   folder before the change lands (see **Done** below, or each worktree
-   command's Phase 6), so it never reaches the base branch or a PR.
+4. **Save the spec to `spec/<task-slug>/spec.md`.** Write it to a **per-task
+   subfolder** of the repo-root `spec/` folder so it persists as a working aid
+   through the build and never collides with a concurrent run. Derive
+   `<task-slug>` **once here and reuse it for the plan**: the Jira `<KEY>` when a
+   key was passed, otherwise a short kebab-case slug of the task description
+   (the same slug the worktree commands derive for a branch name). It is a
+   throwaway artifact, not part of the deliverable: the finalize step clears the
+   whole `spec/` folder before the change lands (see **Done** below, or each
+   worktree command's Phase 6), so it never reaches the base branch or a PR.
 
 **Gated (default) — confirm gate after the spec.** Present the spec +
 assumptions, then use the `question` tool with exactly these three options:
@@ -87,9 +91,10 @@ each, best first), fold the answers in, state your key assumptions, then
 2. Break the spec into **ordered, dependency-aware tasks**, each sized S–M (no
    task touching more than ~5 files). Every task gets acceptance criteria and a
    verification step (test / build / manual check). Prefer vertical slices.
-3. **Save the plan to `spec/plan.md`.** Write the task list to the repo-root
-   `spec/` folder alongside the spec. Like the spec it is a throwaway working
-   aid, cleared at the finalize step before the change lands.
+3. **Save the plan to `spec/<task-slug>/plan.md`.** Write the task list into the
+   **same per-task subfolder** as the spec (reuse the `<task-slug>` chosen in
+   Phase 1). Like the spec it is a throwaway working aid, cleared at the finalize
+   step before the change lands.
 
 **Gated (default) — confirm gate after the plan.** Present the task list, then
 use the `question` tool with exactly these three options:
@@ -161,10 +166,11 @@ When the work is complete and verified:
 
 ## Done
 
-**Clear the spec/plan artifacts first.** The spec (`spec/spec.md`) and plan
-(`spec/plan.md`) were working aids for the build, not part of the deliverable.
-Before the change lands, remove the repo-root `spec/` folder — `rm -rf spec/` —
-so the spec/plan files are never committed into the change.
+**Clear the spec/plan artifacts first.** The spec
+(`spec/<task-slug>/spec.md`) and plan (`spec/<task-slug>/plan.md`) were working
+aids for the build, not part of the deliverable. Before the change lands, remove
+the whole repo-root `spec/` folder — `rm -rf spec/` — so the per-task subfolder
+and its spec/plan files are never committed into the change.
 
 Report: the spec summary, any clarifications/confirms and how they were
 resolved, the task list with each task's status, the verify results (tests /

@@ -55,9 +55,10 @@ acceptance criteria, all inside the worktree.
 
 Once the change is built, verified, and reviewed:
 
-**First, clear the spec/plan artifacts.** Remove the repo-root `spec/` folder
-(`rm -rf spec/`) so the spec (`spec/spec.md`) and plan (`spec/plan.md`) working
-files never reach the pushed branch or the base branch — do it before the commit
+**First, clear the spec/plan artifacts.** Remove the whole repo-root `spec/`
+folder (`rm -rf spec/`) so the per-task subfolder holding the spec
+(`spec/<task-slug>/spec.md`) and plan (`spec/<task-slug>/plan.md`) working files
+never reaches the pushed branch or the base branch — do it before the commit
 below so the removal lands in the finalize commit.
 
 1. **Commit everything.** Load the `commit` skill and commit all work with
