@@ -7,6 +7,7 @@ local errors_actions = require('custom.actions.errors')
 local git_actions = require('custom.actions.git')
 local github_actions = require('custom.actions.github')
 local editor_actions = require('custom.actions.editor')
+local json_diff_actions = require('custom.actions.json_diff')
 local project_actions = require('custom.actions.project')
 local journal_actions = require('custom.actions.journal')
 local notes_actions = require('custom.actions.notes')
@@ -79,6 +80,7 @@ maps('n', {
   { '<leader>;m', language_actions.serve_markdown_folder, '󰌠 Markserve' },
   { '<leader>;s', ':4TermExec cmd="live-server --port=9090"<CR>', '󰌐 Live Server' },
   { '<leader>;M', language_actions.compile_mjml_file, '󰈮 Compile Mjml Html' },
+  { '<leader>;d', json_diff_actions.diff_from_input, '󰡖 JSON diff: input two & diff' },
 })
 
 -- ============================================================================

@@ -61,6 +61,7 @@ return {
 
     local groups = {
       { '<leader>;', '󰌌 Secondary' },
+      { '<leader>;d', '󰡖 JSON Diff' },
       { '<leader>rc', '󰑓 Cache' },
       { '<leader>c', '󰌷 Copy & Quick Access' },
       { '<leader>a', '󰚩 AI' },
