@@ -785,3 +785,22 @@ resolve_repo_agent() {
 	owner="$(github_remote_owner "$dir" 2>/dev/null || true)"
 	agent_for_owner "$owner"
 }
+
+# Print the argv that makes AI agent $1 auto-run the /commit command, one token
+# per line so a caller reads it into an array. The Alt c launcher
+# (open_ai_commit.sh) appends this after the agent name to open the agent with
+# /commit already submitted. opencode takes an initial prompt via its --prompt
+# flag; storecode (an Enterprise Claude Code wrapper) has no such flag and
+# instead passes positional args straight through to Claude Code as the prompt,
+# so the two agents need different argv. Any non-opencode agent (storecode, and
+# an unknown/empty name) uses the positional form -- the same conservative
+# default direction as agent_for_owner. Pure (no fzf/zellij), so it is
+# unit-testable in tests/test_agent_commit_argv.zsh.
+agent_commit_argv() {
+	local agent="$1"
+	if [[ "$agent" == "opencode" ]]; then
+		printf '%s\n' "--prompt" "/commit"
+	else
+		printf '%s\n' "/commit"
+	fi
+}
