@@ -125,6 +125,7 @@ return {
       { '<leader>uj', '󰌧 Jira' },
       { '<leader>ul', '󰌷 Links' },
       { '<leader>uw', '󰘴 Worktree' },
+      { '<leader><Tab>', '󰓙 Tabs' },
       { '<leader>z', '󰒲 Lazy' },
       { 'g', '󰬴 Goto' },
       { ']', '󰮯 Next' },

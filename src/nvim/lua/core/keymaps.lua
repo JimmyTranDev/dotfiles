@@ -47,6 +47,21 @@ maps('n', {
 })
 
 -- ============================================================================
+-- Tabs (<leader><Tab>)
+-- ============================================================================
+maps('n', {
+  { '<leader><Tab>n', ':tabnew<CR>', '󰓙 New tab' },
+  { '<leader><Tab>x', ':tabclose<CR>', '󰅖 Close tab' },
+  { '<leader><Tab>o', ':tabonly<CR>', '󰈥 Close other tabs' },
+  { '<leader><Tab>l', ':tabnext<CR>', '󰺯 Next tab' },
+  { '<leader><Tab>h', ':tabprevious<CR>', '󰺮 Previous tab' },
+  { '<leader><Tab>H', ':tabfirst<CR>', '󰺮 First tab' },
+  { '<leader><Tab>L', ':tablast<CR>', '󰺯 Last tab' },
+  { '<leader><Tab><', ':tabmove -1<CR>', '󰺮 Move tab left' },
+  { '<leader><Tab>>', ':tabmove +1<CR>', '󰺯 Move tab right' },
+})
+
+-- ============================================================================
 -- Movement & Scrolling
 -- ============================================================================
 map('', '<S-J>', '<C-D>', { desc = '󰙲 Scroll down half page' })
