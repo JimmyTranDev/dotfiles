@@ -1,5 +1,5 @@
 ---
-description: Implement a feature or Jira ticket end-to-end inside a dedicated wcreated git worktree — spec, plan, build, verify, review — then open a pull request (draft by default); pass a `yolo` keyword to run autonomously with no gates
+description: Implement a feature or Jira ticket end-to-end inside a dedicated wcreated git worktree — spec, plan, build, verify, review — then open a pull request (draft by default); always asks open questions instead of assuming
 ---
 
 Implement **$ARGUMENTS** inside a dedicated `wcreated` git worktree and finish by
@@ -8,9 +8,10 @@ opening a **pull request**. This is `/implement-worktree` plus PR publication.
 ## Modifiers, worktree, and core flow
 
 Parse `$ARGUMENTS` and run **everything `/implement-worktree` does** — the same
-`yolo` and Jira modifiers, Phase 0 worktree setup (plus Jira intake when a key
-was passed), and the identical Phases 1–5 core flow (spec → plan → build →
-verify → review) inside the worktree — up to but **not** including its Phase 6.
+Jira modifier, Phase 0 worktree setup (plus Jira intake when a key was passed),
+and the identical Phases 1–5 core flow (spec → plan → build → verify → review,
+with its confirm gates and always-ask-open-questions rule) inside the worktree —
+up to but **not** including its Phase 6.
 
 ## Phase 6 — Pull request
 
@@ -27,8 +28,7 @@ removal lands in the finalize commit.
    clean — `git status` shows nothing to commit — before continuing.
 2. **Push the branch:** `git push -u origin <branch>`.
 3. **Publish a PR.**
-   - **Gated (default)** — use the `question` tool with exactly these two
-     options:
+   - Use the `question` tool with exactly these two options:
      - **Draft PR (Recommended)** — open a draft so CI runs and you can do a
        final pass in the PR UI before pinging reviewers; mark ready in one click
        later.
@@ -36,9 +36,6 @@ removal lands in the finalize commit.
      - **Open PR (ready for review)** — the work is already verified and
        reviewed, so request review immediately.
        `gh pr create --base <base> --title "<title>" --body "<body>"`
-   - **`yolo`** — skip the question and open a **draft** PR automatically. A
-     ready-for-review PR pings reviewers — an external side effect — so never do
-     that without asking.
 4. **Create the PR** for the chosen option. Set:
    - `--base` to the worktree's base branch (the `develop`/`main`/`master` it
      was cut from); head is the current branch.
@@ -56,8 +53,7 @@ PR's readiness:
 - **Ready PR (not a draft)** — the work is verified and reviewed, so hand it
   straight to QA: propose the `"QA"` transition.
 - **Draft PR** — published for early eyes but not yet ready for QA, so keep the
-  `"In Review"` transition. (`yolo` always opens a draft, so it stays
-  `"In Review"`.)
+  `"In Review"` transition.
 
 Status names are workflow-specific; if `"QA"` is rejected, `view` the ticket and
 confirm the exact target name (e.g. `"In QA"`, `"Ready for QA"`) before running

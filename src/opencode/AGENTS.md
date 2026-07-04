@@ -64,7 +64,6 @@ Map every request to the appropriate skill before acting.
 | VERIFY | High-stakes/irreversible decision needs adversarial review | `doubt-driven-development` |
 | REVIEW | Before merging any change | `code-review-and-quality` |
 | SHIP | Deploy to production, rollout/rollback planning | `shipping-and-launch` |
-| YOLO | Explicit opt-in: "yolo", "full send", "do everything, I'll test later", "no gates" — one autonomous no-gate pass (still clarifies the target) | `yolo` |
 
 ### Domain-specific
 

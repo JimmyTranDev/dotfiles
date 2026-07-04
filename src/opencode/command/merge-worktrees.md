@@ -23,17 +23,14 @@ not exported, so use the explicit path). Invoke it as:
 zsh "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/worktrees/worktree" merge <flags>
 ```
 
-`$ARGUMENTS` may contain a standalone, case-insensitive `yolo` token — if present,
-skip the confirm gate in Phase 1.
-
 ## Phase 1 — Preview
 
 1. Run `worktree merge --dry-run` and show me the printed plan: which worktrees
    will be merged-then-deleted, and which are already-merged (delete-only).
 2. If the plan is empty ("Nothing to do — no mergeable or already-merged
    worktrees."), report that and stop.
-3. **Confirm gate** (skip if `yolo`): this deletes worktrees and local branches.
-   Ask me to proceed with the question tool before making any change.
+3. **Confirm gate:** this deletes worktrees and local branches. Ask me to
+   proceed with the question tool before making any change.
 
 ## Phase 2 — Merge loop
 

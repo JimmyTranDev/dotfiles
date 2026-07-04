@@ -31,7 +31,6 @@ Task arrives
     ├── Script or AI instruction for a repeatable step? → prefer-scripts-over-ai-instructions
     ├── Delegate open-ended/self-contained work to explore/general subagents? → delegation
     ├── Which model tier (Haiku/Sonnet/Opus) should run this / cut token cost? → model-tier-routing
-    ├── Explicit "yolo" / "full send" / "I'll test later"? → yolo
     ├── Writing/running tests? ────────→ test-driven-development
     │   ├── Existing code hard to test / low coverage? → testability-and-coverage
     │   └── Browser-based? ───────────→ browser-testing-with-devtools
@@ -199,7 +198,6 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Define | create-jira-tasks-from-figma | Read a Figma design, decompose it into multiple Jira tasks, confirm, then batch-create them via create-jira-ticket/acli |
 | Plan | planning-and-task-breakdown | Decompose into small, verifiable tasks |
 | Build | fast-implementation | Express lane for small, low-risk, obvious changes with a minimal safety net |
-| Build | yolo | Opt-in no-gate pass: clarifies the target, then full-sends everything and hands back a test plan |
 | Build | incremental-implementation | Thin vertical slices, test each before expanding |
 | Build | source-driven-development | Verify against official docs before implementing |
 | Build | doubt-driven-development | Adversarial fresh-context review of every non-trivial decision |

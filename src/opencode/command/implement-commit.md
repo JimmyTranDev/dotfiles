@@ -1,5 +1,5 @@
 ---
-description: Implement a feature or Jira ticket end-to-end IN PLACE on the current branch — spec, plan, build, verify, review — then commit the result locally (no push, no PR, no worktree); pass a `yolo` keyword to run autonomously with no gates
+description: Implement a feature or Jira ticket end-to-end IN PLACE on the current branch — spec, plan, build, verify, review — then commit the result locally (no push, no PR, no worktree); always asks open questions instead of assuming
 ---
 
 Implement **$ARGUMENTS** end-to-end **in place on the current branch**, then land
@@ -12,13 +12,9 @@ below are that workflow.
 
 ## Modifiers — parse `$ARGUMENTS` first
 
-Read the same two optional modifiers as `/implement`, then treat the remainder as
+Read the same optional Jira modifier as `/implement`, then treat the remainder as
 the task:
 
-- **`yolo` keyword** — a standalone, case-insensitive `yolo` token switches this
-  run to the **autonomous** flow (no go/no-go gates; pause only for a genuinely
-  blocking ambiguity). Strip it before reading the description. Absent →
-  **gated** (confirm gate after the spec and after the plan).
 - **Jira key / URL** — `^[A-Z]+-[0-9]+$` or `*.atlassian.net/browse/<KEY>` turns
   on Jira intake + report-back and seeds the spec's success criteria from the
   ticket's acceptance criteria.
@@ -37,9 +33,9 @@ carry the acceptance criteria into the spec as concrete success criteria.
 
 ## Phases 1–5 — Spec · Plan · Build · Verify · Review
 
-Run the **identical** core flow from `/implement` (Phases 1–5), honoring the
-`yolo` modifier (gated confirm gates vs. autonomous clarify-only) and any Jira
-acceptance criteria.
+Run the **identical** core flow from `/implement` (Phases 1–5) — including its
+confirm gates after the spec and after the plan, and its rule to always ask open
+questions instead of assuming — plus any Jira acceptance criteria.
 
 ## Phase 6 — Stop at a local commit (no push, no PR)
 

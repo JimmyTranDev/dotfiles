@@ -1,31 +1,28 @@
 ---
-description: Run a feature or Jira ticket end-to-end in place — spec, plan, build, verify, review — with quick confirms after the spec and plan; pass a `yolo` keyword to run autonomously with no gates
+description: Run a feature or Jira ticket end-to-end in place — spec, plan, build, verify, review — with confirms after the spec and plan; always asks open questions instead of assuming
 ---
 
 Drive **$ARGUMENTS** from idea to merged-quality code in five phases: **spec →
 plan → build → verify → review**, working **in place on the current branch** (no
-worktree, no PR). Advance automatically, pausing only for a quick go/no-go after
-the spec and after the plan — wrong assumptions caught there are the cheapest to
-fix.
+worktree, no PR). Advance automatically, pausing for a go/no-go after the spec
+and after the plan — wrong assumptions caught there are the cheapest to fix.
+**Never assume when something is unclear: whenever an open question would change
+the spec, plan, or implementation, stop and ask it with the `question` tool
+(three concrete proposals, best first) before proceeding — do not silently pick
+an interpretation.**
 
 ## Modifiers — parse `$ARGUMENTS` first
 
-Read two optional modifiers out of `$ARGUMENTS` before anything else; whatever
-remains is the task description.
+Read the optional Jira modifier out of `$ARGUMENTS` before anything else;
+whatever remains is the task description.
 
-- **`yolo` keyword** — a standalone, case-insensitive `yolo` token anywhere in
-  `$ARGUMENTS` switches this run to the **autonomous** flow: no go/no-go gates;
-  pause after the spec or plan **only** for a genuinely blocking ambiguity (a
-  wrong guess would change the work), asked with the `question` tool, otherwise
-  auto-advance. Strip the token before reading the description. Absent → the
-  **gated** flow (confirm gate after the spec and after the plan).
 - **Jira key / URL** — a `^[A-Z]+-[0-9]+$` token or a
   `*.atlassian.net/browse/<KEY>` URL (take the key from the URL's last path
   segment) turns on **Jira intake + report-back** (Phase 0 and Phase 6). The
   ticket's acceptance criteria become the spec's success criteria.
 
-If, after stripping both modifiers, there is no task description and no Jira
-key, ask what to implement before starting.
+If, after stripping the modifier, there is no task description and no Jira key,
+ask what to implement before starting.
 
 ## Phase 0 — Jira intake (only when a Jira key was passed)
 
@@ -70,20 +67,20 @@ as concrete success criteria.
    whole `spec/` folder before the change lands (see **Done** below, or each
    worktree command's Phase 6), so it never reaches the base branch or a PR.
 
-**Gated (default) — confirm gate after the spec.** Present the spec +
-assumptions, then use the `question` tool with exactly these three options:
+**Resolve open questions first.** If the spec still contains open questions or
+you are inferring anything that would change scope or behavior, ask them with the
+`question` tool (three concrete proposals each, best first) and fold the answers
+in before presenting the spec — never carry an unresolved assumption past this
+gate.
+
+**Confirm gate after the spec.** Present the spec + assumptions, then use the
+`question` tool with exactly these three options:
 
 - **Proceed to planning (Recommended)** — the spec is right; continue.
 - **Revise the spec first** — adjust assumptions/scope, then re-confirm.
 - **Stop here** — hand back the spec without planning or building.
 
 Do not start planning until this gate returns "Proceed".
-
-**`yolo` — no gate.** Scan for genuinely blocking ambiguities (a wrong
-assumption would change scope or behavior and you cannot resolve it from the
-codebase or context). Ask any with the `question` tool (3 concrete proposals
-each, best first), fold the answers in, state your key assumptions, then
-**advance to planning automatically**.
 
 ## Phase 2 — Plan
 
@@ -96,18 +93,18 @@ each, best first), fold the answers in, state your key assumptions, then
    Phase 1). Like the spec it is a throwaway working aid, cleared at the finalize
    step before the change lands.
 
-**Gated (default) — confirm gate after the plan.** Present the task list, then
-use the `question` tool with exactly these three options:
+**Resolve open questions first.** If sequencing, scope, or approach still has an
+open question, ask it with the `question` tool before presenting the plan — do
+not guess.
+
+**Confirm gate after the plan.** Present the task list, then use the `question`
+tool with exactly these three options:
 
 - **Proceed to build (Recommended)** — the plan is right; start implementing.
 - **Revise the plan first** — re-slice/re-order, then re-confirm.
 - **Stop here** — hand back the spec + plan without building.
 
 Do not write implementation code until this gate returns "Proceed".
-
-**`yolo` — no gate.** Pause only if sequencing, scope, or approach has a genuine
-ambiguity whose answer would change the plan; ask those with the `question`
-tool, fold in the answers, then **advance to build automatically**.
 
 ## Phase 3 — Build (autonomous)
 

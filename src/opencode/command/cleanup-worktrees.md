@@ -21,9 +21,6 @@ not exported, so use the explicit path). Invoke it as:
 zsh "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/worktrees/worktree" clean <flags>
 ```
 
-`$ARGUMENTS` may contain a standalone, case-insensitive `yolo` token — if present,
-skip the confirm gate in Phase 1.
-
 ## Phase 1 — Preview
 
 1. Run `worktree clean --dry-run` and show me the printed plan: which worktrees
@@ -31,9 +28,9 @@ skip the confirm gate in Phase 1.
    as not-merged.
 2. If nothing is deletable ("No merged worktrees found to clean up." or "No
    worktrees found"), report that and stop.
-3. **Confirm gate** (skip if `yolo`): this deletes worktrees, local branches, and
-   — for `wcreated` worktrees — remote branches. Ask me to proceed with the
-   question tool before making any change.
+3. **Confirm gate:** this deletes worktrees, local branches, and — for
+   `wcreated` worktrees — remote branches. Ask me to proceed with the question
+   tool before making any change.
 
 ## Phase 2 — Execute
 

@@ -1,5 +1,5 @@
 ---
-description: Implement a feature or Jira ticket end-to-end inside a dedicated wcreated git worktree — spec, plan, build, then verify the running change in a real browser via the Browser MCP, review — then commit and push the branch (no PR) and optionally rebase it onto its base branch, merge, and clean up the worktree; pass a `yolo` keyword to run autonomously with no gates
+description: Implement a feature or Jira ticket end-to-end inside a dedicated wcreated git worktree — spec, plan, build, then verify the running change in a real browser via the Browser MCP, review — then commit and push the branch (no PR) and optionally rebase it onto its base branch, merge, and clean up the worktree
 ---
 
 Implement **$ARGUMENTS** inside a dedicated `wcreated` git worktree and **verify
@@ -14,13 +14,9 @@ below are its operational summary.
 
 ## Modifiers — parse `$ARGUMENTS` first
 
-Read the same two optional modifiers as `/implement`, then treat the remainder
+Read the same optional Jira modifier as `/implement`, then treat the remainder
 as the task:
 
-- **`yolo` keyword** — a standalone, case-insensitive `yolo` token switches this
-  run to the **autonomous** flow (no go/no-go gates; pause only for a genuinely
-  blocking ambiguity). Strip it before reading the description. Absent →
-  **gated** (confirm gate after the spec and after the plan).
 - **Jira key / URL** — `^[A-Z]+-[0-9]+$` or `*.atlassian.net/browse/<KEY>` turns
   on Jira intake + report-back and seeds the spec's success criteria from the
   ticket's acceptance criteria.
@@ -53,8 +49,8 @@ Carry the branch name and the base branch it was cut from into the later phases.
 ## Phases 1–3 & 5 — Spec · Plan · Build · Review
 
 Run the **identical** core flow from `/implement` for Phases 1–3 (Spec, Plan,
-Build) and Phase 5 (Review), honoring the `yolo` modifier (gated confirm gates
-vs. autonomous clarify-only) and any Jira acceptance criteria, all inside the
+Build) and Phase 5 (Review), honoring its confirm gates (after the spec and
+after the plan) and any Jira acceptance criteria, all inside the
 worktree. **Phase 4 (Verify) is replaced by the browser pass below** — the
 distinctive step of this command.
 
@@ -116,8 +112,7 @@ With the branch committed and pushed, offer to **rebase it onto its base** (the
 `develop`/`main`/`master` it was cut from), **merge** it, and **clean up the
 worktree** — no PR needed.
 
-- **Gated (default)** — use the `question` tool with exactly these three
-  options:
+- Use the `question` tool with exactly these three options:
   - **Rebase onto `<base>`, resolve conflicts, merge & clean up (Recommended)** —
     the change is already verified and reviewed, so replay it onto the base for
     linear history, merge it in, and tidy up.
@@ -126,9 +121,6 @@ worktree** — no PR needed.
   - **Open a PR now instead** — go through review rather than a direct merge by
     running the `gh pr create` command from Phase 6 (the branch is already
     pushed).
-- **`yolo`** — **never auto-merge.** Pushing a shared base branch and deleting
-  branches are external side effects, so skip the question, leave the pushed
-  branch, and report that rebase + merge + cleanup is available.
 
 When **rebase, merge & clean up** is chosen, do it in this order — integrate,
 then clean up, because cleanup deletes the branch.

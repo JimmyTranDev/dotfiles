@@ -8,29 +8,6 @@
   "instructions": [
     "AGENTS.md"
   ],
-  // File edits denied; other actions allowed for autonomous operation
-  "permission": {
-    // Deny all file modifications — covers the edit, write, and patch tools.
-    // Paste text into chat instead; the agent returns edited text inline.
-    "edit": "deny",
-    // Bash stays allowed, EXCEPT common file-mutating commands (deny rules last = last match wins).
-    // Not airtight: shell redirection ('> file', '>> file') and interpreters (python/perl -i) can't be reliably pattern-blocked here.
-    "bash": {
-      "*": "allow",
-      "sed -i*": "deny",
-      "tee *": "deny",
-      "cp *": "deny",
-      "mv *": "deny",
-      "rm *": "deny",
-      "patch *": "deny",
-      "truncate *": "deny",
-      "dd *": "deny"
-    },
-    "skill": "allow",
-    "webfetch": "allow",
-    "doom_loop": "allow",
-    "external_directory": "allow"
-  },
   // MCP servers — disabled by default, enable per-project as needed
   "mcp": {
     // Figma design-to-code via local proxy
