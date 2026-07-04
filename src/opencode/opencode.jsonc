@@ -8,6 +8,8 @@
   "instructions": [
     "AGENTS.md"
   ],
+  // Auto-approve every tool for all agents, everywhere (no permission prompts)
+  "permission": "allow",
   // MCP servers — disabled by default, enable per-project as needed
   "mcp": {
     // Figma design-to-code via local proxy
