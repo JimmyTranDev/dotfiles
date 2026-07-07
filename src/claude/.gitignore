@@ -29,3 +29,10 @@ claude.json
 *.local.json
 settings.local.json
 settings.json
+
+# --- Daemon runtime state ---
+daemon.lock
+daemon.log
+daemon.status.json
+daemon/
+jobs/
