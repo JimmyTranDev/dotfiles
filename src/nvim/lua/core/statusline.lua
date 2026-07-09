@@ -192,20 +192,15 @@ local function build_config()
     { function() return vim.bo.filetype ~= '' and vim.bo.filetype or 'no ft' end, cond = conditions.hide_in_width }
   )
 
+  local asts_price = require('custom.utils.asts_price')
   right_bubble(
-    function() return { fg = colors.yellow, gui = 'bold' } end,
+    function() return { fg = colors.green, gui = 'bold' } end,
     '',
-    { function() return (vim.bo.fileencoding ~= '' and vim.bo.fileencoding or vim.o.encoding):upper() end, cond = conditions.hide_in_width }
+    {
+      asts_price.get_price,
+      cond = function() return asts_price.get_price() ~= '' end,
+    }
   )
-
-  right_bubble(function() return { fg = colors.lavender, gui = 'bold' } end, '', {
-    function()
-      local line = vim.fn.line('.')
-      local col = vim.fn.virtcol('.')
-      local total = vim.fn.line('$')
-      return string.format('%d:%d/%d', line, col, total)
-    end,
-  })
 
   return config
 end
@@ -237,6 +232,8 @@ function M.setup()
   require('custom.utils.gh_pr_unresolved_comments').setup()
 
   require('custom.utils.gh_team_prs').setup()
+
+  require('custom.utils.asts_price').setup()
 
   vim.api.nvim_create_autocmd('ColorScheme', {
     pattern = 'catppuccin*',
