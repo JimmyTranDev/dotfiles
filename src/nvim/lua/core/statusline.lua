@@ -35,9 +35,7 @@ local conditions = {
 }
 
 local function truncate_text(text)
-  if type(text) == 'string' and #text > TEXT_TRUNCATE_LENGTH then
-    return text:sub(1, TEXT_TRUNCATE_PREVIEW) .. '...'
-  end
+  if type(text) == 'string' and #text > TEXT_TRUNCATE_LENGTH then return text:sub(1, TEXT_TRUNCATE_PREVIEW) .. '...' end
   return tostring(text)
 end
 
@@ -100,24 +98,16 @@ local function build_config()
     table.insert(section, component)
   end
 
-  local function left_bubble(color_fn, icon, component)
-    create_bubble(config.sections.lualine_c, color_fn, icon, component)
-  end
+  local function left_bubble(color_fn, icon, component) create_bubble(config.sections.lualine_c, color_fn, icon, component) end
 
-  local function right_bubble(color_fn, icon, component)
-    create_bubble(config.sections.lualine_x, color_fn, icon, component)
-  end
+  local function right_bubble(color_fn, icon, component) create_bubble(config.sections.lualine_x, color_fn, icon, component) end
 
   local function get_lsp_client()
     local clients = vim.lsp.get_clients({ bufnr = 0 })
 
-    if #clients == 0 then
-      return 'NONE'
-    end
+    if #clients == 0 then return 'NONE' end
 
-    if #clients == 1 then
-      return clients[1].name
-    end
+    if #clients == 1 then return clients[1].name end
 
     return clients[1].name .. ' +' .. (#clients - 1)
   end
@@ -129,9 +119,7 @@ local function build_config()
 
   local function get_git_branch()
     local head = vim.b.gitsigns_head
-    if head and head ~= '' then
-      return head
-    end
+    if head and head ~= '' then return head end
     return 'NONE'
   end
 
@@ -156,24 +144,16 @@ local function build_config()
   })
 
   local gh_pr_unresolved_comments = require('custom.utils.gh_pr_unresolved_comments')
-  right_bubble(
-    function() return { fg = colors.peach, gui = 'bold' } end,
-    '',
-    {
-      gh_pr_unresolved_comments.get_count,
-      cond = function() return gh_pr_unresolved_comments.get_count() ~= '' end,
-    }
-  )
+  right_bubble(function() return { fg = colors.peach, gui = 'bold' } end, '', {
+    gh_pr_unresolved_comments.get_count,
+    cond = function() return gh_pr_unresolved_comments.get_count() ~= '' end,
+  })
 
   local gh_team_prs = require('custom.utils.gh_team_prs')
-  right_bubble(
-    function() return { fg = colors.mauve or colors.lavender, gui = 'bold' } end,
-    '󰊤',
-    {
-      gh_team_prs.get_count,
-      cond = function() return gh_team_prs.get_count() ~= '' end,
-    }
-  )
+  right_bubble(function() return { fg = colors.mauve or colors.lavender, gui = 'bold' } end, '󰊤', {
+    gh_team_prs.get_count,
+    cond = function() return gh_team_prs.get_count() ~= '' end,
+  })
 
   table.insert(config.sections.lualine_x, {
     'diagnostics',
@@ -186,21 +166,11 @@ local function build_config()
     },
   })
 
-  right_bubble(
-    function() return { fg = colors.sky, gui = 'bold' } end,
-    '',
-    { function() return vim.bo.filetype ~= '' and vim.bo.filetype or 'no ft' end, cond = conditions.hide_in_width }
-  )
-
   local asts_price = require('custom.utils.asts_price')
-  right_bubble(
-    function() return { fg = colors.green, gui = 'bold' } end,
-    '',
-    {
-      asts_price.get_price,
-      cond = function() return asts_price.get_price() ~= '' end,
-    }
-  )
+  right_bubble(function() return { fg = colors.green, gui = 'bold' } end, '', {
+    asts_price.get_price,
+    cond = function() return asts_price.get_price() ~= '' end,
+  })
 
   return config
 end
