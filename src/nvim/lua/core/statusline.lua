@@ -166,11 +166,15 @@ local function build_config()
     },
   })
 
-  local asts_price = require('custom.utils.asts_price')
-  right_bubble(function() return { fg = colors.green, gui = 'bold' } end, '', {
-    asts_price.get_price,
-    cond = function() return asts_price.get_price() ~= '' end,
-  })
+  -- Guarded so a broken optional price module can never take down the whole
+  -- statusline (the point of failure that made the status screen vanish).
+  local asts_ok, asts_price = pcall(require, 'custom.utils.asts_price')
+  if asts_ok then
+    right_bubble(function() return { fg = colors.green, gui = 'bold' } end, '', {
+      asts_price.get_price,
+      cond = function() return asts_price.get_price() ~= '' end,
+    })
+  end
 
   return config
 end
@@ -203,7 +207,7 @@ function M.setup()
 
   require('custom.utils.gh_team_prs').setup()
 
-  require('custom.utils.asts_price').setup()
+  pcall(function() require('custom.utils.asts_price').setup() end)
 
   vim.api.nvim_create_autocmd('ColorScheme', {
     pattern = 'catppuccin*',
