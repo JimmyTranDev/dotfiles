@@ -40,8 +40,9 @@ export HOMEBREW_AUTO_UPDATE_SECS=604800
 export HOMEBREW_API_AUTO_UPDATE_SECS=604800
 export PNPM_HOME="$HOME/Library/pnpm"
 
+# ANDROID_HOME and the ~/.local/bin PATH additions live in .zshenv so that
+# non-interactive shells (zellij Run launchers) inherit them too.
 if [[ "$(uname)" == "Darwin" ]]; then
-  export ANDROID_HOME="$HOME/Library/Android/sdk"
   export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.1.12297006"
   export MANPATH="/usr/local/man${MANPATH:+:$MANPATH}"
 fi
@@ -57,21 +58,9 @@ case ":$PATH:" in
 *) export PATH="$PNPM_HOME/bin:$PATH" ;;
 esac
 
-path_additions=(
-  "$HOME/.local/bin"
-  "$HOME/.local/share/pnpm"
-  "$HOME/.lmstudio/bin"
-)
+# PATH additions (~/.local/bin, pnpm, lmstudio, Android SDK) live in .zshenv
+# so non-interactive shells (zellij Run launchers) inherit them too.
 
-if [[ -n "$ANDROID_HOME" ]]; then
-  path_additions+=(
-    "$ANDROID_HOME/emulator"
-    "$ANDROID_HOME/platform-tools"
-  )
-fi
-for p in "${path_additions[@]}"; do
-  [[ ":$PATH:" != *":$p:"* ]] && export PATH="$PATH:$p"
-done
 
 export SDKMAN_DIR="$HOME/.sdkman"
 if [[ -d "$SDKMAN_DIR" ]]; then

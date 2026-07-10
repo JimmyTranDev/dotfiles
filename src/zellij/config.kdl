@@ -22,6 +22,9 @@ keybinds clear-defaults=true {
         bind "Alt o" { MoveTab "Right"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
         bind "Alt p" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_project_tool.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         bind "Alt ]" { MoveFocus "left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_ai_chat.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        // Alt .: like Alt ] (open the repo's AI agent in a stacked pane) but always
+        // prompts the fzf project picker first, so it can target any project.
+        bind "Alt ." { MoveFocus "left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_project_ai_chat.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         // Alt c: like Alt ] (open the repo's AI agent in a stacked pane) but with
         // the /commit command already submitted, so the agent commits the staged changes.
         bind "Alt c" { MoveFocus "left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_ai_commit.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }

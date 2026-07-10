@@ -142,6 +142,7 @@ main() {
 	log_info "Checking symlinks..."
 	SYMLINKS=(
 		"$HOME/.zshrc|$DOTFILES_ROOT/src/.zshrc"
+		"$HOME/.zshenv|$DOTFILES_ROOT/src/.zshenv"
 		"$HOME/.config/zellij|$DOTFILES_ROOT/src/zellij"
 		"$HOME/.config/yazi|$DOTFILES_ROOT/src/yazi"
 		"$HOME/.config/lazygit|$DOTFILES_ROOT/src/lazygit"
