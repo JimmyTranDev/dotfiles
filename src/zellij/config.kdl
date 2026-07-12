@@ -23,8 +23,8 @@ keybinds clear-defaults=true {
 
         bind "Alt u" { MoveFocus "left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_ai_chat.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         bind "Alt i" { MoveFocus "left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_project_ai_chat.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
-        bind "Alt o" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_project_tool.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
-        bind "Alt p" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_project_nvim.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        bind "Alt o" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_project_nvim.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        bind "Alt p" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_project_tool.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
 
         bind "Alt c" { MoveFocus "left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_ai_commit.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         bind "Alt d" { NewPane "down"; SwitchToMode "locked"; }
