@@ -17,6 +17,8 @@ local function get_catppuccin_colors()
       sky = '#89dceb',
       lavender = '#b4befe',
       mauve = '#cba6f7',
+      mantle = '#181825',
+      base = '#1e1e2e',
     }
   end
 
@@ -50,8 +52,12 @@ local function build_config()
         winbar = {},
       },
       theme = {
-        normal = { c = { fg = colors.green, bg = nil } },
-        inactive = { c = { fg = colors.green, bg = nil } },
+        normal = { c = { fg = colors.green, bg = colors.mantle } },
+        insert = { c = { fg = colors.green, bg = colors.mantle } },
+        visual = { c = { fg = colors.green, bg = colors.mantle } },
+        replace = { c = { fg = colors.green, bg = colors.mantle } },
+        command = { c = { fg = colors.green, bg = colors.mantle } },
+        inactive = { c = { fg = colors.green, bg = colors.mantle } },
       },
     },
     sections = {

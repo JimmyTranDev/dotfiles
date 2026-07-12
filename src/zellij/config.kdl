@@ -18,27 +18,24 @@ keybinds clear-defaults=true {
         bind "Alt r" { SwitchToMode "renametab"; TabNameInput 0; }
         bind "Alt n" { NewTab; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
         bind "Alt x" { CloseTab; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
-        bind "Alt i" { MoveTab "Left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
-        bind "Alt o" { MoveTab "Right"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
-        bind "Alt p" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_project_tool.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
-        bind "Alt ]" { MoveFocus "left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_ai_chat.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
-        // Alt .: like Alt ] (open the repo's AI agent in a stacked pane) but always
-        // prompts the fzf project picker first, so it can target any project.
-        bind "Alt ." { MoveFocus "left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_project_ai_chat.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
-        // Alt c: like Alt ] (open the repo's AI agent in a stacked pane) but with
-        // the /commit command already submitted, so the agent commits the staged changes.
-        bind "Alt c" { MoveFocus "left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_ai_commit.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
-        bind "Alt \\" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_project_nvim.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        // bind "Alt i" { MoveTab "Left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
+        // bind "Alt o" { MoveTab "Right"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/update_tab_indexes.sh" { close_on_exit true; floating true; }; SwitchToMode "locked"; }
 
+        bind "Alt u { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_project_tool.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        bind "Alt i" { MoveFocus "left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_ai_chat.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        bind "Alt o" { MoveFocus "left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_project_ai_chat.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+        bind "Alt p" { Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_project_nvim.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
+
+        bind "Alt c" { MoveFocus "left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_ai_commit.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         bind "Alt d" { NewPane "down"; SwitchToMode "locked"; }
         bind "Alt e" { NewPane "right"; SwitchToMode "locked"; }
         bind "Alt Enter" { ToggleFocusFullscreen; SwitchToMode "locked"; }
         bind "Alt q" { CloseFocus; SwitchToMode "locked"; }
 
-        bind "Alt left" { MoveFocus "left"; }
-        bind "Alt down" { MoveFocus "down"; }
-        bind "Alt up" { MoveFocus "up"; }
-        bind "Alt right" { MoveFocus "right"; }
+        bind "Alt h" { MoveFocus "left"; }
+        bind "Alt j" { MoveFocus "down"; }
+        bind "Alt k" { MoveFocus "up"; }
+        bind "Alt l" { MoveFocus "right"; }
         bind "Alt [" { MovePane "Up"; }
         bind "Alt '" { MovePane "Down"; }
 
