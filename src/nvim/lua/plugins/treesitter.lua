@@ -25,6 +25,7 @@ return {
         'python',
         'java',
         'kotlin',
+        'dart',
         'bash',
         'fish',
         'git_config',

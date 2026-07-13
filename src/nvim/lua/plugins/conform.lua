@@ -12,7 +12,7 @@ return {
       formatters_by_ft = {
         python = { 'black', 'isort' },
         go = { 'goimports', 'gofmt' },
-        dart = { 'dartfmt' },
+        dart = { 'dart_format' },
         java = {},
         lua = { 'stylua' },
 
