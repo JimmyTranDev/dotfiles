@@ -28,14 +28,15 @@ main() {
 		|| exit 0
 	[[ -z "$target_dir" ]] && exit 0
 
-	# Alt ] only ever opens an AI agent -- the one matching THIS repo: personal
-	# (jimmytrandev) repos open opencode, everything else opens storecode.
-	# resolve_repo_agent always returns one of those two, so the per-project
-	# saved tool (~/.pane_tool_by_project, used by Alt p) is deliberately NOT
-	# consulted here -- otherwise a project whose saved tool is nvim/gh-dash/
-	# empty would reopen that instead of its agent.
-	local tool
-	tool="$(resolve_repo_agent "$target_dir")"
+	# The agent can be FORCED via $1 (Alt u -> storecode, Alt y -> opencode).
+	# With no arg (Alt ]) the agent matches THIS repo: personal (jimmytrandev)
+	# repos open opencode, everything else opens storecode. resolve_repo_agent
+	# always returns one of those two, so the per-project saved tool
+	# (~/.pane_tool_by_project, used by Alt p) is deliberately NOT consulted here
+	# -- otherwise a project whose saved tool is nvim/gh-dash/empty would reopen
+	# that instead of its agent.
+	local tool="$1"
+	[[ -n "$tool" ]] || tool="$(resolve_repo_agent "$target_dir")"
 
 	require_tool "$tool" || exit 1
 
