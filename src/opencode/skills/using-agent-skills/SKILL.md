@@ -41,6 +41,7 @@ Task arrives
     ├── Manage Turso Cloud platform via turso CLI? → turso-cloud
     ├── Manage a Bitwarden vault via the bw CLI? → bitwarden-cli
     ├── Operate the opencode CLI binary (run/serve/attach/auth/mcp)? → opencode-cli
+    ├── Dr. K / HealthyGamerGG-style reflective check-in? → dr-k-checkin
     ├── Create a well-formed Jira ticket/work item? → create-jira-ticket
     ├── Create multiple Jira tasks from a Figma design? → create-jira-tasks-from-figma
     ├── Reviewing code? ───────────────→ code-review-and-quality
@@ -241,3 +242,4 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Ship | documentation-and-adrs | Document the why, not just the what |
 | Ship | observability-and-instrumentation | Structured logs, RED metrics, traces, symptom-based alerts |
 | Ship | shipping-and-launch | Pre-launch checklist, monitoring, rollback plan |
+| Wellbeing | dr-k-checkin | Dr. K / HealthyGamerGG-style reflective, non-judgmental mental-health check-in — one question at a time, with a hard crisis-safety gate |
