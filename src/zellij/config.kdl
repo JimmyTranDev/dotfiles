@@ -30,6 +30,7 @@ keybinds clear-defaults=true {
         bind "Alt c" { MoveFocus "left"; Run "zsh" "-c" "$HOME/Programming/JimmyTranDev/dotfiles/etc/scripts/src/zellij/open_ai_commit.sh" { close_on_exit true; in_place true; }; SwitchToMode "locked"; }
         bind "Alt d" { NewPane "down"; SwitchToMode "locked"; }
         bind "Alt e" { NewPane "right"; SwitchToMode "locked"; }
+        bind "Alt '" { NewStackedPane; SwitchToMode "locked"; }
         bind "Alt Enter" { ToggleFocusFullscreen; SwitchToMode "locked"; }
         bind "Alt q" { CloseFocus; SwitchToMode "locked"; }
 
@@ -38,7 +39,7 @@ keybinds clear-defaults=true {
         bind "Alt k" { MoveFocus "up"; }
         bind "Alt l" { MoveFocus "right"; }
         bind "Alt [" { MovePane "Up"; }
-        bind "Alt '" { MovePane "Down"; }
+        bind "Alt ]" { MovePane "Down"; }
 
         bind "Alt 1" { GoToTab 1; SwitchToMode "locked"; }
         bind "Alt 2" { GoToTab 2; SwitchToMode "locked"; }
