@@ -166,6 +166,74 @@ function M.create_commit(prefix, emoji, should_push, should_generic)
   end
 end
 
+-- Model used for AI commit-message generation. `opencode run` errors with an
+-- "Unexpected server error" when no default model is configured, so we always
+-- pass one explicitly. Override by exporting OPENCODE_COMMIT_MODEL.
+local AI_COMMIT_MODEL = vim.env.OPENCODE_COMMIT_MODEL or 'github-copilot/claude-haiku-4.5'
+
+-- Extract a clean commit subject from opencode's stdout. The model may narrate
+-- ("I'll check the git status…") before printing the message, and output can
+-- carry ANSI codes / code fences, so we prefer the first Conventional Commit
+-- line and fall back to the last meaningful line.
+local function sanitize_ai_message(raw)
+  local candidates = {}
+  for line in (raw or ''):gsub('\27%[[%d;]*m', ''):gmatch('[^\n]+') do
+    local trimmed = vim.trim(line)
+    trimmed = trimmed:gsub('^["`\']+', ''):gsub('["`\']+$', '')
+    if trimmed ~= '' and not trimmed:match('^```') then table.insert(candidates, trimmed) end
+  end
+
+  -- Prefer a Conventional Commit line: type(scope)!: description
+  for _, line in ipairs(candidates) do
+    if line:match('^%w[%w%-]*%s*%b()!?:%s') or line:match('^%w[%w%-]*!?:%s') then return line end
+  end
+
+  return candidates[#candidates]
+end
+
+-- Stage everything, ask a headless `opencode run` to draft a conventional
+-- commit message from the staged diff, then commit it (optionally pushing).
+function M.create_commit_with_ai(should_push)
+  return function()
+    vim.fn.system('git add -A')
+
+    local diff = vim.fn.system('git diff --cached')
+    if vim.trim(diff or '') == '' then
+      vim.notify('No staged changes to commit', vim.log.levels.WARN)
+      return
+    end
+
+    vim.notify('Generating commit message with opencode…', vim.log.levels.INFO)
+
+    local prompt = table.concat({
+      'Write a single-line Conventional Commit message for the staged git diff below.',
+      'Use the form type(scope): description (scope optional).',
+      'Respond with ONLY the commit message subject line and nothing else',
+      '— no body, no quotes, no code fences, no preamble, no explanation.',
+      '\n\n',
+      diff,
+    }, ' ')
+
+    async_utils.run_cmd({ 'opencode', 'run', '-m', AI_COMMIT_MODEL, prompt }, function(res)
+      if res.code ~= 0 then
+        local err = vim.trim((res.stderr or '') .. '\n' .. (res.stdout or ''))
+        vim.notify('opencode failed: ' .. (err ~= '' and err or 'unknown error'), vim.log.levels.ERROR)
+        return
+      end
+
+      local message = sanitize_ai_message(res.stdout)
+      if not message or message == '' then
+        vim.notify('opencode returned an empty commit message', vim.log.levels.ERROR)
+        return
+      end
+
+      vim.cmd(string.format('TermExec5 open=0 cmd=\'git commit --no-verify -m "%s"\'', util.shell_escape_message(message)))
+      if should_push then vim.cmd("TermExec3 open=0 cmd='git push'") end
+      vim.notify('Committed: ' .. message, vim.log.levels.INFO)
+    end)
+  end
+end
+
 function M.quick_commit_update()
   vim.cmd(string.format('TermExec5 open=0 cmd=\'git commit --no-verify -m "%s"\'', util.shell_escape_message(QUICK_UPDATE_MESSAGE)))
 end

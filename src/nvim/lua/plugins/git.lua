@@ -55,6 +55,7 @@ return {
     { mode = 'n', '<Leader>gCF', git_actions.create_commit('fix', '', true), desc = '󰜘 Commit fix' },
     { mode = 'n', '<Leader>gCR', git_actions.create_commit('revert', '', true), desc = '󰜘 Commit revert' },
     { mode = 'n', '<Leader>gCu', git_actions.create_commit('feat', '', true, true), desc = '󰜘 Commit update' },
+    { mode = 'n', '<Leader>gCg', git_actions.create_commit_with_ai(true), desc = '󰜘 AI commit + push (opencode)' },
     { mode = 'n', '<Leader>gcy', git_actions.quick_commit_update, desc = '󰜘 Quick commit update', silent = true },
 
     { mode = 'n', '<Leader>gca', git_actions.create_commit('ci', ''), desc = '󰜘 Commit actions' },
@@ -71,6 +72,7 @@ return {
     { mode = 'n', '<Leader>gcR', git_actions.create_commit('revert', ''), desc = '󰜘 Commit revert' },
     { mode = 'n', '<Leader>gcu', git_actions.create_commit('feat', '', false, true), desc = '󰜘 Commit update' },
     { mode = 'n', '<Leader>gcx', git_actions.create_commit_from_branch_name, desc = '󰜘 Commit from branch name', silent = true },
+    { mode = 'n', '<Leader>gcg', git_actions.create_commit_with_ai(false), desc = '󰜘 AI commit (opencode)', silent = true },
 
     { mode = 'n', '<Leader>gbd', git_actions.clear_develop_branch, desc = '󰘬 Clear develop (stash + pull)', silent = true },
 
