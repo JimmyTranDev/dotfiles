@@ -88,6 +88,7 @@ Map every request to the appropriate skill before acting.
 | Git worktrees in ~/Programming/wcreated & wcheckout (create/checkout/delete/update/clean) | `worktree-management` |
 | Bulk-prune managed worktrees whose branch is ALREADY MERGED into base/develop (the `worktree clean` op, ownership-aware: wcreated deletes the remote, wcheckout keeps it) | `cleanup-worktrees` |
 | Resolve in-progress git merge/rebase/cherry-pick conflicts (unmerged paths, conflict markers) | `merge-conflict-resolution` |
+| Resolve the merge conflicts on a PR (out of date with base) inside its existing local worktree — merge base in, resolve, verify, plain push (no rebase/force) | `resolve-pr-conflicts-worktree` |
 | Handle review comments on your own GitHub PR — address in code, reply, resolve threads | `handle-github-pr-comments` |
 | Handle your PR's review comments in the existing wcreated worktree you own — fix/reply, push, resolve (keep worktree while PR open) | `handle-pr-comments-worktree` |
 | Auto-address your PR's review comments by delegating to a headless `opencode run` in the existing wcreated worktree you own | `fix-worktree` |
